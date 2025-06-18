@@ -5,21 +5,23 @@ on:
   push:
     paths:
       - 'frontend/**'
-  pull_request:
-    paths:
-      - 'frontend/**'
 
 jobs:
   build:
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: frontend
     steps:
       - uses: actions/checkout@v3
-      - name: Install Node.js
+
+      - name: Setup Node
         uses: actions/setup-node@v4
         with:
           node-version: '20'
-      - name: Install dependencies and run build
-        run: |
-          cd frontend
-          npm install
-          npm run build
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Run build
+        run: npm run build
