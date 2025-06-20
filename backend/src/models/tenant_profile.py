@@ -1,0 +1,10 @@
+class TenantProfile(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey("user.id"), nullable=False)
+    phone = db.Column(db.String(20), nullable=False)
+    property_id = db.Column(db.Integer, db.ForeignKey("property.id"))
+    unit = db.Column(db.String(20))
+    lease_start = db.Column(db.Date)
+    lease_end = db.Column(db.Date)
+    monthly_rent = db.Column(db.Float)
+    emergency_contact = db.Column(db.String(255))
