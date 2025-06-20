@@ -9,7 +9,7 @@ import {
   Alert,
   CircularProgress,
 } from "@mui/material";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import axios from "axios";
 
 export default function Login() {
@@ -164,6 +164,13 @@ export default function Login() {
               {loading ? <CircularProgress size={22} color="inherit" /> : "Log In"}
             </Button>
           </form>
+
+          <Typography variant="body2" sx={{ mt: 3 }}>
+            Don't have an account?{" "}
+            <Link to="/signup" style={{ color: "#3B82F6", textDecoration: "none" }}>
+              Sign up
+            </Link>
+          </Typography>
         </Paper>
       </Box>
     </Box>

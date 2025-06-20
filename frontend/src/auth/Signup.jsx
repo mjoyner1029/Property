@@ -1,96 +1,200 @@
-import React, { useState } from 'react';
-import PasswordStrengthBar from '../components/PasswordStrengthBar';
+import React, { useState } from "react";
+import {
+  Box,
+  Button,
+  TextField,
+  Typography,
+  Paper,
+  Alert,
+  CircularProgress,
+  FormControlLabel,
+  Checkbox,
+} from "@mui/material";
+import { useNavigate } from "react-router-dom";
+import axios from "axios";
 
-const Signup = () => {
-  const [form, setForm] = useState({
-    fullName: '',
-    email: '',
-    password: '',
-    role: 'tenant',
-    tosAgreed: false,
+export default function Signup() {
+  const [formData, setFormData] = useState({
+    full_name: "",
+    email: "",
+    password: "",
+    role: "tenant",
+    tos_agreed: false,
   });
 
-  const handleChange = (e) => {
-    const { name, value, type, checked } = e.target;
-    setForm({
-      ...form,
-      [name]: type === 'checkbox' ? checked : value,
-    });
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+  const navigate = useNavigate();
+
+  const handleChange = (field) => (e) => {
+    const value = field === "tos_agreed" ? e.target.checked : e.target.value;
+    setFormData({ ...formData, [field]: value });
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    // submit logic here
-    console.log('Submitting signup form', form);
+    setError("");
+    setLoading(true);
+
+    try {
+      const res = await axios.post("/api/auth/signup", formData);
+      localStorage.setItem("role", formData.role);
+      navigate(`/onboarding/${formData.role}`);
+    } catch (err) {
+      setError(err.response?.data?.msg || "Signup failed");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
-    <div className="max-w-md mx-auto mt-10 p-6 bg-white rounded shadow">
-      <h2 className="text-xl font-bold mb-4">Sign Up</h2>
-      <form onSubmit={handleSubmit} className="space-y-4">
-        <input
-          type="text"
-          name="fullName"
-          placeholder="Full Name"
-          value={form.fullName}
-          onChange={handleChange}
-          className="w-full border p-2 rounded"
+    <Box
+      sx={{
+        display: "flex",
+        minHeight: "100vh",
+        backgroundColor: "#121417",
+        color: "#F3F4F6",
+      }}
+    >
+      {/* Left: Logo */}
+      <Box
+        sx={{
+          flex: 1,
+          display: { xs: "none", md: "flex" },
+          justifyContent: "center",
+          alignItems: "center",
+          backgroundColor: "#1F2327",
+        }}
+      >
+        <img
+          src="/portfolio_pilot.png"
+          alt="Portfolio Pilot Logo"
+          style={{
+            maxWidth: "400px",
+            height: "auto",
+            objectFit: "contain",
+            padding: "2rem",
+          }}
         />
-        <input
-          type="email"
-          name="email"
-          placeholder="Email"
-          value={form.email}
-          onChange={handleChange}
-          className="w-full border p-2 rounded"
-        />
-        <input
-          type="password"
-          name="password"
-          placeholder="Password"
-          value={form.password}
-          onChange={handleChange}
-          className="w-full border p-2 rounded"
-        />
+      </Box>
 
-        {/* Strength Meter */}
-        <PasswordStrengthBar password={form.password} />
-
-        <div className="flex items-center space-x-2">
-          <label className="text-sm font-medium">Role:</label>
-          <select
-            name="role"
-            value={form.role}
-            onChange={handleChange}
-            className="border p-1 rounded"
-          >
-            <option value="tenant">Tenant</option>
-            <option value="landlord">Landlord</option>
-          </select>
-        </div>
-
-        <div className="flex items-center space-x-2">
-          <input
-            type="checkbox"
-            name="tosAgreed"
-            checked={form.tosAgreed}
-            onChange={handleChange}
-          />
-          <label className="text-sm">
-            I agree to the Terms of Service and Privacy Policy
-          </label>
-        </div>
-
-        <button
-          type="submit"
-          disabled={!form.tosAgreed}
-          className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
+      {/* Right: Signup Form */}
+      <Box
+        sx={{
+          flex: 1,
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
+          p: 4,
+        }}
+      >
+        <Paper
+          sx={{
+            width: "100%",
+            maxWidth: 400,
+            p: 4,
+            backgroundColor: "#1F2327",
+            color: "#F3F4F6",
+            textAlign: "center",
+          }}
+          elevation={6}
         >
-          Sign Up
-        </button>
-      </form>
-    </div>
-  );
-};
+          <Typography variant="h4" sx={{ mb: 2 }}>
+            PortfolioPilot
+          </Typography>
+          <Typography variant="h6" gutterBottom>
+            Sign Up
+          </Typography>
 
-export default Signup;
+          {error && (
+            <Alert severity="error" sx={{ mb: 2 }}>
+              {error}
+            </Alert>
+          )}
+
+          <form onSubmit={handleSubmit}>
+            <TextField
+              label="Full Name"
+              fullWidth
+              required
+              margin="normal"
+              value={formData.full_name}
+              onChange={handleChange("full_name")}
+              InputProps={{ style: { color: "#F3F4F6" } }}
+              InputLabelProps={{ style: { color: "#9CA3AF" } }}
+            />
+
+            <TextField
+              label="Email"
+              fullWidth
+              required
+              margin="normal"
+              type="email"
+              value={formData.email}
+              onChange={handleChange("email")}
+              InputProps={{ style: { color: "#F3F4F6" } }}
+              InputLabelProps={{ style: { color: "#9CA3AF" } }}
+            />
+
+            <TextField
+              label="Password"
+              fullWidth
+              required
+              margin="normal"
+              type="password"
+              value={formData.password}
+              onChange={handleChange("password")}
+              InputProps={{ style: { color: "#F3F4F6" } }}
+              InputLabelProps={{ style: { color: "#9CA3AF" } }}
+            />
+
+            <Box sx={{ mt: 2, display: "flex", justifyContent: "space-between" }}>
+              <Button
+                variant={formData.role === "landlord" ? "contained" : "outlined"}
+                fullWidth
+                sx={{ mr: 1 }}
+                onClick={() => setFormData({ ...formData, role: "landlord" })}
+              >
+                Landlord
+              </Button>
+              <Button
+                variant={formData.role === "tenant" ? "contained" : "outlined"}
+                fullWidth
+                sx={{ ml: 1 }}
+                onClick={() => setFormData({ ...formData, role: "tenant" })}
+              >
+                Tenant
+              </Button>
+            </Box>
+
+            <FormControlLabel
+              control={
+                <Checkbox
+                  checked={formData.tos_agreed}
+                  onChange={handleChange("tos_agreed")}
+                  sx={{ color: "#9CA3AF" }}
+                />
+              }
+              label={
+                <Typography sx={{ color: "#9CA3AF", fontSize: "0.875rem" }}>
+                  I agree to the <a href="/terms" style={{ color: "#3B82F6" }}>Terms of Service</a>
+                </Typography>
+              }
+              sx={{ mt: 2, alignItems: "flex-start" }}
+            />
+
+            <Button
+              type="submit"
+              fullWidth
+              disabled={loading}
+              variant="contained"
+              sx={{ mt: 3, backgroundColor: "#3B82F6", "&:hover": { backgroundColor: "#2563EB" } }}
+            >
+              {loading ? <CircularProgress size={22} color="inherit" /> : "Continue"}
+            </Button>
+          </form>
+        </Paper>
+      </Box>
+    </Box>
+  );
+}
