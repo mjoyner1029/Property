@@ -1,50 +1,96 @@
-import React, { useState } from "react";
-import { Box, Button, TextField, Typography, Checkbox, FormControlLabel, Alert } from "@mui/material";
-import { useNavigate } from "react-router-dom";
-import axios from "axios";
-import PasswordStrengthBar from "../components/PasswordStrengthBar";
+import React, { useState } from 'react';
+import PasswordStrengthBar from '../components/PasswordStrengthBar';
 
-export default function Signup() {
-  const [form, setForm] = useState({ full_name: "", email: "", password: "", role: "tenant" });
-  const [tos, setTos] = useState(false);
-  const [error, setError] = useState("");
-  const navigate = useNavigate();
+const Signup = () => {
+  const [form, setForm] = useState({
+    fullName: '',
+    email: '',
+    password: '',
+    role: 'tenant',
+    tosAgreed: false,
+  });
 
   const handleChange = (e) => {
-    setForm({ ...form, [e.target.name]: e.target.value });
+    const { name, value, type, checked } = e.target;
+    setForm({
+      ...form,
+      [name]: type === 'checkbox' ? checked : value,
+    });
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!tos) return setError("You must agree to the Terms of Service");
-    try {
-      const res = await axios.post("/api/auth/signup", form);
-      const { user_id, role } = res.data;
-      navigate(`/onboarding/${role}?user_id=${user_id}`);
-    } catch (err) {
-      setError(err.response?.data?.error || "Signup failed");
-    }
+    // submit logic here
+    console.log('Submitting signup form', form);
   };
 
   return (
-    <Box sx={{ maxWidth: 400, mx: "auto", mt: 8, p: 3, background: "#1F2327", color: "white", borderRadius: 2 }}>
-      <Typography variant="h5" gutterBottom>Sign Up</Typography>
-      {error && <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>}
-      <form onSubmit={handleSubmit}>
-        <TextField name="full_name" label="Full Name" fullWidth required onChange={handleChange} margin="normal" />
-        <TextField name="email" label="Email" fullWidth required onChange={handleChange} margin="normal" />
-        <TextField name="password" label="Password" type="password" fullWidth required onChange={handleChange} margin="normal" />
-        <PasswordStrengthBar password={form.password} />
-        <Box sx={{ display: "flex", mt: 2, gap: 2 }}>
-          <Button variant={form.role === "landlord" ? "contained" : "outlined"} onClick={() => setForm({ ...form, role: "landlord" })}>Landlord</Button>
-          <Button variant={form.role === "tenant" ? "contained" : "outlined"} onClick={() => setForm({ ...form, role: "tenant" })}>Tenant</Button>
-        </Box>
-        <FormControlLabel
-          control={<Checkbox checked={tos} onChange={(e) => setTos(e.target.checked)} />}
-          label="I agree to the Terms of Service & Privacy Policy"
+    <div className="max-w-md mx-auto mt-10 p-6 bg-white rounded shadow">
+      <h2 className="text-xl font-bold mb-4">Sign Up</h2>
+      <form onSubmit={handleSubmit} className="space-y-4">
+        <input
+          type="text"
+          name="fullName"
+          placeholder="Full Name"
+          value={form.fullName}
+          onChange={handleChange}
+          className="w-full border p-2 rounded"
         />
-        <Button type="submit" fullWidth variant="contained" sx={{ mt: 2 }}>Create Account</Button>
+        <input
+          type="email"
+          name="email"
+          placeholder="Email"
+          value={form.email}
+          onChange={handleChange}
+          className="w-full border p-2 rounded"
+        />
+        <input
+          type="password"
+          name="password"
+          placeholder="Password"
+          value={form.password}
+          onChange={handleChange}
+          className="w-full border p-2 rounded"
+        />
+
+        {/* Strength Meter */}
+        <PasswordStrengthBar password={form.password} />
+
+        <div className="flex items-center space-x-2">
+          <label className="text-sm font-medium">Role:</label>
+          <select
+            name="role"
+            value={form.role}
+            onChange={handleChange}
+            className="border p-1 rounded"
+          >
+            <option value="tenant">Tenant</option>
+            <option value="landlord">Landlord</option>
+          </select>
+        </div>
+
+        <div className="flex items-center space-x-2">
+          <input
+            type="checkbox"
+            name="tosAgreed"
+            checked={form.tosAgreed}
+            onChange={handleChange}
+          />
+          <label className="text-sm">
+            I agree to the Terms of Service and Privacy Policy
+          </label>
+        </div>
+
+        <button
+          type="submit"
+          disabled={!form.tosAgreed}
+          className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
+        >
+          Sign Up
+        </button>
       </form>
-    </Box>
+    </div>
   );
-}
+};
+
+export default Signup;
