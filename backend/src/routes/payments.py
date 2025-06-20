@@ -1,8 +1,7 @@
 # backend/src/routes/payments.py
-
 from flask import Blueprint, request, jsonify
-from ..extensions import db
-from ..models.payment import Payment
+from src.extensions import db
+from src.models.payment import Payment
 
 bp = Blueprint("payments", __name__, url_prefix="/api/payments")
 

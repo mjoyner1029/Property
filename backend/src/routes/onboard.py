@@ -1,8 +1,10 @@
-# backend/src/routes/onboard.py
 from flask import Blueprint, request, jsonify
 from flask_jwt_extended import jwt_required, get_jwt_identity
-from ..extensions import db
-from ..models import LandlordProfile, TenantProfile, Property, Lease
+from src.extensions import db
+from src.models.landlord_profile import LandlordProfile
+from src.models.tenant_profile import TenantProfile
+from src.models.property import Property
+from src.models.lease import Lease
 
 bp = Blueprint("onboard", __name__, url_prefix="/api/onboard")
 
@@ -11,7 +13,6 @@ bp = Blueprint("onboard", __name__, url_prefix="/api/onboard")
 def onboard_landlord():
     user_id = get_jwt_identity()["id"]
     data = request.get_json()
-
     phone = data.get("phone")
     company = data.get("company_name")
     properties = data.get("properties", [])
@@ -34,7 +35,6 @@ def onboard_landlord():
 
     db.session.commit()
     return jsonify({"msg": "Landlord onboarding completed"}), 201
-
 
 @bp.route("/tenant", methods=["POST"])
 @jwt_required()

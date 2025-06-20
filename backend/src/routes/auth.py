@@ -1,10 +1,11 @@
 # backend/src/routes/auth.py
+
 from flask import Blueprint, request, jsonify
-from ..models.user import User
-from ..extensions import db
-from ..utils.jwt import create_access_token
+from src.models.user import User
+from src.extensions import db
+from src.utils.jwt import create_access_token
 from werkzeug.security import generate_password_hash, check_password_hash
-from ..utils.validation import (
+from src.utils.validation import (
     is_valid_email,
     is_strong_password
 )
@@ -13,9 +14,12 @@ bp = Blueprint("auth", __name__, url_prefix="/api/auth")
 
 @bp.route("/signup", methods=["POST"])
 def signup():
+    print("HEADERS:", dict(request.headers))
+    print("JSON BODY:", request.get_json())
+
     data = request.get_json()
     required_fields = ["email", "password", "role", "full_name", "tos_agreed"]
-    if not all(field in data for field in required_fields):
+    if not data or not all(field in data for field in required_fields):
         return jsonify({"msg": "Missing required signup fields"}), 400
 
     email = data["email"].lower().strip()
@@ -41,8 +45,6 @@ def signup():
 
     db.session.add(user)
     db.session.commit()
-
-    # Optional: send verification email here
 
     return jsonify({"msg": "User created", "user_id": user.id, "role": role}), 201
 

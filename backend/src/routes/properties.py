@@ -1,8 +1,7 @@
 # backend/src/routes/properties.py
-
 from flask import Blueprint, request, jsonify
-from ..extensions import db
-from ..models.property import Property
+from src.extensions import db
+from src.models.property import Property
 
 bp = Blueprint("properties", __name__, url_prefix="/api/properties")
 

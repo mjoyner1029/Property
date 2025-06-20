@@ -1,8 +1,8 @@
 # backend/src/routes/maintenance.py
 
 from flask import Blueprint, request, jsonify
-from ..extensions import db
-from ..models.maintenance_request import MaintenanceRequest
+from src.extensions import db
+from src.models.maintenance_request import MaintenanceRequest
 
 bp = Blueprint("maintenance", __name__, url_prefix="/api/maintenance")
 
