@@ -1,14 +1,23 @@
 import React, { useState } from "react";
+import {
+  Home,
+  Building2,
+  Users,
+  CreditCard,
+  Settings,
+  Menu,
+  Bell,
+} from "lucide-react";
 
 export default function Layout({ children }) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   const navItems = [
-    { name: "Dashboard", icon: "📊", href: "/dashboard" },
-    { name: "Properties", icon: "🏢", href: "/properties" },
-    { name: "Tenants", icon: "👥", href: "/tenants" },
-    { name: "Payments", icon: "💳", href: "/payments" },
-    { name: "Settings", icon: "⚙️", href: "/settings" },
+    { name: "Dashboard", icon: <Home size={16} />, href: "/dashboard" },
+    { name: "Properties", icon: <Building2 size={16} />, href: "/properties" },
+    { name: "Tenants", icon: <Users size={16} />, href: "/tenants" },
+    { name: "Payments", icon: <CreditCard size={16} />, href: "/payments" },
+    { name: "Settings", icon: <Settings size={16} />, href: "/settings" },
   ];
 
   return (
@@ -19,7 +28,9 @@ export default function Layout({ children }) {
           sidebarOpen ? "translate-x-0" : "-translate-x-full"
         } md:translate-x-0 md:static transition-transform duration-300 ease-in-out bg-[#1F2327] overflow-y-auto`}
       >
-        <div className="p-4 text-lg font-bold tracking-wide text-white">🏠 PortfolioPilot</div>
+        <div className="p-4 text-lg font-bold tracking-wide text-white">
+          PortfolioPilot
+        </div>
         <nav className="mt-4 space-y-1 px-4">
           {navItems.map((item) => (
             <a
@@ -27,7 +38,7 @@ export default function Layout({ children }) {
               href={item.href}
               className="flex items-center space-x-3 px-4 py-2 rounded-md hover:bg-[#2A2E33] transition-colors"
             >
-              <span>{item.icon}</span>
+              {item.icon}
               <span className="text-sm">{item.name}</span>
             </a>
           ))}
@@ -42,12 +53,13 @@ export default function Layout({ children }) {
             onClick={() => setSidebarOpen(!sidebarOpen)}
             className="md:hidden text-[#F3F4F6]"
           >
-            ☰
+            <Menu />
           </button>
           <div className="flex items-center gap-4 ml-auto">
             <button className="bg-[#3B82F6] hover:bg-[#2563EB] text-white px-4 py-1.5 text-sm rounded-full transition">
               + Add Property
             </button>
+            <Bell className="text-[#F3F4F6]" size={18} />
             <div className="w-9 h-9 rounded-full bg-gray-400 overflow-hidden">
               <img
                 src="https://i.pravatar.cc/36?img=8"
