@@ -5,12 +5,9 @@ import {
   Typography,
   CircularProgress,
   Alert,
-  Table,
-  TableHead,
-  TableRow,
-  TableCell,
-  TableBody,
-  TablePagination,
+  List,
+  ListItem,
+  ListItemText,
   Paper,
 } from "@mui/material";
 import axios from "axios";
@@ -19,8 +16,6 @@ export default function Maintenance() {
   const [requests, setRequests] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
-  const [page, setPage] = useState(0);
-  const [rowsPerPage, setRowsPerPage] = useState(5);
 
   useEffect(() => {
     axios.get("/api/maintenance")
@@ -37,40 +32,17 @@ export default function Maintenance() {
       ) : error ? (
         <Alert severity="error">{error}</Alert>
       ) : (
-        <Paper>
-          <Table>
-            <TableHead>
-              <TableRow>
-                <TableCell>ID</TableCell>
-                <TableCell>Description</TableCell>
-                <TableCell>Status</TableCell>
-                <TableCell>Created At</TableCell>
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {requests
-                .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
-                .map((r) => (
-                  <TableRow key={r.id}>
-                    <TableCell>{r.id}</TableCell>
-                    <TableCell>{r.description}</TableCell>
-                    <TableCell>{r.status}</TableCell>
-                    <TableCell>{r.created_at}</TableCell>
-                  </TableRow>
-                ))}
-            </TableBody>
-          </Table>
-          <TablePagination
-            component="div"
-            count={requests.length}
-            page={page}
-            onPageChange={(e, newPage) => setPage(newPage)}
-            rowsPerPage={rowsPerPage}
-            onRowsPerPageChange={(e) => {
-              setRowsPerPage(+e.target.value);
-              setPage(0);
-            }}
-          />
+        <Paper sx={{ mt: 2 }}>
+          <List>
+            {requests.map((req) => (
+              <ListItem key={req.id}>
+                <ListItemText
+                  primary={req.title}
+                  secondary={`${req.description} – Status: ${req.status}`}
+                />
+              </ListItem>
+            ))}
+          </List>
         </Paper>
       )}
     </Box>

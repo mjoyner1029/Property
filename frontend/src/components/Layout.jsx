@@ -1,78 +1,144 @@
+// frontend/src/auth/Login.jsx
 import React, { useState } from "react";
 import {
-  Home,
-  Building2,
-  Users,
-  CreditCard,
-  Settings,
-  Menu,
-  Bell,
-} from "lucide-react";
+  Box,
+  Button,
+  TextField,
+  Typography,
+  Paper,
+  Alert,
+  CircularProgress,
+} from "@mui/material";
+import { useNavigate } from "react-router-dom";
+import axios from "axios";
 
-export default function Layout({ children }) {
-  const [sidebarOpen, setSidebarOpen] = useState(false);
+export default function Login() {
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [role, setRole] = useState("tenant");
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
 
-  const navItems = [
-    { name: "Dashboard", icon: <Home size={16} />, href: "/dashboard" },
-    { name: "Properties", icon: <Building2 size={16} />, href: "/properties" },
-    { name: "Tenants", icon: <Users size={16} />, href: "/tenants" },
-    { name: "Payments", icon: <CreditCard size={16} />, href: "/payments" },
-    { name: "Settings", icon: <Settings size={16} />, href: "/settings" },
-  ];
+  const navigate = useNavigate();
+
+  const handleLogin = async () => {
+    setLoading(true);
+    setError("");
+    try {
+      const res = await axios.post("/api/login", {
+        email,
+        password,
+        role,
+      });
+
+      const token = res.data.access_token;
+      const user = res.data.user;
+
+      localStorage.setItem("token", token);
+      localStorage.setItem("user", JSON.stringify(user));
+
+      navigate("/dashboard");
+    } catch (err) {
+      console.error("Login error", err);
+      setError("Invalid email or password");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
-    <div className="flex h-screen bg-[#121417] text-[#F3F4F6] font-inter">
-      {/* Sidebar */}
-      <div
-        className={`fixed z-40 inset-y-0 left-0 w-64 transform ${
-          sidebarOpen ? "translate-x-0" : "-translate-x-full"
-        } md:translate-x-0 md:static transition-transform duration-300 ease-in-out bg-[#1F2327] overflow-y-auto`}
+    <Box
+      sx={{
+        backgroundColor: "#121417",
+        color: "#F3F4F6",
+        minHeight: "100vh",
+        display: "flex",
+        justifyContent: "center",
+        alignItems: "center",
+        p: 2,
+      }}
+    >
+      <Paper
+        sx={{
+          width: 360,
+          p: 4,
+          textAlign: "center",
+          backgroundColor: "#1F2327",
+          color: "#F3F4F6",
+        }}
+        elevation={6}
       >
-        <div className="p-4 text-lg font-bold tracking-wide text-white">
-          PortfolioPilot
-        </div>
-        <nav className="mt-4 space-y-1 px-4">
-          {navItems.map((item) => (
-            <a
-              key={item.name}
-              href={item.href}
-              className="flex items-center space-x-3 px-4 py-2 rounded-md hover:bg-[#2A2E33] transition-colors"
-            >
-              {item.icon}
-              <span className="text-sm">{item.name}</span>
-            </a>
-          ))}
-        </nav>
-      </div>
+        <img
+          src="/logo.png"
+          alt="Portfolio Pilot Logo"
+          style={{ width: "150px", marginBottom: "1rem" }}
+        />
 
-      {/* Main Content */}
-      <div className="flex flex-col flex-1 ml-0 md:ml-64">
-        {/* Topbar */}
-        <header className="sticky top-0 z-30 backdrop-blur bg-[#121417]/80 border-b border-[#2A2E33] px-4 py-3 flex justify-between items-center">
-          <button
-            onClick={() => setSidebarOpen(!sidebarOpen)}
-            className="md:hidden text-[#F3F4F6]"
+        <Typography variant="h5" gutterBottom>
+          Login
+        </Typography>
+
+        {error && (
+          <Alert severity="error" sx={{ mb: 2 }}>
+            {error}
+          </Alert>
+        )}
+
+        <TextField
+          label="Email"
+          type="email"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          fullWidth
+          margin="normal"
+          variant="outlined"
+          InputProps={{ style: { color: "#F3F4F6" } }}
+          InputLabelProps={{ style: { color: "#9CA3AF" } }}
+        />
+
+        <TextField
+          label="Password"
+          type="password"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+          fullWidth
+          margin="normal"
+          variant="outlined"
+          InputProps={{ style: { color: "#F3F4F6" } }}
+          InputLabelProps={{ style: { color: "#9CA3AF" } }}
+        />
+
+        <Box sx={{ mt: 2, display: "flex", justifyContent: "space-between" }}>
+          <Button
+            variant={role === "landlord" ? "contained" : "outlined"}
+            color="primary"
+            fullWidth
+            sx={{ mr: 1 }}
+            onClick={() => setRole("landlord")}
           >
-            <Menu />
-          </button>
-          <div className="flex items-center gap-4 ml-auto">
-            <button className="bg-[#3B82F6] hover:bg-[#2563EB] text-white px-4 py-1.5 text-sm rounded-full transition">
-              + Add Property
-            </button>
-            <Bell className="text-[#F3F4F6]" size={18} />
-            <div className="w-9 h-9 rounded-full bg-gray-400 overflow-hidden">
-              <img
-                src="https://i.pravatar.cc/36?img=8"
-                alt="profile"
-                className="w-full h-full object-cover"
-              />
-            </div>
-          </div>
-        </header>
+            Landlord
+          </Button>
+          <Button
+            variant={role === "tenant" ? "contained" : "outlined"}
+            color="primary"
+            fullWidth
+            sx={{ ml: 1 }}
+            onClick={() => setRole("tenant")}
+          >
+            Tenant
+          </Button>
+        </Box>
 
-        {/* Page Content */}
-        <main className="p-6 overflow-y-auto flex-1">{children}</main>
-      </div>
-    </div>
+        <Button
+          fullWidth
+          disabled={loading}
+          variant="contained"
+          sx={{ mt: 3, backgroundColor: "#3B82F6", "&:hover": { backgroundColor: "#2563EB" } }}
+          onClick={handleLogin}
+        >
+          {loading ? <CircularProgress size={22} color="inherit" /> : "Log In"}
+        </Button>
+      </Paper>
+    </Box>
   );
 }

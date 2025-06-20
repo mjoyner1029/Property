@@ -10,8 +10,8 @@ import {
   TableRow,
   TableCell,
   TableBody,
-  TablePagination,
   Paper,
+  TablePagination,
 } from "@mui/material";
 import axios from "axios";
 
@@ -29,15 +29,9 @@ export default function Tenants() {
       .finally(() => setLoading(false));
   }, []);
 
-  const handleChangePage = (event, newPage) => setPage(newPage);
-  const handleChangeRowsPerPage = (event) => {
-    setRowsPerPage(+event.target.value);
-    setPage(0);
-  };
-
   return (
     <Box sx={{ p: 3 }}>
-      <Typography variant="h4" gutterBottom>Tenants</Typography>
+      <Typography variant="h4">Tenants</Typography>
       {loading ? (
         <CircularProgress />
       ) : error ? (
@@ -47,11 +41,9 @@ export default function Tenants() {
           <Table>
             <TableHead>
               <TableRow>
-                <TableCell>ID</TableCell>
-                <TableCell>User ID</TableCell>
-                <TableCell>Unit</TableCell>
-                <TableCell>Lease Start</TableCell>
-                <TableCell>Lease End</TableCell>
+                <TableCell>Name</TableCell>
+                <TableCell>Email</TableCell>
+                <TableCell>Phone</TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
@@ -59,11 +51,9 @@ export default function Tenants() {
                 .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
                 .map((t) => (
                   <TableRow key={t.id}>
-                    <TableCell>{t.id}</TableCell>
-                    <TableCell>{t.user_id}</TableCell>
-                    <TableCell>{t.unit}</TableCell>
-                    <TableCell>{t.lease_start}</TableCell>
-                    <TableCell>{t.lease_end}</TableCell>
+                    <TableCell>{t.name}</TableCell>
+                    <TableCell>{t.email}</TableCell>
+                    <TableCell>{t.phone}</TableCell>
                   </TableRow>
                 ))}
             </TableBody>
@@ -72,9 +62,12 @@ export default function Tenants() {
             component="div"
             count={tenants.length}
             page={page}
-            onPageChange={handleChangePage}
+            onPageChange={(e, newPage) => setPage(newPage)}
             rowsPerPage={rowsPerPage}
-            onRowsPerPageChange={handleChangeRowsPerPage}
+            onRowsPerPageChange={(e) => {
+              setRowsPerPage(+e.target.value);
+              setPage(0);
+            }}
           />
         </Paper>
       )}

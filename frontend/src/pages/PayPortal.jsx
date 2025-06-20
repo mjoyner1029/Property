@@ -5,58 +5,44 @@ import {
   Typography,
   CircularProgress,
   Alert,
-  Table,
-  TableHead,
-  TableRow,
-  TableCell,
-  TableBody,
   Paper,
+  List,
+  ListItem,
+  ListItemText,
 } from "@mui/material";
 import axios from "axios";
 
 export default function PayPortal() {
-  const [myPayments, setMyPayments] = useState([]);
+  const [payments, setPayments] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
   useEffect(() => {
-    axios.get("/api/payments") // optionally filter on backend by tenant ID
-      .then(res => setMyPayments(res.data))
-      .catch(() => setError("Unable to load your payments"))
+    axios.get("/api/payments")
+      .then(res => setPayments(res.data))
+      .catch(() => setError("Failed to load payments"))
       .finally(() => setLoading(false));
   }, []);
 
   return (
     <Box sx={{ p: 3 }}>
-      <Typography variant="h4">My Payment Portal</Typography>
+      <Typography variant="h4">Pay Your Rent</Typography>
       {loading ? (
         <CircularProgress />
       ) : error ? (
         <Alert severity="error">{error}</Alert>
-      ) : myPayments.length === 0 ? (
-        <Typography>No payments found.</Typography>
       ) : (
-        <Paper>
-          <Table>
-            <TableHead>
-              <TableRow>
-                <TableCell>Amount</TableCell>
-                <TableCell>Status</TableCell>
-                <TableCell>Due</TableCell>
-                <TableCell>Paid</TableCell>
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {myPayments.map((p) => (
-                <TableRow key={p.id}>
-                  <TableCell>${p.amount}</TableCell>
-                  <TableCell>{p.status}</TableCell>
-                  <TableCell>{p.due_date}</TableCell>
-                  <TableCell>{p.paid_date || "—"}</TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
+        <Paper sx={{ mt: 2 }}>
+          <List>
+            {payments.map((pay) => (
+              <ListItem key={pay.id}>
+                <ListItemText
+                  primary={`Amount: $${pay.amount}`}
+                  secondary={`Due: ${pay.due_date} – Status: ${pay.status}`}
+                />
+              </ListItem>
+            ))}
+          </List>
         </Paper>
       )}
     </Box>

@@ -1,6 +1,13 @@
 // frontend/src/pages/Dashboard.jsx
 import React, { useEffect, useState } from "react";
-import { Box, Typography, Paper, Grid, CircularProgress, Alert } from "@mui/material";
+import {
+  Box,
+  Typography,
+  Paper,
+  Grid,
+  CircularProgress,
+  Alert,
+} from "@mui/material";
 import axios from "axios";
 
 export default function Dashboard() {
@@ -16,7 +23,7 @@ export default function Dashboard() {
     ])
       .then(([tenantsRes, propsRes, paymentsRes]) => {
         const pendingTotal = paymentsRes.data
-          .filter(p => p.status === "pending")
+          .filter((p) => p.status === "pending")
           .reduce((sum, p) => sum + p.amount, 0);
 
         setData({

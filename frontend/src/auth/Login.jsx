@@ -1,56 +1,171 @@
+// frontend/src/auth/Login.jsx
 import React, { useState } from "react";
+import {
+  Box,
+  Button,
+  TextField,
+  Typography,
+  Paper,
+  Alert,
+  CircularProgress,
+} from "@mui/material";
 import { useNavigate } from "react-router-dom";
-import { TextField, Button, Typography, Box } from "@mui/material";
 import axios from "axios";
 
 export default function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [role, setRole] = useState("tenant");
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+
   const navigate = useNavigate();
 
   const handleLogin = async (e) => {
     e.preventDefault();
-    if (!email || !password) {
-      setError("Email and password are required");
-      return;
-    }
+    setLoading(true);
+    setError("");
+
     try {
-      const res = await axios.post("/api/auth/login", { email, password });
+      const res = await axios.post("/api/auth/login", { email, password, role });
       localStorage.setItem("token", res.data.access_token);
-      localStorage.setItem("user", JSON.stringify(res.data.user)); // if sent
+      localStorage.setItem("user", JSON.stringify(res.data.user));
       navigate("/dashboard");
     } catch (err) {
-      setError("Login failed");
+      setError("Login failed: Invalid credentials");
+    } finally {
+      setLoading(false);
     }
   };
 
   return (
-    <Box sx={{ maxWidth: 400, mx: "auto", mt: 8 }}>
-      <Typography variant="h5" gutterBottom>Login</Typography>
-      <form onSubmit={handleLogin}>
-        <TextField
-          label="Email"
-          fullWidth
-          required
-          margin="normal"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
+    <Box
+      sx={{
+        display: "flex",
+        minHeight: "100vh",
+        backgroundColor: "#121417",
+        color: "#F3F4F6",
+      }}
+    >
+      {/* Left side with image/logo */}
+      <Box
+        sx={{
+          flex: 1,
+          display: { xs: "none", md: "flex" },
+          justifyContent: "center",
+          alignItems: "center",
+          backgroundColor: "#1F2327",
+        }}
+      >
+        <img
+          src="/portfolio_pilot.png"
+          alt="Portfolio Pilot Logo"
+          style={{
+            maxWidth: "400%",
+            maxHeight: "700px",
+            height: "auto",
+            width: "auto",
+            objectFit: "contain",
+            padding: "2rem",
+          }}
         />
-        <TextField
-          label="Password"
-          type="password"
-          fullWidth
-          required
-          margin="normal"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-        />
-        {error && <Typography color="error">{error}</Typography>}
-        <Button type="submit" variant="contained" fullWidth sx={{ mt: 2 }}>
-          Log In
-        </Button>
-      </form>
+      </Box>
+
+      {/* Right side login form */}
+      <Box
+        sx={{
+          flex: 1,
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
+          p: 4,
+        }}
+      >
+        <Paper
+          sx={{
+            width: "100%",
+            maxWidth: 400,
+            p: 4,
+            backgroundColor: "#1F2327",
+            color: "#F3F4F6",
+            textAlign: "center",
+          }}
+          elevation={6}
+        >
+          <Typography variant="h4" sx={{ mb: 2 }}>
+            PortfolioPilot
+          </Typography>
+          <Typography variant="h6" gutterBottom>
+            Login
+          </Typography>
+
+          {error && (
+            <Alert severity="error" sx={{ my: 2 }}>
+              {error}
+            </Alert>
+          )}
+
+          <form onSubmit={handleLogin}>
+            <TextField
+              label="Email"
+              fullWidth
+              type="email"
+              required
+              margin="normal"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              InputProps={{ style: { color: "#F3F4F6" } }}
+              InputLabelProps={{ style: { color: "#9CA3AF" } }}
+            />
+            <TextField
+              label="Password"
+              type="password"
+              fullWidth
+              required
+              margin="normal"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              InputProps={{ style: { color: "#F3F4F6" } }}
+              InputLabelProps={{ style: { color: "#9CA3AF" } }}
+            />
+
+            <Box sx={{ mt: 2, display: "flex", justifyContent: "space-between" }}>
+              <Button
+                variant={role === "landlord" ? "contained" : "outlined"}
+                color="primary"
+                fullWidth
+                sx={{ mr: 1 }}
+                onClick={() => setRole("landlord")}
+              >
+                Landlord
+              </Button>
+              <Button
+                variant={role === "tenant" ? "contained" : "outlined"}
+                color="primary"
+                fullWidth
+                sx={{ ml: 1 }}
+                onClick={() => setRole("tenant")}
+              >
+                Tenant
+              </Button>
+            </Box>
+
+            <Button
+              type="submit"
+              fullWidth
+              disabled={loading}
+              variant="contained"
+              sx={{
+                mt: 3,
+                backgroundColor: "#3B82F6",
+                "&:hover": { backgroundColor: "#2563EB" },
+              }}
+            >
+              {loading ? <CircularProgress size={22} color="inherit" /> : "Log In"}
+            </Button>
+          </form>
+        </Paper>
+      </Box>
     </Box>
   );
 }
