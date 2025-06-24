@@ -22,10 +22,7 @@ services:
         sync: false
     autoDeploy: true
     region: oregon
-    buildFilter:
-      paths:
-        - backend/**/*
-    repo: https://github.com/your-username/your-repo-name
+    repo: https://github.com/mjoyner1029/Property.git
     rootDir: backend
 
   - type: web
@@ -39,8 +36,5 @@ services:
         value: production
     autoDeploy: true
     region: oregon
-    buildFilter:
-      paths:
-        - frontend/**/*
-    repo: https://github.com/your-username/your-repo-name
+    repo: https://github.com/mjoyner1029/Property.git
     rootDir: frontend
