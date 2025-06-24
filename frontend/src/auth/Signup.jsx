@@ -36,6 +36,8 @@ export default function Signup() {
     setError("");
     setLoading(true);
 
+    console.log("Submitting signup:", formData); // Debug line
+
     try {
       const res = await axios.post("/api/auth/signup", formData);
       localStorage.setItem("role", formData.role);
@@ -177,7 +179,10 @@ export default function Signup() {
               }
               label={
                 <Typography sx={{ color: "#9CA3AF", fontSize: "0.875rem" }}>
-                  I agree to the <a href="/terms" style={{ color: "#3B82F6" }}>Terms of Service</a>
+                  I agree to the{" "}
+                  <a href="/terms" style={{ color: "#3B82F6" }}>
+                    Terms of Service
+                  </a>
                 </Typography>
               }
               sx={{ mt: 2, alignItems: "flex-start" }}
@@ -186,7 +191,7 @@ export default function Signup() {
             <Button
               type="submit"
               fullWidth
-              disabled={loading}
+              disabled={loading || !formData.tos_agreed}
               variant="contained"
               sx={{ mt: 3, backgroundColor: "#3B82F6", "&:hover": { backgroundColor: "#2563EB" } }}
             >
