@@ -58,8 +58,8 @@ export default function Login() {
         }}
       >
         <img
-          src="/portfolio_pilot.png"
-          alt="Portfolio Pilot Logo"
+          src="/property_pilot.png"
+          alt="Proprty Pilot Logo"
           style={{
             maxWidth: "400%",
             maxHeight: "700px",
@@ -93,7 +93,7 @@ export default function Login() {
           elevation={6}
         >
           <Typography variant="h4" sx={{ mb: 2 }}>
-            PortfolioPilot
+            PropertyPilot
           </Typography>
           <Typography variant="h6" gutterBottom>
             Login

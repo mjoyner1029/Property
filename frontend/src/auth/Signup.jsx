@@ -67,8 +67,8 @@ export default function Signup() {
         }}
       >
         <img
-          src="/portfolio_pilot.png"
-          alt="Portfolio Pilot Logo"
+          src="/property_pilot.png"
+          alt="Property Pilot Logo"
           style={{
             maxWidth: "400px",
             height: "auto",
@@ -100,7 +100,7 @@ export default function Signup() {
           elevation={6}
         >
           <Typography variant="h4" sx={{ mb: 2 }}>
-            PortfolioPilot
+            PropertyPilot
           </Typography>
           <Typography variant="h6" gutterBottom>
             Sign Up
