@@ -1,13 +1,10 @@
 services:
   - type: web
-    name: portfolio-backend
+    name: property-backend
     env: python
     plan: free
-    region: oregon
-    buildCommand: |
-      pip install -r requirements.txt
-      flask db upgrade
-    startCommand: gunicorn -b 0.0.0.0:10000 src.app:app
+    buildCommand: pip install -r requirements.txt
+    startCommand: flask run --host=0.0.0.0 --port=10000
     envVars:
       - key: FLASK_ENV
         value: production
@@ -15,14 +12,35 @@ services:
         sync: false
       - key: JWT_SECRET_KEY
         sync: false
-      - key: DATABASE_URL
+      - key: STRIPE_PUBLIC_KEY
         sync: false
       - key: STRIPE_SECRET_KEY
         sync: false
-      - key: STRIPE_PUBLIC_KEY
-        sync: false
       - key: STRIPE_WEBHOOK_SECRET
         sync: false
+      - key: DATABASE_URL
+        sync: false
     autoDeploy: true
-    branch: main
+    region: oregon
+    buildFilter:
+      paths:
+        - backend/**/*
+    repo: https://github.com/your-username/your-repo-name
     rootDir: backend
+
+  - type: web
+    name: property-frontend
+    env: node
+    plan: free
+    buildCommand: npm install && npm run build
+    startCommand: npm install -g serve && serve -s build
+    envVars:
+      - key: NODE_ENV
+        value: production
+    autoDeploy: true
+    region: oregon
+    buildFilter:
+      paths:
+        - frontend/**/*
+    repo: https://github.com/your-username/your-repo-name
+    rootDir: frontend
