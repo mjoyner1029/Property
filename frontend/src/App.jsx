@@ -10,6 +10,8 @@ import Tenants from "./pages/Tenants";
 import Payments from "./pages/Payments";
 import Maintenance from "./pages/Maintenance";
 import PayPortal from "./pages/PayPortal";
+import LandlordOnboarding from "./auth/LandlordOnboarding";
+import TenantOnboarding from "./auth/TenantOnboarding";
 import ProtectedRoute from "./components/ProtectedRoute";
 import Layout from "./components/Layout";
 
@@ -17,13 +19,13 @@ export default function App() {
   return (
     <Router>
       <Routes>
-        {/* Public routes */}
         <Route path="/" element={<Navigate to="/login" />} />
         <Route path="/login" element={<Login />} />
         <Route path="/signup" element={<Signup />} />
         <Route path="/forgot-password" element={<ForgotPassword />} />
+        <Route path="/onboarding/landlord" element={<LandlordOnboarding />} />
+        <Route path="/onboarding/tenant" element={<TenantOnboarding />} />
 
-        {/* Protected routes */}
         <Route
           path="/dashboard"
           element={

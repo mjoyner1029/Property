@@ -1,21 +1,26 @@
 # backend/src/routes/stripe.py
 from flask import Blueprint, request, jsonify
-from flask_jwt_extended import jwt_required, get_jwt_identity
-from src.services.stripe_service import create_connect_account, create_account_link
-from src.models.stripe_account import StripeAccount
-from src.extensions import db
+import stripe
+import os
 
 bp = Blueprint("stripe", __name__, url_prefix="/api/stripe")
+stripe.api_key = os.getenv("STRIPE_SECRET_KEY")
+endpoint_secret = os.getenv("STRIPE_WEBHOOK_SECRET")
 
-@bp.route("/connect", methods=["POST"])
-@jwt_required()
-def stripe_connect():
-    user_id = get_jwt_identity()["id"]
-    account = create_connect_account(user_id)
-    link = create_account_link(account.id)
+@bp.route("/webhook", methods=["POST"])
+def stripe_webhook():
+    payload = request.data
+    sig_header = request.headers.get("Stripe-Signature")
 
-    stripe_record = StripeAccount(user_id=user_id, stripe_id=account.id, account_type="landlord")
-    db.session.add(stripe_record)
-    db.session.commit()
+    try:
+        event = stripe.Webhook.construct_event(payload, sig_header, endpoint_secret)
+    except ValueError as e:
+        return jsonify({"error": "Invalid payload"}), 400
+    except stripe.error.SignatureVerificationError:
+        return jsonify({"error": "Invalid signature"}), 400
 
-    return jsonify({"url": link.url})
+    if event["type"] == "checkout.session.completed":
+        session = event["data"]["object"]
+        # TODO: mark payment as complete in your DB
+
+    return jsonify({"status": "success"}), 200
