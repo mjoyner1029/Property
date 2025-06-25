@@ -1,0 +1,60 @@
+# backend/src/routes/admin.py
+
+from flask import Blueprint, jsonify, request
+from src.models.user import User
+from src.models.property import Property
+from src.models.payment import Payment
+from src.models.maintenance_request import MaintenanceRequest
+from src.extensions import db
+
+admin_bp = Blueprint('admin', __name__, url_prefix='/api/admin')
+
+@admin_bp.route('/users', methods=['GET'])
+def get_all_users():
+    users = User.query.all()
+    return jsonify([{
+        "id": u.id,
+        "full_name": u.full_name,
+        "email": u.email,
+        "role": u.role
+    } for u in users])
+
+@admin_bp.route('/deactivate_user/<int:user_id>', methods=['POST'])
+def deactivate_user(user_id):
+    user = User.query.get(user_id)
+    if not user:
+        return jsonify({"error": "User not found"}), 404
+    db.session.delete(user)
+    db.session.commit()
+    return jsonify({"message": "User deactivated"})
+
+@admin_bp.route('/properties', methods=['GET'])
+def get_all_properties():
+    props = Property.query.all()
+    return jsonify([{
+        "id": p.id,
+        "name": p.name,
+        "address": p.address,
+        "landlord_id": p.landlord_id
+    } for p in props])
+
+@admin_bp.route('/payments', methods=['GET'])
+def get_all_payments():
+    payments = Payment.query.all()
+    return jsonify([{
+        "id": p.id,
+        "user_id": p.user_id,
+        "amount": p.amount,
+        "status": p.status,
+        "timestamp": p.timestamp.isoformat()
+    } for p in payments])
+
+@admin_bp.route('/maintenance', methods=['GET'])
+def get_all_requests():
+    reqs = MaintenanceRequest.query.all()
+    return jsonify([{
+        "id": r.id,
+        "property_id": r.property_id,
+        "status": r.status,
+        "description": r.description
+    } for r in reqs])

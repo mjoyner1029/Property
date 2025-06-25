@@ -1,12 +1,10 @@
-# backend/migrate.py
-
-from flask import Flask
 from src import create_app
-from src.extensions import db
-from flask_migrate import Migrate
+from src.extensions import db, migrate
+from flask_migrate import upgrade
+from flask.cli import FlaskGroup
 
 app = create_app()
-migrate = Migrate(app, db)
+cli = FlaskGroup(app)
 
 if __name__ == "__main__":
-    app.run()
+    cli()
