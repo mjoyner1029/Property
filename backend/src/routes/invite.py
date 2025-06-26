@@ -17,9 +17,15 @@ def invite_tenant():
 
     invite_url = f"{os.getenv('FRONTEND_URL')}/verify-invite/{token}"
 
-    msg = Message("You're Invited to PropertyPilot",
-                  recipients=[email],
-                  body=f"You're invited! Click here: {invite_url}")
-    mail.send(msg)
-
-    return jsonify({"message": "Invite sent"}), 200
+    try:
+        msg = Message(
+            subject="You're Invited to Join PropertyPilot",
+            sender=os.getenv("MAIL_USERNAME"),
+            recipients=[email],
+            body=f"You've been invited by your landlord. Click to join: {invite_url}"
+        )
+        mail.send(msg)
+        return jsonify({"message": f"Invite sent to {email}"}), 200
+    except Exception as e:
+        print(f"Email error: {e}")
+        return jsonify({"message": "Failed to send invite"}), 500
