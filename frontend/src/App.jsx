@@ -1,4 +1,3 @@
-// frontend/src/App.jsx
 import React from "react";
 import { BrowserRouter as Router, Route, Routes, Navigate } from "react-router-dom";
 import AdminDashboard from "./pages/AdminDashboard";
@@ -9,6 +8,8 @@ import Properties from "./pages/Properties";
 import PayPortal from "./pages/PayPortal";
 import Maintenance from "./pages/Maintenance";
 import Tenants from "./pages/Tenants";
+import InviteTenant from "./pages/InviteTenant";
+import VerifyEmail from "./pages/VerifyEmail";
 import ProtectedRoute from "./components/ProtectedRoute";
 
 const mockUser = {
@@ -25,14 +26,15 @@ const App = () => {
         <Route path="/pay" element={<PayPortal />} />
         <Route path="/maintenance" element={<Maintenance />} />
         <Route path="/tenants" element={<Tenants />} />
-
-        {/* New Features */}
         <Route path="/notifications" element={<Notifications userId={mockUser.id} />} />
-        <Route
-          path="/messages"
-          element={<Messages userId={mockUser.id} receiverId={2} propertyId={1} />}
-        />
+        <Route path="/messages" element={<Messages userId={mockUser.id} receiverId={2} propertyId={1} />} />
 
+        {/* New Routes */}
+        <Route path="/invite-tenant" element={<InviteTenant />} />
+        <Route path="/verify-email/:token" element={<VerifyEmail />} />
+        <Route path="/verify-invite/:token" element={<VerifyEmail />} />
+
+        {/* Admin Route */}
         {mockUser.role === "admin" && (
           <Route path="/admin" element={<AdminDashboard />} />
         )}
