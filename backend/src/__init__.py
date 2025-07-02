@@ -9,6 +9,12 @@ from .routes.notifications import notifications_bp
 from .routes.messages import messages_bp
 from .routes.invite import invite_bp
 from .routes.verify_email import verify_bp
+from .routes.maintenance import bp as maintenance_bp
+from .routes.payments import bp as payments_bp
+from .routes.properties import bp as properties_bp
+from .routes.tenants import bp as tenants_bp
+from .routes.logs import bp as logs_bp
+from .routes.webhooks import webhooks_bp
 
 def create_app():
     app = Flask(__name__)
@@ -32,5 +38,11 @@ def create_app():
     app.register_blueprint(messages_bp)
     app.register_blueprint(invite_bp)
     app.register_blueprint(verify_bp)
+    app.register_blueprint(maintenance_bp)
+    app.register_blueprint(payments_bp)
+    app.register_blueprint(properties_bp)
+    app.register_blueprint(tenants_bp)
+    app.register_blueprint(logs_bp)
+    app.register_blueprint(webhooks_bp)
 
     return app

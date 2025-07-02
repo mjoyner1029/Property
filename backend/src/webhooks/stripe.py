@@ -1,4 +1,4 @@
-from flask import Blueprint, request, jsonify
+from flask import Blueprint, request, jsonify, current_app
 import stripe
 import os
 
@@ -13,12 +13,16 @@ def stripe_webhook():
 
     try:
         event = stripe.Webhook.construct_event(payload, sig_header, endpoint_secret)
-    except ValueError as e:
+    except ValueError:
         return jsonify({"error": "Invalid payload"}), 400
-    except stripe.error.SignatureVerificationError as e:
+    except stripe.error.SignatureVerificationError:
         return jsonify({"error": "Invalid signature"}), 400
 
     # Handle event types
     if event["type"] == "payment_intent.succeeded":
-        print("Payment succeeded")
+        current_app.logger.info("Stripe webhook: Payment succeeded")
+        # TODO: Update payment status in your database here
+
+    # Add more event types as needed
+
     return jsonify({"status": "success"}), 200

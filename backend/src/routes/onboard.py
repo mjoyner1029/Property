@@ -20,11 +20,17 @@ def onboard_landlord():
     if not phone:
         return jsonify({"msg": "Phone number is required"}), 400
 
+    # Prevent duplicate onboarding
+    if LandlordProfile.query.filter_by(user_id=user_id).first():
+        return jsonify({"msg": "Landlord already onboarded"}), 400
+
     profile = LandlordProfile(user_id=user_id, phone=phone, company_name=company)
     db.session.add(profile)
     db.session.flush()
 
     for prop in properties:
+        if not all(k in prop for k in ("name", "address", "unit_count")):
+            continue  # skip incomplete property data
         p = Property(
             landlord_id=user_id,
             name=prop["name"],
@@ -53,6 +59,10 @@ def onboard_tenant():
     missing = [field for field in ["phone", "property_id", "unit", "lease_start", "lease_end", "monthly_rent"] if not data.get(field)]
     if missing:
         return jsonify({"msg": f"Missing fields: {', '.join(missing)}"}), 400
+
+    # Prevent duplicate onboarding
+    if TenantProfile.query.filter_by(user_id=user_id).first():
+        return jsonify({"msg": "Tenant already onboarded"}), 400
 
     profile = TenantProfile(
         user_id=user_id,

@@ -16,14 +16,14 @@ from src.routes import payments
 from src.routes import properties
 from src.routes import tenants
 from src.routes import stripe
-from src.routes import logs  # NEW: for frontend error logging
+from src.routes import logs  # For frontend error logging
 
 def create_app():
     app = Flask(__name__)
     app.config.from_object(Config)
 
     # HTTPS and security config
-    if app.config["FLASK_ENV"] == "production":
+    if app.config.get("FLASK_ENV") == "production":
         Talisman(app)
         CORS(app, origins=["https://yourdomain.com"], supports_credentials=True)
     else:
@@ -43,7 +43,7 @@ def create_app():
     app.register_blueprint(properties.bp)
     app.register_blueprint(tenants.bp)
     app.register_blueprint(stripe.bp)
-    app.register_blueprint(logs.bp)  # NEW
+    app.register_blueprint(logs.bp)
 
     # Error handling
     @app.errorhandler(HTTPException)

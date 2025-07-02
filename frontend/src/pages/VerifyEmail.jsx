@@ -7,9 +7,10 @@ export default function VerifyEmail() {
   const [message, setMessage] = useState("");
 
   useEffect(() => {
-    axios.get(`/api/verify/${token}`)
+    axios
+      .get(`/api/verify/${token}`)
       .then(res => setMessage(res.data.message))
-      .catch(err => setMessage(err.response.data.message));
+      .catch(err => setMessage(err.response?.data?.message || "Verification failed."));
   }, [token]);
 
   return <h2>{message}</h2>;

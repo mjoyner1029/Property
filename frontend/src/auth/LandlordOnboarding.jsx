@@ -9,6 +9,10 @@ export default function LandlordOnboarding() {
   const [phone, setPhone] = useState("");
   const [company, setCompany] = useState("");
   const [properties, setProperties] = useState([{ name: "", address: "", unit_count: "" }]);
+  const [loading, setLoading] = useState(false);
+  const [stripeLoading, setStripeLoading] = useState(false);
+  const [error, setError] = useState("");
+  const [success, setSuccess] = useState("");
 
   const handlePropertyChange = (i, field, value) => {
     const updated = [...properties];
@@ -21,14 +25,30 @@ export default function LandlordOnboarding() {
   };
 
   const handleSubmit = async () => {
-    const payload = { user_id, phone, company_name: company, properties };
-    await axios.post("/api/onboard/landlord", payload);
-    alert("Onboarding complete!");
+    setLoading(true);
+    setError("");
+    setSuccess("");
+    try {
+      const payload = { user_id, phone, company_name: company, properties };
+      await axios.post("/api/onboard/landlord", payload);
+      setSuccess("Onboarding complete!");
+    } catch (err) {
+      setError("Failed to complete onboarding.");
+    }
+    setLoading(false);
   };
 
   const connectStripe = async () => {
-    const res = await axios.post("/api/stripe/create-connect-account", { user_id });
-    window.location.href = res.data.url;
+    setStripeLoading(true);
+    setError("");
+    try {
+      // Use the correct endpoint and payload for your backend
+      const res = await axios.post("/api/stripe/create-connect-link", { email: params.get("email") });
+      window.location.href = res.data.url;
+    } catch (err) {
+      setError("Failed to connect Stripe.");
+    }
+    setStripeLoading(false);
   };
 
   return (
@@ -47,8 +67,14 @@ export default function LandlordOnboarding() {
       ))}
 
       <Button onClick={addProperty} sx={{ mt: 2 }}>+ Add Another Property</Button>
-      <Button onClick={handleSubmit} variant="contained" fullWidth sx={{ mt: 2 }}>Finish Onboarding</Button>
-      <Button onClick={connectStripe} variant="outlined" fullWidth sx={{ mt: 2 }}>Connect Stripe</Button>
+      <Button onClick={handleSubmit} variant="contained" fullWidth sx={{ mt: 2 }} disabled={loading}>
+        {loading ? "Submitting..." : "Finish Onboarding"}
+      </Button>
+      <Button onClick={connectStripe} variant="outlined" fullWidth sx={{ mt: 2 }} disabled={stripeLoading}>
+        {stripeLoading ? "Connecting..." : "Connect Stripe"}
+      </Button>
+      {error && <Typography color="error" sx={{ mt: 2 }}>{error}</Typography>}
+      {success && <Typography color="success.main" sx={{ mt: 2 }}>{success}</Typography>}
     </Box>
   );
 }

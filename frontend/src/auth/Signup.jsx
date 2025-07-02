@@ -36,8 +36,6 @@ export default function Signup() {
     setError("");
     setLoading(true);
 
-    console.log("Submitting signup:", formData); // Debug line
-
     try {
       const res = await axios.post("/api/auth/signup", formData);
       localStorage.setItem("role", formData.role);

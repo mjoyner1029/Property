@@ -18,18 +18,24 @@ const Notifications = ({ userId }) => {
 
   useEffect(() => {
     fetchNotifications();
+    // eslint-disable-next-line
   }, []);
 
   return (
     <div className="p-6">
-      <h1 className="text-xl font-bold mb-4">Notifications</h1>
+      <h1 className="text-xl font-bold mb-4 flex items-center gap-2">
+        Notifications
+        <NotificationBadge count={notifications.filter(n => !n.is_read).length} />
+      </h1>
       {notifications.map((note) => (
         <div
           key={note.id}
           className={`p-4 rounded mb-2 ${note.is_read ? "bg-gray-100" : "bg-red-100"}`}
         >
           <div className="font-semibold">{note.message}</div>
-          <div className="text-sm text-gray-600">{note.type} - {new Date(note.created_at).toLocaleString()}</div>
+          <div className="text-sm text-gray-600">
+            {note.type} - {new Date(note.created_at).toLocaleString()}
+          </div>
           {!note.is_read && (
             <button
               onClick={() => markAsRead(note.id)}

@@ -1,5 +1,5 @@
-from ..models.payment import Payment
-from ..extensions import db
+from src.models.payment import Payment
+from src.extensions import db
 
 def create_payment(data):
     payment = Payment(

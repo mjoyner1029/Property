@@ -1,13 +1,16 @@
 # backend/src/routes/tenants.py
 
 from flask import Blueprint, request, jsonify
+from flask_jwt_extended import jwt_required, get_jwt_identity
 from src.extensions import db
 from src.models.tenant_profile import TenantProfile
 
 bp = Blueprint("tenants", __name__, url_prefix="/api/tenants")
 
 @bp.route("/", methods=["GET"])
+@jwt_required()
 def get_tenants():
+    # Optionally filter by landlord or property if needed
     tenants = TenantProfile.query.all()
     return jsonify([
         {
@@ -21,6 +24,7 @@ def get_tenants():
     ])
 
 @bp.route("/", methods=["POST"])
+@jwt_required()
 def add_tenant():
     data = request.get_json()
     try:

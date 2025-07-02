@@ -142,3 +142,31 @@ export default function Login() {
     </Box>
   );
 }
+
+// frontend/src/layout/Layout.jsx
+import React from "react";
+import { Outlet } from "react-router-dom";
+import { Box } from "@mui/material";
+
+// This is a basic layout component for wrapping your app pages.
+// You can add a navbar, sidebar, or footer here if needed.
+
+export default function Layout() {
+  return (
+    <Box
+      sx={{
+        minHeight: "100vh",
+        backgroundColor: "#121417",
+        color: "#F3F4F6",
+        display: "flex",
+        flexDirection: "column",
+      }}
+    >
+      {/* Add AppBar/NavBar here if needed */}
+      <Box sx={{ flex: 1 }}>
+        <Outlet />
+      </Box>
+      {/* Add Footer here if needed */}
+    </Box>
+  );
+}

@@ -1,11 +1,13 @@
-from ..models.maintenance_request import MaintenanceRequest
-from ..extensions import db
+from src.models.maintenance_request import MaintenanceRequest
+from src.extensions import db
 
 
 def get_all_requests():
     requests = MaintenanceRequest.query.all()
     return [{
         "id": r.id,
+        "tenant_id": r.tenant_id,
+        "property_id": r.property_id,
         "description": r.description,
         "status": r.status,
         "created_at": r.created_at.isoformat()

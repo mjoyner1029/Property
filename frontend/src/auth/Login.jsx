@@ -32,7 +32,11 @@ export default function Login() {
       localStorage.setItem("user", JSON.stringify(res.data.user));
       navigate("/dashboard");
     } catch (err) {
-      setError("Login failed: Invalid credentials");
+      if (err.response && err.response.data && err.response.data.error) {
+        setError("Login failed: " + err.response.data.error);
+      } else {
+        setError("Login failed: Invalid credentials");
+      }
     } finally {
       setLoading(false);
     }
@@ -59,7 +63,7 @@ export default function Login() {
       >
         <img
           src="/property_pilot.png"
-          alt="Proprty Pilot Logo"
+          alt="Property Pilot Logo"
           style={{
             maxWidth: "400%",
             maxHeight: "700px",
@@ -173,6 +177,6 @@ export default function Login() {
           </Typography>
         </Paper>
       </Box>
-    </Box>
-  );
+    </Box>   
+  );  
 }

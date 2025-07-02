@@ -8,8 +8,12 @@ def role_required(role):
         def decorator(*args, **kwargs):
             verify_jwt_in_request()
             claims = get_jwt()
-            if claims.get("role") != role:
-                return jsonify({"msg": "Unauthorized"}), 403
+            if isinstance(role, (list, tuple, set)):
+                if claims.get("role") not in role:
+                    return jsonify({"error": "Unauthorized"}), 403
+            else:
+                if claims.get("role") != role:
+                    return jsonify({"error": "Unauthorized"}), 403
             return fn(*args, **kwargs)
         return decorator
     return wrapper

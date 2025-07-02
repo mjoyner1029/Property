@@ -11,3 +11,7 @@ def client():
         with app.app_context():
             db.create_all()
         yield client
+        # Optionally, drop all tables after test run
+        with app.app_context():
+            db.session.remove()
+            db.drop_all()

@@ -6,7 +6,7 @@ def test_email_verification(client):
     s = URLSafeTimedSerializer("test-secret")
     token = s.dumps("test@example.com", salt="email-verify")
 
-    user = User(email="test@example.com", password="abc", is_verified=False)
+    user = User(email="test@example.com", password_hash="abc", full_name="Test User", role="tenant", is_verified=False)
     db.session.add(user)
     db.session.commit()
 

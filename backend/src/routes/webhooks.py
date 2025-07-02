@@ -1,4 +1,4 @@
-from flask import Blueprint, request, jsonify
+from flask import Blueprint, request, jsonify, current_app
 import stripe
 import os
 
@@ -16,5 +16,7 @@ def stripe_webhook():
         return jsonify(success=False), 400
 
     if event['type'] == 'invoice.payment_succeeded':
-        print("Payment succeeded")
+        current_app.logger.info("Stripe webhook: Payment succeeded")
+        # TODO: Update payment status in your database here
+
     return jsonify(success=True)
