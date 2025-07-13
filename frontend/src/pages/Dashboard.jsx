@@ -6,7 +6,7 @@ export default function Dashboard() {
 
   return (
     <div style={{ padding: "2rem" }}>
-      <h1>Welcome to PropertyPilot</h1>
+      <h1>Welcome to Asset Anchor</h1>
       <p>
         Logged in as: <strong>{user.full_name}</strong> ({user.role})
       </p>

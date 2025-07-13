@@ -22,7 +22,7 @@ def invite_tenant():
 
     try:
         msg = Message(
-            subject="You're Invited to Join PropertyPilot",
+            subject="You're Invited to Join Asset Anchor",
             sender=os.getenv("MAIL_USERNAME"),
             recipients=[email],
             body=f"You've been invited by your landlord. Click to join: {invite_url}"

@@ -1,6 +1,6 @@
-# PropertyPilot
+# Asset Anchor
 
-PropertyPilot is a full-stack SaaS property management platform for landlords and tenants. It supports recurring rent payments, real-time messaging, maintenance tracking, onboarding flows, and admin tools.
+AssetAnchor is a full-stack SaaS property management platform for landlords and tenants. It supports recurring rent payments, real-time messaging, maintenance tracking, onboarding flows, and admin tools.
 
 ## Features
 

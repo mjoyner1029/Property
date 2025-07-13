@@ -67,8 +67,8 @@ export default function Signup() {
         }}
       >
         <img
-          src="/property_pilot.png"
-          alt="Property Pilot Logo"
+          src="/asset_anchor.png"
+          alt="Asset Anchor Logo"
           style={{
             maxWidth: "400px",
             height: "auto",
@@ -100,7 +100,7 @@ export default function Signup() {
           elevation={6}
         >
           <Typography variant="h4" sx={{ mb: 2 }}>
-            PropertyPilot
+            AssetAncohor
           </Typography>
           <Typography variant="h6" gutterBottom>
             Sign Up
