@@ -4,7 +4,7 @@ services:
     env: python
     plan: free
     buildCommand: pip install -r requirements.txt
-    startCommand: flask run --host=0.0.0.0 --port=10000
+    startCommand: gunicorn app:app --workers 2 --threads 2 --timeout 60
     envVars:
       - key: FLASK_ENV
         value: production
@@ -20,20 +20,25 @@ services:
         sync: false
       - key: DATABASE_URL
         sync: false
+      - key: REACT_APP_BACKEND_URL
+        value: https://property-backend.onrender.com
     autoDeploy: true
     region: oregon
     repo: https://github.com/mjoyner1029/Property.git
     rootDir: backend
+    healthCheckPath: /api/health
 
   - type: web
     name: property-frontend
     env: node
     plan: free
     buildCommand: npm install && npm run build
-    startCommand: npm install -g serve && serve -s build
+    startCommand: npm install -g serve && serve -s build -l $PORT
     envVars:
       - key: NODE_ENV
         value: production
+      - key: REACT_APP_API_URL
+        value: https://property-backend.onrender.com/api
     autoDeploy: true
     region: oregon
     repo: https://github.com/mjoyner1029/Property.git

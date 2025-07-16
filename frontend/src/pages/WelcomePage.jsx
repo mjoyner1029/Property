@@ -1,46 +1,111 @@
-import React, { useEffect } from "react";
-import { Box, Typography } from "@mui/material";
+import React, { useEffect, useState } from "react";
+import { Box, Typography, CircularProgress, Container, Paper } from "@mui/material";
 import { useNavigate } from "react-router-dom";
-import logo from "../assets/logo.png"; // Update path if needed
-
-// Assume you have a way to get the user's role, e.g. from context or localStorage
-import { useAuth } from "../context/AuthContext"; // adjust import as needed
+import { useAuth } from "../context/AuthContext";
 
 const WelcomePage = () => {
   const navigate = useNavigate();
-  const { user } = useAuth(); // user.role should be 'tenant' or 'landlord'
+  const { user } = useAuth();
+  const [countdown, setCountdown] = useState(5);
 
   useEffect(() => {
-    const timer = setTimeout(() => {
-      if (user?.role === "landlord") {
-        navigate("/landlord/dashboard");
-      } else if (user?.role === "tenant") {
-        navigate("/tenant/dashboard");
+    // Start redirect timer
+    const redirectTimer = setTimeout(() => {
+      if (user) {
+        if (user.role === "landlord") {
+          navigate("/dashboard");
+        } else if (user.role === "tenant") {
+          navigate("/dashboard");
+        } else {
+          navigate("/dashboard");
+        }
       } else {
-        navigate("/dashboard"); // fallback
+        navigate("/login");
       }
     }, 5000);
-    return () => clearTimeout(timer);
+
+    // Update countdown timer
+    const countdownTimer = setInterval(() => {
+      setCountdown((prev) => Math.max(prev - 1, 0));
+    }, 1000);
+
+    // Cleanup timers on unmount
+    return () => {
+      clearTimeout(redirectTimer);
+      clearInterval(countdownTimer);
+    };
   }, [navigate, user]);
 
   return (
-    <Box
-      display="flex"
-      flexDirection="column"
-      alignItems="center"
-      justifyContent="center"
-      minHeight="80vh"
-      bgcolor="#f5f7fa"
-    >
-      <img
-        src={logo}
-        alt="Asset Anchor logo"
-        style={{ width: 120, marginBottom: 32 }}
-      />
-      <Typography variant="h4" fontWeight="bold" gutterBottom>
-        Welcome to Asset Anchor
-      </Typography>
-    </Box>
+    <Container maxWidth="sm">
+      <Box
+        sx={{
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "center",
+          justifyContent: "center",
+          minHeight: "100vh",
+        }}
+      >
+        <Paper
+          elevation={0}
+          sx={{
+            p: 4,
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            borderRadius: 3,
+            boxShadow: "0px 4px 12px rgba(0,0,0,0.1)",
+            width: "100%",
+          }}
+        >
+          <Typography
+            variant="h4"
+            component="h1"
+            fontWeight={700}
+            gutterBottom
+            align="center"
+          >
+            Welcome to Asset Anchor
+          </Typography>
+
+          <Box
+            sx={{
+              my: 3,
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "center",
+            }}
+          >
+            <CircularProgress size={40} />
+            <Typography variant="body1" sx={{ mt: 2 }}>
+              Redirecting in {countdown} seconds...
+            </Typography>
+          </Box>
+
+          <Typography
+            variant="body2"
+            color="text.secondary"
+            align="center"
+          >
+            You'll be redirected to your dashboard automatically. If not, please
+            click{" "}
+            <Box
+              component="span"
+              onClick={() => navigate("/dashboard")}
+              sx={{
+                color: "primary.main",
+                cursor: "pointer",
+                textDecoration: "underline",
+              }}
+            >
+              here
+            </Box>
+            .
+          </Typography>
+        </Paper>
+      </Box>
+    </Container>
   );
 };
 

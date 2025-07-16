@@ -10,7 +10,15 @@ import {
   ListItem,
   ListItemText,
   Button,
+  Container,
+  Divider,
+  Chip
 } from "@mui/material";
+import { 
+  Payment as PaymentIcon, 
+  CheckCircle as CheckCircleIcon,
+  Schedule as ScheduleIcon 
+} from '@mui/icons-material';
 import axios from "axios";
 
 export default function PayPortal() {
@@ -39,38 +47,154 @@ export default function PayPortal() {
     }
   };
 
+  // Format date function
+  const formatDate = (dateString) => {
+    if (!dateString) return "";
+    const date = new Date(dateString);
+    return new Intl.DateTimeFormat('en-US', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric'
+    }).format(date);
+  };
+
+  // Get status chip
+  const getStatusChip = (status) => {
+    switch (status.toLowerCase()) {
+      case 'paid':
+        return <Chip 
+          icon={<CheckCircleIcon fontSize="small" />} 
+          label="Paid" 
+          color="success" 
+          size="small" 
+          sx={{ borderRadius: 1 }}
+        />;
+      case 'due':
+        return <Chip 
+          icon={<ScheduleIcon fontSize="small" />} 
+          label="Due" 
+          color="warning" 
+          size="small" 
+          sx={{ borderRadius: 1 }}
+        />;
+      case 'overdue':
+        return <Chip 
+          label="Overdue" 
+          color="error" 
+          size="small" 
+          sx={{ borderRadius: 1 }}
+        />;
+      default:
+        return <Chip 
+          label={status} 
+          size="small" 
+          sx={{ borderRadius: 1 }}
+        />;
+    }
+  };
+
   return (
-    <Box sx={{ p: 3 }}>
-      <Typography variant="h4">Pay Your Rent</Typography>
-      {loading ? (
-        <CircularProgress />
-      ) : error ? (
-        <Alert severity="error">{error}</Alert>
-      ) : (
-        <Paper sx={{ mt: 2 }}>
-          <List>
-            {payments.map((pay) => (
-              <ListItem key={pay.id} secondaryAction={
-                pay.status === "due" && (
-                  <Button
-                    variant="contained"
-                    color="primary"
-                    onClick={() => handlePay(pay.id)}
-                    disabled={payingId === pay.id}
+    <Container maxWidth="md">
+      <Box sx={{ py: 3 }}>
+        <Typography variant="h5" fontWeight={600} sx={{ mb: 3 }}>
+          Pay Your Rent
+        </Typography>
+        
+        {loading ? (
+          <Box sx={{ display: "flex", justifyContent: "center", py: 8 }}>
+            <CircularProgress />
+          </Box>
+        ) : error ? (
+          <Alert severity="error" sx={{ mb: 3 }}>
+            {error}
+          </Alert>
+        ) : payments.length === 0 ? (
+          <Paper 
+            elevation={0} 
+            sx={{ 
+              p: 4, 
+              textAlign: 'center',
+              boxShadow: '0px 2px 8px rgba(0,0,0,0.05)',
+              borderRadius: 3
+            }}
+          >
+            <PaymentIcon sx={{ fontSize: 48, color: 'text.secondary', mb: 2 }} />
+            <Typography variant="h6" color="text.secondary">
+              No Payments Due
+            </Typography>
+            <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
+              You don't have any payments due at this time.
+            </Typography>
+          </Paper>
+        ) : (
+          <Paper 
+            elevation={0}
+            sx={{ 
+              boxShadow: '0px 2px 8px rgba(0,0,0,0.05)',
+              borderRadius: 3,
+              overflow: 'hidden'
+            }}
+          >
+            <List disablePadding>
+              {payments.map((pay, index) => (
+                <React.Fragment key={pay.id}>
+                  {index > 0 && <Divider />}
+                  <ListItem
+                    sx={{ px: 3, py: 2 }}
+                    secondaryAction={
+                      pay.status.toLowerCase() === "due" && (
+                        <Button
+                          variant="contained"
+                          color="primary"
+                          onClick={() => handlePay(pay.id)}
+                          disabled={payingId === pay.id}
+                          sx={{ 
+                            borderRadius: 2,
+                            px: 3
+                          }}
+                        >
+                          {payingId === pay.id ? (
+                            <>
+                              <CircularProgress size={16} color="inherit" sx={{ mr: 1 }} />
+                              Redirecting...
+                            </>
+                          ) : "Pay Now"}
+                        </Button>
+                      )
+                    }
                   >
-                    {payingId === pay.id ? "Redirecting..." : "Pay Now"}
-                  </Button>
-                )
-              }>
-                <ListItemText
-                  primary={`Amount: $${pay.amount}`}
-                  secondary={`Due: ${pay.due_date} – Status: ${pay.status}`}
-                />
-              </ListItem>
-            ))}
-          </List>
-        </Paper>
-      )}
-    </Box>
+                    <ListItemText
+                      primary={
+                        <Box sx={{ display: 'flex', alignItems: 'center', mb: 0.5 }}>
+                          <Typography variant="body1" fontWeight={500}>
+                            ${parseFloat(pay.amount).toFixed(2)}
+                          </Typography>
+                          <Box sx={{ ml: 2 }}>
+                            {getStatusChip(pay.status)}
+                          </Box>
+                        </Box>
+                      }
+                      secondary={
+                        <Box>
+                          <Typography variant="body2" color="text.secondary">
+                            Due: {formatDate(pay.due_date)}
+                          </Typography>
+                          {pay.property_name && (
+                            <Typography variant="body2" color="text.secondary">
+                              Property: {pay.property_name}
+                              {pay.unit_number ? `, Unit ${pay.unit_number}` : ''}
+                            </Typography>
+                          )}
+                        </Box>
+                      }
+                    />
+                  </ListItem>
+                </React.Fragment>
+              ))}
+            </List>
+          </Paper>
+        )}
+      </Box>
+    </Container>
   );
 }

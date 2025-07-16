@@ -1,4 +1,16 @@
 import React, { useState } from 'react';
+import {
+  Box,
+  Container,
+  Typography,
+  TextField,
+  Button,
+  Paper,
+  Grid,
+  Alert,
+  CircularProgress
+} from '@mui/material';
+import { LoadingButton } from '@mui/lab';
 
 export default function TenantOnboarding() {
   const [form, setForm] = useState({
@@ -42,71 +54,163 @@ export default function TenantOnboarding() {
   };
 
   return (
-    <div className="max-w-md mx-auto mt-10">
-      <h2 className="text-2xl font-semibold mb-4">Tenant Onboarding</h2>
-      <form onSubmit={handleSubmit} className="space-y-4">
-        <input
-          name="phone"
-          placeholder="Phone"
-          value={form.phone}
-          onChange={handleChange}
-          className="w-full border p-2"
-        />
-        <input
-          name="property_id"
-          placeholder="Property ID or Invite Code"
-          value={form.property_id}
-          onChange={handleChange}
-          className="w-full border p-2"
-        />
-        <input
-          name="unit"
-          placeholder="Unit Number"
-          value={form.unit}
-          onChange={handleChange}
-          className="w-full border p-2"
-        />
-        <input
-          name="lease_start"
-          type="date"
-          placeholder="Lease Start"
-          value={form.lease_start}
-          onChange={handleChange}
-          className="w-full border p-2"
-        />
-        <input
-          name="lease_end"
-          type="date"
-          placeholder="Lease End"
-          value={form.lease_end}
-          onChange={handleChange}
-          className="w-full border p-2"
-        />
-        <input
-          name="monthly_rent"
-          type="number"
-          placeholder="Monthly Rent"
-          value={form.monthly_rent}
-          onChange={handleChange}
-          className="w-full border p-2"
-        />
-        <input
-          name="emergency_contact"
-          placeholder="Emergency Contact (optional)"
-          value={form.emergency_contact}
-          onChange={handleChange}
-          className="w-full border p-2"
-        />
-        <button
-          type="submit"
-          className="w-full bg-blue-600 text-white py-2"
-          disabled={loading}
+    <Container maxWidth="md">
+      <Box sx={{ py: 4 }}>
+        <Paper
+          elevation={0}
+          sx={{
+            p: 4,
+            boxShadow: '0px 2px 8px rgba(0,0,0,0.05)',
+            borderRadius: 3
+          }}
         >
-          {loading ? "Submitting..." : "Submit"}
-        </button>
-        {success && <p className="text-green-600 mt-2">{success}</p>}
-        {error && <p className="text-red-600 mt-2">{error}</p>}
-      </form>
-    </div>
+          <Typography variant="h5" fontWeight={600} sx={{ mb: 3 }}>
+            Tenant Onboarding
+          </Typography>
+          
+          {success && (
+            <Alert severity="success" sx={{ mb: 3 }}>
+              {success}
+            </Alert>
+          )}
+          
+          {error && (
+            <Alert severity="error" sx={{ mb: 3 }}>
+              {error}
+            </Alert>
+          )}
+          
+          <Box component="form" onSubmit={handleSubmit}>
+            <Grid container spacing={2}>
+              <Grid item xs={12} sm={6}>
+                <TextField
+                  fullWidth
+                  name="phone"
+                  label="Phone"
+                  variant="outlined"
+                  value={form.phone}
+                  onChange={handleChange}
+                  required
+                  InputProps={{
+                    sx: { borderRadius: 2 }
+                  }}
+                />
+              </Grid>
+              <Grid item xs={12} sm={6}>
+                <TextField
+                  fullWidth
+                  name="property_id"
+                  label="Property ID or Invite Code"
+                  variant="outlined"
+                  value={form.property_id}
+                  onChange={handleChange}
+                  required
+                  InputProps={{
+                    sx: { borderRadius: 2 }
+                  }}
+                />
+              </Grid>
+              <Grid item xs={12} sm={6}>
+                <TextField
+                  fullWidth
+                  name="unit"
+                  label="Unit Number"
+                  variant="outlined"
+                  value={form.unit}
+                  onChange={handleChange}
+                  required
+                  InputProps={{
+                    sx: { borderRadius: 2 }
+                  }}
+                />
+              </Grid>
+              <Grid item xs={12} sm={6}>
+                <TextField
+                  fullWidth
+                  name="monthly_rent"
+                  label="Monthly Rent"
+                  type="number"
+                  variant="outlined"
+                  value={form.monthly_rent}
+                  onChange={handleChange}
+                  required
+                  InputProps={{
+                    startAdornment: "$",
+                    sx: { borderRadius: 2 }
+                  }}
+                />
+              </Grid>
+              <Grid item xs={12} sm={6}>
+                <TextField
+                  fullWidth
+                  name="lease_start"
+                  label="Lease Start"
+                  type="date"
+                  variant="outlined"
+                  value={form.lease_start}
+                  onChange={handleChange}
+                  required
+                  InputLabelProps={{ shrink: true }}
+                  InputProps={{
+                    sx: { borderRadius: 2 }
+                  }}
+                />
+              </Grid>
+              <Grid item xs={12} sm={6}>
+                <TextField
+                  fullWidth
+                  name="lease_end"
+                  label="Lease End"
+                  type="date"
+                  variant="outlined"
+                  value={form.lease_end}
+                  onChange={handleChange}
+                  required
+                  InputLabelProps={{ shrink: true }}
+                  InputProps={{
+                    sx: { borderRadius: 2 }
+                  }}
+                />
+              </Grid>
+              <Grid item xs={12}>
+                <TextField
+                  fullWidth
+                  name="emergency_contact"
+                  label="Emergency Contact (optional)"
+                  variant="outlined"
+                  value={form.emergency_contact}
+                  onChange={handleChange}
+                  InputProps={{
+                    sx: { borderRadius: 2 }
+                  }}
+                />
+              </Grid>
+              <Grid item xs={12}>
+                <Button
+                  type="submit"
+                  variant="contained"
+                  fullWidth
+                  disabled={loading}
+                  sx={{
+                    mt: 2,
+                    py: 1.5,
+                    borderRadius: 2
+                  }}
+                >
+                  {loading ? (
+                    <>
+                      <CircularProgress size={24} sx={{ mr: 1 }} />
+                      Submitting...
+                    </>
+                  ) : (
+                    "Complete Onboarding"
+                  )}
+                </Button>
+              </Grid>
+            </Grid>
+          </Box>
+        </Paper>
+      </Box>
+    </Container>
   );
 }

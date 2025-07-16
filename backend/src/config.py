@@ -8,10 +8,14 @@ class Config:
     # Flask core settings
     FLASK_ENV = os.getenv("FLASK_ENV", "development")
     SECRET_KEY = os.getenv("SECRET_KEY", "changeme")
+    DEBUG = os.getenv("DEBUG", "true").lower() == "true"
 
     # JWT settings
     JWT_SECRET_KEY = os.getenv("JWT_SECRET_KEY", "changeme")
     JWT_ACCESS_TOKEN_EXPIRES = timedelta(hours=1)
+    JWT_REFRESH_TOKEN_EXPIRES = timedelta(days=30)
+    JWT_BLACKLIST_ENABLED = True
+    JWT_BLACKLIST_TOKEN_CHECKS = ["access", "refresh"]
 
     # Database
     SQLALCHEMY_DATABASE_URI = os.getenv("DATABASE_URL", "sqlite:///app.db")
@@ -39,5 +43,28 @@ class Config:
 
     # SocketIO
     SOCKETIO_MESSAGE_QUEUE = os.getenv("SOCKETIO_MESSAGE_QUEUE")
-
-    # Other settings as needed...
+    
+    # File uploads
+    UPLOAD_FOLDER = os.getenv("UPLOAD_FOLDER", "uploads")
+    MAX_CONTENT_LENGTH = int(os.getenv("MAX_CONTENT_LENGTH", 16 * 1024 * 1024))  # 16 MB by default
+    ALLOWED_EXTENSIONS = {'pdf', 'png', 'jpg', 'jpeg', 'doc', 'docx', 'xls', 'xlsx'}
+    
+    # Webhooks
+    SYSTEM_WEBHOOK_SECRET = os.getenv("SYSTEM_WEBHOOK_SECRET")
+    
+    # Twilio (for SMS)
+    TWILIO_ACCOUNT_SID = os.getenv("TWILIO_ACCOUNT_SID")
+    TWILIO_AUTH_TOKEN = os.getenv("TWILIO_AUTH_TOKEN")
+    TWILIO_PHONE_NUMBER = os.getenv("TWILIO_PHONE_NUMBER")
+    
+    # Plaid (for financial connections)
+    PLAID_CLIENT_ID = os.getenv("PLAID_CLIENT_ID")
+    PLAID_SECRET = os.getenv("PLAID_SECRET")
+    PLAID_ENV = os.getenv("PLAID_ENV", "sandbox")
+    PLAID_WEBHOOK_SECRET = os.getenv("PLAID_WEBHOOK_SECRET")
+    
+    # Frontend URL for links in emails
+    FRONTEND_URL = os.getenv("FRONTEND_URL", "http://localhost:3000")
+    
+    # Logging
+    LOG_LEVEL = os.getenv("LOG_LEVEL", "INFO")

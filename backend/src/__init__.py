@@ -3,18 +3,18 @@ from flask_cors import CORS
 from flask_talisman import Talisman
 
 from .extensions import db, migrate, jwt, socketio, mail
-from .routes.auth import bp as auth_bp
-from .routes.admin import admin_bp
-from .routes.notifications import notifications_bp
-from .routes.messages import messages_bp
-from .routes.invite import invite_bp
-from .routes.verify_email import verify_bp
-from .routes.maintenance import bp as maintenance_bp
-from .routes.payments import bp as payments_bp
-from .routes.properties import bp as properties_bp
-from .routes.tenants import bp as tenants_bp
-from .routes.logs import bp as logs_bp
-from .routes.webhooks import webhooks_bp
+from .routes.auth_routes import bp as auth_bp
+from .routes.admin_routes import admin_bp
+from .routes.notification_routes import notifications_bp
+from .routes.messaging_routes import messages_bp
+from .routes.invite_routes import invite_bp
+from .routes.verify_email_routes import verify_bp
+from .routes.maintenance_routes import bp as maintenance_bp
+from .routes.payment_routes import bp as payments_bp
+from .routes.property_routes import bp as properties_bp
+from .routes.tenant_routes import bp as tenants_bp
+from .routes.logs_routes import bp as logs_bp
+from .webhooks import init_webhooks
 
 def create_app():
     app = Flask(__name__)
@@ -43,6 +43,8 @@ def create_app():
     app.register_blueprint(properties_bp)
     app.register_blueprint(tenants_bp)
     app.register_blueprint(logs_bp)
-    app.register_blueprint(webhooks_bp)
+
+    # Initialize the new webhooks system
+    init_webhooks(app)
 
     return app

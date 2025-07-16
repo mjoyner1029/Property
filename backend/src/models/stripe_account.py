@@ -1,13 +1,30 @@
-from src.extensions import db
+from datetime import datetime
+from ..extensions import db  # Changed from src.extensions to relative import
 
 class StripeAccount(db.Model):
-    __tablename__ = "stripe_accounts"
+    __tablename__ = 'stripe_accounts'
+    
     id = db.Column(db.Integer, primary_key=True)
-    user_id = db.Column(db.Integer, db.ForeignKey("user.id"), unique=True, nullable=False, index=True)
-    stripe_id = db.Column(db.String(100), nullable=False)
-    account_type = db.Column(db.String(20))  # e.g., 'standard', 'express'
-
-    user = db.relationship("User", backref=db.backref("stripe_account", uselist=False))
-
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False, unique=True)
+    customer_id = db.Column(db.String(100))  # Stripe customer ID for tenants
+    account_id = db.Column(db.String(100))   # Stripe connect account ID for landlords
+    default_payment_method = db.Column(db.String(100))
+    is_verified = db.Column(db.Boolean, default=False)
+    created_at = db.Column(db.DateTime, default=datetime.now)
+    updated_at = db.Column(db.DateTime, default=datetime.now, onupdate=datetime.now)
+    
+    # Relationship
+    user = db.relationship('User')
+    
     def __repr__(self):
-        return f"<StripeAccount id={self.id} user_id={self.user_id} type={self.account_type}>"
+        return f"<StripeAccount for User {self.user_id}>"
+    
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'user_id': self.user_id,
+            'customer_id': self.customer_id,
+            'account_id': self.account_id,
+            'is_verified': self.is_verified,
+            'created_at': self.created_at.isoformat() if self.created_at else None
+        }
