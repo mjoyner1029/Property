@@ -1,50 +1,52 @@
 """
 Pytest configuration for testing.
 """
+import sys
+import os
+from pathlib import Path
+
+# Add the parent directory to sys.path
+parent_dir = Path(__file__).parent.parent.parent
+sys.path.insert(0, str(parent_dir))
+
 import pytest
+from flask import Flask
+from flask_sqlalchemy import SQLAlchemy
+
 from src import create_app
 from src.extensions import db as _db
 from src.models.user import User
-import os
-import tempfile
+from src.models.property import Property
+from src.models.unit import Unit
+from src.models.tenant_property import TenantProperty
+from src.models.maintenance_request import MaintenanceRequest
+from src.models.payment import Payment
 
-@pytest.fixture
+@pytest.fixture(scope="session")
 def app():
     """Create and configure a Flask app for testing."""
-    # Create a temporary file to isolate the database for each test
-    db_fd, db_path = tempfile.mkstemp()
-    
     app = create_app()
-    app.config.update({
-        'TESTING': True,
-        'SQLALCHEMY_DATABASE_URI': f'sqlite:///{db_path}',
-        'JWT_SECRET_KEY': 'test_secret_key',
-        'WTF_CSRF_ENABLED': False,
-    })
-
-    # Create the database and the database tables
+    app.config.from_object("config.TestingConfig")
+    
+    # Create the database and tables for testing
     with app.app_context():
         _db.create_all()
         
-        # Create test users
-        create_test_users()
-    
     yield app
     
-    # Close and remove the temporary database
-    os.close(db_fd)
-    os.unlink(db_path)
+    # Clean up after tests
+    with app.app_context():
+        _db.drop_all()
 
 @pytest.fixture
 def client(app):
     """A test client for the app."""
     return app.test_client()
 
-@pytest.fixture
+@pytest.fixture(scope="session")
 def db(app):
-    """Database for testing."""
-    with app.app_context():
-        yield _db
+    """Session-wide test database."""
+    return _db
 
 @pytest.fixture
 def admin_token(client):

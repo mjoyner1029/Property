@@ -1,5 +1,5 @@
 from datetime import datetime
-from ..extensions import db  # Changed from src.extensions to relative import
+from ..extensions import db  # Use relative import for consistency
 
 class MaintenanceRequest(db.Model):
     __tablename__ = 'maintenance_requests'
