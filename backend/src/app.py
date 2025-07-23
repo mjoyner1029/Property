@@ -1,111 +1,110 @@
 # backend/src/app.py
 
-from flask import Flask, jsonify
+import logging
+import os
+import time
+from flask import Flask, jsonify, request
 from flask_cors import CORS
 from flask_talisman import Talisman
-from werkzeug.exceptions import HTTPException
-import os
-import logging
-
-# Fix relative imports
 from .extensions import db, jwt, migrate, mail, socketio
-from .config import Config
+from .utils.monitoring import setup_request_logging
 
-# Blueprint imports
-from .routes import auth_routes
-from .routes import onboard_routes
-from .routes import maintenance_routes
-from .routes import payment_routes
-from .routes import property_routes
-from .routes import tenant_routes
-from .routes import stripe_routes
-from .routes import logs_routes
-from .routes import admin_routes
-from .routes import notification_routes
-from .routes import messaging_routes
-from .routes import invite_routes
-from .routes import verify_email_routes
-from .routes import status_routes  # New status routes
-from .routes import docs_routes    # New docs routes
-
-# Import webhooks initialization
-from .webhooks import init_webhooks
-
-def create_app():
-    app = Flask(__name__)
-    app.config.from_object(Config)
+# Configure logging
+def setup_logging(app):
+    log_dir = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'logs')
+    os.makedirs(log_dir, exist_ok=True)
     
-    # Configure logging
-    if not app.debug:
-        logging.basicConfig(
-            level=getattr(logging, app.config.get('LOG_LEVEL', 'INFO')),
-            format='%(asctime)s %(levelname)s: %(message)s [in %(pathname)s:%(lineno)d]',
-            handlers=[
-                logging.StreamHandler(),
-                logging.FileHandler(os.path.join('logs', 'app.log'))
-            ]
-        )
+    log_level = logging.DEBUG if app.debug else logging.INFO
+    log_format = '%(asctime)s [%(levelname)s] %(name)s: %(message)s'
+    
+    # File handler for all logs
+    file_handler = logging.FileHandler(os.path.join(log_dir, 'asset_anchor.log'))
+    file_handler.setFormatter(logging.Formatter(log_format))
+    
+    # Error file handler for errors only
+    error_file_handler = logging.FileHandler(os.path.join(log_dir, 'errors.log'))
+    error_file_handler.setLevel(logging.ERROR)
+    error_file_handler.setFormatter(logging.Formatter(log_format))
+    
+    # Root logger configuration
+    root_logger = logging.getLogger()
+    root_logger.setLevel(log_level)
+    root_logger.addHandler(file_handler)
+    root_logger.addHandler(error_file_handler)
+    
+    # Application logger
+    app_logger = logging.getLogger('asset_anchor')
+    app_logger.setLevel(log_level)
+    
+    return app_logger
 
-    # HTTPS and security config
-    if app.config.get("FLASK_ENV") == "production":
-        Talisman(app)
-        CORS(app, origins=app.config.get("CORS_ORIGINS", ["https://yourdomain.com"]), supports_credentials=True)
-    else:
-        Talisman(app, content_security_policy=None, force_https=False)
-        CORS(app, supports_credentials=True)
-
+def create_app(config_name='default'):
+    # Record start time for uptime calculation
+    start_time = time.time()
+    
+    app = Flask(__name__)
+    
+    # Store start time on app
+    app.start_time = start_time
+    
+    # Load config
+    from config import config_by_name
+    app.config.from_object(config_by_name[config_name])
+    
+    # Setup logging
+    logger = setup_logging(app)
+    logger.info(f"Starting Asset Anchor backend with config: {config_name}")
+    
+    # Ensure upload directory exists
+    os.makedirs(app.config.get('UPLOAD_FOLDER', 'uploads'), exist_ok=True)
+    
     # Initialize extensions
     db.init_app(app)
-    migrate.init_app(app, db)
     jwt.init_app(app)
+    migrate.init_app(app, db)
     mail.init_app(app)
     socketio.init_app(app)
-
-    # Register all blueprints
-    app.register_blueprint(auth_routes.bp)
-    app.register_blueprint(onboard_routes.bp)
-    app.register_blueprint(maintenance_routes.bp)
-    app.register_blueprint(payment_routes.bp)
-    app.register_blueprint(property_routes.bp)
-    app.register_blueprint(tenant_routes.bp)
-    app.register_blueprint(stripe_routes.bp)
-    app.register_blueprint(logs_routes.bp)
-    app.register_blueprint(admin_routes.admin_bp)
-    app.register_blueprint(notification_routes.notifications_bp)
-    app.register_blueprint(messaging_routes.messages_bp)
-    app.register_blueprint(invite_routes.invite_bp)
-    app.register_blueprint(verify_email_routes.verify_bp)
-    app.register_blueprint(status_routes.bp)  # Register status routes
-    app.register_blueprint(docs_routes.bp)    # Register docs routes
     
-    # Initialize webhooks
-    init_webhooks(app)
-
-    # Create upload directory if it doesn't exist
-    os.makedirs(app.config.get('UPLOAD_FOLDER', 'uploads'), exist_ok=True)
-
-    # Error handling
-    @app.errorhandler(HTTPException)
-    def handle_http_error(e):
-        response = jsonify({"error": e.description, "code": e.code})
-        response.status_code = e.code
-        return response
-
-    @app.errorhandler(Exception)
-    def handle_generic_error(e):
-        app.logger.error(f"Unhandled exception: {str(e)}", exc_info=True)
-        response = jsonify({"error": "Internal server error", "code": 500})
-        response.status_code = 500
-        return response
-
-    # Create database tables if in development and tables don't exist
-    if app.config.get("FLASK_ENV") == "development":
-        with app.app_context():
-            db.create_all()
-
+    # Enable CORS
+    CORS(app, supports_credentials=True)
+    
+    # Set up request logging and monitoring
+    setup_request_logging(app)
+    
+    # Register blueprints one by one to avoid circular imports
+    with app.app_context():
+        # Auth routes
+        from .routes.auth_routes import bp as auth_bp
+        app.register_blueprint(auth_bp, url_prefix='/api/auth')
+        
+        # Admin routes
+        from .routes.admin_routes import admin_bp
+        app.register_blueprint(admin_bp, url_prefix='/api/admin')
+        
+        # Try to register other blueprints
+        try:
+            from .routes.notification_routes import notification_bp
+            app.register_blueprint(notification_bp, url_prefix='/api/notifications')
+            
+            from .routes.property_routes import property_bp
+            app.register_blueprint(property_bp, url_prefix='/api/properties')
+            
+            from .routes.tenant_routes import tenant_bp
+            app.register_blueprint(tenant_bp, url_prefix='/api/tenants')
+            
+            from .routes.maintenance_routes import bp as maintenance_bp
+            app.register_blueprint(maintenance_bp, url_prefix='/api/maintenance')
+            
+            # Add other blueprints as needed...
+        except ImportError as e:
+            app.logger.error(f"Failed to import a blueprint: {e}")
+    
+    # Health check endpoint
+    @app.route('/api/health', methods=['GET'])
+    def health_check():
+        return jsonify({"status": "healthy"}), 200
+    
     return app
 
-app = create_app()
-
-if __name__ == "__main__":
-    socketio.run(app, debug=Config.DEBUG)
+# Remove this line to prevent app initialization at import time
+# app = create_app()

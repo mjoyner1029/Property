@@ -1,24 +1,10 @@
 import logging
-from src.models.user import User
-from src.extensions import db
+# Fix imports from absolute to relative paths
+from ..models.user import User
+from ..extensions import db
 from werkzeug.security import generate_password_hash, check_password_hash
-from src.utils.jwt import create_access_token
-
-# Replace the problematic import line with this:
-import sys
-import os
-# Add the parent directory to path to allow absolute imports
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../..')))
-
-# Try direct import
-from src.utils.validators import validate_email_format, validate_password_strength
-
-# Alternative 1 - fallback if above doesn't work
-try:
-    from ..utils.validators import validate_email_format, validate_password_strength
-except ImportError:
-    # Alternative 2 - absolute import as last resort
-    from backend.src.utils.validators import validate_email_format, validate_password_strength
+from ..utils.jwt import create_access_token
+from ..utils.validators import validate_email_format, validate_password_strength
 
 logger = logging.getLogger(__name__)
 

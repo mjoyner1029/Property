@@ -5,17 +5,21 @@ from flask_jwt_extended import jwt_required, get_jwt_identity
 from src.extensions import db
 from src.models.tenant_profile import TenantProfile
 from ..controllers.tenant_controller import (
-    get_tenants, get_tenant_profile, update_tenant_profile,
-    get_landlord_tenants, create_tenant_profile
+    get_tenants,
+    get_tenant,
+    add_tenant,
+    remove_tenant,
+    update_tenant
 )
 
 tenant_bp = Blueprint('tenants', __name__)
 
-tenant_bp.route('/', methods=['GET'])(get_tenants)
-tenant_bp.route('/profile', methods=['GET'])(get_tenant_profile)
-tenant_bp.route('/profile', methods=['POST'])(create_tenant_profile)
-tenant_bp.route('/profile', methods=['PUT'])(update_tenant_profile)
-tenant_bp.route('/landlord', methods=['GET'])(get_landlord_tenants)
+# Routes with unique endpoint names
+tenant_bp.route('/', methods=['GET'], endpoint='list_tenants')(jwt_required()(get_tenants))
+tenant_bp.route('/<int:tenant_id>', methods=['GET'], endpoint='get_tenant_detail')(jwt_required()(get_tenant))
+tenant_bp.route('/', methods=['POST'], endpoint='create_tenant')(jwt_required()(add_tenant))
+tenant_bp.route('/<int:tenant_id>/properties/<int:property_id>', methods=['DELETE'], endpoint='remove_tenant_from_property')(jwt_required()(remove_tenant))
+tenant_bp.route('/<int:tenant_id>', methods=['PUT'], endpoint='update_tenant_info')(jwt_required()(update_tenant))
 
 @tenant_bp.route("/", methods=["GET"])
 @jwt_required()

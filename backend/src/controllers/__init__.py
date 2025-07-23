@@ -1,6 +1,5 @@
 # backend/src/controllers/__init__.py
 
-from . import auth_controller
 from . import payment_controller
 from . import property_controller
 from . import maintenance_controller
