@@ -2,7 +2,7 @@ import React from "react";
 import { ThemeProvider } from "@mui/material/styles";
 import { CssBaseline, Box, CircularProgress } from "@mui/material";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
-import { AuthProvider, useAuth } from "./context/AuthContext";
+import { CombinedProviders, useAuth } from "./context/index";
 import theme from "./theme";
 
 // Layout
@@ -71,7 +71,7 @@ export default function App() {
     <ThemeProvider theme={theme}>
       <CssBaseline />
       <BrowserRouter>
-        <AuthProvider>
+        <CombinedProviders>
           <Routes>
             {/* Public routes */}
             <Route path="/login" element={<Login />} />
@@ -277,7 +277,7 @@ export default function App() {
             <Route path="/unauthorized" element={<Unauthorized />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
-        </AuthProvider>
+        </CombinedProviders>
       </BrowserRouter>
     </ThemeProvider>
   );

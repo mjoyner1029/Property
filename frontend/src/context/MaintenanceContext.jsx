@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
-import axios from 'axios';
+import api from '../utils/api';
 import { useAuth } from './AuthContext';
+import { getErrorMessage } from '../utils/errorHandler';
 
 // Create the context
 const MaintenanceContext = createContext();
@@ -35,7 +36,7 @@ export const MaintenanceProvider = ({ children }) => {
         endpoint = '/api/maintenance/landlord';
       }
       
-      const response = await axios.get(endpoint);
+      const response = await api.get(endpoint);
       setMaintenanceRequests(response.data);
       
       // Calculate stats
@@ -48,8 +49,8 @@ export const MaintenanceProvider = ({ children }) => {
       
       setStats(stats);
     } catch (err) {
-      console.error('Error fetching maintenance requests:', err);
-      setError('Failed to load maintenance requests');
+      const errorMsg = getErrorMessage(err, 'Failed to load maintenance requests');
+      setError(errorMsg);
     } finally {
       setLoading(false);
     }
@@ -87,7 +88,7 @@ export const MaintenanceProvider = ({ children }) => {
         });
       }
       
-      const response = await axios.post('/api/maintenance', formData, {
+      const response = await api.post('/maintenance', formData, {
         headers: {
           'Content-Type': 'multipart/form-data'
         }
@@ -105,8 +106,8 @@ export const MaintenanceProvider = ({ children }) => {
       
       return response.data;
     } catch (err) {
-      console.error('Error creating maintenance request:', err);
-      setError(err.response?.data?.error || 'Failed to create maintenance request');
+      const errorMsg = getErrorMessage(err, 'Failed to create maintenance request');
+      setError(errorMsg);
       throw err;
     } finally {
       setLoading(false);
@@ -119,7 +120,7 @@ export const MaintenanceProvider = ({ children }) => {
     setError(null);
     
     try {
-      const response = await axios.put(`/api/maintenance/${id}`, updateData);
+      const response = await api.put(`/maintenance/${id}`, updateData);
       
       // Update state
       setMaintenanceRequests(prev => 
@@ -148,8 +149,8 @@ export const MaintenanceProvider = ({ children }) => {
       
       return response.data;
     } catch (err) {
-      console.error('Error updating maintenance request:', err);
-      setError(err.response?.data?.error || 'Failed to update maintenance request');
+      const errorMsg = getErrorMessage(err, 'Failed to update maintenance request');
+      setError(errorMsg);
       throw err;
     } finally {
       setLoading(false);
@@ -162,7 +163,7 @@ export const MaintenanceProvider = ({ children }) => {
     setError(null);
     
     try {
-      await axios.delete(`/api/maintenance/${id}`);
+      await api.delete(`/maintenance/${id}`);
       
       // Find the request to update stats properly
       const requestToDelete = maintenanceRequests.find(req => req.id === id);
@@ -185,8 +186,8 @@ export const MaintenanceProvider = ({ children }) => {
       
       return true;
     } catch (err) {
-      console.error('Error deleting maintenance request:', err);
-      setError(err.response?.data?.error || 'Failed to delete maintenance request');
+      const errorMsg = getErrorMessage(err, 'Failed to delete maintenance request');
+      setError(errorMsg);
       throw err;
     } finally {
       setLoading(false);

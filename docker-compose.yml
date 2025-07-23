@@ -7,39 +7,70 @@ services:
       dockerfile: Dockerfile
     container_name: property-backend
     ports:
-      - "5050:5050"
+      - "${BACKEND_PORT:-5050}:5050"
     volumes:
       - ./backend:/app
+      - ./logs:/app/logs
+      - ./uploads:/app/uploads
       - /app/node_modules  # Don't overwrite node_modules with host directory
     env_file:
       - ./backend/.env
+    environment:
+      - FLASK_ENV=${FLASK_ENV:-production}
+      - DATABASE_URL=postgresql://postgres:${DB_PASSWORD:-postgres}@db:5432/asset_anchor
+      - JWT_SECRET_KEY=${JWT_SECRET_KEY}
+      - MAIL_SERVER=${MAIL_SERVER}
+      - MAIL_PORT=${MAIL_PORT}
+      - MAIL_USERNAME=${MAIL_USERNAME}
+      - MAIL_PASSWORD=${MAIL_PASSWORD}
+      - MAIL_USE_TLS=${MAIL_USE_TLS:-True}
+      - STRIPE_API_KEY=${STRIPE_API_KEY}
+      - REDIS_URL=redis://redis:6379/0
     depends_on:
       - db
+      - redis
     restart: unless-stopped
     healthcheck:
-      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:5050/api/health"]
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:5050/api/status"]
       interval: 30s
       timeout: 10s
       retries: 3
       start_period: 10s
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
 
   frontend:
     build:
       context: ./frontend
       dockerfile: Dockerfile
+      args:
+        - REACT_APP_API_URL=${API_URL:-http://localhost:5050/api}
+        - NODE_ENV=${NODE_ENV:-production}
     container_name: property-frontend
     ports:
-      - "3000:3000"
+      - "${FRONTEND_PORT:-3000}:80" # Use nginx to serve on port 80
     volumes:
       - ./frontend:/app
       - /app/node_modules  # Don't overwrite node_modules with host directory
-    stdin_open: true
-    tty: true
     environment:
-      - REACT_APP_API_URL=http://localhost:5050/api
+      - REACT_APP_API_URL=${API_URL:-http://localhost:5050/api}
+      - NODE_ENV=${NODE_ENV:-production}
     depends_on:
       - backend
     restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:80"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
 
   db:
     image: postgres:14-alpine
@@ -59,7 +90,61 @@ services:
       timeout: 5s
       retries: 5
       start_period: 10s
+      
+  redis:
+    image: redis:7-alpine
+    container_name: property-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redisdata:/data
+    command: redis-server --appendonly yes
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  prometheus:
+    image: prom/prometheus:v2.45.0
+    container_name: property-prometheus
+    volumes:
+      - ./monitoring/prometheus:/etc/prometheus
+      - prometheus_data:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.console.libraries=/usr/share/prometheus/console_libraries'
+      - '--web.console.templates=/usr/share/prometheus/consoles'
+    ports:
+      - "9090:9090"
+    restart: unless-stopped
+    depends_on:
+      - backend
+
+  grafana:
+    image: grafana/grafana:10.0.0
+    container_name: property-grafana
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ./monitoring/grafana/provisioning:/etc/grafana/provisioning
+    environment:
+      - GF_SECURITY_ADMIN_USER=${GRAFANA_ADMIN_USER:-admin}
+      - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_ADMIN_PASSWORD:-admin}
+      - GF_USERS_ALLOW_SIGN_UP=false
+    ports:
+      - "3001:3000"
+    restart: unless-stopped
+    depends_on:
+      - prometheus
 
 volumes:
   pgdata:
+    driver: local
+  redisdata:
+    driver: local
+  prometheus_data:
+    driver: local
+  grafana_data:
     driver: local

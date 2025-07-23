@@ -16,8 +16,11 @@ AssetAnchor is a full-stack SaaS property management platform for landlords and 
 - Flask-Migrate and Alembic for schema migrations
 - Production-ready config (HTTPS headers, Talisman, logging)
 - Unit and integration test scaffolding
+- Performance monitoring and metrics
+- Centralized error handling
+- Redis caching integration
 
-### Frontend (React + Tailwind CSS)
+### Frontend (React + Material UI)
 - Landlord and tenant onboarding flows
 - Admin dashboard with user/property management
 - Real-time chat UI per property
@@ -26,21 +29,27 @@ AssetAnchor is a full-stack SaaS property management platform for landlords and 
 - Form validation and error handling
 - Dashboard analytics and navigation
 - Stripe payment UI integration
+- Global feedback system
+- Performance monitoring
+- Error tracking
 
 ## Tech Stack
 
-- **Frontend:** React, Tailwind CSS, Socket.IO-client, Axios
+- **Frontend:** React, Material UI, Socket.IO-client, Custom API client
 - **Backend:** Flask, SQLAlchemy, Flask-JWT-Extended, Flask-SocketIO, Stripe SDK
-- **Database:** PostgreSQL (via Render) or SQLite (local)
-- **Deployment:** Docker, Render (backend), Vercel (frontend)
-- **DevOps:** GitHub Actions (optional), dotenv for environment configs
+- **Database:** PostgreSQL
+- **Caching:** Redis
+- **Monitoring:** Prometheus, Grafana
+- **Deployment:** Docker, Docker Compose, Render
+- **DevOps:** GitHub Actions, Automated testing
 
 ---
 
-## Setup Instructions
+## Development Setup
 
 ### 1. Clone the Repo
 
 ```bash
 git clone https://github.com/mjoyner1029/Property.git
 cd Property
+```

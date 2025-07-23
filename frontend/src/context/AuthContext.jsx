@@ -1,7 +1,8 @@
 // frontend/src/context/AuthContext.jsx
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
+import api from '../utils/api';
+import { getErrorMessage } from '../utils/errorHandler';
 
 // Create context
 const AuthContext = createContext();
@@ -29,17 +30,13 @@ export const AuthProvider = ({ children }) => {
         setUser(JSON.parse(storedUser));
         setIsAuthenticated(true);
         
-        // Set default authorization header for all requests
-        axios.defaults.headers.common['Authorization'] = `Bearer ${storedToken}`;
+        // Token is automatically included in requests via api utility
         
         // Verify token is still valid
         try {
-          await axios.get('/api/auth/verify');
+          await api.get('/auth/verify');
         } catch (err) {
-          // If token is invalid, log the user out
-          if (err.response && err.response.status === 401) {
-            logout();
-          }
+          // Error handling is done in api interceptor
         }
       }
       
@@ -55,7 +52,7 @@ export const AuthProvider = ({ children }) => {
     setError(null);
     
     try {
-      const response = await axios.post('/api/auth/login', credentials);
+      const response = await api.post('/auth/login', credentials);
       const { access_token, user: userData } = response.data;
       
       // Save to state
@@ -66,9 +63,6 @@ export const AuthProvider = ({ children }) => {
       // Save to localStorage
       localStorage.setItem('token', access_token);
       localStorage.setItem('user', JSON.stringify(userData));
-      
-      // Set default auth header
-      axios.defaults.headers.common['Authorization'] = `Bearer ${access_token}`;
       
       // Redirect based on user role and onboarding status
       if (userData.onboarding_complete) {
@@ -85,7 +79,7 @@ export const AuthProvider = ({ children }) => {
       
       return true;
     } catch (err) {
-      setError(err.response?.data?.error || 'Login failed. Please check your credentials.');
+      setError(getErrorMessage(err, 'Login failed. Please check your credentials.'));
       return false;
     } finally {
       setLoading(false);
@@ -98,7 +92,7 @@ export const AuthProvider = ({ children }) => {
     setError(null);
     
     try {
-      const response = await axios.post('/api/auth/register', userData);
+      const response = await api.post('/auth/register', userData);
       const { user: newUser } = response.data;
       
       // Redirect to appropriate onboarding flow
@@ -112,7 +106,7 @@ export const AuthProvider = ({ children }) => {
       
       return true;
     } catch (err) {
-      setError(err.response?.data?.error || 'Registration failed. Please try again.');
+      setError(getErrorMessage(err, 'Registration failed. Please try again.'));
       return false;
     } finally {
       setLoading(false);
@@ -130,8 +124,7 @@ export const AuthProvider = ({ children }) => {
     localStorage.removeItem('token');
     localStorage.removeItem('user');
     
-    // Clear auth header
-    delete axios.defaults.headers.common['Authorization'];
+    // Token will be cleared from localStorage, and api utility will no longer send it
     
     // Redirect to login
     navigate('/login');
@@ -143,7 +136,7 @@ export const AuthProvider = ({ children }) => {
     setError(null);
     
     try {
-      const response = await axios.put(`/api/users/${user.id}`, userData);
+      const response = await api.put(`/users/${user.id}`, userData);
       const updatedUser = response.data;
       
       // Update state and localStorage
@@ -152,7 +145,7 @@ export const AuthProvider = ({ children }) => {
       
       return true;
     } catch (err) {
-      setError(err.response?.data?.error || 'Failed to update profile.');
+      setError(getErrorMessage(err, 'Failed to update profile.'));
       return false;
     } finally {
       setLoading(false);
@@ -165,10 +158,10 @@ export const AuthProvider = ({ children }) => {
     setError(null);
     
     try {
-      await axios.post('/api/auth/forgot-password', { email });
+      await api.post('/auth/forgot-password', { email });
       return true;
     } catch (err) {
-      setError(err.response?.data?.error || 'Failed to request password reset.');
+      setError(getErrorMessage(err, 'Failed to request password reset.'));
       return false;
     } finally {
       setLoading(false);

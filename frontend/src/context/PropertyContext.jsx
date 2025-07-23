@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
-import axios from 'axios';
+import api from '../utils/api';
 import { useAuth } from './AuthContext';
+import { getErrorMessage } from '../utils/errorHandler';
 
 // Create the context
 const PropertyContext = createContext();
@@ -31,7 +32,7 @@ export const PropertyProvider = ({ children }) => {
       // Determine endpoint based on user role
       let endpoint = '/api/properties';
       
-      const response = await axios.get(endpoint);
+      const response = await api.get(endpoint);
       setProperties(response.data);
       
       // Calculate statistics
@@ -57,8 +58,9 @@ export const PropertyProvider = ({ children }) => {
       });
       
     } catch (err) {
-      console.error('Error fetching properties:', err);
-      setError('Failed to load properties');
+      const errorMessage = getErrorMessage(err);
+      console.error('Error fetching properties:', errorMessage);
+      setError('Failed to load properties: ' + errorMessage);
     } finally {
       setLoading(false);
     }
@@ -81,12 +83,13 @@ export const PropertyProvider = ({ children }) => {
     setError(null);
     
     try {
-      const response = await axios.get(`/api/properties/${propertyId}`);
+      const response = await api.get(`/api/properties/${propertyId}`);
       setSelectedProperty(response.data);
       return response.data;
     } catch (err) {
-      console.error('Error fetching property details:', err);
-      setError('Failed to load property details');
+      const errorMessage = getErrorMessage(err);
+      console.error('Error fetching property details:', errorMessage);
+      setError('Failed to load property details: ' + errorMessage);
       throw err;
     } finally {
       setLoading(false);
@@ -115,7 +118,7 @@ export const PropertyProvider = ({ children }) => {
         });
       }
       
-      const response = await axios.post('/api/properties', formData, {
+      const response = await api.post('/api/properties', formData, {
         headers: {
           'Content-Type': 'multipart/form-data'
         }
@@ -162,7 +165,7 @@ export const PropertyProvider = ({ children }) => {
         });
       }
       
-      const response = await axios.put(`/api/properties/${propertyId}`, formData, {
+      const response = await api.put(`/api/properties/${propertyId}`, formData, {
         headers: {
           'Content-Type': 'multipart/form-data'
         }
@@ -192,7 +195,7 @@ export const PropertyProvider = ({ children }) => {
     setError(null);
     
     try {
-      await axios.delete(`/api/properties/${propertyId}`);
+      await api.delete(`/api/properties/${propertyId}`);
       
       // Update state
       setProperties(prev => prev.filter(p => p.id !== propertyId));

@@ -20,6 +20,7 @@ import {
   InputLabel,
   Select,
   FormHelperText,
+  CircularProgress,
 } from "@mui/material";
 import { useNavigate } from "react-router-dom";
 import AddIcon from "@mui/icons-material/Add";
@@ -27,6 +28,11 @@ import SearchIcon from "@mui/icons-material/Search";
 import FilterListIcon from "@mui/icons-material/FilterList";
 import BuildIcon from "@mui/icons-material/Build";
 import EngineeringIcon from "@mui/icons-material/Engineering";
+import { useMaintenance } from "../context/MaintenanceContext";
+import { useFeedback } from "../context/FeedbackContext";
+import useFormSubmit from "../utils/useFormSubmit";
+import logger from "../utils/logger";
+import performance from "../utils/performance";
 import {
   Layout,
   PageHeader,
@@ -35,14 +41,15 @@ import {
   LoadingSpinner,
   Card,
 } from "../components";
-import { useMaintenance, useApp, useProperty } from "../context";
+import { useApp, useProperty } from "../context";
 
 export default function Maintenance() {
   const navigate = useNavigate();
-  const { maintenanceRequests, stats, loading, error, fetchRequests } =
+  const { maintenanceRequests, stats, loading, error, fetchRequests, createRequest } =
     useMaintenance();
   const { properties } = useProperty();
   const { updatePageTitle } = useApp();
+  const { showSuccess, showError } = useFeedback();
 
   const [searchTerm, setSearchTerm] = useState("");
   const [currentStatus, setCurrentStatus] = useState("all");
@@ -50,14 +57,46 @@ export default function Maintenance() {
   const [menuAnchorEl, setMenuAnchorEl] = useState(null);
   const [selectedRequestId, setSelectedRequestId] = useState(null);
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
-  const [newRequestData, setNewRequestData] = useState({
-    title: "",
-    description: "",
-    property_id: "",
-    unit_id: "",
-    priority: "medium",
-  });
-  const [formErrors, setFormErrors] = useState({});
+
+  // Use our form submission hook
+  const {
+    values: newRequestData,
+    setValues: setNewRequestData,
+    handleChange: handleFormChange,
+    handleSubmit: submitForm,
+    validationErrors: formErrors,
+    isSubmitting,
+    resetForm
+  } = useFormSubmit(
+    createRequest,
+    {
+      initialValues: {
+        title: "",
+        description: "",
+        priority: "medium",
+        property_id: "",
+        unit_id: "",
+        images: []
+      },
+      successMessage: "Maintenance request created successfully",
+      errorMessage: "Failed to create maintenance request",
+      onSuccess: () => {
+        // Close dialog
+        handleCreateDialogClose();
+        
+        // Refresh data
+        fetchRequests();
+        
+        // Track successful submission
+        performance.recordMetric('maintenance_request_create_success', 1);
+      },
+      onError: (error) => {
+        logger.error('Failed to create maintenance request', error);
+        performance.recordMetric('maintenance_request_create_error', 1);
+      },
+      formName: 'maintenance_request_create'
+    }
+  );
 
   // Fetch requests on component mount
   useEffect(() => {
@@ -125,48 +164,18 @@ export default function Maintenance() {
       unit_id: "",
       priority: "medium",
     });
-    setFormErrors({});
-  };
-
-  // Form change handlers
-  const handleNewRequestChange = (e) => {
-    const { name, value } = e.target;
-    setNewRequestData((prev) => ({ ...prev, [name]: value }));
-
-    // Clear validation error for this field
-    if (formErrors[name]) {
-      setFormErrors((prev) => ({ ...prev, [name]: undefined }));
-    }
+    // resetForm();
   };
 
   // Form submission
   const handleCreateRequest = async () => {
-    // Validate form
-    const errors = {};
-    if (!newRequestData.title) errors.title = "Title is required";
-    if (!newRequestData.description) errors.description = "Description is required";
-    if (!newRequestData.property_id) errors.property_id = "Property is required";
-
-    if (Object.keys(errors).length > 0) {
-      setFormErrors(errors);
-      return;
-    }
-
+    // Track attempt
+    performance.startTimer('maintenance_request_create');
+    
     try {
-      // Submit form data
-      // Implement actual API call here using your maintenance context
-      // For example: await createMaintenanceRequest(newRequestData);
-      console.log("Creating maintenance request:", newRequestData);
-
-      // Close dialog
-      handleCreateDialogClose();
-
-      // Refresh data
-      fetchRequests();
-    } catch (error) {
-      console.error("Error creating request:", error);
-      // Show error to user
-      setFormErrors({ submit: error.message || "Failed to create request" });
+      await submitForm();
+    } finally {
+      performance.endTimer('maintenance_request_create');
     }
   };
 
@@ -400,7 +409,7 @@ export default function Maintenance() {
             label="Title"
             name="title"
             value={newRequestData.title}
-            onChange={handleNewRequestChange}
+            onChange={handleFormChange}
             fullWidth
             margin="normal"
             error={Boolean(formErrors.title)}
@@ -413,7 +422,7 @@ export default function Maintenance() {
             label="Description"
             name="description"
             value={newRequestData.description}
-            onChange={handleNewRequestChange}
+            onChange={handleFormChange}
             fullWidth
             margin="normal"
             multiline
@@ -432,7 +441,7 @@ export default function Maintenance() {
             <Select
               name="property_id"
               value={newRequestData.property_id}
-              onChange={handleNewRequestChange}
+              onChange={handleFormChange}
               label="Property"
             >
               <MenuItem value="">
@@ -454,7 +463,7 @@ export default function Maintenance() {
             <Select
               name="unit_id"
               value={newRequestData.unit_id}
-              onChange={handleNewRequestChange}
+              onChange={handleFormChange}
               label="Unit (optional)"
             >
               <MenuItem value="">
@@ -469,7 +478,7 @@ export default function Maintenance() {
             <Select
               name="priority"
               value={newRequestData.priority}
-              onChange={handleNewRequestChange}
+              onChange={handleFormChange}
               label="Priority"
             >
               <MenuItem value="low">Low</MenuItem>
@@ -489,8 +498,9 @@ export default function Maintenance() {
             onClick={handleCreateRequest}
             variant="contained"
             sx={{ borderRadius: 2, px: 3 }}
+            disabled={isSubmitting}
           >
-            Create Request
+            {isSubmitting ? <CircularProgress size={24} /> : "Create Request"}
           </Button>
         </DialogActions>
       </Dialog>

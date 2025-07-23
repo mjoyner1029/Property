@@ -4,22 +4,25 @@ import { NotificationProvider, useNotifications } from './NotificationContext';
 import { MaintenanceProvider, useMaintenance } from './MaintenanceContext';
 import { PropertyProvider, useProperty } from './PropertyContext';
 import { AppProvider, useApp } from './AppContext';
+import { FeedbackProvider, useFeedback } from './FeedbackContext';
 
 // Combined provider for easier imports
 const CombinedProviders = ({ children }) => (
-  <ThemeProvider>
-    <AppProvider>
-      <AuthProvider>
-        <NotificationProvider>
-          <PropertyProvider>
-            <MaintenanceProvider>
-              {children}
-            </MaintenanceProvider>
-          </PropertyProvider>
-        </NotificationProvider>
-      </AuthProvider>
-    </AppProvider>
-  </ThemeProvider>
+  <FeedbackProvider>
+    <ThemeProvider>
+      <AppProvider>
+        <AuthProvider>
+          <NotificationProvider>
+            <PropertyProvider>
+              <MaintenanceProvider>
+                {children}
+              </MaintenanceProvider>
+            </PropertyProvider>
+          </NotificationProvider>
+        </AuthProvider>
+      </AppProvider>
+    </ThemeProvider>
+  </FeedbackProvider>
 );
 
 export {
@@ -36,5 +39,7 @@ export {
   PropertyProvider,
   useProperty,
   AppProvider,
-  useApp
+  useApp,
+  FeedbackProvider,
+  useFeedback
 };

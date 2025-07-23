@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
-import axios from 'axios';
+import api from '../utils/api';
+import { getErrorMessage } from '../utils/errorHandler';
 
 // Create the context
 const AppContext = createContext();
@@ -30,13 +31,14 @@ export const AppProvider = ({ children }) => {
     const initializeApp = async () => {
       try {
         // Check API status
-        const response = await axios.get('/api/status');
+        const response = await api.get('/api/status');
         setSystemHealth({
           status: 'healthy',
           services: response.data
         });
       } catch (err) {
-        console.error('API status check failed:', err);
+        const errorMessage = getErrorMessage(err);
+        console.error('API status check failed:', errorMessage);
         setSystemHealth({
           status: 'unhealthy',
           services: {
