@@ -1,0 +1,1176 @@
+2025-07-24 15:44:53,755 [ERROR] backend.src.app: Exception on /api/auth/login [POST]
+Traceback (most recent call last):
+  File "/Users/mjoyner/Property/venv/lib/python3.11/site-packages/sqlalchemy/orm/clsregistry.py", line 515, in _resolve_name
+    rval = d[token]
+           ~^^^^^^^
+  File "/Users/mjoyner/Property/venv/lib/python3.11/site-packages/sqlalchemy/util/_collections.py", line 346, in __missing__
+    self[key] = val = self.creator(key)
+                      ^^^^^^^^^^^^^^^^^
+  File "/Users/mjoyner/Property/venv/lib/python3.11/site-packages/sqlalchemy/orm/clsregistry.py", line 483, in _access_cls
+    return self.fallback[key]
+           ~~~~~~~~~~~~~^^^^^
+KeyError: 'Conversation'
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/Users/mjoyner/Property/venv/lib/python3.11/site-packages/flask/app.py", line 2190, in wsgi_app
+    response = self.full_dispatch_request()
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/mjoyner/Property/venv/lib/python3.11/site-packages/flask/app.py", line 1486, in full_dispatch_request
+    rv = self.handle_user_exception(e)
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/mjoyner/Property/venv/lib/python3.11/site-packages/flask_cors/extension.py", line 176, in wrapped_function
+    return cors_after_request(app.make_response(f(*args, **kwargs)))
+                                                ^^^^^^^^^^^^^^^^^^
+  File "/Users/mjoyner/Property/venv/lib/python3.11/site-packages/flask/app.py", line 1484, in full_dispatch_request
+    rv = self.dispatch_request()
+         ^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/mjoyner/Property/venv/lib/python3.11/site-packages/flask/app.py", line 1469, in dispatch_request
+    return self.ensure_sync(self.view_functions[rule.endpoint])(**view_args)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/mjoyner/Property/backend/src/utils/rate_limit.py", line 113, in wrapped
+    response = f(*args, **kwargs)
+               ^^^^^^^^^^^^^^^^^^
+  File "/Users/mjoyner/Property/backend/src/routes/auth_routes.py", line 35, in login
+    user = User.query.filter_by(email=data.get("email")).first()
+           ^^^^^^^^^^
+  File "/Users/mjoyner/Property/venv/lib/python3.11/site-packages/flask_sqlalchemy/model.py", line 22, in __get__
+    return cls.query_class(
+           ^^^^^^^^^^^^^^^^
+  File "/Users/mjoyner/Property/venv/lib/python3.11/site-packages/sqlalchemy/orm/query.py", line 274, in __init__
+    self._set_entities(entities)
+  File "/Users/mjoyner/Property/venv/lib/python3.11/site-packages/sqlalchemy/orm/query.py", line 283, in _set_entities
+    self._raw_columns = [
+                        ^
+  File "/Users/mjoyner/Property/venv/lib/python3.11/site-packages/sqlalchemy/orm/query.py", line 284, in <listcomp>
+    coercions.expect(
+  File "/Users/mjoyner/Property/venv/lib/python3.11/site-packages/sqlalchemy/sql/coercions.py", line 406, in expect
+    insp._post_inspect
+  File "/Users/mjoyner/Property/venv/lib/python3.11/site-packages/sqlalchemy/util/langhelpers.py", line 1252, in __get__
+    obj.__dict__[self.__name__] = result = self.fget(obj)
+                                           ^^^^^^^^^^^^^^
+  File "/Users/mjoyner/Property/venv/lib/python3.11/site-packages/sqlalchemy/orm/mapper.py", line 2707, in _post_inspect
+    self._check_configure()
+  File "/Users/mjoyner/Property/venv/lib/python3.11/site-packages/sqlalchemy/orm/mapper.py", line 2386, in _check_configure
+    _configure_registries({self.registry}, cascade=True)
+  File "/Users/mjoyner/Property/venv/lib/python3.11/site-packages/sqlalchemy/orm/mapper.py", line 4199, in _configure_registries
+    _do_configure_registries(registries, cascade)
+  File "/Users/mjoyner/Property/venv/lib/python3.11/site-packages/sqlalchemy/orm/mapper.py", line 4240, in _do_configure_registries
+    mapper._post_configure_properties()
+  File "/Users/mjoyner/Property/venv/lib/python3.11/site-packages/sqlalchemy/orm/mapper.py", line 2403, in _post_configure_properties
+    prop.init()
+  File "/Users/mjoyner/Property/venv/lib/python3.11/site-packages/sqlalchemy/orm/interfaces.py", line 579, in init
+    self.do_init()
+  File "/Users/mjoyner/Property/venv/lib/python3.11/site-packages/sqlalchemy/orm/relationships.py", line 1634, in do_init
+    self._setup_entity()
+  File "/Users/mjoyner/Property/venv/lib/python3.11/site-packages/sqlalchemy/orm/relationships.py", line 1851, in _setup_entity
+    self._clsregistry_resolve_name(argument)(),
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/mjoyner/Property/venv/lib/python3.11/site-packages/sqlalchemy/orm/clsregistry.py", line 519, in _resolve_name
+    self._raise_for_name(name, err)
+  File "/Users/mjoyner/Property/venv/lib/python3.11/site-packages/sqlalchemy/orm/clsregistry.py", line 500, in _raise_for_name
+    raise exc.InvalidRequestError(
+sqlalchemy.exc.InvalidRequestError: When initializing mapper Mapper[Message(messages)], expression 'Conversation' failed to locate a name ('Conversation'). If this is a class name, consider adding this relationship() to the <class 'backend.src.models.message.Message'> class after both dependent classes have been defined.
+2025-07-24 15:44:53,766 [ERROR] asset_anchor: Response: POST /api/auth/login 500 (0.04s)
+2025-07-24 15:44:53,766 [ERROR] asset_anchor: Unhandled exception: When initializing mapper Mapper[Message(messages)], expression 'Conversation' failed to locate a name ('Conversation'). If this is a class name, consider adding this relationship() to the <class 'backend.src.models.message.Message'> class after both dependent classes have been defined.
+NoneType: None
+2025-07-24 15:44:55,536 [ERROR] backend.src.app: Exception on /api/auth/login [POST]
+Traceback (most recent call last):
+  File "/Users/mjoyner/Property/venv/lib/python3.11/site-packages/flask/app.py", line 2190, in wsgi_app
+    response = self.full_dispatch_request()
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/mjoyner/Property/venv/lib/python3.11/site-packages/flask/app.py", line 1486, in full_dispatch_request
+    rv = self.handle_user_exception(e)
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/mjoyner/Property/venv/lib/python3.11/site-packages/flask_cors/extension.py", line 176, in wrapped_function
+    return cors_after_request(app.make_response(f(*args, **kwargs)))
+                                                ^^^^^^^^^^^^^^^^^^
+  File "/Users/mjoyner/Property/venv/lib/python3.11/site-packages/flask/app.py", line 1484, in full_dispatch_request
+    rv = self.dispatch_request()
+         ^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/mjoyner/Property/venv/lib/python3.11/site-packages/flask/app.py", line 1469, in dispatch_request
+    return self.ensure_sync(self.view_functions[rule.endpoint])(**view_args)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/mjoyner/Property/backend/src/utils/rate_limit.py", line 113, in wrapped
+    response = f(*args, **kwargs)
+               ^^^^^^^^^^^^^^^^^^
+  File "/Users/mjoyner/Property/backend/src/routes/auth_routes.py", line 35, in login
+    user = User.query.filter_by(email=data.get("email")).first()
+           ^^^^^^^^^^
+  File "/Users/mjoyner/Property/venv/lib/python3.11/site-packages/flask_sqlalchemy/model.py", line 22, in __get__
+    return cls.query_class(
+           ^^^^^^^^^^^^^^^^
+  File "/Users/mjoyner/Property/venv/lib/python3.11/site-packages/sqlalchemy/orm/query.py", line 274, in __init__
+    self._set_entities(entities)
+  File "/Users/mjoyner/Property/venv/lib/python3.11/site-packages/sqlalchemy/orm/query.py", line 283, in _set_entities
+    self._raw_columns = [
+                        ^
+  File "/Users/mjoyner/Property/venv/lib/python3.11/site-packages/sqlalchemy/orm/query.py", line 284, in <listcomp>
+    coercions.expect(
+  File "/Users/mjoyner/Property/venv/lib/python3.11/site-packages/sqlalchemy/sql/coercions.py", line 406, in expect
+    insp._post_inspect
+  File "/Users/mjoyner/Property/venv/lib/python3.11/site-packages/sqlalchemy/util/langhelpers.py", line 1252, in __get__
+    obj.__dict__[self.__name__] = result = self.fget(obj)
+                                           ^^^^^^^^^^^^^^
+  File "/Users/mjoyner/Property/venv/lib/python3.11/site-packages/sqlalchemy/orm/mapper.py", line 2707, in _post_inspect
+    self._check_configure()
+  File "/Users/mjoyner/Property/venv/lib/python3.11/site-packages/sqlalchemy/orm/mapper.py", line 2386, in _check_configure
+    _configure_registries({self.registry}, cascade=True)
+  File "/Users/mjoyner/Property/venv/lib/python3.11/site-packages/sqlalchemy/orm/mapper.py", line 4199, in _configure_registries
+    _do_configure_registries(registries, cascade)
+  File "/Users/mjoyner/Property/venv/lib/python3.11/site-packages/sqlalchemy/orm/mapper.py", line 4236, in _do_configure_registries
+    raise e
+sqlalchemy.exc.InvalidRequestError: One or more mappers failed to initialize - can't proceed with initialization of other mappers. Triggering mapper: 'Mapper[Message(messages)]'. Original exception was: When initializing mapper Mapper[Message(messages)], expression 'Conversation' failed to locate a name ('Conversation'). If this is a class name, consider adding this relationship() to the <class 'backend.src.models.message.Message'> class after both dependent classes have been defined.
+2025-07-24 15:44:55,538 [ERROR] asset_anchor: Response: POST /api/auth/login 500 (0.00s)
+2025-07-24 15:44:55,539 [ERROR] asset_anchor: Unhandled exception: One or more mappers failed to initialize - can't proceed with initialization of other mappers. Triggering mapper: 'Mapper[Message(messages)]'. Original exception was: When initializing mapper Mapper[Message(messages)], expression 'Conversation' failed to locate a name ('Conversation'). If this is a class name, consider adding this relationship() to the <class 'backend.src.models.message.Message'> class after both dependent classes have been defined.
+NoneType: None
+2025-07-24 15:54:01,635 [ERROR] asset_anchor: Unhandled exception: When initializing mapper Mapper[Message(messages)], expression 'Conversation' failed to locate a name ('Conversation'). If this is a class name, consider adding this relationship() to the <class 'src.models.message.Message'> class after both dependent classes have been defined.
+Traceback (most recent call last):
+  File "/Users/mjoyner/Property/venv/lib/python3.11/site-packages/sqlalchemy/orm/clsregistry.py", line 515, in _resolve_name
+    rval = d[token]
+           ~^^^^^^^
+  File "/Users/mjoyner/Property/venv/lib/python3.11/site-packages/sqlalchemy/util/_collections.py", line 346, in __missing__
+    self[key] = val = self.creator(key)
+                      ^^^^^^^^^^^^^^^^^
+  File "/Users/mjoyner/Property/venv/lib/python3.11/site-packages/sqlalchemy/orm/clsregistry.py", line 483, in _access_cls
+    return self.fallback[key]
+           ~~~~~~~~~~~~~^^^^^
+KeyError: 'Conversation'
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/Users/mjoyner/Property/venv/lib/python3.11/site-packages/flask/app.py", line 2193, in wsgi_app
+    response = self.handle_exception(e)
+               ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/mjoyner/Property/venv/lib/python3.11/site-packages/flask_cors/extension.py", line 176, in wrapped_function
+    return cors_after_request(app.make_response(f(*args, **kwargs)))
+                                                ^^^^^^^^^^^^^^^^^^
+  File "/Users/mjoyner/Property/venv/lib/python3.11/site-packages/flask/app.py", line 2190, in wsgi_app
+    response = self.full_dispatch_request()
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/mjoyner/Property/venv/lib/python3.11/site-packages/flask/app.py", line 1486, in full_dispatch_request
+    rv = self.handle_user_exception(e)
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/mjoyner/Property/venv/lib/python3.11/site-packages/flask_cors/extension.py", line 176, in wrapped_function
+    return cors_after_request(app.make_response(f(*args, **kwargs)))
+                                                ^^^^^^^^^^^^^^^^^^
+  File "/Users/mjoyner/Property/venv/lib/python3.11/site-packages/flask/app.py", line 1484, in full_dispatch_request
+    rv = self.dispatch_request()
+         ^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/mjoyner/Property/venv/lib/python3.11/site-packages/flask/app.py", line 1469, in dispatch_request
+    return self.ensure_sync(self.view_functions[rule.endpoint])(**view_args)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/mjoyner/Property/backend/src/utils/rate_limit.py", line 113, in wrapped
+    response = f(*args, **kwargs)
+               ^^^^^^^^^^^^^^^^^^
+  File "/Users/mjoyner/Property/backend/src/routes/auth_routes.py", line 42, in login
+    user = User.query.filter_by(email=data.get("email")).first()
+           ^^^^^^^^^^
+  File "/Users/mjoyner/Property/venv/lib/python3.11/site-packages/flask_sqlalchemy/model.py", line 22, in __get__
+    return cls.query_class(
+           ^^^^^^^^^^^^^^^^
+  File "/Users/mjoyner/Property/venv/lib/python3.11/site-packages/sqlalchemy/orm/query.py", line 274, in __init__
+    self._set_entities(entities)
+  File "/Users/mjoyner/Property/venv/lib/python3.11/site-packages/sqlalchemy/orm/query.py", line 283, in _set_entities
+    self._raw_columns = [
+                        ^
+  File "/Users/mjoyner/Property/venv/lib/python3.11/site-packages/sqlalchemy/orm/query.py", line 284, in <listcomp>
+    coercions.expect(
+  File "/Users/mjoyner/Property/venv/lib/python3.11/site-packages/sqlalchemy/sql/coercions.py", line 406, in expect
+    insp._post_inspect
+  File "/Users/mjoyner/Property/venv/lib/python3.11/site-packages/sqlalchemy/util/langhelpers.py", line 1252, in __get__
+    obj.__dict__[self.__name__] = result = self.fget(obj)
+                                           ^^^^^^^^^^^^^^
+  File "/Users/mjoyner/Property/venv/lib/python3.11/site-packages/sqlalchemy/orm/mapper.py", line 2707, in _post_inspect
+    self._check_configure()
+  File "/Users/mjoyner/Property/venv/lib/python3.11/site-packages/sqlalchemy/orm/mapper.py", line 2386, in _check_configure
+    _configure_registries({self.registry}, cascade=True)
+  File "/Users/mjoyner/Property/venv/lib/python3.11/site-packages/sqlalchemy/orm/mapper.py", line 4199, in _configure_registries
+    _do_configure_registries(registries, cascade)
+  File "/Users/mjoyner/Property/venv/lib/python3.11/site-packages/sqlalchemy/orm/mapper.py", line 4240, in _do_configure_registries
+    mapper._post_configure_properties()
+  File "/Users/mjoyner/Property/venv/lib/python3.11/site-packages/sqlalchemy/orm/mapper.py", line 2403, in _post_configure_properties
+    prop.init()
+  File "/Users/mjoyner/Property/venv/lib/python3.11/site-packages/sqlalchemy/orm/interfaces.py", line 579, in init
+    self.do_init()
+  File "/Users/mjoyner/Property/venv/lib/python3.11/site-packages/sqlalchemy/orm/relationships.py", line 1634, in do_init
+    self._setup_entity()
+  File "/Users/mjoyner/Property/venv/lib/python3.11/site-packages/sqlalchemy/orm/relationships.py", line 1851, in _setup_entity
+    self._clsregistry_resolve_name(argument)(),
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/mjoyner/Property/venv/lib/python3.11/site-packages/sqlalchemy/orm/clsregistry.py", line 519, in _resolve_name
+    self._raise_for_name(name, err)
+  File "/Users/mjoyner/Property/venv/lib/python3.11/site-packages/sqlalchemy/orm/clsregistry.py", line 500, in _raise_for_name
+    raise exc.InvalidRequestError(
+sqlalchemy.exc.InvalidRequestError: When initializing mapper Mapper[Message(messages)], expression 'Conversation' failed to locate a name ('Conversation'). If this is a class name, consider adding this relationship() to the <class 'src.models.message.Message'> class after both dependent classes have been defined.
+2025-07-24 15:54:25,354 [ERROR] asset_anchor: Unhandled exception: One or more mappers failed to initialize - can't proceed with initialization of other mappers. Triggering mapper: 'Mapper[Message(messages)]'. Original exception was: When initializing mapper Mapper[Message(messages)], expression 'Conversation' failed to locate a name ('Conversation'). If this is a class name, consider adding this relationship() to the <class 'src.models.message.Message'> class after both dependent classes have been defined.
+Traceback (most recent call last):
+  File "/Users/mjoyner/Property/venv/lib/python3.11/site-packages/flask/app.py", line 2193, in wsgi_app
+    response = self.handle_exception(e)
+               ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/mjoyner/Property/venv/lib/python3.11/site-packages/flask_cors/extension.py", line 176, in wrapped_function
+    return cors_after_request(app.make_response(f(*args, **kwargs)))
+                                                ^^^^^^^^^^^^^^^^^^
+  File "/Users/mjoyner/Property/venv/lib/python3.11/site-packages/flask/app.py", line 2190, in wsgi_app
+    response = self.full_dispatch_request()
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/mjoyner/Property/venv/lib/python3.11/site-packages/flask/app.py", line 1486, in full_dispatch_request
+    rv = self.handle_user_exception(e)
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/mjoyner/Property/venv/lib/python3.11/site-packages/flask_cors/extension.py", line 176, in wrapped_function
+    return cors_after_request(app.make_response(f(*args, **kwargs)))
+                                                ^^^^^^^^^^^^^^^^^^
+  File "/Users/mjoyner/Property/venv/lib/python3.11/site-packages/flask/app.py", line 1484, in full_dispatch_request
+    rv = self.dispatch_request()
+         ^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/mjoyner/Property/venv/lib/python3.11/site-packages/flask/app.py", line 1469, in dispatch_request
+    return self.ensure_sync(self.view_functions[rule.endpoint])(**view_args)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/mjoyner/Property/backend/src/utils/rate_limit.py", line 113, in wrapped
+    response = f(*args, **kwargs)
+               ^^^^^^^^^^^^^^^^^^
+  File "/Users/mjoyner/Property/backend/src/routes/auth_routes.py", line 42, in login
+    user = User.query.filter_by(email=data.get("email")).first()
+           ^^^^^^^^^^
+  File "/Users/mjoyner/Property/venv/lib/python3.11/site-packages/flask_sqlalchemy/model.py", line 22, in __get__
+    return cls.query_class(
+           ^^^^^^^^^^^^^^^^
+  File "/Users/mjoyner/Property/venv/lib/python3.11/site-packages/sqlalchemy/orm/query.py", line 274, in __init__
+    self._set_entities(entities)
+  File "/Users/mjoyner/Property/venv/lib/python3.11/site-packages/sqlalchemy/orm/query.py", line 283, in _set_entities
+    self._raw_columns = [
+                        ^
+  File "/Users/mjoyner/Property/venv/lib/python3.11/site-packages/sqlalchemy/orm/query.py", line 284, in <listcomp>
+    coercions.expect(
+  File "/Users/mjoyner/Property/venv/lib/python3.11/site-packages/sqlalchemy/sql/coercions.py", line 406, in expect
+    insp._post_inspect
+  File "/Users/mjoyner/Property/venv/lib/python3.11/site-packages/sqlalchemy/util/langhelpers.py", line 1252, in __get__
+    obj.__dict__[self.__name__] = result = self.fget(obj)
+                                           ^^^^^^^^^^^^^^
+  File "/Users/mjoyner/Property/venv/lib/python3.11/site-packages/sqlalchemy/orm/mapper.py", line 2707, in _post_inspect
+    self._check_configure()
+  File "/Users/mjoyner/Property/venv/lib/python3.11/site-packages/sqlalchemy/orm/mapper.py", line 2386, in _check_configure
+    _configure_registries({self.registry}, cascade=True)
+  File "/Users/mjoyner/Property/venv/lib/python3.11/site-packages/sqlalchemy/orm/mapper.py", line 4199, in _configure_registries
+    _do_configure_registries(registries, cascade)
+  File "/Users/mjoyner/Property/venv/lib/python3.11/site-packages/sqlalchemy/orm/mapper.py", line 4236, in _do_configure_registries
+    raise e
+sqlalchemy.exc.InvalidRequestError: One or more mappers failed to initialize - can't proceed with initialization of other mappers. Triggering mapper: 'Mapper[Message(messages)]'. Original exception was: When initializing mapper Mapper[Message(messages)], expression 'Conversation' failed to locate a name ('Conversation'). If this is a class name, consider adding this relationship() to the <class 'src.models.message.Message'> class after both dependent classes have been defined.
+2025-07-24 15:54:26,686 [ERROR] asset_anchor: Unhandled exception: One or more mappers failed to initialize - can't proceed with initialization of other mappers. Triggering mapper: 'Mapper[Message(messages)]'. Original exception was: When initializing mapper Mapper[Message(messages)], expression 'Conversation' failed to locate a name ('Conversation'). If this is a class name, consider adding this relationship() to the <class 'src.models.message.Message'> class after both dependent classes have been defined.
+Traceback (most recent call last):
+  File "/Users/mjoyner/Property/venv/lib/python3.11/site-packages/flask/app.py", line 2193, in wsgi_app
+    response = self.handle_exception(e)
+               ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/mjoyner/Property/venv/lib/python3.11/site-packages/flask_cors/extension.py", line 176, in wrapped_function
+    return cors_after_request(app.make_response(f(*args, **kwargs)))
+                                                ^^^^^^^^^^^^^^^^^^
+  File "/Users/mjoyner/Property/venv/lib/python3.11/site-packages/flask/app.py", line 2190, in wsgi_app
+    response = self.full_dispatch_request()
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/mjoyner/Property/venv/lib/python3.11/site-packages/flask/app.py", line 1486, in full_dispatch_request
+    rv = self.handle_user_exception(e)
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/mjoyner/Property/venv/lib/python3.11/site-packages/flask_cors/extension.py", line 176, in wrapped_function
+    return cors_after_request(app.make_response(f(*args, **kwargs)))
+                                                ^^^^^^^^^^^^^^^^^^
+  File "/Users/mjoyner/Property/venv/lib/python3.11/site-packages/flask/app.py", line 1484, in full_dispatch_request
+    rv = self.dispatch_request()
+         ^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/mjoyner/Property/venv/lib/python3.11/site-packages/flask/app.py", line 1469, in dispatch_request
+    return self.ensure_sync(self.view_functions[rule.endpoint])(**view_args)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/mjoyner/Property/backend/src/utils/rate_limit.py", line 113, in wrapped
+    response = f(*args, **kwargs)
+               ^^^^^^^^^^^^^^^^^^
+  File "/Users/mjoyner/Property/backend/src/routes/auth_routes.py", line 42, in login
+    user = User.query.filter_by(email=data.get("email")).first()
+           ^^^^^^^^^^
+  File "/Users/mjoyner/Property/venv/lib/python3.11/site-packages/flask_sqlalchemy/model.py", line 22, in __get__
+    return cls.query_class(
+           ^^^^^^^^^^^^^^^^
+  File "/Users/mjoyner/Property/venv/lib/python3.11/site-packages/sqlalchemy/orm/query.py", line 274, in __init__
+    self._set_entities(entities)
+  File "/Users/mjoyner/Property/venv/lib/python3.11/site-packages/sqlalchemy/orm/query.py", line 283, in _set_entities
+    self._raw_columns = [
+                        ^
+  File "/Users/mjoyner/Property/venv/lib/python3.11/site-packages/sqlalchemy/orm/query.py", line 284, in <listcomp>
+    coercions.expect(
+  File "/Users/mjoyner/Property/venv/lib/python3.11/site-packages/sqlalchemy/sql/coercions.py", line 406, in expect
+    insp._post_inspect
+  File "/Users/mjoyner/Property/venv/lib/python3.11/site-packages/sqlalchemy/util/langhelpers.py", line 1252, in __get__
+    obj.__dict__[self.__name__] = result = self.fget(obj)
+                                           ^^^^^^^^^^^^^^
+  File "/Users/mjoyner/Property/venv/lib/python3.11/site-packages/sqlalchemy/orm/mapper.py", line 2707, in _post_inspect
+    self._check_configure()
+  File "/Users/mjoyner/Property/venv/lib/python3.11/site-packages/sqlalchemy/orm/mapper.py", line 2386, in _check_configure
+    _configure_registries({self.registry}, cascade=True)
+  File "/Users/mjoyner/Property/venv/lib/python3.11/site-packages/sqlalchemy/orm/mapper.py", line 4199, in _configure_registries
+    _do_configure_registries(registries, cascade)
+  File "/Users/mjoyner/Property/venv/lib/python3.11/site-packages/sqlalchemy/orm/mapper.py", line 4236, in _do_configure_registries
+    raise e
+sqlalchemy.exc.InvalidRequestError: One or more mappers failed to initialize - can't proceed with initialization of other mappers. Triggering mapper: 'Mapper[Message(messages)]'. Original exception was: When initializing mapper Mapper[Message(messages)], expression 'Conversation' failed to locate a name ('Conversation'). If this is a class name, consider adding this relationship() to the <class 'src.models.message.Message'> class after both dependent classes have been defined.
+2025-07-24 15:54:44,213 [ERROR] asset_anchor: Unhandled exception: One or more mappers failed to initialize - can't proceed with initialization of other mappers. Triggering mapper: 'Mapper[Message(messages)]'. Original exception was: When initializing mapper Mapper[Message(messages)], expression 'Conversation' failed to locate a name ('Conversation'). If this is a class name, consider adding this relationship() to the <class 'src.models.message.Message'> class after both dependent classes have been defined.
+Traceback (most recent call last):
+  File "/Users/mjoyner/Property/venv/lib/python3.11/site-packages/flask/app.py", line 2193, in wsgi_app
+    response = self.handle_exception(e)
+               ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/mjoyner/Property/venv/lib/python3.11/site-packages/flask_cors/extension.py", line 176, in wrapped_function
+    return cors_after_request(app.make_response(f(*args, **kwargs)))
+                                                ^^^^^^^^^^^^^^^^^^
+  File "/Users/mjoyner/Property/venv/lib/python3.11/site-packages/flask/app.py", line 2190, in wsgi_app
+    response = self.full_dispatch_request()
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/mjoyner/Property/venv/lib/python3.11/site-packages/flask/app.py", line 1486, in full_dispatch_request
+    rv = self.handle_user_exception(e)
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/mjoyner/Property/venv/lib/python3.11/site-packages/flask_cors/extension.py", line 176, in wrapped_function
+    return cors_after_request(app.make_response(f(*args, **kwargs)))
+                                                ^^^^^^^^^^^^^^^^^^
+  File "/Users/mjoyner/Property/venv/lib/python3.11/site-packages/flask/app.py", line 1484, in full_dispatch_request
+    rv = self.dispatch_request()
+         ^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/mjoyner/Property/venv/lib/python3.11/site-packages/flask/app.py", line 1469, in dispatch_request
+    return self.ensure_sync(self.view_functions[rule.endpoint])(**view_args)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/mjoyner/Property/backend/src/utils/rate_limit.py", line 113, in wrapped
+    response = f(*args, **kwargs)
+               ^^^^^^^^^^^^^^^^^^
+  File "/Users/mjoyner/Property/backend/src/routes/auth_routes.py", line 42, in login
+    user = User.query.filter_by(email=data.get("email")).first()
+           ^^^^^^^^^^
+  File "/Users/mjoyner/Property/venv/lib/python3.11/site-packages/flask_sqlalchemy/model.py", line 22, in __get__
+    return cls.query_class(
+           ^^^^^^^^^^^^^^^^
+  File "/Users/mjoyner/Property/venv/lib/python3.11/site-packages/sqlalchemy/orm/query.py", line 274, in __init__
+    self._set_entities(entities)
+  File "/Users/mjoyner/Property/venv/lib/python3.11/site-packages/sqlalchemy/orm/query.py", line 283, in _set_entities
+    self._raw_columns = [
+                        ^
+  File "/Users/mjoyner/Property/venv/lib/python3.11/site-packages/sqlalchemy/orm/query.py", line 284, in <listcomp>
+    coercions.expect(
+  File "/Users/mjoyner/Property/venv/lib/python3.11/site-packages/sqlalchemy/sql/coercions.py", line 406, in expect
+    insp._post_inspect
+  File "/Users/mjoyner/Property/venv/lib/python3.11/site-packages/sqlalchemy/util/langhelpers.py", line 1252, in __get__
+    obj.__dict__[self.__name__] = result = self.fget(obj)
+                                           ^^^^^^^^^^^^^^
+  File "/Users/mjoyner/Property/venv/lib/python3.11/site-packages/sqlalchemy/orm/mapper.py", line 2707, in _post_inspect
+    self._check_configure()
+  File "/Users/mjoyner/Property/venv/lib/python3.11/site-packages/sqlalchemy/orm/mapper.py", line 2386, in _check_configure
+    _configure_registries({self.registry}, cascade=True)
+  File "/Users/mjoyner/Property/venv/lib/python3.11/site-packages/sqlalchemy/orm/mapper.py", line 4199, in _configure_registries
+    _do_configure_registries(registries, cascade)
+  File "/Users/mjoyner/Property/venv/lib/python3.11/site-packages/sqlalchemy/orm/mapper.py", line 4236, in _do_configure_registries
+    raise e
+sqlalchemy.exc.InvalidRequestError: One or more mappers failed to initialize - can't proceed with initialization of other mappers. Triggering mapper: 'Mapper[Message(messages)]'. Original exception was: When initializing mapper Mapper[Message(messages)], expression 'Conversation' failed to locate a name ('Conversation'). If this is a class name, consider adding this relationship() to the <class 'src.models.message.Message'> class after both dependent classes have been defined.
+2025-07-24 15:54:45,830 [ERROR] asset_anchor: Unhandled exception: One or more mappers failed to initialize - can't proceed with initialization of other mappers. Triggering mapper: 'Mapper[Message(messages)]'. Original exception was: When initializing mapper Mapper[Message(messages)], expression 'Conversation' failed to locate a name ('Conversation'). If this is a class name, consider adding this relationship() to the <class 'src.models.message.Message'> class after both dependent classes have been defined.
+Traceback (most recent call last):
+  File "/Users/mjoyner/Property/venv/lib/python3.11/site-packages/flask/app.py", line 2193, in wsgi_app
+    response = self.handle_exception(e)
+               ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/mjoyner/Property/venv/lib/python3.11/site-packages/flask_cors/extension.py", line 176, in wrapped_function
+    return cors_after_request(app.make_response(f(*args, **kwargs)))
+                                                ^^^^^^^^^^^^^^^^^^
+  File "/Users/mjoyner/Property/venv/lib/python3.11/site-packages/flask/app.py", line 2190, in wsgi_app
+    response = self.full_dispatch_request()
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/mjoyner/Property/venv/lib/python3.11/site-packages/flask/app.py", line 1486, in full_dispatch_request
+    rv = self.handle_user_exception(e)
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/mjoyner/Property/venv/lib/python3.11/site-packages/flask_cors/extension.py", line 176, in wrapped_function
+    return cors_after_request(app.make_response(f(*args, **kwargs)))
+                                                ^^^^^^^^^^^^^^^^^^
+  File "/Users/mjoyner/Property/venv/lib/python3.11/site-packages/flask/app.py", line 1484, in full_dispatch_request
+    rv = self.dispatch_request()
+         ^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/mjoyner/Property/venv/lib/python3.11/site-packages/flask/app.py", line 1469, in dispatch_request
+    return self.ensure_sync(self.view_functions[rule.endpoint])(**view_args)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/mjoyner/Property/backend/src/utils/rate_limit.py", line 113, in wrapped
+    response = f(*args, **kwargs)
+               ^^^^^^^^^^^^^^^^^^
+  File "/Users/mjoyner/Property/backend/src/routes/auth_routes.py", line 42, in login
+    user = User.query.filter_by(email=data.get("email")).first()
+           ^^^^^^^^^^
+  File "/Users/mjoyner/Property/venv/lib/python3.11/site-packages/flask_sqlalchemy/model.py", line 22, in __get__
+    return cls.query_class(
+           ^^^^^^^^^^^^^^^^
+  File "/Users/mjoyner/Property/venv/lib/python3.11/site-packages/sqlalchemy/orm/query.py", line 274, in __init__
+    self._set_entities(entities)
+  File "/Users/mjoyner/Property/venv/lib/python3.11/site-packages/sqlalchemy/orm/query.py", line 283, in _set_entities
+    self._raw_columns = [
+                        ^
+  File "/Users/mjoyner/Property/venv/lib/python3.11/site-packages/sqlalchemy/orm/query.py", line 284, in <listcomp>
+    coercions.expect(
+  File "/Users/mjoyner/Property/venv/lib/python3.11/site-packages/sqlalchemy/sql/coercions.py", line 406, in expect
+    insp._post_inspect
+  File "/Users/mjoyner/Property/venv/lib/python3.11/site-packages/sqlalchemy/util/langhelpers.py", line 1252, in __get__
+    obj.__dict__[self.__name__] = result = self.fget(obj)
+                                           ^^^^^^^^^^^^^^
+  File "/Users/mjoyner/Property/venv/lib/python3.11/site-packages/sqlalchemy/orm/mapper.py", line 2707, in _post_inspect
+    self._check_configure()
+  File "/Users/mjoyner/Property/venv/lib/python3.11/site-packages/sqlalchemy/orm/mapper.py", line 2386, in _check_configure
+    _configure_registries({self.registry}, cascade=True)
+  File "/Users/mjoyner/Property/venv/lib/python3.11/site-packages/sqlalchemy/orm/mapper.py", line 4199, in _configure_registries
+    _do_configure_registries(registries, cascade)
+  File "/Users/mjoyner/Property/venv/lib/python3.11/site-packages/sqlalchemy/orm/mapper.py", line 4236, in _do_configure_registries
+    raise e
+sqlalchemy.exc.InvalidRequestError: One or more mappers failed to initialize - can't proceed with initialization of other mappers. Triggering mapper: 'Mapper[Message(messages)]'. Original exception was: When initializing mapper Mapper[Message(messages)], expression 'Conversation' failed to locate a name ('Conversation'). If this is a class name, consider adding this relationship() to the <class 'src.models.message.Message'> class after both dependent classes have been defined.
+2025-07-24 15:54:49,448 [ERROR] asset_anchor: Unhandled exception: One or more mappers failed to initialize - can't proceed with initialization of other mappers. Triggering mapper: 'Mapper[Message(messages)]'. Original exception was: When initializing mapper Mapper[Message(messages)], expression 'Conversation' failed to locate a name ('Conversation'). If this is a class name, consider adding this relationship() to the <class 'src.models.message.Message'> class after both dependent classes have been defined.
+Traceback (most recent call last):
+  File "/Users/mjoyner/Property/venv/lib/python3.11/site-packages/flask/app.py", line 2193, in wsgi_app
+    response = self.handle_exception(e)
+               ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/mjoyner/Property/venv/lib/python3.11/site-packages/flask_cors/extension.py", line 176, in wrapped_function
+    return cors_after_request(app.make_response(f(*args, **kwargs)))
+                                                ^^^^^^^^^^^^^^^^^^
+  File "/Users/mjoyner/Property/venv/lib/python3.11/site-packages/flask/app.py", line 2190, in wsgi_app
+    response = self.full_dispatch_request()
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/mjoyner/Property/venv/lib/python3.11/site-packages/flask/app.py", line 1486, in full_dispatch_request
+    rv = self.handle_user_exception(e)
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/mjoyner/Property/venv/lib/python3.11/site-packages/flask_cors/extension.py", line 176, in wrapped_function
+    return cors_after_request(app.make_response(f(*args, **kwargs)))
+                                                ^^^^^^^^^^^^^^^^^^
+  File "/Users/mjoyner/Property/venv/lib/python3.11/site-packages/flask/app.py", line 1484, in full_dispatch_request
+    rv = self.dispatch_request()
+         ^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/mjoyner/Property/venv/lib/python3.11/site-packages/flask/app.py", line 1469, in dispatch_request
+    return self.ensure_sync(self.view_functions[rule.endpoint])(**view_args)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/mjoyner/Property/backend/src/utils/rate_limit.py", line 113, in wrapped
+    response = f(*args, **kwargs)
+               ^^^^^^^^^^^^^^^^^^
+  File "/Users/mjoyner/Property/backend/src/routes/auth_routes.py", line 42, in login
+    user = User.query.filter_by(email=data.get("email")).first()
+           ^^^^^^^^^^
+  File "/Users/mjoyner/Property/venv/lib/python3.11/site-packages/flask_sqlalchemy/model.py", line 22, in __get__
+    return cls.query_class(
+           ^^^^^^^^^^^^^^^^
+  File "/Users/mjoyner/Property/venv/lib/python3.11/site-packages/sqlalchemy/orm/query.py", line 274, in __init__
+    self._set_entities(entities)
+  File "/Users/mjoyner/Property/venv/lib/python3.11/site-packages/sqlalchemy/orm/query.py", line 283, in _set_entities
+    self._raw_columns = [
+                        ^
+  File "/Users/mjoyner/Property/venv/lib/python3.11/site-packages/sqlalchemy/orm/query.py", line 284, in <listcomp>
+    coercions.expect(
+  File "/Users/mjoyner/Property/venv/lib/python3.11/site-packages/sqlalchemy/sql/coercions.py", line 406, in expect
+    insp._post_inspect
+  File "/Users/mjoyner/Property/venv/lib/python3.11/site-packages/sqlalchemy/util/langhelpers.py", line 1252, in __get__
+    obj.__dict__[self.__name__] = result = self.fget(obj)
+                                           ^^^^^^^^^^^^^^
+  File "/Users/mjoyner/Property/venv/lib/python3.11/site-packages/sqlalchemy/orm/mapper.py", line 2707, in _post_inspect
+    self._check_configure()
+  File "/Users/mjoyner/Property/venv/lib/python3.11/site-packages/sqlalchemy/orm/mapper.py", line 2386, in _check_configure
+    _configure_registries({self.registry}, cascade=True)
+  File "/Users/mjoyner/Property/venv/lib/python3.11/site-packages/sqlalchemy/orm/mapper.py", line 4199, in _configure_registries
+    _do_configure_registries(registries, cascade)
+  File "/Users/mjoyner/Property/venv/lib/python3.11/site-packages/sqlalchemy/orm/mapper.py", line 4236, in _do_configure_registries
+    raise e
+sqlalchemy.exc.InvalidRequestError: One or more mappers failed to initialize - can't proceed with initialization of other mappers. Triggering mapper: 'Mapper[Message(messages)]'. Original exception was: When initializing mapper Mapper[Message(messages)], expression 'Conversation' failed to locate a name ('Conversation'). If this is a class name, consider adding this relationship() to the <class 'src.models.message.Message'> class after both dependent classes have been defined.
+2025-07-24 15:57:01,427 [ERROR] asset_anchor: Unhandled exception: When initializing mapper Mapper[Message(messages)], expression 'Conversation' failed to locate a name ('Conversation'). If this is a class name, consider adding this relationship() to the <class 'src.models.message.Message'> class after both dependent classes have been defined.
+Traceback (most recent call last):
+  File "/Users/mjoyner/Property/venv/lib/python3.11/site-packages/sqlalchemy/orm/clsregistry.py", line 515, in _resolve_name
+    rval = d[token]
+           ~^^^^^^^
+  File "/Users/mjoyner/Property/venv/lib/python3.11/site-packages/sqlalchemy/util/_collections.py", line 346, in __missing__
+    self[key] = val = self.creator(key)
+                      ^^^^^^^^^^^^^^^^^
+  File "/Users/mjoyner/Property/venv/lib/python3.11/site-packages/sqlalchemy/orm/clsregistry.py", line 483, in _access_cls
+    return self.fallback[key]
+           ~~~~~~~~~~~~~^^^^^
+KeyError: 'Conversation'
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/Users/mjoyner/Property/venv/lib/python3.11/site-packages/flask/app.py", line 2193, in wsgi_app
+    response = self.handle_exception(e)
+               ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/mjoyner/Property/venv/lib/python3.11/site-packages/flask_cors/extension.py", line 176, in wrapped_function
+    return cors_after_request(app.make_response(f(*args, **kwargs)))
+                                                ^^^^^^^^^^^^^^^^^^
+  File "/Users/mjoyner/Property/venv/lib/python3.11/site-packages/flask/app.py", line 2190, in wsgi_app
+    response = self.full_dispatch_request()
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/mjoyner/Property/venv/lib/python3.11/site-packages/flask/app.py", line 1486, in full_dispatch_request
+    rv = self.handle_user_exception(e)
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/mjoyner/Property/venv/lib/python3.11/site-packages/flask_cors/extension.py", line 176, in wrapped_function
+    return cors_after_request(app.make_response(f(*args, **kwargs)))
+                                                ^^^^^^^^^^^^^^^^^^
+  File "/Users/mjoyner/Property/venv/lib/python3.11/site-packages/flask/app.py", line 1484, in full_dispatch_request
+    rv = self.dispatch_request()
+         ^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/mjoyner/Property/venv/lib/python3.11/site-packages/flask/app.py", line 1469, in dispatch_request
+    return self.ensure_sync(self.view_functions[rule.endpoint])(**view_args)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/mjoyner/Property/backend/src/utils/rate_limit.py", line 113, in wrapped
+    response = f(*args, **kwargs)
+               ^^^^^^^^^^^^^^^^^^
+  File "/Users/mjoyner/Property/backend/src/routes/auth_routes.py", line 42, in login
+    user = User.query.filter_by(email=data.get("email")).first()
+           ^^^^^^^^^^
+  File "/Users/mjoyner/Property/venv/lib/python3.11/site-packages/flask_sqlalchemy/model.py", line 22, in __get__
+    return cls.query_class(
+           ^^^^^^^^^^^^^^^^
+  File "/Users/mjoyner/Property/venv/lib/python3.11/site-packages/sqlalchemy/orm/query.py", line 274, in __init__
+    self._set_entities(entities)
+  File "/Users/mjoyner/Property/venv/lib/python3.11/site-packages/sqlalchemy/orm/query.py", line 283, in _set_entities
+    self._raw_columns = [
+                        ^
+  File "/Users/mjoyner/Property/venv/lib/python3.11/site-packages/sqlalchemy/orm/query.py", line 284, in <listcomp>
+    coercions.expect(
+  File "/Users/mjoyner/Property/venv/lib/python3.11/site-packages/sqlalchemy/sql/coercions.py", line 406, in expect
+    insp._post_inspect
+  File "/Users/mjoyner/Property/venv/lib/python3.11/site-packages/sqlalchemy/util/langhelpers.py", line 1252, in __get__
+    obj.__dict__[self.__name__] = result = self.fget(obj)
+                                           ^^^^^^^^^^^^^^
+  File "/Users/mjoyner/Property/venv/lib/python3.11/site-packages/sqlalchemy/orm/mapper.py", line 2707, in _post_inspect
+    self._check_configure()
+  File "/Users/mjoyner/Property/venv/lib/python3.11/site-packages/sqlalchemy/orm/mapper.py", line 2386, in _check_configure
+    _configure_registries({self.registry}, cascade=True)
+  File "/Users/mjoyner/Property/venv/lib/python3.11/site-packages/sqlalchemy/orm/mapper.py", line 4199, in _configure_registries
+    _do_configure_registries(registries, cascade)
+  File "/Users/mjoyner/Property/venv/lib/python3.11/site-packages/sqlalchemy/orm/mapper.py", line 4240, in _do_configure_registries
+    mapper._post_configure_properties()
+  File "/Users/mjoyner/Property/venv/lib/python3.11/site-packages/sqlalchemy/orm/mapper.py", line 2403, in _post_configure_properties
+    prop.init()
+  File "/Users/mjoyner/Property/venv/lib/python3.11/site-packages/sqlalchemy/orm/interfaces.py", line 579, in init
+    self.do_init()
+  File "/Users/mjoyner/Property/venv/lib/python3.11/site-packages/sqlalchemy/orm/relationships.py", line 1634, in do_init
+    self._setup_entity()
+  File "/Users/mjoyner/Property/venv/lib/python3.11/site-packages/sqlalchemy/orm/relationships.py", line 1851, in _setup_entity
+    self._clsregistry_resolve_name(argument)(),
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/mjoyner/Property/venv/lib/python3.11/site-packages/sqlalchemy/orm/clsregistry.py", line 519, in _resolve_name
+    self._raise_for_name(name, err)
+  File "/Users/mjoyner/Property/venv/lib/python3.11/site-packages/sqlalchemy/orm/clsregistry.py", line 500, in _raise_for_name
+    raise exc.InvalidRequestError(
+sqlalchemy.exc.InvalidRequestError: When initializing mapper Mapper[Message(messages)], expression 'Conversation' failed to locate a name ('Conversation'). If this is a class name, consider adding this relationship() to the <class 'src.models.message.Message'> class after both dependent classes have been defined.
+2025-07-26 17:02:54,573 [ERROR] asset_anchor: Unhandled exception: Could not determine join condition between parent/child tables on relationship Property.landlord - there are no foreign keys linking these tables.  Ensure that referencing columns are associated with a ForeignKey or ForeignKeyConstraint, or specify a 'primaryjoin' expression.
+Traceback (most recent call last):
+  File "/Users/mjoyner/.pyenv/versions/3.11.9/lib/python3.11/site-packages/sqlalchemy/orm/relationships.py", line 2435, in _determine_joins
+    self.primaryjoin = join_condition(
+                       ^^^^^^^^^^^^^^^
+  File "/Users/mjoyner/.pyenv/versions/3.11.9/lib/python3.11/site-packages/sqlalchemy/sql/util.py", line 123, in join_condition
+    return Join._join_condition(
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/mjoyner/.pyenv/versions/3.11.9/lib/python3.11/site-packages/sqlalchemy/sql/selectable.py", line 1444, in _join_condition
+    raise exc.NoForeignKeysError(
+sqlalchemy.exc.NoForeignKeysError: Can't find any foreign key relationships between 'properties' and 'user'.
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/Users/mjoyner/.pyenv/versions/3.11.9/lib/python3.11/site-packages/flask/app.py", line 2193, in wsgi_app
+    response = self.handle_exception(e)
+               ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/mjoyner/.pyenv/versions/3.11.9/lib/python3.11/site-packages/flask_cors/extension.py", line 176, in wrapped_function
+    return cors_after_request(app.make_response(f(*args, **kwargs)))
+                                                ^^^^^^^^^^^^^^^^^^
+  File "/Users/mjoyner/.pyenv/versions/3.11.9/lib/python3.11/site-packages/flask/app.py", line 2190, in wsgi_app
+    response = self.full_dispatch_request()
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/mjoyner/.pyenv/versions/3.11.9/lib/python3.11/site-packages/flask/app.py", line 1486, in full_dispatch_request
+    rv = self.handle_user_exception(e)
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/mjoyner/.pyenv/versions/3.11.9/lib/python3.11/site-packages/flask_cors/extension.py", line 176, in wrapped_function
+    return cors_after_request(app.make_response(f(*args, **kwargs)))
+                                                ^^^^^^^^^^^^^^^^^^
+  File "/Users/mjoyner/.pyenv/versions/3.11.9/lib/python3.11/site-packages/flask/app.py", line 1484, in full_dispatch_request
+    rv = self.dispatch_request()
+         ^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/mjoyner/.pyenv/versions/3.11.9/lib/python3.11/site-packages/flask/app.py", line 1469, in dispatch_request
+    return self.ensure_sync(self.view_functions[rule.endpoint])(**view_args)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/mjoyner/Property/backend/src/utils/rate_limit.py", line 113, in wrapped
+    response = f(*args, **kwargs)
+               ^^^^^^^^^^^^^^^^^^
+  File "/Users/mjoyner/Property/backend/src/routes/auth_routes.py", line 35, in login
+    user = User.query.filter_by(email=data.get("email")).first()
+           ^^^^^^^^^^
+  File "/Users/mjoyner/.pyenv/versions/3.11.9/lib/python3.11/site-packages/flask_sqlalchemy/model.py", line 22, in __get__
+    return cls.query_class(
+           ^^^^^^^^^^^^^^^^
+  File "/Users/mjoyner/.pyenv/versions/3.11.9/lib/python3.11/site-packages/sqlalchemy/orm/query.py", line 276, in __init__
+    self._set_entities(entities)
+  File "/Users/mjoyner/.pyenv/versions/3.11.9/lib/python3.11/site-packages/sqlalchemy/orm/query.py", line 288, in _set_entities
+    self._raw_columns = [
+                        ^
+  File "/Users/mjoyner/.pyenv/versions/3.11.9/lib/python3.11/site-packages/sqlalchemy/orm/query.py", line 289, in <listcomp>
+    coercions.expect(
+  File "/Users/mjoyner/.pyenv/versions/3.11.9/lib/python3.11/site-packages/sqlalchemy/sql/coercions.py", line 388, in expect
+    insp._post_inspect
+  File "/Users/mjoyner/.pyenv/versions/3.11.9/lib/python3.11/site-packages/sqlalchemy/util/langhelpers.py", line 1338, in __get__
+    obj.__dict__[self.__name__] = result = self.fget(obj)
+                                           ^^^^^^^^^^^^^^
+  File "/Users/mjoyner/.pyenv/versions/3.11.9/lib/python3.11/site-packages/sqlalchemy/orm/mapper.py", line 2724, in _post_inspect
+    self._check_configure()
+  File "/Users/mjoyner/.pyenv/versions/3.11.9/lib/python3.11/site-packages/sqlalchemy/orm/mapper.py", line 2401, in _check_configure
+    _configure_registries({self.registry}, cascade=True)
+  File "/Users/mjoyner/.pyenv/versions/3.11.9/lib/python3.11/site-packages/sqlalchemy/orm/mapper.py", line 4214, in _configure_registries
+    _do_configure_registries(registries, cascade)
+  File "/Users/mjoyner/.pyenv/versions/3.11.9/lib/python3.11/site-packages/sqlalchemy/orm/mapper.py", line 4255, in _do_configure_registries
+    mapper._post_configure_properties()
+  File "/Users/mjoyner/.pyenv/versions/3.11.9/lib/python3.11/site-packages/sqlalchemy/orm/mapper.py", line 2418, in _post_configure_properties
+    prop.init()
+  File "/Users/mjoyner/.pyenv/versions/3.11.9/lib/python3.11/site-packages/sqlalchemy/orm/interfaces.py", line 589, in init
+    self.do_init()
+  File "/Users/mjoyner/.pyenv/versions/3.11.9/lib/python3.11/site-packages/sqlalchemy/orm/relationships.py", line 1658, in do_init
+    self._setup_join_conditions()
+  File "/Users/mjoyner/.pyenv/versions/3.11.9/lib/python3.11/site-packages/sqlalchemy/orm/relationships.py", line 1896, in _setup_join_conditions
+    self._join_condition = jc = JoinCondition(
+                                ^^^^^^^^^^^^^^
+  File "/Users/mjoyner/.pyenv/versions/3.11.9/lib/python3.11/site-packages/sqlalchemy/orm/relationships.py", line 2322, in __init__
+    self._determine_joins()
+  File "/Users/mjoyner/.pyenv/versions/3.11.9/lib/python3.11/site-packages/sqlalchemy/orm/relationships.py", line 2456, in _determine_joins
+    raise sa_exc.NoForeignKeysError(
+sqlalchemy.exc.NoForeignKeysError: Could not determine join condition between parent/child tables on relationship Property.landlord - there are no foreign keys linking these tables.  Ensure that referencing columns are associated with a ForeignKey or ForeignKeyConstraint, or specify a 'primaryjoin' expression.
+2025-07-26 17:08:22,217 [ERROR] asset_anchor: Unhandled exception: Could not determine join condition between parent/child tables on relationship TenantProfile.user - there are no foreign keys linking these tables.  Ensure that referencing columns are associated with a ForeignKey or ForeignKeyConstraint, or specify a 'primaryjoin' expression.
+Traceback (most recent call last):
+  File "/Users/mjoyner/.pyenv/versions/3.11.9/lib/python3.11/site-packages/sqlalchemy/orm/relationships.py", line 2435, in _determine_joins
+    self.primaryjoin = join_condition(
+                       ^^^^^^^^^^^^^^^
+  File "/Users/mjoyner/.pyenv/versions/3.11.9/lib/python3.11/site-packages/sqlalchemy/sql/util.py", line 123, in join_condition
+    return Join._join_condition(
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/mjoyner/.pyenv/versions/3.11.9/lib/python3.11/site-packages/sqlalchemy/sql/selectable.py", line 1444, in _join_condition
+    raise exc.NoForeignKeysError(
+sqlalchemy.exc.NoForeignKeysError: Can't find any foreign key relationships between 'tenant_profiles' and 'user'.
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/Users/mjoyner/.pyenv/versions/3.11.9/lib/python3.11/site-packages/flask/app.py", line 2193, in wsgi_app
+    response = self.handle_exception(e)
+               ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/mjoyner/.pyenv/versions/3.11.9/lib/python3.11/site-packages/flask_cors/extension.py", line 176, in wrapped_function
+    return cors_after_request(app.make_response(f(*args, **kwargs)))
+                                                ^^^^^^^^^^^^^^^^^^
+  File "/Users/mjoyner/.pyenv/versions/3.11.9/lib/python3.11/site-packages/flask/app.py", line 2190, in wsgi_app
+    response = self.full_dispatch_request()
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/mjoyner/.pyenv/versions/3.11.9/lib/python3.11/site-packages/flask/app.py", line 1486, in full_dispatch_request
+    rv = self.handle_user_exception(e)
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/mjoyner/.pyenv/versions/3.11.9/lib/python3.11/site-packages/flask_cors/extension.py", line 176, in wrapped_function
+    return cors_after_request(app.make_response(f(*args, **kwargs)))
+                                                ^^^^^^^^^^^^^^^^^^
+  File "/Users/mjoyner/.pyenv/versions/3.11.9/lib/python3.11/site-packages/flask/app.py", line 1484, in full_dispatch_request
+    rv = self.dispatch_request()
+         ^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/mjoyner/.pyenv/versions/3.11.9/lib/python3.11/site-packages/flask/app.py", line 1469, in dispatch_request
+    return self.ensure_sync(self.view_functions[rule.endpoint])(**view_args)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/mjoyner/Property/backend/src/utils/rate_limit.py", line 113, in wrapped
+    response = f(*args, **kwargs)
+               ^^^^^^^^^^^^^^^^^^
+  File "/Users/mjoyner/Property/backend/src/routes/auth_routes.py", line 35, in login
+    user = User.query.filter_by(email=data.get("email")).first()
+           ^^^^^^^^^^
+  File "/Users/mjoyner/.pyenv/versions/3.11.9/lib/python3.11/site-packages/flask_sqlalchemy/model.py", line 22, in __get__
+    return cls.query_class(
+           ^^^^^^^^^^^^^^^^
+  File "/Users/mjoyner/.pyenv/versions/3.11.9/lib/python3.11/site-packages/sqlalchemy/orm/query.py", line 276, in __init__
+    self._set_entities(entities)
+  File "/Users/mjoyner/.pyenv/versions/3.11.9/lib/python3.11/site-packages/sqlalchemy/orm/query.py", line 288, in _set_entities
+    self._raw_columns = [
+                        ^
+  File "/Users/mjoyner/.pyenv/versions/3.11.9/lib/python3.11/site-packages/sqlalchemy/orm/query.py", line 289, in <listcomp>
+    coercions.expect(
+  File "/Users/mjoyner/.pyenv/versions/3.11.9/lib/python3.11/site-packages/sqlalchemy/sql/coercions.py", line 388, in expect
+    insp._post_inspect
+  File "/Users/mjoyner/.pyenv/versions/3.11.9/lib/python3.11/site-packages/sqlalchemy/util/langhelpers.py", line 1338, in __get__
+    obj.__dict__[self.__name__] = result = self.fget(obj)
+                                           ^^^^^^^^^^^^^^
+  File "/Users/mjoyner/.pyenv/versions/3.11.9/lib/python3.11/site-packages/sqlalchemy/orm/mapper.py", line 2724, in _post_inspect
+    self._check_configure()
+  File "/Users/mjoyner/.pyenv/versions/3.11.9/lib/python3.11/site-packages/sqlalchemy/orm/mapper.py", line 2401, in _check_configure
+    _configure_registries({self.registry}, cascade=True)
+  File "/Users/mjoyner/.pyenv/versions/3.11.9/lib/python3.11/site-packages/sqlalchemy/orm/mapper.py", line 4214, in _configure_registries
+    _do_configure_registries(registries, cascade)
+  File "/Users/mjoyner/.pyenv/versions/3.11.9/lib/python3.11/site-packages/sqlalchemy/orm/mapper.py", line 4255, in _do_configure_registries
+    mapper._post_configure_properties()
+  File "/Users/mjoyner/.pyenv/versions/3.11.9/lib/python3.11/site-packages/sqlalchemy/orm/mapper.py", line 2418, in _post_configure_properties
+    prop.init()
+  File "/Users/mjoyner/.pyenv/versions/3.11.9/lib/python3.11/site-packages/sqlalchemy/orm/interfaces.py", line 589, in init
+    self.do_init()
+  File "/Users/mjoyner/.pyenv/versions/3.11.9/lib/python3.11/site-packages/sqlalchemy/orm/relationships.py", line 1658, in do_init
+    self._setup_join_conditions()
+  File "/Users/mjoyner/.pyenv/versions/3.11.9/lib/python3.11/site-packages/sqlalchemy/orm/relationships.py", line 1896, in _setup_join_conditions
+    self._join_condition = jc = JoinCondition(
+                                ^^^^^^^^^^^^^^
+  File "/Users/mjoyner/.pyenv/versions/3.11.9/lib/python3.11/site-packages/sqlalchemy/orm/relationships.py", line 2322, in __init__
+    self._determine_joins()
+  File "/Users/mjoyner/.pyenv/versions/3.11.9/lib/python3.11/site-packages/sqlalchemy/orm/relationships.py", line 2456, in _determine_joins
+    raise sa_exc.NoForeignKeysError(
+sqlalchemy.exc.NoForeignKeysError: Could not determine join condition between parent/child tables on relationship TenantProfile.user - there are no foreign keys linking these tables.  Ensure that referencing columns are associated with a ForeignKey or ForeignKeyConstraint, or specify a 'primaryjoin' expression.
+2025-07-26 17:16:35,282 [ERROR] asset_anchor: Unhandled exception: When initializing mapper Mapper[Message(messages)], expression 'Conversation' failed to locate a name ('Conversation'). If this is a class name, consider adding this relationship() to the <class 'src.models.message.Message'> class after both dependent classes have been defined.
+Traceback (most recent call last):
+  File "/Users/mjoyner/.pyenv/versions/3.11.9/lib/python3.11/site-packages/sqlalchemy/orm/clsregistry.py", line 516, in _resolve_name
+    rval = d[token]
+           ~^^^^^^^
+  File "/Users/mjoyner/.pyenv/versions/3.11.9/lib/python3.11/site-packages/sqlalchemy/util/_collections.py", line 345, in __missing__
+    self[key] = val = self.creator(key)
+                      ^^^^^^^^^^^^^^^^^
+  File "/Users/mjoyner/.pyenv/versions/3.11.9/lib/python3.11/site-packages/sqlalchemy/orm/clsregistry.py", line 484, in _access_cls
+    return self.fallback[key]
+           ~~~~~~~~~~~~~^^^^^
+KeyError: 'Conversation'
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/Users/mjoyner/.pyenv/versions/3.11.9/lib/python3.11/site-packages/flask/app.py", line 2193, in wsgi_app
+    response = self.handle_exception(e)
+               ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/mjoyner/.pyenv/versions/3.11.9/lib/python3.11/site-packages/flask_cors/extension.py", line 176, in wrapped_function
+    return cors_after_request(app.make_response(f(*args, **kwargs)))
+                                                ^^^^^^^^^^^^^^^^^^
+  File "/Users/mjoyner/.pyenv/versions/3.11.9/lib/python3.11/site-packages/flask/app.py", line 2190, in wsgi_app
+    response = self.full_dispatch_request()
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/mjoyner/.pyenv/versions/3.11.9/lib/python3.11/site-packages/flask/app.py", line 1486, in full_dispatch_request
+    rv = self.handle_user_exception(e)
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/mjoyner/.pyenv/versions/3.11.9/lib/python3.11/site-packages/flask_cors/extension.py", line 176, in wrapped_function
+    return cors_after_request(app.make_response(f(*args, **kwargs)))
+                                                ^^^^^^^^^^^^^^^^^^
+  File "/Users/mjoyner/.pyenv/versions/3.11.9/lib/python3.11/site-packages/flask/app.py", line 1484, in full_dispatch_request
+    rv = self.dispatch_request()
+         ^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/mjoyner/.pyenv/versions/3.11.9/lib/python3.11/site-packages/flask/app.py", line 1469, in dispatch_request
+    return self.ensure_sync(self.view_functions[rule.endpoint])(**view_args)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/mjoyner/Property/backend/src/utils/rate_limit.py", line 113, in wrapped
+    response = f(*args, **kwargs)
+               ^^^^^^^^^^^^^^^^^^
+  File "/Users/mjoyner/Property/backend/src/routes/auth_routes.py", line 35, in login
+    user = User.query.filter_by(email=data.get("email")).first()
+           ^^^^^^^^^^
+  File "/Users/mjoyner/.pyenv/versions/3.11.9/lib/python3.11/site-packages/flask_sqlalchemy/model.py", line 22, in __get__
+    return cls.query_class(
+           ^^^^^^^^^^^^^^^^
+  File "/Users/mjoyner/.pyenv/versions/3.11.9/lib/python3.11/site-packages/sqlalchemy/orm/query.py", line 276, in __init__
+    self._set_entities(entities)
+  File "/Users/mjoyner/.pyenv/versions/3.11.9/lib/python3.11/site-packages/sqlalchemy/orm/query.py", line 288, in _set_entities
+    self._raw_columns = [
+                        ^
+  File "/Users/mjoyner/.pyenv/versions/3.11.9/lib/python3.11/site-packages/sqlalchemy/orm/query.py", line 289, in <listcomp>
+    coercions.expect(
+  File "/Users/mjoyner/.pyenv/versions/3.11.9/lib/python3.11/site-packages/sqlalchemy/sql/coercions.py", line 388, in expect
+    insp._post_inspect
+  File "/Users/mjoyner/.pyenv/versions/3.11.9/lib/python3.11/site-packages/sqlalchemy/util/langhelpers.py", line 1338, in __get__
+    obj.__dict__[self.__name__] = result = self.fget(obj)
+                                           ^^^^^^^^^^^^^^
+  File "/Users/mjoyner/.pyenv/versions/3.11.9/lib/python3.11/site-packages/sqlalchemy/orm/mapper.py", line 2724, in _post_inspect
+    self._check_configure()
+  File "/Users/mjoyner/.pyenv/versions/3.11.9/lib/python3.11/site-packages/sqlalchemy/orm/mapper.py", line 2401, in _check_configure
+    _configure_registries({self.registry}, cascade=True)
+  File "/Users/mjoyner/.pyenv/versions/3.11.9/lib/python3.11/site-packages/sqlalchemy/orm/mapper.py", line 4214, in _configure_registries
+    _do_configure_registries(registries, cascade)
+  File "/Users/mjoyner/.pyenv/versions/3.11.9/lib/python3.11/site-packages/sqlalchemy/orm/mapper.py", line 4255, in _do_configure_registries
+    mapper._post_configure_properties()
+  File "/Users/mjoyner/.pyenv/versions/3.11.9/lib/python3.11/site-packages/sqlalchemy/orm/mapper.py", line 2418, in _post_configure_properties
+    prop.init()
+  File "/Users/mjoyner/.pyenv/versions/3.11.9/lib/python3.11/site-packages/sqlalchemy/orm/interfaces.py", line 589, in init
+    self.do_init()
+  File "/Users/mjoyner/.pyenv/versions/3.11.9/lib/python3.11/site-packages/sqlalchemy/orm/relationships.py", line 1656, in do_init
+    self._setup_entity()
+  File "/Users/mjoyner/.pyenv/versions/3.11.9/lib/python3.11/site-packages/sqlalchemy/orm/relationships.py", line 1866, in _setup_entity
+    self._clsregistry_resolve_name(argument)(),
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/mjoyner/.pyenv/versions/3.11.9/lib/python3.11/site-packages/sqlalchemy/orm/clsregistry.py", line 520, in _resolve_name
+    self._raise_for_name(name, err)
+  File "/Users/mjoyner/.pyenv/versions/3.11.9/lib/python3.11/site-packages/sqlalchemy/orm/clsregistry.py", line 501, in _raise_for_name
+    raise exc.InvalidRequestError(
+sqlalchemy.exc.InvalidRequestError: When initializing mapper Mapper[Message(messages)], expression 'Conversation' failed to locate a name ('Conversation'). If this is a class name, consider adding this relationship() to the <class 'src.models.message.Message'> class after both dependent classes have been defined.
+2025-07-26 17:20:00,741 [ERROR] asset_anchor: Unhandled exception: When initializing mapper Mapper[Conversation(conversations)], expression 'ConversationParticipant' failed to locate a name ('ConversationParticipant'). If this is a class name, consider adding this relationship() to the <class 'src.models.conversation.Conversation'> class after both dependent classes have been defined.
+Traceback (most recent call last):
+  File "/Users/mjoyner/.pyenv/versions/3.11.9/lib/python3.11/site-packages/sqlalchemy/orm/clsregistry.py", line 516, in _resolve_name
+    rval = d[token]
+           ~^^^^^^^
+  File "/Users/mjoyner/.pyenv/versions/3.11.9/lib/python3.11/site-packages/sqlalchemy/util/_collections.py", line 345, in __missing__
+    self[key] = val = self.creator(key)
+                      ^^^^^^^^^^^^^^^^^
+  File "/Users/mjoyner/.pyenv/versions/3.11.9/lib/python3.11/site-packages/sqlalchemy/orm/clsregistry.py", line 484, in _access_cls
+    return self.fallback[key]
+           ~~~~~~~~~~~~~^^^^^
+KeyError: 'ConversationParticipant'
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/Users/mjoyner/.pyenv/versions/3.11.9/lib/python3.11/site-packages/flask/app.py", line 2193, in wsgi_app
+    response = self.handle_exception(e)
+               ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/mjoyner/.pyenv/versions/3.11.9/lib/python3.11/site-packages/flask_cors/extension.py", line 176, in wrapped_function
+    return cors_after_request(app.make_response(f(*args, **kwargs)))
+                                                ^^^^^^^^^^^^^^^^^^
+  File "/Users/mjoyner/.pyenv/versions/3.11.9/lib/python3.11/site-packages/flask/app.py", line 2190, in wsgi_app
+    response = self.full_dispatch_request()
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/mjoyner/.pyenv/versions/3.11.9/lib/python3.11/site-packages/flask/app.py", line 1486, in full_dispatch_request
+    rv = self.handle_user_exception(e)
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/mjoyner/.pyenv/versions/3.11.9/lib/python3.11/site-packages/flask_cors/extension.py", line 176, in wrapped_function
+    return cors_after_request(app.make_response(f(*args, **kwargs)))
+                                                ^^^^^^^^^^^^^^^^^^
+  File "/Users/mjoyner/.pyenv/versions/3.11.9/lib/python3.11/site-packages/flask/app.py", line 1484, in full_dispatch_request
+    rv = self.dispatch_request()
+         ^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/mjoyner/.pyenv/versions/3.11.9/lib/python3.11/site-packages/flask/app.py", line 1469, in dispatch_request
+    return self.ensure_sync(self.view_functions[rule.endpoint])(**view_args)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/mjoyner/Property/backend/src/utils/rate_limit.py", line 113, in wrapped
+    response = f(*args, **kwargs)
+               ^^^^^^^^^^^^^^^^^^
+  File "/Users/mjoyner/Property/backend/src/routes/auth_routes.py", line 35, in login
+    user = User.query.filter_by(email=data.get("email")).first()
+           ^^^^^^^^^^
+  File "/Users/mjoyner/.pyenv/versions/3.11.9/lib/python3.11/site-packages/flask_sqlalchemy/model.py", line 22, in __get__
+    return cls.query_class(
+           ^^^^^^^^^^^^^^^^
+  File "/Users/mjoyner/.pyenv/versions/3.11.9/lib/python3.11/site-packages/sqlalchemy/orm/query.py", line 276, in __init__
+    self._set_entities(entities)
+  File "/Users/mjoyner/.pyenv/versions/3.11.9/lib/python3.11/site-packages/sqlalchemy/orm/query.py", line 288, in _set_entities
+    self._raw_columns = [
+                        ^
+  File "/Users/mjoyner/.pyenv/versions/3.11.9/lib/python3.11/site-packages/sqlalchemy/orm/query.py", line 289, in <listcomp>
+    coercions.expect(
+  File "/Users/mjoyner/.pyenv/versions/3.11.9/lib/python3.11/site-packages/sqlalchemy/sql/coercions.py", line 388, in expect
+    insp._post_inspect
+  File "/Users/mjoyner/.pyenv/versions/3.11.9/lib/python3.11/site-packages/sqlalchemy/util/langhelpers.py", line 1338, in __get__
+    obj.__dict__[self.__name__] = result = self.fget(obj)
+                                           ^^^^^^^^^^^^^^
+  File "/Users/mjoyner/.pyenv/versions/3.11.9/lib/python3.11/site-packages/sqlalchemy/orm/mapper.py", line 2724, in _post_inspect
+    self._check_configure()
+  File "/Users/mjoyner/.pyenv/versions/3.11.9/lib/python3.11/site-packages/sqlalchemy/orm/mapper.py", line 2401, in _check_configure
+    _configure_registries({self.registry}, cascade=True)
+  File "/Users/mjoyner/.pyenv/versions/3.11.9/lib/python3.11/site-packages/sqlalchemy/orm/mapper.py", line 4214, in _configure_registries
+    _do_configure_registries(registries, cascade)
+  File "/Users/mjoyner/.pyenv/versions/3.11.9/lib/python3.11/site-packages/sqlalchemy/orm/mapper.py", line 4255, in _do_configure_registries
+    mapper._post_configure_properties()
+  File "/Users/mjoyner/.pyenv/versions/3.11.9/lib/python3.11/site-packages/sqlalchemy/orm/mapper.py", line 2418, in _post_configure_properties
+    prop.init()
+  File "/Users/mjoyner/.pyenv/versions/3.11.9/lib/python3.11/site-packages/sqlalchemy/orm/interfaces.py", line 589, in init
+    self.do_init()
+  File "/Users/mjoyner/.pyenv/versions/3.11.9/lib/python3.11/site-packages/sqlalchemy/orm/relationships.py", line 1656, in do_init
+    self._setup_entity()
+  File "/Users/mjoyner/.pyenv/versions/3.11.9/lib/python3.11/site-packages/sqlalchemy/orm/relationships.py", line 1866, in _setup_entity
+    self._clsregistry_resolve_name(argument)(),
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/mjoyner/.pyenv/versions/3.11.9/lib/python3.11/site-packages/sqlalchemy/orm/clsregistry.py", line 520, in _resolve_name
+    self._raise_for_name(name, err)
+  File "/Users/mjoyner/.pyenv/versions/3.11.9/lib/python3.11/site-packages/sqlalchemy/orm/clsregistry.py", line 501, in _raise_for_name
+    raise exc.InvalidRequestError(
+sqlalchemy.exc.InvalidRequestError: When initializing mapper Mapper[Conversation(conversations)], expression 'ConversationParticipant' failed to locate a name ('ConversationParticipant'). If this is a class name, consider adding this relationship() to the <class 'src.models.conversation.Conversation'> class after both dependent classes have been defined.
+2025-07-26 17:41:02,848 [ERROR] asset_anchor: Unhandled exception: Could not determine join condition between parent/child tables on relationship MessageThread.messages - there are no foreign keys linking these tables.  Ensure that referencing columns are associated with a ForeignKey or ForeignKeyConstraint, or specify a 'primaryjoin' expression.
+Traceback (most recent call last):
+  File "/Users/mjoyner/.pyenv/versions/3.11.9/lib/python3.11/site-packages/sqlalchemy/orm/relationships.py", line 2435, in _determine_joins
+    self.primaryjoin = join_condition(
+                       ^^^^^^^^^^^^^^^
+  File "/Users/mjoyner/.pyenv/versions/3.11.9/lib/python3.11/site-packages/sqlalchemy/sql/util.py", line 123, in join_condition
+    return Join._join_condition(
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/mjoyner/.pyenv/versions/3.11.9/lib/python3.11/site-packages/sqlalchemy/sql/selectable.py", line 1444, in _join_condition
+    raise exc.NoForeignKeysError(
+sqlalchemy.exc.NoForeignKeysError: Can't find any foreign key relationships between 'message_threads' and 'messages'.
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/Users/mjoyner/.pyenv/versions/3.11.9/lib/python3.11/site-packages/flask/app.py", line 2193, in wsgi_app
+    response = self.handle_exception(e)
+               ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/mjoyner/.pyenv/versions/3.11.9/lib/python3.11/site-packages/flask_cors/extension.py", line 176, in wrapped_function
+    return cors_after_request(app.make_response(f(*args, **kwargs)))
+                                                ^^^^^^^^^^^^^^^^^^
+  File "/Users/mjoyner/.pyenv/versions/3.11.9/lib/python3.11/site-packages/flask/app.py", line 2190, in wsgi_app
+    response = self.full_dispatch_request()
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/mjoyner/.pyenv/versions/3.11.9/lib/python3.11/site-packages/flask/app.py", line 1486, in full_dispatch_request
+    rv = self.handle_user_exception(e)
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/mjoyner/.pyenv/versions/3.11.9/lib/python3.11/site-packages/flask_cors/extension.py", line 176, in wrapped_function
+    return cors_after_request(app.make_response(f(*args, **kwargs)))
+                                                ^^^^^^^^^^^^^^^^^^
+  File "/Users/mjoyner/.pyenv/versions/3.11.9/lib/python3.11/site-packages/flask/app.py", line 1484, in full_dispatch_request
+    rv = self.dispatch_request()
+         ^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/mjoyner/.pyenv/versions/3.11.9/lib/python3.11/site-packages/flask/app.py", line 1469, in dispatch_request
+    return self.ensure_sync(self.view_functions[rule.endpoint])(**view_args)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/mjoyner/Property/backend/src/utils/rate_limit.py", line 113, in wrapped
+    response = f(*args, **kwargs)
+               ^^^^^^^^^^^^^^^^^^
+  File "/Users/mjoyner/Property/backend/src/routes/auth_routes.py", line 35, in login
+    user = User.query.filter_by(email=data.get("email")).first()
+           ^^^^^^^^^^
+  File "/Users/mjoyner/.pyenv/versions/3.11.9/lib/python3.11/site-packages/flask_sqlalchemy/model.py", line 22, in __get__
+    return cls.query_class(
+           ^^^^^^^^^^^^^^^^
+  File "/Users/mjoyner/.pyenv/versions/3.11.9/lib/python3.11/site-packages/sqlalchemy/orm/query.py", line 276, in __init__
+    self._set_entities(entities)
+  File "/Users/mjoyner/.pyenv/versions/3.11.9/lib/python3.11/site-packages/sqlalchemy/orm/query.py", line 288, in _set_entities
+    self._raw_columns = [
+                        ^
+  File "/Users/mjoyner/.pyenv/versions/3.11.9/lib/python3.11/site-packages/sqlalchemy/orm/query.py", line 289, in <listcomp>
+    coercions.expect(
+  File "/Users/mjoyner/.pyenv/versions/3.11.9/lib/python3.11/site-packages/sqlalchemy/sql/coercions.py", line 388, in expect
+    insp._post_inspect
+  File "/Users/mjoyner/.pyenv/versions/3.11.9/lib/python3.11/site-packages/sqlalchemy/util/langhelpers.py", line 1338, in __get__
+    obj.__dict__[self.__name__] = result = self.fget(obj)
+                                           ^^^^^^^^^^^^^^
+  File "/Users/mjoyner/.pyenv/versions/3.11.9/lib/python3.11/site-packages/sqlalchemy/orm/mapper.py", line 2724, in _post_inspect
+    self._check_configure()
+  File "/Users/mjoyner/.pyenv/versions/3.11.9/lib/python3.11/site-packages/sqlalchemy/orm/mapper.py", line 2401, in _check_configure
+    _configure_registries({self.registry}, cascade=True)
+  File "/Users/mjoyner/.pyenv/versions/3.11.9/lib/python3.11/site-packages/sqlalchemy/orm/mapper.py", line 4214, in _configure_registries
+    _do_configure_registries(registries, cascade)
+  File "/Users/mjoyner/.pyenv/versions/3.11.9/lib/python3.11/site-packages/sqlalchemy/orm/mapper.py", line 4255, in _do_configure_registries
+    mapper._post_configure_properties()
+  File "/Users/mjoyner/.pyenv/versions/3.11.9/lib/python3.11/site-packages/sqlalchemy/orm/mapper.py", line 2418, in _post_configure_properties
+    prop.init()
+  File "/Users/mjoyner/.pyenv/versions/3.11.9/lib/python3.11/site-packages/sqlalchemy/orm/interfaces.py", line 589, in init
+    self.do_init()
+  File "/Users/mjoyner/.pyenv/versions/3.11.9/lib/python3.11/site-packages/sqlalchemy/orm/relationships.py", line 1658, in do_init
+    self._setup_join_conditions()
+  File "/Users/mjoyner/.pyenv/versions/3.11.9/lib/python3.11/site-packages/sqlalchemy/orm/relationships.py", line 1896, in _setup_join_conditions
+    self._join_condition = jc = JoinCondition(
+                                ^^^^^^^^^^^^^^
+  File "/Users/mjoyner/.pyenv/versions/3.11.9/lib/python3.11/site-packages/sqlalchemy/orm/relationships.py", line 2322, in __init__
+    self._determine_joins()
+  File "/Users/mjoyner/.pyenv/versions/3.11.9/lib/python3.11/site-packages/sqlalchemy/orm/relationships.py", line 2456, in _determine_joins
+    raise sa_exc.NoForeignKeysError(
+sqlalchemy.exc.NoForeignKeysError: Could not determine join condition between parent/child tables on relationship MessageThread.messages - there are no foreign keys linking these tables.  Ensure that referencing columns are associated with a ForeignKey or ForeignKeyConstraint, or specify a 'primaryjoin' expression.
+2025-07-26 17:42:55,375 [ERROR] asset_anchor: Unhandled exception: Error creating backref 'messages' on relationship 'Message.thread': property of that name exists on mapper 'Mapper[MessageThread(message_threads)]'
+Traceback (most recent call last):
+  File "/Users/mjoyner/.pyenv/versions/3.11.9/lib/python3.11/site-packages/flask/app.py", line 2193, in wsgi_app
+    response = self.handle_exception(e)
+               ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/mjoyner/.pyenv/versions/3.11.9/lib/python3.11/site-packages/flask_cors/extension.py", line 176, in wrapped_function
+    return cors_after_request(app.make_response(f(*args, **kwargs)))
+                                                ^^^^^^^^^^^^^^^^^^
+  File "/Users/mjoyner/.pyenv/versions/3.11.9/lib/python3.11/site-packages/flask/app.py", line 2190, in wsgi_app
+    response = self.full_dispatch_request()
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/mjoyner/.pyenv/versions/3.11.9/lib/python3.11/site-packages/flask/app.py", line 1486, in full_dispatch_request
+    rv = self.handle_user_exception(e)
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/mjoyner/.pyenv/versions/3.11.9/lib/python3.11/site-packages/flask_cors/extension.py", line 176, in wrapped_function
+    return cors_after_request(app.make_response(f(*args, **kwargs)))
+                                                ^^^^^^^^^^^^^^^^^^
+  File "/Users/mjoyner/.pyenv/versions/3.11.9/lib/python3.11/site-packages/flask/app.py", line 1484, in full_dispatch_request
+    rv = self.dispatch_request()
+         ^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/mjoyner/.pyenv/versions/3.11.9/lib/python3.11/site-packages/flask/app.py", line 1469, in dispatch_request
+    return self.ensure_sync(self.view_functions[rule.endpoint])(**view_args)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/mjoyner/Property/backend/src/utils/rate_limit.py", line 113, in wrapped
+    response = f(*args, **kwargs)
+               ^^^^^^^^^^^^^^^^^^
+  File "/Users/mjoyner/Property/backend/src/routes/auth_routes.py", line 35, in login
+    user = User.query.filter_by(email=data.get("email")).first()
+           ^^^^^^^^^^
+  File "/Users/mjoyner/.pyenv/versions/3.11.9/lib/python3.11/site-packages/flask_sqlalchemy/model.py", line 22, in __get__
+    return cls.query_class(
+           ^^^^^^^^^^^^^^^^
+  File "/Users/mjoyner/.pyenv/versions/3.11.9/lib/python3.11/site-packages/sqlalchemy/orm/query.py", line 276, in __init__
+    self._set_entities(entities)
+  File "/Users/mjoyner/.pyenv/versions/3.11.9/lib/python3.11/site-packages/sqlalchemy/orm/query.py", line 288, in _set_entities
+    self._raw_columns = [
+                        ^
+  File "/Users/mjoyner/.pyenv/versions/3.11.9/lib/python3.11/site-packages/sqlalchemy/orm/query.py", line 289, in <listcomp>
+    coercions.expect(
+  File "/Users/mjoyner/.pyenv/versions/3.11.9/lib/python3.11/site-packages/sqlalchemy/sql/coercions.py", line 388, in expect
+    insp._post_inspect
+  File "/Users/mjoyner/.pyenv/versions/3.11.9/lib/python3.11/site-packages/sqlalchemy/util/langhelpers.py", line 1338, in __get__
+    obj.__dict__[self.__name__] = result = self.fget(obj)
+                                           ^^^^^^^^^^^^^^
+  File "/Users/mjoyner/.pyenv/versions/3.11.9/lib/python3.11/site-packages/sqlalchemy/orm/mapper.py", line 2724, in _post_inspect
+    self._check_configure()
+  File "/Users/mjoyner/.pyenv/versions/3.11.9/lib/python3.11/site-packages/sqlalchemy/orm/mapper.py", line 2401, in _check_configure
+    _configure_registries({self.registry}, cascade=True)
+  File "/Users/mjoyner/.pyenv/versions/3.11.9/lib/python3.11/site-packages/sqlalchemy/orm/mapper.py", line 4214, in _configure_registries
+    _do_configure_registries(registries, cascade)
+  File "/Users/mjoyner/.pyenv/versions/3.11.9/lib/python3.11/site-packages/sqlalchemy/orm/mapper.py", line 4255, in _do_configure_registries
+    mapper._post_configure_properties()
+  File "/Users/mjoyner/.pyenv/versions/3.11.9/lib/python3.11/site-packages/sqlalchemy/orm/mapper.py", line 2418, in _post_configure_properties
+    prop.init()
+  File "/Users/mjoyner/.pyenv/versions/3.11.9/lib/python3.11/site-packages/sqlalchemy/orm/interfaces.py", line 589, in init
+    self.do_init()
+  File "/Users/mjoyner/.pyenv/versions/3.11.9/lib/python3.11/site-packages/sqlalchemy/orm/relationships.py", line 1661, in do_init
+    self._generate_backref()
+  File "/Users/mjoyner/.pyenv/versions/3.11.9/lib/python3.11/site-packages/sqlalchemy/orm/relationships.py", line 2087, in _generate_backref
+    raise sa_exc.ArgumentError(
+sqlalchemy.exc.ArgumentError: Error creating backref 'messages' on relationship 'Message.thread': property of that name exists on mapper 'Mapper[MessageThread(message_threads)]'
+2025-07-26 17:47:00,839 [ERROR] asset_anchor: Unhandled exception: Could not determine join condition between parent/child tables on relationship LandlordProfile.user - there are no foreign keys linking these tables.  Ensure that referencing columns are associated with a ForeignKey or ForeignKeyConstraint, or specify a 'primaryjoin' expression.
+Traceback (most recent call last):
+  File "/Users/mjoyner/.pyenv/versions/3.11.9/lib/python3.11/site-packages/sqlalchemy/orm/relationships.py", line 2435, in _determine_joins
+    self.primaryjoin = join_condition(
+                       ^^^^^^^^^^^^^^^
+  File "/Users/mjoyner/.pyenv/versions/3.11.9/lib/python3.11/site-packages/sqlalchemy/sql/util.py", line 123, in join_condition
+    return Join._join_condition(
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/mjoyner/.pyenv/versions/3.11.9/lib/python3.11/site-packages/sqlalchemy/sql/selectable.py", line 1444, in _join_condition
+    raise exc.NoForeignKeysError(
+sqlalchemy.exc.NoForeignKeysError: Can't find any foreign key relationships between 'landlord_profiles' and 'user'.
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/Users/mjoyner/.pyenv/versions/3.11.9/lib/python3.11/site-packages/flask/app.py", line 2193, in wsgi_app
+    response = self.handle_exception(e)
+               ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/mjoyner/.pyenv/versions/3.11.9/lib/python3.11/site-packages/flask_cors/extension.py", line 176, in wrapped_function
+    return cors_after_request(app.make_response(f(*args, **kwargs)))
+                                                ^^^^^^^^^^^^^^^^^^
+  File "/Users/mjoyner/.pyenv/versions/3.11.9/lib/python3.11/site-packages/flask/app.py", line 2190, in wsgi_app
+    response = self.full_dispatch_request()
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/mjoyner/.pyenv/versions/3.11.9/lib/python3.11/site-packages/flask/app.py", line 1486, in full_dispatch_request
+    rv = self.handle_user_exception(e)
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/mjoyner/.pyenv/versions/3.11.9/lib/python3.11/site-packages/flask_cors/extension.py", line 176, in wrapped_function
+    return cors_after_request(app.make_response(f(*args, **kwargs)))
+                                                ^^^^^^^^^^^^^^^^^^
+  File "/Users/mjoyner/.pyenv/versions/3.11.9/lib/python3.11/site-packages/flask/app.py", line 1484, in full_dispatch_request
+    rv = self.dispatch_request()
+         ^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/mjoyner/.pyenv/versions/3.11.9/lib/python3.11/site-packages/flask/app.py", line 1469, in dispatch_request
+    return self.ensure_sync(self.view_functions[rule.endpoint])(**view_args)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/mjoyner/Property/backend/src/utils/rate_limit.py", line 113, in wrapped
+    response = f(*args, **kwargs)
+               ^^^^^^^^^^^^^^^^^^
+  File "/Users/mjoyner/Property/backend/src/routes/auth_routes.py", line 35, in login
+    user = User.query.filter_by(email=data.get("email")).first()
+           ^^^^^^^^^^
+  File "/Users/mjoyner/.pyenv/versions/3.11.9/lib/python3.11/site-packages/flask_sqlalchemy/model.py", line 22, in __get__
+    return cls.query_class(
+           ^^^^^^^^^^^^^^^^
+  File "/Users/mjoyner/.pyenv/versions/3.11.9/lib/python3.11/site-packages/sqlalchemy/orm/query.py", line 276, in __init__
+    self._set_entities(entities)
+  File "/Users/mjoyner/.pyenv/versions/3.11.9/lib/python3.11/site-packages/sqlalchemy/orm/query.py", line 288, in _set_entities
+    self._raw_columns = [
+                        ^
+  File "/Users/mjoyner/.pyenv/versions/3.11.9/lib/python3.11/site-packages/sqlalchemy/orm/query.py", line 289, in <listcomp>
+    coercions.expect(
+  File "/Users/mjoyner/.pyenv/versions/3.11.9/lib/python3.11/site-packages/sqlalchemy/sql/coercions.py", line 388, in expect
+    insp._post_inspect
+  File "/Users/mjoyner/.pyenv/versions/3.11.9/lib/python3.11/site-packages/sqlalchemy/util/langhelpers.py", line 1338, in __get__
+    obj.__dict__[self.__name__] = result = self.fget(obj)
+                                           ^^^^^^^^^^^^^^
+  File "/Users/mjoyner/.pyenv/versions/3.11.9/lib/python3.11/site-packages/sqlalchemy/orm/mapper.py", line 2724, in _post_inspect
+    self._check_configure()
+  File "/Users/mjoyner/.pyenv/versions/3.11.9/lib/python3.11/site-packages/sqlalchemy/orm/mapper.py", line 2401, in _check_configure
+    _configure_registries({self.registry}, cascade=True)
+  File "/Users/mjoyner/.pyenv/versions/3.11.9/lib/python3.11/site-packages/sqlalchemy/orm/mapper.py", line 4214, in _configure_registries
+    _do_configure_registries(registries, cascade)
+  File "/Users/mjoyner/.pyenv/versions/3.11.9/lib/python3.11/site-packages/sqlalchemy/orm/mapper.py", line 4255, in _do_configure_registries
+    mapper._post_configure_properties()
+  File "/Users/mjoyner/.pyenv/versions/3.11.9/lib/python3.11/site-packages/sqlalchemy/orm/mapper.py", line 2418, in _post_configure_properties
+    prop.init()
+  File "/Users/mjoyner/.pyenv/versions/3.11.9/lib/python3.11/site-packages/sqlalchemy/orm/interfaces.py", line 589, in init
+    self.do_init()
+  File "/Users/mjoyner/.pyenv/versions/3.11.9/lib/python3.11/site-packages/sqlalchemy/orm/relationships.py", line 1658, in do_init
+    self._setup_join_conditions()
+  File "/Users/mjoyner/.pyenv/versions/3.11.9/lib/python3.11/site-packages/sqlalchemy/orm/relationships.py", line 1896, in _setup_join_conditions
+    self._join_condition = jc = JoinCondition(
+                                ^^^^^^^^^^^^^^
+  File "/Users/mjoyner/.pyenv/versions/3.11.9/lib/python3.11/site-packages/sqlalchemy/orm/relationships.py", line 2322, in __init__
+    self._determine_joins()
+  File "/Users/mjoyner/.pyenv/versions/3.11.9/lib/python3.11/site-packages/sqlalchemy/orm/relationships.py", line 2456, in _determine_joins
+    raise sa_exc.NoForeignKeysError(
+sqlalchemy.exc.NoForeignKeysError: Could not determine join condition between parent/child tables on relationship LandlordProfile.user - there are no foreign keys linking these tables.  Ensure that referencing columns are associated with a ForeignKey or ForeignKeyConstraint, or specify a 'primaryjoin' expression.
+2025-07-26 17:50:21,481 [ERROR] asset_anchor: Unhandled exception: (sqlite3.OperationalError) no such column: user.phone
+[SQL: SELECT user.id AS user_id, user.full_name AS user_full_name, user.email AS user_email, user.password_hash AS user_password_hash, user.role AS user_role, user.phone AS user_phone, user.profile_picture AS user_profile_picture, user.is_verified AS user_is_verified, user.verification_token AS user_verification_token, user.email_verified_at AS user_email_verified_at, user.created_at AS user_created_at, user.updated_at AS user_updated_at, user.last_login AS user_last_login 
+FROM user 
+WHERE user.email = ?
+ LIMIT ? OFFSET ?]
+[parameters: ('admin@example.com', 1, 0)]
+(Background on this error at: https://sqlalche.me/e/20/e3q8)
+Traceback (most recent call last):
+  File "/Users/mjoyner/.pyenv/versions/3.11.9/lib/python3.11/site-packages/sqlalchemy/engine/base.py", line 1963, in _exec_single_context
+    self.dialect.do_execute(
+  File "/Users/mjoyner/.pyenv/versions/3.11.9/lib/python3.11/site-packages/sqlalchemy/engine/default.py", line 943, in do_execute
+    cursor.execute(statement, parameters)
+sqlite3.OperationalError: no such column: user.phone
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/Users/mjoyner/.pyenv/versions/3.11.9/lib/python3.11/site-packages/flask/app.py", line 2193, in wsgi_app
+    response = self.handle_exception(e)
+               ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/mjoyner/.pyenv/versions/3.11.9/lib/python3.11/site-packages/flask_cors/extension.py", line 176, in wrapped_function
+    return cors_after_request(app.make_response(f(*args, **kwargs)))
+                                                ^^^^^^^^^^^^^^^^^^
+  File "/Users/mjoyner/.pyenv/versions/3.11.9/lib/python3.11/site-packages/flask/app.py", line 2190, in wsgi_app
+    response = self.full_dispatch_request()
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/mjoyner/.pyenv/versions/3.11.9/lib/python3.11/site-packages/flask/app.py", line 1486, in full_dispatch_request
+    rv = self.handle_user_exception(e)
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/mjoyner/.pyenv/versions/3.11.9/lib/python3.11/site-packages/flask_cors/extension.py", line 176, in wrapped_function
+    return cors_after_request(app.make_response(f(*args, **kwargs)))
+                                                ^^^^^^^^^^^^^^^^^^
+  File "/Users/mjoyner/.pyenv/versions/3.11.9/lib/python3.11/site-packages/flask/app.py", line 1484, in full_dispatch_request
+    rv = self.dispatch_request()
+         ^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/mjoyner/.pyenv/versions/3.11.9/lib/python3.11/site-packages/flask/app.py", line 1469, in dispatch_request
+    return self.ensure_sync(self.view_functions[rule.endpoint])(**view_args)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/mjoyner/Property/backend/src/utils/rate_limit.py", line 113, in wrapped
+    response = f(*args, **kwargs)
+               ^^^^^^^^^^^^^^^^^^
+  File "/Users/mjoyner/Property/backend/src/routes/auth_routes.py", line 35, in login
+    user = User.query.filter_by(email=data.get("email")).first()
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/mjoyner/.pyenv/versions/3.11.9/lib/python3.11/site-packages/sqlalchemy/orm/query.py", line 2759, in first
+    return self.limit(1)._iter().first()  # type: ignore
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/mjoyner/.pyenv/versions/3.11.9/lib/python3.11/site-packages/sqlalchemy/orm/query.py", line 2857, in _iter
+    result: Union[ScalarResult[_T], Result[_T]] = self.session.execute(
+                                                  ^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/mjoyner/.pyenv/versions/3.11.9/lib/python3.11/site-packages/sqlalchemy/orm/session.py", line 2365, in execute
+    return self._execute_internal(
+           ^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/mjoyner/.pyenv/versions/3.11.9/lib/python3.11/site-packages/sqlalchemy/orm/session.py", line 2251, in _execute_internal
+    result: Result[Any] = compile_state_cls.orm_execute_statement(
+                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/mjoyner/.pyenv/versions/3.11.9/lib/python3.11/site-packages/sqlalchemy/orm/context.py", line 306, in orm_execute_statement
+    result = conn.execute(
+             ^^^^^^^^^^^^^
+  File "/Users/mjoyner/.pyenv/versions/3.11.9/lib/python3.11/site-packages/sqlalchemy/engine/base.py", line 1415, in execute
+    return meth(
+           ^^^^^
+  File "/Users/mjoyner/.pyenv/versions/3.11.9/lib/python3.11/site-packages/sqlalchemy/sql/elements.py", line 523, in _execute_on_connection
+    return connection._execute_clauseelement(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/mjoyner/.pyenv/versions/3.11.9/lib/python3.11/site-packages/sqlalchemy/engine/base.py", line 1637, in _execute_clauseelement
+    ret = self._execute_context(
+          ^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/mjoyner/.pyenv/versions/3.11.9/lib/python3.11/site-packages/sqlalchemy/engine/base.py", line 1842, in _execute_context
+    return self._exec_single_context(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/mjoyner/.pyenv/versions/3.11.9/lib/python3.11/site-packages/sqlalchemy/engine/base.py", line 1982, in _exec_single_context
+    self._handle_dbapi_exception(
+  File "/Users/mjoyner/.pyenv/versions/3.11.9/lib/python3.11/site-packages/sqlalchemy/engine/base.py", line 2351, in _handle_dbapi_exception
+    raise sqlalchemy_exception.with_traceback(exc_info[2]) from e
+  File "/Users/mjoyner/.pyenv/versions/3.11.9/lib/python3.11/site-packages/sqlalchemy/engine/base.py", line 1963, in _exec_single_context
+    self.dialect.do_execute(
+  File "/Users/mjoyner/.pyenv/versions/3.11.9/lib/python3.11/site-packages/sqlalchemy/engine/default.py", line 943, in do_execute
+    cursor.execute(statement, parameters)
+sqlalchemy.exc.OperationalError: (sqlite3.OperationalError) no such column: user.phone
+[SQL: SELECT user.id AS user_id, user.full_name AS user_full_name, user.email AS user_email, user.password_hash AS user_password_hash, user.role AS user_role, user.phone AS user_phone, user.profile_picture AS user_profile_picture, user.is_verified AS user_is_verified, user.verification_token AS user_verification_token, user.email_verified_at AS user_email_verified_at, user.created_at AS user_created_at, user.updated_at AS user_updated_at, user.last_login AS user_last_login 
+FROM user 
+WHERE user.email = ?
+ LIMIT ? OFFSET ?]
+[parameters: ('admin@example.com', 1, 0)]
+(Background on this error at: https://sqlalche.me/e/20/e3q8)
+2025-07-26 17:56:38,952 [ERROR] src.app: Failed to send welcome email: 'User' object has no attribute 'name'

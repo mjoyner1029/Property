@@ -1,0 +1,111 @@
+version: '3.8'
+
+services:
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: assetanchor-backend
+    ports:
+      - "5050:5050"
+    volumes:
+      - ./backend/uploads:/app/uploads  # Only mount the uploads directory in production
+      - ./logs:/app/logs  # Mount logs directory
+    env_file:
+      - ./backend/.env.production
+    depends_on:
+      - db
+    restart: always
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5050/api/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+    # Add command to run migrations automatically on startup
+    command: >
+      bash -c "flask db upgrade && gunicorn --bind 0.0.0.0:5050 wsgi:app --workers 4 --threads 2 --timeout 60"
+    environment:
+      - FLASK_ENV=production
+      - LOG_LEVEL=INFO
+    networks:
+      - assetanchor-network
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: assetanchor-frontend
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx/conf:/etc/nginx/conf.d
+      - ./nginx/certs:/etc/nginx/certs
+      - ./frontend/build:/usr/share/nginx/html
+    depends_on:
+      - backend
+    restart: always
+    environment:
+      - NODE_ENV=production
+    networks:
+      - assetanchor-network
+      
+  db:
+    image: postgres:15-alpine
+    container_name: assetanchor-db
+    restart: always
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    environment:
+      - POSTGRES_USER=${DB_USER:-postgres}
+      - POSTGRES_PASSWORD=${DB_PASSWORD:-postgres}
+      - POSTGRES_DB=${DB_NAME:-asset_anchor}
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - assetanchor-network
+      
+  prometheus:
+    image: prom/prometheus
+    container_name: assetanchor-prometheus
+    volumes:
+      - ./monitoring/prometheus:/etc/prometheus
+      - prometheus_data:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+    ports:
+      - "9090:9090"
+    networks:
+      - assetanchor-network
+      
+  grafana:
+    image: grafana/grafana
+    container_name: assetanchor-grafana
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ./monitoring/grafana/provisioning:/etc/grafana/provisioning
+    environment:
+      - GF_SECURITY_ADMIN_USER=${GRAFANA_ADMIN:-admin}
+      - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_PASSWORD:-admin}
+    depends_on:
+      - prometheus
+    ports:
+      - "3003:3000" # Using 3003 to avoid conflict with frontend dev server
+    networks:
+      - assetanchor-network
+      
+networks:
+  assetanchor-network:
+    driver: bridge
+    
+volumes:
+  postgres_data:
+  prometheus_data:
+  grafana_data:

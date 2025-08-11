@@ -1,0 +1,92 @@
+services:
+  - type: web
+    name: asset-anchor-api
+    env: python
+    plan: standard
+    buildCommand: pip install -r requirements.txt
+    startCommand: gunicorn wsgi:app --workers 4 --timeout 120 --bind 0.0.0.0:10000
+    region: oregon
+    repo: https://github.com/mjoyner1029/Property.git
+    branch: main
+    rootDir: backend
+    healthCheckPath: /api/health
+    dependsOn:
+      - asset-anchor-redis
+    envVars:
+      - key: FLASK_ENV
+        value: production
+      - key: FLASK_APP
+        value: wsgi.py
+      - key: SECRET_KEY
+        sync: false
+      - key: JWT_SECRET_KEY
+        sync: false
+      - key: STRIPE_PUBLIC_KEY
+        sync: false
+      - key: STRIPE_SECRET_KEY
+        sync: false
+      - key: STRIPE_WEBHOOK_SECRET
+        sync: false
+      - key: CORS_ORIGINS
+        value: https://assetanchor.io,https://www.assetanchor.io
+      - key: EMAIL_PROVIDER
+        value: postmark
+      - key: EMAIL_API_KEY
+        sync: false
+      - key: EMAIL_FROM
+        value: no-reply@assetanchor.io
+      - key: LOG_LEVEL
+        value: INFO
+      - fromGroup: asset-anchor-db-env
+      - key: S3_BUCKET
+        sync: false
+      - key: S3_REGION
+        sync: false
+      - key: AWS_ACCESS_KEY_ID
+        sync: false
+      - key: AWS_SECRET_ACCESS_KEY
+        sync: false
+      - key: SENTRY_DSN
+        sync: false
+      - key: REDIS_URL
+        fromService:
+          type: redis
+          name: asset-anchor-redis
+          property: connectionString
+      - key: CSP_ENFORCE
+        value: "true"
+
+  - type: postgres
+    name: asset-anchor-db
+    plan: standard
+    ipAllowList: [] # only allow internal connections
+    region: oregon
+    
+  - type: redis
+    name: asset-anchor-redis
+    plan: free
+    ipAllowList: [] # only allow internal connections
+    region: oregon
+
+  - type: job
+    name: asset-anchor-migrations
+    env: python
+    buildCommand: pip install -r requirements.txt
+    startCommand: bash scripts/run_migrations.sh
+    region: oregon
+    repo: https://github.com/mjoyner1029/Property.git
+    branch: main
+    rootDir: backend
+    envVars:
+      - key: FLASK_APP
+        value: wsgi.py
+      - fromGroup: asset-anchor-db-env
+
+# Environment variable groups
+envVarGroups:
+  - name: asset-anchor-db-env
+    envVars:
+      - key: DATABASE_URL
+        fromDatabase:
+          name: asset-anchor-db
+          property: connectionString
