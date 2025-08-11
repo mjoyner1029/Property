@@ -1,0 +1,5 @@
+
+# Large files excluded (Mon Aug 11 00:50:55 PDT 2025)
+frontend/node_modules/.cache/default-development/
+frontend/node_modules/.cache/**/*.pack
+**/*.pack
