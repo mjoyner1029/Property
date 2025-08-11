@@ -3,3 +3,8 @@
 frontend/node_modules/.cache/default-development/
 frontend/node_modules/.cache/**/*.pack
 **/*.pack
+
+# Large files excluded (Mon Aug 11 00:51:06 PDT 2025)
+frontend/node_modules/.cache/default-development/
+frontend/node_modules/.cache/**/*.pack
+**/*.pack
