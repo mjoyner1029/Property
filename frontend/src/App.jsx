@@ -24,6 +24,7 @@ import Maintenance from "./pages/Maintenance";
 import MaintenanceDetail from "./pages/MaintenanceDetail";
 import Payments from "./pages/Payments";
 import PayPortal from "./pages/PayPortal";
+import LoadingFallback from "./components/LoadingFallback";
 import Tenants from "./pages/Tenants";
 import TenantDetail from "./pages/TenantDetail";
 import Settings from "./pages/Settings";
