@@ -1,100 +1,232 @@
-import React from "react";
-import { ThemeProvider as MuiThemeProvider } from "@mui/material/styles";
-import { CssBaseline, Box, CircularProgress } from "@mui/material";
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
-import { CombinedProviders, useAuth } from "./context/index";
-import theme from "./theme";
+import React, { Suspense } from 'react';
+import { ThemeProvider as MuiThemeProvider } from '@mui/material/styles';
+import { CssBaseline } from '@mui/material';
+import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { CombinedProviders } from './context/index';
+import theme from './theme';
 
-// Layout
-import MainLayout from "./layouts/MainLayout";
+// Layouts
+import MainLayout from './layouts/MainLayout';
 
-// Pages
-import Dashboard from "./pages/Dashboard";
-import Overview from "./pages/Overview";
-import Calendar from "./pages/Calendar";
-import Login from "./pages/Login";
-import Register from "./pages/Register";
-import ForgotPassword from "./pages/ForgotPassword";
-import ResetPassword from "./pages/ResetPassword";
-import VerifyEmail from "./pages/VerifyEmail";
-import Properties from "./pages/Properties";
-import PropertyDetail from "./pages/PropertyDetail";
-import PropertyForm from "./pages/PropertyForm";
-import Maintenance from "./pages/Maintenance";
-import MaintenanceDetail from "./pages/MaintenanceDetail";
-import Payments from "./pages/Payments";
-import PayPortal from "./pages/PayPortal";
-import LoadingFallback from "./components/LoadingFallback";
-import Tenants from "./pages/Tenants";
-import TenantDetail from "./pages/TenantDetail";
-import Settings from "./pages/Settings";
-import Support from "./pages/Support";
-import Notifications from "./pages/Notifications";
-import MessagesPage from "./pages/MessagesPage";
-import LandlordOnboarding from "./pages/LandlordOnboarding";
-import TenantOnboarding from "./pages/TenantOnboarding";
-import AdminDashboard from "./pages/AdminDashboard";
-import NotFound from "./pages/NotFound";
-import Unauthorized from "./pages/Unauthorized";
-import WelcomePage from "./pages/WelcomePage";
-import ActivityFeed from "./pages/ActivityFeed";
-import JoinProperty from "./pages/JoinProperty";
-import InviteTenant from "./pages/InviteTenant";
+// Route Guards
+import { PublicRoute, PrivateRoute, RoleRoute } from './routes/guards';
 
-// Protected Route Component
-const ProtectedRoute = ({ children, roles = [] }) => {
-  const { user, isAuthenticated, loading } = useAuth();
+// Route Config
+import routeConfig from './routes/routeConfig';
 
-  if (loading) {
-    return (
-      <Box
-        sx={{
-          display: "flex",
-          justifyContent: "center",
-          alignItems: "center",
-          height: "100vh",
-          backgroundColor: theme.palette.background.default,
-        }}
-      >
-        <CircularProgress />
-      </Box>
-    );
-  }
+// Loading Fallback
+import LoadingFallback from './components/LoadingFallback';
 
-  if (!isAuthenticated) {
-    return <Navigate to="/login" replace />;
-  }
+/**
+ * Lazy load all pages to improve initial load performance
+ */
+const WelcomePage = React.lazy(() => import('./pages/WelcomePage'));
+const Dashboard = React.lazy(() => import('./pages/Dashboard'));
+const Overview = React.lazy(() => import('./pages/Overview'));
+const Calendar = React.lazy(() => import('./pages/Calendar'));
+const Properties = React.lazy(() => import('./pages/Properties'));
+const PropertyForm = React.lazy(() => import('./pages/PropertyForm'));
+const PropertyDetail = React.lazy(() => import('./pages/PropertyDetail'));
+const Maintenance = React.lazy(() => import('./pages/Maintenance'));
+const MaintenanceDetail = React.lazy(() => import('./pages/MaintenanceDetail'));
+const Tenants = React.lazy(() => import('./pages/Tenants'));
+const TenantDetail = React.lazy(() => import('./pages/TenantDetail'));
+const Messages = React.lazy(() => import('./pages/Messages'));
+const MessagesPage = React.lazy(() => import('./pages/MessagesPage'));
+const Notifications = React.lazy(() => import('./pages/Notifications'));
+const Payments = React.lazy(() => import('./pages/Payments'));
+const Profile = React.lazy(() => import('./pages/Profile'));
+const Settings = React.lazy(() => import('./pages/Settings'));
+const Support = React.lazy(() => import('./pages/Support'));
+const Terms = React.lazy(() => import('./pages/Terms'));
+const ActivityFeed = React.lazy(() => import('./pages/ActivityFeed'));
+const AdminDashboard = React.lazy(() => import('./pages/AdminDashboard'));
+const InviteTenant = React.lazy(() => import('./pages/InviteTenant'));
+const JoinProperty = React.lazy(() => import('./pages/JoinProperty'));
+const LandlordOnboarding = React.lazy(() => import('./pages/LandlordOnboarding'));
+const TenantOnboarding = React.lazy(() => import('./pages/TenantOnboarding'));
+const Login = React.lazy(() => import('./pages/Login'));
+const Register = React.lazy(() => import('./pages/Register'));
+const ForgotPassword = React.lazy(() => import('./pages/ForgotPassword'));
+const ResetPassword = React.lazy(() => import('./pages/ResetPassword'));
+const VerifyEmail = React.lazy(() => import('./pages/VerifyEmail'));
+const Unauthorized = React.lazy(() => import('./pages/Unauthorized'));
+const NotFound = React.lazy(() => import('./pages/NotFound'));
+const RoutesIndex = React.lazy(() => import('./pages/RoutesIndex'));
 
-  if (roles.length > 0 && !roles.includes(user?.role)) {
-    return <Navigate to="/unauthorized" replace />;
-  }
-
-  return children;
+// Component mapping for easy lookup from the route config
+const componentMap = {
+  WelcomePage,
+  Dashboard,
+  Overview,
+  Calendar,
+  Properties,
+  PropertyForm,
+  PropertyDetail,
+  Maintenance,
+  MaintenanceDetail,
+  Tenants,
+  TenantDetail,
+  Messages,
+  MessagesPage,
+  Notifications,
+  Payments,
+  Profile,
+  Settings,
+  Support,
+  Terms,
+  ActivityFeed,
+  AdminDashboard,
+  InviteTenant,
+  JoinProperty,
+  LandlordOnboarding,
+  TenantOnboarding,
+  Login,
+  Register,
+  ForgotPassword,
+  ResetPassword,
+  VerifyEmail,
+  Unauthorized,
+  NotFound,
+  RoutesIndex
 };
 
-// The main App component containing routes
+// The main App content component containing routes
 const AppContent = () => {
   return (
     <Routes>
-      {/* Public routes */}
-      <Route path="/login" element={<Login />} />
-      <Route path="/register" element={<Register />} />
-      <Route path="/forgot-password" element={<ForgotPassword />} />
-      <Route path="/reset-password/:token" element={<ResetPassword />} />
-      <Route path="/verify/:token" element={<VerifyEmail />} />
-      <Route path="/welcome" element={<WelcomePage />} />
-
-      {/* Protected routes with layout */}
-      <Route
-        path="/"
-        element={
-          <ProtectedRoute>
-            <MainLayout>
-              <Dashboard />
-            </MainLayout>
-          </ProtectedRoute>
+      {routeConfig.map((route, index) => {
+        // Get the component from our component map
+        const Component = componentMap[route.component];
+        
+        // Skip if component doesn't exist
+        if (!Component) {
+          console.error(`Component ${route.component} not found for route ${route.path}`);
+          return null;
         }
-      />
+        
+        // Determine which type of route guard to use
+        let RouteElement = null;
+        
+        if (route.guard === 'public') {
+          RouteElement = (
+            <PublicRoute>
+              <Suspense fallback={<LoadingFallback />}>
+                {route.layout ? (
+                  <MainLayout>
+                    <Component />
+                  </MainLayout>
+                ) : (
+                  <Component />
+                )}
+              </Suspense>
+            </PublicRoute>
+          );
+        } else if (route.guard === 'private') {
+          RouteElement = (
+            <PrivateRoute>
+              <Suspense fallback={<LoadingFallback />}>
+                {route.layout ? (
+                  <MainLayout>
+                    <Component />
+                  </MainLayout>
+                ) : (
+                  <Component />
+                )}
+              </Suspense>
+            </PrivateRoute>
+          );
+        } else if (route.guard === 'role') {
+          RouteElement = (
+            <RoleRoute role={route.role}>
+              <Suspense fallback={<LoadingFallback />}>
+                {route.layout ? (
+                  <MainLayout>
+                    <Component />
+                  </MainLayout>
+                ) : (
+                  <Component />
+                )}
+              </Suspense>
+            </RoleRoute>
+          );
+        } else if (route.guard === 'devOnly') {
+          // Only show dev routes when not in production
+          RouteElement = (
+            <Suspense fallback={<LoadingFallback />}>
+              <Component />
+            </Suspense>
+          );
+        }
+        
+        return <Route key={index} path={route.path} element={RouteElement} />;
+      })}
+      {routeConfig.map((route, index) => {
+        // Get the component from our component map
+        const Component = componentMap[route.component];
+        
+        // Skip if component doesn't exist
+        if (!Component) {
+          console.error(`Component ${route.component} not found for route ${route.path}`);
+          return null;
+        }
+        
+        // Determine which type of route guard to use
+        let RouteElement = null;
+        
+        if (route.guard === 'public') {
+          RouteElement = (
+            <PublicRoute>
+              <Suspense fallback={<LoadingFallback />}>
+                {route.layout ? (
+                  <MainLayout>
+                    <Component />
+                  </MainLayout>
+                ) : (
+                  <Component />
+                )}
+              </Suspense>
+            </PublicRoute>
+          );
+        } else if (route.guard === 'private') {
+          RouteElement = (
+            <PrivateRoute>
+              <Suspense fallback={<LoadingFallback />}>
+                {route.layout ? (
+                  <MainLayout>
+                    <Component />
+                  </MainLayout>
+                ) : (
+                  <Component />
+                )}
+              </Suspense>
+            </PrivateRoute>
+          );
+        } else if (route.guard === 'role') {
+          RouteElement = (
+            <RoleRoute role={route.role}>
+              <Suspense fallback={<LoadingFallback />}>
+                {route.layout ? (
+                  <MainLayout>
+                    <Component />
+                  </MainLayout>
+                ) : (
+                  <Component />
+                )}
+              </Suspense>
+            </RoleRoute>
+          );
+        } else if (route.guard === 'devOnly') {
+          // Only show dev routes when not in production
+          RouteElement = (
+            <Suspense fallback={<LoadingFallback />}>
+              <Component />
+            </Suspense>
+          );
+        }
+        
+        return <Route key={index} path={route.path} element={RouteElement} />;
+      })}
       
       {/* Dashboard sub-routes */}
       <Route
@@ -319,20 +451,6 @@ const AppContent = () => {
       />
 
       {/* Admin routes */}
-      <Route
-        path="/admin"
-        element={
-          <ProtectedRoute roles={["admin"]}>
-            <MainLayout>
-              <AdminDashboard />
-            </MainLayout>
-          </ProtectedRoute>
-        }
-      />
-
-      {/* Error pages */}
-      <Route path="/unauthorized" element={<Unauthorized />} />
-      <Route path="*" element={<NotFound />} />
     </Routes>
   );
 };

@@ -24,12 +24,16 @@
   "devDependencies": {
     "@testing-library/jest-dom": "^5.17.0",
     "@testing-library/react": "^14.0.0",
-    "@testing-library/user-event": "^14.5.1"
+    "@testing-library/user-event": "^14.5.1",
+    "chalk": "^5.5.0"
   },
   "scripts": {
     "start": "react-scripts start",
     "build": "react-scripts build",
     "test": "react-scripts test",
+    "test:routes": "react-scripts test routes.spec.jsx guards.spec.jsx --watchAll=false",
+    "list-routes": "node scripts/verifyRoutes.mjs",
+    "verify-routes": "node scripts/verifyRoutes.mjs",
     "eject": "react-scripts eject"
   },
   "eslintConfig": {
