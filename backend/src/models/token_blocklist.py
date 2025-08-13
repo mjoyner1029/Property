@@ -6,6 +6,7 @@ class TokenBlocklist(db.Model):
     
     id = db.Column(db.Integer, primary_key=True)
     jti = db.Column(db.String(36), nullable=False, unique=True)
+    type = db.Column(db.String(10), nullable=True)  # 'access' or 'refresh'
     created_at = db.Column(db.DateTime, default=datetime.now)
     
     def __repr__(self):
@@ -16,5 +17,6 @@ class TokenBlocklist(db.Model):
         return {
             'id': self.id,
             'jti': self.jti,
+            'type': self.type,
             'created_at': self.created_at.isoformat() if self.created_at else None
         }

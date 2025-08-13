@@ -1,10 +1,15 @@
 // frontend/src/context/AuthContext.jsx
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import api from '../utils/api';
+import authApi from '../utils/authApi';
 import axios from 'axios';
+import { TOKEN_REFRESH_INTERVAL } from '../config/environment';
 
 // Create context
 const AuthContext = createContext();
+
+// Token refresh timer
+let refreshTimer = null;
 
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(() => {
@@ -12,17 +17,67 @@ export const AuthProvider = ({ children }) => {
     return saved ? JSON.parse(saved) : null;
   });
   const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [token, setToken] = useState(null);
+  const [token, setToken] = useState(() => localStorage.getItem('token') || null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+
+  // Function to refresh the token
+  const refreshToken = useCallback(async () => {
+    try {
+      const refreshTokenValue = localStorage.getItem('refresh_token');
+      
+      if (!refreshTokenValue) {
+        throw new Error('No refresh token available');
+      }
+      
+      const response = await authApi.refreshToken(refreshTokenValue);
+      const { access_token } = response.data;
+      
+      if (access_token) {
+        // Update state and localStorage
+        setToken(access_token);
+        localStorage.setItem('token', access_token);
+        localStorage.setItem('token_refresh_time', Date.now().toString());
+        
+        // Set default authorization header
+        axios.defaults.headers.common['Authorization'] = `Bearer ${access_token}`;
+        
+        return true;
+      } else {
+        throw new Error('No access token received');
+      }
+    } catch (err) {
+      console.error('Token refresh failed:', err);
+      // If refresh fails, log the user out
+      logout();
+      return false;
+    }
+  }, []);
+
+  // Setup token refresh interval
+  useEffect(() => {
+    if (token) {
+      // Set up timer to refresh token every 15 minutes (900000ms)
+      // This is arbitrary - should be adjusted based on your token expiration time
+      const REFRESH_INTERVAL = 15 * 60 * 1000; // 15 minutes
+      
+      refreshTimer = setInterval(() => {
+        refreshToken();
+      }, REFRESH_INTERVAL);
+      
+      // Clear interval on unmount
+      return () => clearInterval(refreshTimer);
+    }
+  }, [token, refreshToken]);
 
   // Initialize auth state from localStorage on app load
   useEffect(() => {
     const initializeAuth = async () => {
       const storedToken = localStorage.getItem('token');
+      const storedRefreshToken = localStorage.getItem('refresh_token');
       const storedUser = localStorage.getItem('user');
       
-      if (storedToken && storedUser) {
+      if (storedToken && storedRefreshToken && storedUser) {
         setToken(storedToken);
         setUser(JSON.parse(storedUser));
         setIsAuthenticated(true);
@@ -30,22 +85,40 @@ export const AuthProvider = ({ children }) => {
         // Set default authorization header for all requests
         axios.defaults.headers.common['Authorization'] = `Bearer ${storedToken}`;
         
+        // Start the refresh timer
+        if (refreshTimer) {
+          clearInterval(refreshTimer);
+        }
+        
+        refreshTimer = setInterval(() => {
+          refreshToken();
+        }, TOKEN_REFRESH_INTERVAL);
+        
         // Verify token is still valid
         try {
-          await axios.get('/api/auth/verify');
+          await authApi.validateToken(storedToken);
         } catch (err) {
-          // If token is invalid, log the user out
+          console.error('Token verification failed:', err);
+          // If token is invalid, try to refresh it
           if (err.response && err.response.status === 401) {
-            logout();
+            const refreshed = await refreshToken();
+            if (!refreshed) {
+              logout();
+            }
           }
         }
+      } else {
+        // No valid auth data in localStorage
+        setIsAuthenticated(false);
+        setUser(null);
+        setToken(null);
       }
       
       setLoading(false);
     };
     
     initializeAuth();
-  }, []);
+  }, [refreshToken]);
 
   // Login function
   const login = async (credentials) => {
@@ -53,8 +126,6 @@ export const AuthProvider = ({ children }) => {
     setError(null);
     
     try {
-      console.log('Starting login process...');
-      
       // Make sure portal is included in credentials
       const loginData = {
         email: credentials.email,
@@ -62,11 +133,8 @@ export const AuthProvider = ({ children }) => {
         portal: credentials.role || 'tenant' // Use the selected portal type
       };
       
-      console.log('Sending login request with data:', loginData);
-      
       // Call the login endpoint
-      const response = await axios.post('/api/auth/login', loginData);
-      console.log('Login response received:', response.data);
+      const response = await authApi.login(loginData);
       
       const { access_token, refresh_token, user: userData } = response.data;
       
@@ -80,22 +148,30 @@ export const AuthProvider = ({ children }) => {
         selectedPortal: loginData.portal // Save the selected portal
       };
       
-      console.log('User data with portal:', enhancedUserData);
-      
       // Save to state
       setToken(access_token);
       setUser(enhancedUserData);
       setIsAuthenticated(true);
       
-      // Save to localStorage
+      // Save to localStorage with expiration metadata
       localStorage.setItem('token', access_token);
       localStorage.setItem('refresh_token', refresh_token);
       localStorage.setItem('user', JSON.stringify(enhancedUserData));
+      localStorage.setItem('login_time', Date.now().toString());
       
       // Set default auth header for all axios requests
       axios.defaults.headers.common['Authorization'] = `Bearer ${access_token}`;
       
       console.log('Authentication completed successfully');
+      
+      // Start token refresh interval
+      if (refreshTimer) {
+        clearInterval(refreshTimer);
+      }
+      
+      refreshTimer = setInterval(() => {
+        refreshToken();
+      }, TOKEN_REFRESH_INTERVAL);
       
       // Verify token is working by calling verify endpoint
       try {
@@ -124,8 +200,34 @@ export const AuthProvider = ({ children }) => {
     setError(null);
     
     try {
-      const response = await axios.post('/api/auth/register', userData);
-      const { user: newUser } = response.data;
+      const response = await authApi.register(userData);
+      const { access_token, refresh_token, user: newUser } = response.data;
+      
+      // If we got tokens back, log the user in automatically
+      if (access_token && refresh_token) {
+        // Save to state
+        setToken(access_token);
+        setUser(newUser);
+        setIsAuthenticated(true);
+        
+        // Save to localStorage
+        localStorage.setItem('token', access_token);
+        localStorage.setItem('refresh_token', refresh_token);
+        localStorage.setItem('user', JSON.stringify(newUser));
+        localStorage.setItem('login_time', Date.now().toString());
+        
+        // Set default auth header
+        axios.defaults.headers.common['Authorization'] = `Bearer ${access_token}`;
+        
+        // Start token refresh interval
+        if (refreshTimer) {
+          clearInterval(refreshTimer);
+        }
+        
+        refreshTimer = setInterval(() => {
+          refreshToken();
+        }, TOKEN_REFRESH_INTERVAL);
+      }
       
       return newUser; // Return the new user data so components can handle redirects
     } catch (err) {
@@ -137,18 +239,37 @@ export const AuthProvider = ({ children }) => {
   };
 
   // Logout function
-  const logout = () => {
-    // Clear state
-    setUser(null);
-    setToken(null);
-    setIsAuthenticated(false);
-    
-    // Clear storage
-    localStorage.removeItem('token');
-    localStorage.removeItem('user');
-    
-    // Clear auth header
-    delete axios.defaults.headers.common['Authorization'];
+  const logout = async () => {
+    try {
+      // Try to call the logout endpoint to invalidate the token
+      if (token) {
+        await authApi.logout();
+      }
+    } catch (err) {
+      console.error('Error during logout:', err);
+      // Continue with local logout even if server logout fails
+    } finally {
+      // Clear timers
+      if (refreshTimer) {
+        clearInterval(refreshTimer);
+        refreshTimer = null;
+      }
+      
+      // Clear state
+      setUser(null);
+      setToken(null);
+      setIsAuthenticated(false);
+      
+      // Clear storage
+      localStorage.removeItem('token');
+      localStorage.removeItem('refresh_token');
+      localStorage.removeItem('user');
+      localStorage.removeItem('login_time');
+      localStorage.removeItem('token_refresh_time');
+      
+      // Clear auth header
+      delete axios.defaults.headers.common['Authorization'];
+    }
     
     // No redirect here - components will handle redirect
     return true;
@@ -198,11 +319,13 @@ export const AuthProvider = ({ children }) => {
     isAuthenticated,
     loading,
     error,
+    token,
     login,
     logout,
     register,
     updateProfile,
-    requestPasswordReset
+    requestPasswordReset,
+    refreshToken
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
