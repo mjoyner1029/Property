@@ -46,6 +46,18 @@ api.interceptors.response.use(
   async (error) => {
     const originalRequest = error.config;
     
+    // Add request ID to help with debugging
+    const requestId = Math.random().toString(36).substring(2, 15);
+    error.requestId = requestId;
+    
+    // Log all API errors with consistent format
+    console.error(`API Error [${requestId}]:`, {
+      url: originalRequest?.url,
+      method: originalRequest?.method,
+      status: error.response?.status,
+      data: error.response?.data
+    });
+    
     // If error is not 401 or we've already tried to refresh, reject
     if (
       !error.response || 

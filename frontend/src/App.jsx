@@ -455,15 +455,22 @@ const AppContent = () => {
   );
 };
 
+// Import the error boundary and toast components
+import ErrorBoundary from './components/ErrorBoundary';
+import Toast from './components/Toast';
+
 // Wrap the entire app with BrowserRouter first, then providers
 const App = () => (
   <BrowserRouter>
-    <CombinedProviders>
-      <MuiThemeProvider theme={theme}>
-        <CssBaseline />
-        <AppContent />
-      </MuiThemeProvider>
-    </CombinedProviders>
+    <ErrorBoundary>
+      <CombinedProviders>
+        <MuiThemeProvider theme={theme}>
+          <CssBaseline />
+          <Toast />
+          <AppContent />
+        </MuiThemeProvider>
+      </CombinedProviders>
+    </ErrorBoundary>
   </BrowserRouter>
 );
 

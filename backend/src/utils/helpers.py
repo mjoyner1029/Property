@@ -100,18 +100,35 @@ def paginate(query, page=1, per_page=20):
         }
     }
 
-def error_response(message, status_code=400):
+def error_response(message, status_code=400, error_code=None, details=None):
     """
     Generate a standardized error response.
     
     Args:
-        message: Error message
+        message: Error message string
         status_code: HTTP status code
+        error_code: Application-specific error code (optional)
+        details: Additional error details (optional)
         
     Returns:
-        Flask response object
+        Flask response object with standardized error format
     """
-    response = jsonify({'error': message})
+    error_payload = {
+        'success': False,
+        'error': {
+            'message': message,
+            'status': status_code
+        }
+    }
+    
+    # Add optional fields if provided
+    if error_code:
+        error_payload['error']['code'] = error_code
+    
+    if details:
+        error_payload['error']['details'] = details
+    
+    response = jsonify(error_payload)
     response.status_code = status_code
     return response
 

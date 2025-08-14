@@ -63,7 +63,15 @@ function Login() {
         }
       }
     } catch (err) {
-      setError(err.response?.data?.error || 'Failed to login. Please check your credentials.');
+      // Use the error handler to get a consistent error message
+      import('./utils/errorHandler').then(module => {
+        const errorHandler = module.default;
+        const { message } = errorHandler.handleError(err, {
+          showToast: true,
+          fallbackMessage: 'Failed to login. Please check your credentials.'
+        });
+        setError(message);
+      });
     } finally {
       setLoading(false);
     }
