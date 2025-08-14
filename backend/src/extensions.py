@@ -56,20 +56,51 @@ socketio = SocketIO(
 
 # Security headers with configurable CSP enforcement
 # See docs/SECURITY_CHECKLIST.md for CSP configuration details
-CSP_ENFORCE = os.getenv("CSP_ENFORCE", "false").lower() == "true"
+CSP_ENFORCE = os.getenv("CSP_ENFORCE", "true").lower() == "true"
 csp = {
     'default-src': ["'self'"],
-    'script-src': ["'self'", 'https://js.stripe.com', "'nonce-{nonce}'"],
-    'style-src': ["'self'", "'unsafe-inline'"],  # Unsafe-inline needed for MUI
-    'img-src': ["'self'", 'data:', 'https://s3.amazonaws.com', 'https://*.assetanchor.io', 'https://*.stripe.com'],
+    'script-src': [
+        "'self'", 
+        'https://js.stripe.com',
+        'https://cdn.jsdelivr.net',
+        'https://www.google-analytics.com',
+        "'nonce-{nonce}'"
+    ],
+    'style-src': [
+        "'self'", 
+        "'unsafe-inline'",  # Unsafe-inline needed for MUI
+        'https://fonts.googleapis.com',
+        'https://cdn.jsdelivr.net'
+    ],
+    'img-src': [
+        "'self'", 
+        'data:', 
+        'https://s3.amazonaws.com',
+        'https://cdn.jsdelivr.net',
+        'https://*.assetanchor.io', 
+        'https://*.stripe.com',
+        'https://www.google-analytics.com',
+        'https://stats.g.doubleclick.net'
+    ],
     'connect-src': [
         "'self'", 
         'https://api.stripe.com', 
         'https://api.assetanchor.io',
+        'wss://api.assetanchor.io',
+        'https://www.google-analytics.com',
         'https://sentry.io' if os.getenv('SENTRY_DSN') else None
     ],
-    'frame-src': ["'self'", 'https://js.stripe.com', 'https://hooks.stripe.com', 'https://checkout.stripe.com'],
-    'font-src': ["'self'", 'https://fonts.gstatic.com'],
+    'frame-src': [
+        "'self'", 
+        'https://js.stripe.com', 
+        'https://hooks.stripe.com',
+        'https://checkout.stripe.com'
+    ],
+    'font-src': [
+        "'self'", 
+        'https://fonts.gstatic.com',
+        'https://cdn.jsdelivr.net'
+    ],
     'object-src': ["'none'"],
     'base-uri': ["'self'"],
     'form-action': ["'self'"],
