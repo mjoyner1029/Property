@@ -32,7 +32,17 @@ db = SQLAlchemy()
 jwt = JWTManager()
 
 # Cross-Origin Resource Sharing
-cors = CORS(resources={r"/api/*": {"origins": os.getenv('CORS_ORIGINS', '*').split(',')}})
+CORS_ORIGINS = os.getenv('CORS_ORIGINS', 'http://localhost:3000').split(',')
+cors = CORS(
+    resources={
+        r"/api/*": {
+            "origins": CORS_ORIGINS,
+            "supports_credentials": True,
+            "expose_headers": ["Content-Disposition", "X-RateLimit-Limit", "X-RateLimit-Remaining", "X-RateLimit-Reset"],
+            "max_age": 600  # Cache preflight requests for 10 minutes
+        }
+    }
+)
 
 # Database migrations
 migrate = Migrate()
@@ -49,15 +59,23 @@ socketio = SocketIO(
 CSP_ENFORCE = os.getenv("CSP_ENFORCE", "false").lower() == "true"
 csp = {
     'default-src': ["'self'"],
-    'script-src': ["'self'", 'https://js.stripe.com'],
+    'script-src': ["'self'", 'https://js.stripe.com', "'nonce-{nonce}'"],
     'style-src': ["'self'", "'unsafe-inline'"],  # Unsafe-inline needed for MUI
-    'img-src': ["'self'", 'data:', 'https://s3.amazonaws.com'],
-    'connect-src': ["'self'", 'https://api.stripe.com', 'https://api.assetanchor.io'],
-    'frame-src': ["'self'", 'https://js.stripe.com', 'https://hooks.stripe.com'],
+    'img-src': ["'self'", 'data:', 'https://s3.amazonaws.com', 'https://*.assetanchor.io', 'https://*.stripe.com'],
+    'connect-src': [
+        "'self'", 
+        'https://api.stripe.com', 
+        'https://api.assetanchor.io',
+        'https://sentry.io' if os.getenv('SENTRY_DSN') else None
+    ],
+    'frame-src': ["'self'", 'https://js.stripe.com', 'https://hooks.stripe.com', 'https://checkout.stripe.com'],
     'font-src': ["'self'", 'https://fonts.gstatic.com'],
     'object-src': ["'none'"],
     'base-uri': ["'self'"],
-    'report-uri': ['/api/csp-report']
+    'form-action': ["'self'"],
+    'frame-ancestors': ["'self'"],
+    'report-uri': ['/api/csp-report'],
+    'upgrade-insecure-requests': [] if APP_ENV == 'production' else None
 }
 
 talisman = Talisman(
@@ -65,19 +83,31 @@ talisman = Talisman(
     content_security_policy_report_only=not CSP_ENFORCE,
     force_https=APP_ENV == 'production',
     strict_transport_security=True,
-    strict_transport_security_max_age=31536000,
+    strict_transport_security_max_age=31536000, # 1 year in seconds
     strict_transport_security_include_subdomains=True,
+    strict_transport_security_preload=True,
     frame_options='DENY',
     session_cookie_secure=APP_ENV == 'production',
-    session_cookie_http_only=True
+    session_cookie_http_only=True,
+    session_cookie_samesite='Lax',
+    feature_policy={
+        'geolocation': "'none'",
+        'microphone': "'none'",
+        'camera': "'none'",
+        'payment': "'self'"
+    },
+    referrer_policy='same-origin'
 )
 
 # Rate limiting
 REDIS_URL = os.getenv("REDIS_URL")
 limiter = Limiter(
     key_func=get_remote_address,
-    default_limits=["300 per minute"],
+    default_limits=["200 per minute", "5000 per hour"],
     storage_uri=REDIS_URL if REDIS_URL else "memory://",
+    strategy="fixed-window-elastic-expiry",
+    headers_enabled=True,
+    fail_callback=lambda _: ({"error": "Rate limit exceeded", "status": 429}, 429)
 )
 
 # Email sending

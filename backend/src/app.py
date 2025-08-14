@@ -41,10 +41,27 @@ def create_app(config_name='default'):
     limiter.init_app(app)
     
     # Set up rate limits for specific endpoints
-    limiter.limit("20/minute")(app.route('/api/auth/login', methods=['POST']))
-    limiter.limit("5/minute")(app.route('/api/auth/register', methods=['POST']))
-    limiter.limit("3/minute")(app.route('/api/auth/reset-password', methods=['POST']))
-    limiter.limit("20/minute")(app.route('/api/webhooks/stripe', methods=['POST']))
+    # Auth endpoints with stricter limits
+    limiter.limit("10/minute;100/hour")(app.route('/api/auth/login', methods=['POST']))
+    limiter.limit("5/minute;20/hour")(app.route('/api/auth/register', methods=['POST']))
+    limiter.limit("3/minute;10/hour")(app.route('/api/auth/reset-password', methods=['POST']))
+    limiter.limit("3/minute;10/hour")(app.route('/api/auth/forgot-password', methods=['POST']))
+    
+    # API endpoints that don't need rate limiting (webhooks need to accept all valid requests)
+    limiter.exempt(app.route('/api/webhooks/stripe', methods=['POST']))
+    limiter.exempt(app.route('/api/health', methods=['GET']))
+    limiter.exempt(app.route('/api/status', methods=['GET']))
+    
+    # User management endpoints
+    limiter.limit("20/minute")(app.route('/api/users/create', methods=['POST']))
+    limiter.limit("30/minute")(app.route('/api/users/update', methods=['PUT']))
+    
+    # Payment and subscription endpoints
+    limiter.limit("10/minute")(app.route('/api/payments/checkout', methods=['POST']))
+    limiter.limit("20/minute")(app.route('/api/subscriptions', methods=['POST', 'PUT']))
+    
+    # Document upload endpoints
+    limiter.limit("10/minute;50/hour")(app.route('/api/documents/upload', methods=['POST']))
     
     # Register blueprints one by one to avoid circular imports
     with app.app_context():
