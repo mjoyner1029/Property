@@ -4,6 +4,7 @@ import axios from "axios";
 import { Button, Typography, Box, Paper, Container } from '@mui/material';
 import { API_URL } from '../config/environment';
 import ErrorIcon from '@mui/icons-material/Error';
+import WifiOffIcon from '@mui/icons-material/WifiOff';
 
 export default class ErrorBoundary extends React.Component {
   constructor(props) {
@@ -11,8 +12,28 @@ export default class ErrorBoundary extends React.Component {
     this.state = { 
       hasError: false,
       errorInfo: null,
-      errorDetails: null
+      errorDetails: null,
+      isOffline: false
     };
+  }
+  
+  componentDidMount() {
+    // Add listeners for online/offline events
+    window.addEventListener('online', this.handleOnlineStatusChange);
+    window.addEventListener('offline', this.handleOnlineStatusChange);
+    
+    // Initial check for online status
+    this.handleOnlineStatusChange();
+  }
+  
+  componentWillUnmount() {
+    // Clean up event listeners
+    window.removeEventListener('online', this.handleOnlineStatusChange);
+    window.removeEventListener('offline', this.handleOnlineStatusChange);
+  }
+  
+  handleOnlineStatusChange = () => {
+    this.setState({ isOffline: !navigator.onLine });
   }
 
   static getDerivedStateFromError(error) {
@@ -52,8 +73,47 @@ export default class ErrorBoundary extends React.Component {
 
   render() {
     const { fallback } = this.props;
+    const { hasError, isOffline } = this.state;
     
-    if (this.state.hasError) {
+    // Handle offline status
+    if (isOffline) {
+      return (
+        <Container maxWidth="sm" sx={{ mt: 8 }}>
+          <Paper 
+            elevation={3} 
+            sx={{ 
+              p: 4, 
+              textAlign: 'center',
+              border: '1px solid #ff9800',
+              borderRadius: 2
+            }}
+          >
+            <Box sx={{ mb: 3, color: '#ff9800' }}>
+              <WifiOffIcon sx={{ fontSize: 60 }} />
+            </Box>
+            <Typography variant="h5" component="h1" gutterBottom>
+              You're offline
+            </Typography>
+            <Typography variant="body1" color="text.secondary" paragraph>
+              Please check your internet connection and try again.
+              The app will automatically reconnect when your connection is restored.
+            </Typography>
+            
+            <Box sx={{ mt: 4 }}>
+              <Button 
+                variant="contained" 
+                color="primary" 
+                onClick={() => window.location.reload()}
+              >
+                Retry Connection
+              </Button>
+            </Box>
+          </Paper>
+        </Container>
+      );
+    }
+    
+    if (hasError) {
       // If a custom fallback is provided, use it
       if (fallback) {
         return fallback(this.state.errorDetails, this.handleReset);
