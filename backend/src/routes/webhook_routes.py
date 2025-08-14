@@ -1,6 +1,7 @@
 from flask import Blueprint
-from ..controllers.stripe_controller import webhook
+from ..controllers.webhook_controller import handle_stripe_webhook
 
-webhook_bp = Blueprint('webhooks', __name__)
+webhook_bp = Blueprint('webhooks', __name__, url_prefix='/api/webhooks')
 
-webhook_bp.route('/stripe', methods=['POST'])(webhook)
+# Stripe webhook endpoint
+webhook_bp.route('/stripe', methods=['POST'])(handle_stripe_webhook)

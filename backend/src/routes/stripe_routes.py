@@ -11,13 +11,12 @@ from ..controllers.stripe_controller import (
     create_customer, get_payment_methods,
     add_payment_method, remove_payment_method,
     set_default_payment_method, create_payment_intent,
-    create_account, get_account_link, webhook,
+    create_account, get_account_link,
     create_checkout_session
 )
 
 bp = Blueprint("stripe", __name__, url_prefix="/api/stripe")
 stripe.api_key = os.getenv("STRIPE_SECRET_KEY")
-endpoint_secret = os.getenv("STRIPE_WEBHOOK_SECRET")
 
 bp.route('/customers', methods=['POST'])(create_customer)
 bp.route('/payment-methods', methods=['GET'])(get_payment_methods)
@@ -100,25 +99,4 @@ def create_checkout_session():
         current_app.logger.error(f"Stripe checkout session error: {e}")
         return jsonify({"error": "Stripe error"}), 500
 
-@bp.route("/webhook", methods=["POST"])
-def stripe_webhook():
-    payload = request.data
-    sig_header = request.headers.get("Stripe-Signature")
-
-    try:
-        event = stripe.Webhook.construct_event(payload, sig_header, endpoint_secret)
-    except ValueError:
-        return jsonify({"error": "Invalid payload"}), 400
-    except stripe.error.SignatureVerificationError:
-        return jsonify({"error": "Invalid signature"}), 400
-
-    if event["type"] == "checkout.session.completed":
-        session = event["data"]["object"]
-        # Mark payment as complete in your DB
-        payment = Payment.query.filter_by(stripe_session_id=session["id"]).first()
-        if payment:
-            payment.status = "completed"
-            db.session.commit()
-            current_app.logger.info(f"Payment {payment.id} marked as completed.")
-
-    return jsonify({"status": "success"}), 200
+# Note: Webhook handling has been consolidated in /api/webhooks/stripe endpoint
