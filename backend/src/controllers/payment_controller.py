@@ -1,10 +1,22 @@
 import logging
 from datetime import datetime
 from sqlalchemy.exc import SQLAlchemyError
+from flask import request, jsonify, current_app
+from flask_jwt_extended import jwt_required, get_jwt_identity
 from src.models.payment import Payment
+from src.models.user import User
+from src.models.tenant_property import TenantProperty
+from src.models.property import Property
+from src.services.stripe_service import StripeService
 from src.extensions import db
+from sqlalchemy import desc
+import stripe
+import os
 
 logger = logging.getLogger(__name__)
+
+# Import functions from payment_checkout.py
+from .payment_checkout import create_checkout_session, get_payment_history
 
 def create_payment(data):
     """Create a new payment record."""

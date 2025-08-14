@@ -1,11 +1,26 @@
 import stripe
 import os
 import json
-from flask import current_app
+import uuid
+import logging
+from datetime import datetime
+from flask import current_app, request
 from ..models.user import User
+from ..models.payment import Payment
 from ..extensions import db
+from werkzeug.local import LocalProxy
 
+logger = logging.getLogger(__name__)
+
+# Initialize Stripe API with environment variable
 stripe.api_key = os.getenv("STRIPE_SECRET_KEY")
+webhook_secret = os.getenv("STRIPE_WEBHOOK_SECRET")
+
+# Check if Stripe keys are configured
+if not stripe.api_key:
+    logger.warning("STRIPE_SECRET_KEY is not set. Stripe functionality will be disabled.")
+if not webhook_secret:
+    logger.warning("STRIPE_WEBHOOK_SECRET is not set. Webhook verification will be disabled.")
 
 def create_connect_account(user_id, email):
     account = stripe.Account.create(
@@ -26,6 +41,95 @@ def create_account_link(account_id):
         type="account_onboarding"
     )
 
+
+class StripeService:
+    """
+    Service class for Stripe integration
+    """
+    
+    def __init__(self):
+        """Initialize the Stripe service"""
+        self.api_key = os.getenv("STRIPE_SECRET_KEY")
+        self.webhook_secret = os.getenv("STRIPE_WEBHOOK_SECRET")
+        self.success_url = os.getenv("STRIPE_SUCCESS_URL", "http://localhost:3000/payment/success")
+        self.cancel_url = os.getenv("STRIPE_CANCEL_URL", "http://localhost:3000/payment/cancel")
+        
+        # Domain for webhook events
+        self.domain = os.getenv("DOMAIN", "http://localhost:5050")
+
+    def create_checkout_session(self, customer_email, amount, currency="usd", description=None, metadata=None):
+        """
+        Create a Stripe Checkout Session
+        
+        Args:
+            customer_email (str): Customer email
+            amount (int): Amount in cents
+            currency (str): Currency code (default: usd)
+            description (str): Description of the payment
+            metadata (dict): Additional metadata
+            
+        Returns:
+            stripe.checkout.Session: Checkout session
+        """
+        try:
+            # Generate a unique client reference ID
+            client_reference_id = f"payment_{uuid.uuid4()}"
+            
+            # Create checkout session
+            checkout_session = stripe.checkout.Session.create(
+                payment_method_types=["card"],
+                customer_email=customer_email,
+                line_items=[
+                    {
+                        "price_data": {
+                            "currency": currency,
+                            "product_data": {
+                                "name": description or "Property Payment",
+                                "description": description or "Payment for property services"
+                            },
+                            "unit_amount": amount,
+                        },
+                        "quantity": 1,
+                    },
+                ],
+                mode="payment",
+                success_url=f"{self.success_url}?session_id={{CHECKOUT_SESSION_ID}}",
+                cancel_url=self.cancel_url,
+                client_reference_id=client_reference_id,
+                metadata=metadata or {}
+            )
+            
+            return checkout_session
+        except stripe.error.StripeError as e:
+            logger.error(f"Stripe error creating checkout session: {str(e)}")
+            raise e
+    
+    def verify_webhook_signature(self, payload, sig_header):
+        """
+        Verify Stripe webhook signature
+        
+        Args:
+            payload (bytes): The raw request payload
+            sig_header (str): The Stripe signature header
+            
+        Returns:
+            event: The verified Stripe event
+            
+        Raises:
+            ValueError: If signature verification fails
+        """
+        if not self.webhook_secret:
+            logger.warning("Webhook secret not configured. Skipping signature verification.")
+            return json.loads(payload)
+        
+        try:
+            event = stripe.Webhook.construct_event(
+                payload, sig_header, self.webhook_secret
+            )
+            return event
+        except (stripe.error.SignatureVerificationError, ValueError) as e:
+            logger.error(f"Webhook signature verification failed: {str(e)}")
+            raise ValueError(f"Invalid signature: {str(e)}")
 
 class StripeEventHandler:
     """
@@ -48,6 +152,10 @@ class StripeEventHandler:
         # Dictionary mapping event types to handler methods
         handlers = {
             'checkout.session.completed': self._handle_checkout_completed,
+            'invoice.payment_succeeded': self._handle_invoice_payment_succeeded,
+            'customer.subscription.created': self._handle_subscription_created,
+            'customer.subscription.updated': self._handle_subscription_updated,
+            'customer.subscription.deleted': self._handle_subscription_deleted,
             'invoice.payment_succeeded': self._handle_invoice_payment_succeeded,
             'invoice.payment_failed': self._handle_invoice_payment_failed,
             'customer.subscription.created': self._handle_subscription_created,
