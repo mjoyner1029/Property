@@ -99,36 +99,7 @@ def create_app(config_name='default'):
         except ImportError as e:
             app.logger.error(f"Failed to import a blueprint: {e}")
     
-    # Health check endpoint
-    @app.route('/api/health', methods=['GET'])
-    def health_check():
-        # Check database connection
-        db_healthy = True
-        try:
-            db.session.execute('SELECT 1')
-            db.session.commit()
-        except Exception as e:
-            app.logger.error(f"Database health check failed: {e}")
-            db_healthy = False
-        
-        # Get git commit SHA
-        try:
-            git_sha = subprocess.check_output(['git', 'rev-parse', 'HEAD']).decode('ascii').strip()
-        except Exception:
-            git_sha = "unknown"
-        
-        # Get app version from config or default
-        app_version = app.config.get('APP_VERSION', '1.0.0')
-            
-        return jsonify({
-            "status": "ok" if db_healthy else "error",
-            "version": app_version,
-            "git_sha": git_sha,
-            "database": "connected" if db_healthy else "disconnected",
-            "environment": app.config.get('ENV', 'development'),
-            "python_version": platform.python_version(),
-            "timestamp": datetime.now().isoformat()
-        }), 200 if db_healthy else 500
+    # Health check endpoints are defined in status_routes.py
         
     # CSP Report endpoint
     @app.route('/api/csp-report', methods=['POST'])

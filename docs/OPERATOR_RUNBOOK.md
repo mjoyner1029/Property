@@ -51,7 +51,7 @@ Asset Anchor consists of:
 ### Health Checks
 
 - **Frontend**: Vercel monitors deployment health
-- **Backend**: `/health` endpoint monitored by UptimeRobot
+- **Backend**: `/api/health` endpoint monitored by UptimeRobot
 - **Database**: Render provides database monitoring
 
 ### Alerts Configuration
@@ -191,13 +191,13 @@ To restore from a backup:
 #### Check Backend Health
 
 ```bash
-curl https://api.assetanchor.io/health
+curl https://api.assetanchor.io/api/health
 ```
 
 Expected response:
 ```json
 {
-  "status": "healthy",
+  "status": "ok",
   "version": "1.x.x",
   "database": "connected",
   "redis": "connected"

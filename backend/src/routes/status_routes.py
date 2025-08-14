@@ -21,6 +21,14 @@ def status():
         "environment": current_app.config.get("ENV", "development")
     })
 
+@bp.route("/health-check", methods=["GET"])
+def health_check_legacy():
+    """
+    Legacy health check endpoint that provides the same functionality
+    as /health for backward compatibility.
+    """
+    return health_check()
+
 @bp.route("/health", methods=["GET"])
 def health_check():
     """
