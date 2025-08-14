@@ -8,6 +8,7 @@ This PR adds the final launch pipeline and verification steps for Asset Anchor's
 - `.github/workflows/predeploy-prod.yml` - Smoke test verification for production deployment
 - `scripts/check_frontend.mjs` - Frontend accessibility check script
 - `scripts/stripe_webhook_check.md` - Instructions for testing Stripe webhooks
+- `scripts/verify_stripe_webhook.py` - Automated verification script for Stripe webhook security
 - `scripts/tag_release.sh` - Script for creating versioned releases
 - `docs/DNS_SETUP_QUICK.md` - Quick reference for DNS configuration
 
