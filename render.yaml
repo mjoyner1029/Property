@@ -4,7 +4,15 @@ services:
     env: python
     plan: standard
     buildCommand: pip install -r requirements.txt
-    startCommand: gunicorn wsgi:app --workers 4 --timeout 120 --bind 0.0.0.0:10000
+    startCommand: >
+      gunicorn wsgi:app
+      --workers 2
+      --threads 4
+      --worker-class gthread
+      --timeout 120
+      --bind 0.0.0.0:$PORT
+      --max-requests 1000
+      --max-requests-jitter 100
     region: oregon
     repo: https://github.com/mjoyner1029/Property.git
     branch: main
@@ -13,10 +21,14 @@ services:
     dependsOn:
       - asset-anchor-redis
     envVars:
+      - key: APP_ENV
+        value: production
       - key: FLASK_ENV
         value: production
       - key: FLASK_APP
         value: wsgi.py
+      - key: PYTHONUNBUFFERED
+        value: "1"
       - key: SECRET_KEY
         sync: false
       - key: JWT_SECRET_KEY
@@ -59,13 +71,13 @@ services:
   - type: postgres
     name: asset-anchor-db
     plan: standard
-    ipAllowList: [] # only allow internal connections
+    ipAllowList: []
     region: oregon
-    
+
   - type: redis
     name: asset-anchor-redis
     plan: free
-    ipAllowList: [] # only allow internal connections
+    ipAllowList: []
     region: oregon
 
   - type: job
@@ -80,9 +92,12 @@ services:
     envVars:
       - key: FLASK_APP
         value: wsgi.py
+      - key: FLASK_ENV
+        value: production
+      - key: APP_ENV
+        value: production
       - fromGroup: asset-anchor-db-env
 
-# Environment variable groups
 envVarGroups:
   - name: asset-anchor-db-env
     envVars:
