@@ -51,22 +51,27 @@ describe('AuthContext', () => {
   });
 
   test('handles logout', async () => {
-    // Setup initial authenticated state
-    localStorage.setItem('token', 'fake-token');
-    localStorage.setItem('user', JSON.stringify({ id: 1, email: 'test@example.com' }));
+    // First login
+    axios.post.mockResolvedValueOnce({
+      data: {
+        access_token: 'fake-token',
+        user: { id: 1, email: 'test@example.com' }
+      }
+    });
     
-    render(
-      <AuthProvider>
-        <TestComponent />
-      </AuthProvider>
-    );
+    renderWithProviders(<TestComponent />);
     
-    // Initial state should be logged in
+    // Login first
+    await act(async () => {
+      await userEvent.click(screen.getByText('Login'));
+    });
+    
+    // Verify logged in state
     expect(screen.getByTestId('auth-status')).toHaveTextContent('Logged In');
     
     // Logout
     await act(async () => {
-      screen.getByText('Logout').click();
+      await userEvent.click(screen.getByText('Logout'));
     });
     
     // Should be logged out

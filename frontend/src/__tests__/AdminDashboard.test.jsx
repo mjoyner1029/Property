@@ -9,7 +9,7 @@ jest.mock('axios');
 
 // Mock data
 const mockUsers = [
-  { id: 1, name: 'John Doe', email: 'john@example.com', role: 'landlord' }
+  { id: 1, full_name: 'John Doe', email: 'john@example.com', role: 'landlord' }
 ];
 const mockProperties = [
   { id: 1, name: 'Sunset Apartments', address: '123 Main St' }

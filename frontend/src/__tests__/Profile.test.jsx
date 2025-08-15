@@ -11,13 +11,17 @@ describe('Profile Component', () => {
   // Mock user data
   const mockUser = {
     id: 1,
-    name: 'Jane Doe',
+    full_name: 'Jane Doe',
     email: 'jane@example.com',
     phone: '555-123-4567',
     role: 'tenant'
   };
   
   beforeEach(() => {
+    // Setup localStorage mock
+    Storage.prototype.getItem = jest.fn(() => JSON.stringify(mockUser));
+    Storage.prototype.setItem = jest.fn();
+    
     // Mock auth context
     jest.spyOn(require('../context/AuthContext'), 'useAuth').mockReturnValue({
       user: mockUser,
@@ -29,54 +33,68 @@ describe('Profile Component', () => {
     axios.put.mockResolvedValue({ data: mockUser });
   });
   
+  afterEach(() => {
+    jest.restoreAllMocks();
+  });
+  
   test("renders profile with user data", async () => {
-    renderWithProviders(<Profile />, { 
-      providerProps: { 
-        initialUser: mockUser 
-      } 
+    await waitFor(() => {
+      renderWithProviders(<Profile />);
     });
     
     // Check for profile title
-    expect(screen.getByText(/Profile/i)).toBeInTheDocument();
+    await waitFor(() => {
+      expect(screen.getByText(/My Profile/i)).toBeInTheDocument();
+    });
     
     // Check for user data
     await waitFor(() => {
-      expect(screen.getByDisplayValue(/Jane Doe/i)).toBeInTheDocument();
-      expect(screen.getByDisplayValue(/jane@example.com/i)).toBeInTheDocument();
-      expect(screen.getByDisplayValue(/555-123-4567/i)).toBeInTheDocument();
+      expect(screen.getByDisplayValue('Jane Doe')).toBeInTheDocument();
+      expect(screen.getByDisplayValue('jane@example.com')).toBeInTheDocument();
     });
   });
   
   test("handles profile update", async () => {
-    renderWithProviders(<Profile />, { 
-      providerProps: { 
-        initialUser: mockUser 
-      } 
-    });
+    const user = userEvent.setup();
     
-    // Wait for profile to load
     await waitFor(() => {
-      expect(screen.getByDisplayValue(/Jane Doe/i)).toBeInTheDocument();
+      renderWithProviders(<Profile />);
     });
     
-    // Update name field
-    const nameInput = screen.getByRole('textbox', { name: /name/i });
-    await userEvent.clear(nameInput);
-    await userEvent.type(nameInput, 'Jane Smith');
+    // Profile should be loaded immediately with localStorage data
+    await waitFor(() => {
+      expect(screen.getByDisplayValue('Jane Doe')).toBeInTheDocument();
+    });
+    
+    // Get form fields
+    const nameInput = screen.getByDisplayValue('Jane Doe');
+    
+    // Wrap all interactions in waitFor to handle act() warnings
+    await waitFor(async () => {
+      // Change name
+      await user.clear(nameInput);
+    });
+    
+    await waitFor(async () => {
+      await user.type(nameInput, 'Jane Smith');
+    });
     
     // Submit form
-    await userEvent.click(screen.getByRole('button', { name: /save/i }));
+    await waitFor(async () => {
+      await user.click(screen.getByRole('button', { name: /save changes/i }));
+    });
     
-    // Check if API was called with updated data
+    // Check if localStorage was updated
     await waitFor(() => {
-      expect(axios.put).toHaveBeenCalledWith(
-        expect.stringContaining('/users/'),
-        expect.objectContaining({ name: 'Jane Smith' }),
-        expect.any(Object)
+      expect(localStorage.setItem).toHaveBeenCalledWith(
+        'user', 
+        expect.stringContaining('Jane Smith')
       );
     });
     
     // Check for success message
-    expect(screen.getByText(/profile updated/i)).toBeInTheDocument();
+    await waitFor(() => {
+      expect(screen.getByText(/Profile updated successfully/i)).toBeInTheDocument();
+    });
   });
 });
