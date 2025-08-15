@@ -1,7 +1,6 @@
-// filepath: /Users/mjoyner/Property/frontend/src/__tests__/context/AuthContext.test.jsx
 import React from 'react';
 import { render, screen, act } from '@testing-library/react';
-import { AuthProvider, useAuth } from '../../context/AuthContext';
+import { AuthProvider, useAuth } from '../context/AuthContext';
 import axios from 'axios';
 
 jest.mock('axios');
