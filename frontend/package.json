@@ -30,11 +30,16 @@
   "scripts": {
     "start": "react-scripts start",
     "build": "react-scripts build",
-    "test": "react-scripts test",
+    "test": "react-scripts test --env=jsdom",
+    "test:ci": "react-scripts test --watchAll=false --coverage --coverageReporters=text-summary",
     "test:routes": "react-scripts test routes.spec.jsx guards.spec.jsx --watchAll=false",
     "list-routes": "node scripts/verifyRoutes.mjs",
     "verify-routes": "node scripts/verifyRoutes.mjs",
     "eject": "react-scripts eject"
+  },
+  "jest": {
+    "collectCoverageFrom": ["src/**/*.{js,jsx}", "!src/**/index.{js,jsx}"],
+    "coverageThreshold": { "global": { "lines": 70, "statements": 70 } }
   },
   "eslintConfig": {
     "extends": [
