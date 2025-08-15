@@ -47,10 +47,10 @@ def create_app(config_name='default'):
     limiter.limit("3/minute;10/hour")(app.route('/api/auth/reset-password', methods=['POST']))
     limiter.limit("3/minute;10/hour")(app.route('/api/auth/forgot-password', methods=['POST']))
     
-    # API endpoints that don't need rate limiting (webhooks need to accept all valid requests)
-    limiter.exempt(app.route('/api/webhooks/stripe', methods=['POST']))
+    # API endpoints that don't need rate limiting
     limiter.exempt(app.route('/api/health', methods=['GET']))
     limiter.exempt(app.route('/api/status', methods=['GET']))
+    # Webhooks are exempted in their respective blueprint registrations
     
     # User management endpoints
     limiter.limit("20/minute")(app.route('/api/users/create', methods=['POST']))
@@ -100,6 +100,11 @@ def create_app(config_name='default'):
             app.logger.error(f"Failed to import a blueprint: {e}")
     
     # Health check endpoints are defined in status_routes.py
+    try:
+        from .routes.status_routes import bp as status_bp
+        app.register_blueprint(status_bp)
+    except ImportError as e:
+        app.logger.error(f"Failed to import status routes: {e}")
         
     # CSP Report endpoint
     @app.route('/api/csp-report', methods=['POST'])
