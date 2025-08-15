@@ -1,6 +1,8 @@
 import React from 'react';
-import { render, screen, act } from '@testing-library/react';
+import { screen, act } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import { AuthProvider, useAuth } from '../context/AuthContext';
+import { renderWithProviders } from '../test-utils/renderWithProviders';
 import axios from 'axios';
 
 jest.mock('axios');
@@ -25,11 +27,7 @@ describe('AuthContext', () => {
   });
 
   test('provides authentication state', () => {
-    render(
-      <AuthProvider>
-        <TestComponent />
-      </AuthProvider>
-    );
+    renderWithProviders(<TestComponent />);
     
     expect(screen.getByTestId('auth-status')).toHaveTextContent('Logged Out');
   });
@@ -42,14 +40,10 @@ describe('AuthContext', () => {
       }
     });
     
-    render(
-      <AuthProvider>
-        <TestComponent />
-      </AuthProvider>
-    );
+    renderWithProviders(<TestComponent />);
     
     await act(async () => {
-      screen.getByText('Login').click();
+      await userEvent.click(screen.getByText('Login'));
     });
     
     expect(screen.getByTestId('auth-status')).toHaveTextContent('Logged In');
