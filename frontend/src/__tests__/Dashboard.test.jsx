@@ -1,10 +1,9 @@
 // filepath: /Users/mjoyner/Property/frontend/src/__tests__/Dashboard.test.jsx
 import React from 'react';
-import { render, screen, waitFor } from "@testing-library/react";
-import { BrowserRouter } from 'react-router-dom';
-import { AuthProvider } from '../context/AuthContext';
+import { screen, waitFor } from "@testing-library/react";
 import Dashboard from "../pages/Dashboard";
 import axios from "axios";
+import { renderWithProviders } from '../test-utils/renderWithProviders';
 
 jest.mock("axios");
 
@@ -24,13 +23,7 @@ describe('Dashboard Component', () => {
   });
 
   test("renders dashboard with summary data", async () => {
-    render(
-      <BrowserRouter>
-        <AuthProvider>
-          <Dashboard />
-        </AuthProvider>
-      </BrowserRouter>
-    );
+    renderWithProviders(<Dashboard />);
     
     // Wait for data to load
     await waitFor(() => {

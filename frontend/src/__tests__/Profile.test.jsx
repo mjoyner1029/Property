@@ -1,9 +1,9 @@
 import React from 'react';
-import { render, screen, fireEvent, waitFor } from "@testing-library/react";
-import { BrowserRouter } from 'react-router-dom';
-import { AuthProvider } from '../context/AuthContext';
+import { screen, waitFor } from "@testing-library/react";
+import userEvent from '@testing-library/user-event';
 import Profile from "../pages/Profile";
 import axios from "axios";
+import { renderWithProviders } from '../test-utils/renderWithProviders';
 
 jest.mock("axios");
 
@@ -30,13 +30,11 @@ describe('Profile Component', () => {
   });
   
   test("renders profile with user data", async () => {
-    render(
-      <BrowserRouter>
-        <AuthProvider>
-          <Profile />
-        </AuthProvider>
-      </BrowserRouter>
-    );
+    renderWithProviders(<Profile />, { 
+      providerProps: { 
+        initialUser: mockUser 
+      } 
+    });
     
     // Check for profile title
     expect(screen.getByText(/Profile/i)).toBeInTheDocument();
@@ -50,13 +48,11 @@ describe('Profile Component', () => {
   });
   
   test("handles profile update", async () => {
-    render(
-      <BrowserRouter>
-        <AuthProvider>
-          <Profile />
-        </AuthProvider>
-      </BrowserRouter>
-    );
+    renderWithProviders(<Profile />, { 
+      providerProps: { 
+        initialUser: mockUser 
+      } 
+    });
     
     // Wait for profile to load
     await waitFor(() => {
@@ -64,11 +60,12 @@ describe('Profile Component', () => {
     });
     
     // Update name field
-    const nameInput = screen.getByLabelText(/name/i);
-    fireEvent.change(nameInput, { target: { value: 'Jane Smith' } });
+    const nameInput = screen.getByRole('textbox', { name: /name/i });
+    await userEvent.clear(nameInput);
+    await userEvent.type(nameInput, 'Jane Smith');
     
     // Submit form
-    fireEvent.click(screen.getByRole('button', { name: /save/i }));
+    await userEvent.click(screen.getByRole('button', { name: /save/i }));
     
     // Check if API was called with updated data
     await waitFor(() => {

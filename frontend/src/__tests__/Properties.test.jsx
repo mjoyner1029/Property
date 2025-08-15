@@ -1,10 +1,10 @@
 // filepath: /Users/mjoyner/Property/frontend/src/__tests__/Properties.test.jsx
 import React from 'react';
-import { render, screen, waitFor, fireEvent } from "@testing-library/react";
-import { BrowserRouter } from 'react-router-dom';
-import { AuthProvider } from '../context/AuthContext';
+import { screen, waitFor } from "@testing-library/react";
+import userEvent from '@testing-library/user-event';
 import Properties from "../pages/Properties";
 import axios from "axios";
+import { renderWithProviders } from '../test-utils/renderWithProviders';
 
 jest.mock("axios");
 
@@ -19,13 +19,7 @@ describe('Properties Component', () => {
   });
 
   test("renders properties list", async () => {
-    render(
-      <BrowserRouter>
-        <AuthProvider>
-          <Properties />
-        </AuthProvider>
-      </BrowserRouter>
-    );
+    renderWithProviders(<Properties />);
     
     // Check for heading
     expect(screen.getByText(/Properties/i)).toBeInTheDocument();
@@ -38,21 +32,16 @@ describe('Properties Component', () => {
   });
 
   test("allows filtering properties", async () => {
-    render(
-      <BrowserRouter>
-        <AuthProvider>
-          <Properties />
-        </AuthProvider>
-      </BrowserRouter>
-    );
+    renderWithProviders(<Properties />);
     
     await waitFor(() => {
       expect(screen.getByText("Sunset Apartments")).toBeInTheDocument();
     });
     
     // Filter properties
-    const searchInput = screen.getByPlaceholderText(/search/i);
-    fireEvent.change(searchInput, { target: { value: "Oak" } });
+    const searchInput = screen.getByRole('textbox', { name: /search/i }) || screen.getByPlaceholderText(/search/i);
+    await userEvent.clear(searchInput);
+    await userEvent.type(searchInput, "Oak");
     
     // Check filtered results
     expect(screen.queryByText("Sunset Apartments")).not.toBeInTheDocument();

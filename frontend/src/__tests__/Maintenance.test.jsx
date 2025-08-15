@@ -1,10 +1,10 @@
 // filepath: /Users/mjoyner/Property/frontend/src/__tests__/Maintenance.test.jsx
 import React from 'react';
-import { render, screen, waitFor, fireEvent } from "@testing-library/react";
-import { BrowserRouter } from 'react-router-dom';
-import { AuthProvider } from '../context/AuthContext';
+import { screen, waitFor } from "@testing-library/react";
+import userEvent from '@testing-library/user-event';
 import Maintenance from "../pages/Maintenance";
 import axios from "axios";
+import { renderWithProviders } from '../test-utils/renderWithProviders';
 
 jest.mock("axios");
 
@@ -20,13 +20,7 @@ describe('Maintenance Component', () => {
   });
 
   test("renders maintenance requests", async () => {
-    render(
-      <BrowserRouter>
-        <AuthProvider>
-          <Maintenance />
-        </AuthProvider>
-      </BrowserRouter>
-    );
+    renderWithProviders(<Maintenance />);
     
     await waitFor(() => {
       expect(screen.getByText("Broken AC")).toBeInTheDocument();
@@ -35,23 +29,17 @@ describe('Maintenance Component', () => {
   });
 
   test("allows creating new request", async () => {
-    render(
-      <BrowserRouter>
-        <AuthProvider>
-          <Maintenance />
-        </AuthProvider>
-      </BrowserRouter>
-    );
+    renderWithProviders(<Maintenance />);
     
     // Click create button
-    fireEvent.click(screen.getByText(/new request/i));
+    await userEvent.click(screen.getByText(/new request/i));
     
     // Fill out form
-    fireEvent.change(screen.getByLabelText(/title/i), { target: { value: "New Request" } });
-    fireEvent.change(screen.getByLabelText(/description/i), { target: { value: "Test description" } });
+    await userEvent.type(screen.getByLabelText(/title/i), "New Request");
+    await userEvent.type(screen.getByLabelText(/description/i), "Test description");
     
     // Submit form
-    fireEvent.click(screen.getByText(/submit/i));
+    await userEvent.click(screen.getByRole('button', { name: /submit/i }));
     
     // Verify request creation
     await waitFor(() => {

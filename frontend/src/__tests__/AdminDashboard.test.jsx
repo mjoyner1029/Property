@@ -1,9 +1,8 @@
 import React from 'react';
-import { render, screen, waitFor } from "@testing-library/react";
-import { BrowserRouter } from 'react-router-dom';
-import { AuthProvider } from '../context/AuthContext';
+import { screen, waitFor } from "@testing-library/react";
 import AdminDashboard from "../pages/AdminDashboard";
 import axios from 'axios';
+import { renderWithProviders } from '../test-utils/renderWithProviders';
 
 // Mock axios
 jest.mock('axios');
@@ -35,13 +34,11 @@ describe('AdminDashboard Component', () => {
   });
 
   test("renders admin dashboard with data", async () => {
-    render(
-      <BrowserRouter>
-        <AuthProvider>
-          <AdminDashboard />
-        </AuthProvider>
-      </BrowserRouter>
-    );
+    renderWithProviders(<AdminDashboard />, { 
+      providerProps: { 
+        initialUser: { roles: ['admin'] } 
+      } 
+    });
     
     // Wait for loading to complete
     await waitFor(() => expect(screen.queryByText(/loading/i)).not.toBeInTheDocument());

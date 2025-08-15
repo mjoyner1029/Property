@@ -1,10 +1,9 @@
 // filepath: /Users/mjoyner/Property/frontend/src/__tests__/Tenants.test.jsx
 import React from 'react';
-import { render, screen, waitFor } from "@testing-library/react";
-import { BrowserRouter } from 'react-router-dom';
-import { AuthProvider } from '../context/AuthContext';
+import { screen, waitFor } from "@testing-library/react";
 import Tenants from "../pages/Tenants";
 import axios from "axios";
+import { renderWithProviders } from '../test-utils/renderWithProviders';
 
 jest.mock("axios");
 
@@ -19,13 +18,7 @@ describe('Tenants Component', () => {
   });
 
   test("renders tenant list", async () => {
-    render(
-      <BrowserRouter>
-        <AuthProvider>
-          <Tenants />
-        </AuthProvider>
-      </BrowserRouter>
-    );
+    renderWithProviders(<Tenants />);
     
     await waitFor(() => {
       expect(screen.getByText("John Smith")).toBeInTheDocument();
