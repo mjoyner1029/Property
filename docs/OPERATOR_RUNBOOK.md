@@ -9,7 +9,195 @@ Asset Anchor consists of:
 - **Backend**: Flask API hosted on Render
 - **Database**: PostgreSQL managed by Render
 - **Cache**: Redis managed by Render
-- **Email**: Postmark for transactional emails
+- **Email**: Postmark for5. Review and audit access logs
+6. Enable additional authentication factors
+
+## Performance Tuning Guide
+
+### Database Optimization
+
+#### PostgreSQL Tuning
+
+1. **Connection Pooling**
+   - Configure PgBouncer in Render for optimal connection management
+   - Recommended settings:
+     ```
+     pool_mode = transaction
+     max_client_conn = 500
+     default_pool_size = 20
+     ```
+
+2. **Index Optimization**
+   - Run the following query to identify missing indexes:
+     ```sql
+     SELECT 
+       schemaname || '.' || relname as table,
+       indexrelname as index,
+       pg_size_pretty(pg_relation_size(indexrelid)) as index_size,
+       idx_scan as index_scans
+     FROM pg_stat_user_indexes
+     ORDER BY pg_relation_size(indexrelid) DESC;
+     ```
+   - Add indexes for frequently queried columns
+
+3. **Query Optimization**
+   - Use EXPLAIN ANALYZE to identify slow queries
+   - Common optimization targets:
+     - Property search queries
+     - User dashboard aggregations
+     - Report generation queries
+
+#### Redis Cache Configuration
+
+1. **Cache TTL Settings**
+   - Property data: 10 minutes
+   - User preferences: 1 hour
+   - Static content: 24 hours
+
+2. **Monitoring Redis Memory**
+   ```bash
+   redis-cli --stat
+   redis-cli info memory
+   ```
+
+3. **Implementing Cache Invalidation**
+   - After property updates: `DEL property:{id}`
+   - After user profile changes: `DEL user:{id}:preferences`
+
+### API Optimization
+
+1. **Response Compression**
+   - Verify gzip compression is enabled:
+     ```python
+     # Should be enabled in app.py
+     from flask_compress import Compress
+     compress = Compress()
+     compress.init_app(app)
+     ```
+
+2. **Pagination Implementation**
+   - All list endpoints should use pagination
+   - Default page size: 20 items
+   - Maximum page size: 100 items
+
+3. **Request Rate Limiting**
+   - Adjust in `config.py`:
+     ```python
+     # Requests per minute by endpoint
+     RATE_LIMIT_DEFAULT = 60
+     RATE_LIMIT_AUTH = 10
+     RATE_LIMIT_SEARCH = 30
+     ```
+
+### Frontend Optimization
+
+1. **Bundle Size Reduction**
+   - Run webpack bundle analyzer:
+     ```bash
+     cd frontend
+     npm run analyze
+     ```
+   - Look for large dependencies that can be code-split
+
+2. **Image Optimization**
+   - Use responsive images with srcset
+   - Implement lazy loading for below-fold images
+   - Consider using next-gen formats (WebP, AVIF)
+
+3. **Core Web Vitals Monitoring**
+   - Monitor in Google Search Console
+   - Recommended targets:
+     - LCP: < 2.5s
+     - FID: < 100ms
+     - CLS: < 0.1
+
+## Maintenance Procedures
+
+### Scheduled Maintenance Windows
+
+| Environment | Preferred Window | Backup Window | Notification Lead Time |
+|-------------|------------------|--------------|------------------------|
+| Production | Sunday 2:00 AM - 5:00 AM EST | Wednesday 1:00 AM - 3:00 AM EST | 72 hours |
+| Staging | Tuesday 11:00 AM - 1:00 PM EST | Any business day | 24 hours |
+| Development | Any time | N/A | None |
+
+### Pre-Maintenance Checklist
+
+1. **Communication**
+   - [ ] Schedule maintenance in team calendar
+   - [ ] Draft customer notification email
+   - [ ] Update status page with planned maintenance
+   - [ ] Notify internal stakeholders
+
+2. **Preparation**
+   - [ ] Create maintenance plan document
+   - [ ] Review rollback procedures
+   - [ ] Verify current database backups
+   - [ ] Run `scripts/pre-deploy-check.sh` to confirm system health
+
+3. **Testing**
+   - [ ] Verify maintenance procedure in staging environment
+   - [ ] Test rollback procedure
+   - [ ] Update maintenance runbook with any new findings
+
+### Maintenance Execution Process
+
+1. **T-15 Minutes**
+   - Enable maintenance mode banner on website
+   - Post update to status page
+   - Ensure all team members are available on designated chat channel
+
+2. **Maintenance Start**
+   - Enable full maintenance mode (if required)
+   - Take database snapshot
+   - Begin scheduled work
+
+3. **During Maintenance**
+   - Post progress updates to status page every 30 minutes
+   - Document any unexpected issues
+   - Make go/no-go decisions for complex changes
+
+4. **Maintenance Completion**
+   - Run smoke tests to verify functionality
+   - Disable maintenance mode
+   - Update status page
+   - Send completion notification
+
+### Common Maintenance Procedures
+
+#### Database Schema Updates
+
+```bash
+# Take pre-migration snapshot
+./scripts/run_migrations.sh --backup
+
+# Run migrations
+./scripts/run_migrations.sh
+
+# Verify migrations succeeded
+./scripts/run_migrations.sh --verify
+
+# If failure, rollback
+./scripts/run_migrations.sh --rollback
+```
+
+#### Scaling Resources
+
+1. **Vertical Scaling (Render)**
+   - Go to Render Dashboard > Service > Settings
+   - Change instance type
+   - Click "Save Changes" to apply (causes brief restart)
+
+2. **Horizontal Scaling (Render)**
+   - Go to Render Dashboard > Service > Settings
+   - Adjust number of instances
+   - Click "Save Changes" to apply
+
+3. **Database Scaling**
+   - Plan for 15-30 minutes of potential downtime
+   - Go to Render Dashboard > Database > Settings
+   - Select new plan
+   - Confirm upgraderansactional emails
 - **Storage**: AWS S3 for file storage
 - **Payments**: Stripe for payment processing
 
@@ -160,6 +348,72 @@ To restore from a backup:
 4. Select the backup to restore from
 5. Click "Restore"
 
+## Incident Response
+
+### Incident Severity Levels
+
+| Severity | Description | Initial Response Time | Communication | Example |
+|----------|-------------|------------------------|---------------|---------|
+| P1 | Critical service outage | 15 min | Every hour | Complete API outage |
+| P2 | Major functionality broken | 30 min | Every 2 hours | Payment processing down |
+| P3 | Minor functionality issue | 4 hours | Daily | Non-critical feature unavailable |
+| P4 | Cosmetic issues | 24 hours | Weekly | UI alignment issues |
+
+### Incident Response Process
+
+1. **Detection**
+   - Monitor Sentry alerts and Prometheus dashboards
+   - Receive user/customer reports
+   - Automated alerts from health checks
+
+2. **Triage**
+   - Determine severity level
+   - Assign incident owner
+   - Create incident channel in Slack (#incident-YYYYMMDD-description)
+
+3. **Investigation**
+   - Gather logs (Render, Vercel, Sentry)
+   - Check recent deployments
+   - Investigate system metrics
+
+4. **Mitigation**
+   - Apply temporary fixes if possible
+   - Consider rollback to last known good version
+   - Update status page
+
+5. **Resolution**
+   - Deploy permanent fix
+   - Verify functionality
+   - Update documentation
+
+6. **Post-Mortem**
+   - Document root cause
+   - Identify preventative measures
+   - Update runbooks and playbooks
+
+### Communication Templates
+
+#### Customer Communication
+
+```
+Subject: [SEVERITY] Asset Anchor Service Update
+
+Dear Asset Anchor Customer,
+
+We're currently experiencing [brief description of issue] affecting [specific functionality]. 
+Our engineering team has been alerted and is actively working to resolve this issue.
+
+Current Status: [Investigating/Identified/Mitigating/Resolved]
+
+Estimated Resolution Time: [time or "under investigation"]
+
+We'll provide an update [timeframe based on severity].
+
+We apologize for any inconvenience this may cause.
+
+The Asset Anchor Team
+```
+
 ## Troubleshooting
 
 ### Common Issues
@@ -171,11 +425,13 @@ To restore from a backup:
    - Verify API endpoints are accessible
    - Check browser console for JavaScript errors
    - Verify environment variables are correctly set
+   - Run `npm run build` locally to verify build succeeds
 
 2. **Authentication Issues**:
    - Verify JWT_SECRET is consistent
    - Check token expiration settings
    - Verify CORS settings
+   - Use browser developer tools to inspect JWT tokens
 
 #### Backend Issues
 
@@ -183,11 +439,14 @@ To restore from a backup:
    - Check Render logs for backend service
    - Verify database connectivity
    - Check for recent code deployments that might cause issues
+   - Run health check endpoint (/api/health) to verify service status
+   - Check for memory/CPU spikes in Render dashboard
 
 2. **Slow Response Times**:
    - Check database query performance
    - Verify Redis connectivity
    - Check for high resource utilization in Render dashboard
+   - Run `scripts/pre-deploy-check.sh` to verify performance
 
 #### Database Issues
 
@@ -195,9 +454,160 @@ To restore from a backup:
    - Verify database is running in Render dashboard
    - Check connection string environment variables
    - Verify network access between backend and database
+   - Check max connections setting
 
 2. **Performance Issues**:
    - Check for long-running queries
+   - Review query plans for common operations
+   - Check index usage statistics
+
+### Emergency Rollback Procedures
+
+#### Frontend Rollback
+
+1. Go to Vercel Dashboard > Project > Deployments
+2. Find the last known good deployment
+3. Click on the three dots menu and select "Promote to Production"
+4. Verify the rollback resolves the issue
+
+```bash
+# Alternatively, you can roll back using Vercel CLI
+vercel rollback --environment=production
+```
+
+#### Backend Rollback
+
+1. Go to Render Dashboard > Web Service > Asset Anchor API
+2. Click on "Manual Deploy" > "Deploy previous build"
+3. Select the last known good build
+4. Monitor the rollback deployment logs
+5. Verify functionality after rollback completes
+
+#### Database Rollback
+
+1. Go to Render Dashboard > Databases > Asset Anchor Database
+2. Navigate to Backups tab
+3. Select the appropriate backup point (before issue)
+4. Click "Restore" and confirm
+5. **Warning**: This will replace all current data with backup data
+
+#### Code Rollback (Emergency Hot Fix)
+
+```bash
+# Checkout the last known good commit
+git checkout [COMMIT_HASH]
+
+# Create a hotfix branch
+git checkout -b hotfix/emergency-[YYYY-MM-DD]
+
+# Push the hotfix
+git push origin hotfix/emergency-[YYYY-MM-DD]
+
+# Deploy the hotfix through CI/CD or manual deployment
+```
+
+### Data Recovery Procedures
+
+#### Recovering Deleted Data
+
+1. Identify the data that needs to be restored
+2. Determine if a point-in-time recovery is needed:
+   - For individual records: Use audit logs in the application
+   - For larger datasets: Consider database restore to staging
+3. For S3 data:
+   - Check S3 versioning (if enabled)
+   - Restore previous versions as needed
+
+```bash
+# Example of restoring a previous S3 object version
+aws s3api restore-object --bucket asset-anchor-prod \
+  --key path/to/object \
+  --version-id [VERSION_ID] \
+  --restore-request '{}'
+```
+
+#### Handling Corrupted Data
+
+1. Identify the extent of corruption
+2. Isolate affected systems/features
+3. Restore from last known good backup
+4. Implement data validation checks
+5. Document incident for future prevention
+
+## Security Incident Response
+
+### Reporting a Security Incident
+
+Security incidents should be reported immediately to:
+- Security Team: security@example.com
+- CTO/Head of Engineering
+- On-call engineer via PagerDuty
+
+### Security Incident Levels
+
+| Level | Description | Response Time | Example |
+|-------|-------------|---------------|---------|
+| Critical | Data breach, unauthorized access | Immediate | Customer PII exposed |
+| High | Vulnerability with exploitation risk | 4 hours | Zero-day in dependency |
+| Medium | Security misconfiguration | 24 hours | Improper CORS settings |
+| Low | Informational findings | 72 hours | Outdated TLS version warning |
+
+### Security Incident Response Process
+
+1. **Identification & Containment**
+   - Identify the scope and impact of the incident
+   - Isolate affected systems where possible
+   - Revoke compromised credentials
+   - Block malicious IPs or user agents
+
+2. **Investigation**
+   - Preserve evidence and logs
+   - Document timeline of events
+   - Identify entry points and extent of access
+   - Determine if PII/sensitive data was exposed
+
+3. **Remediation**
+   - Patch vulnerabilities
+   - Rotate all potentially affected credentials
+   - Remove unauthorized access
+   - Restore from clean backups if needed
+
+4. **Notification**
+   - Legal team for compliance requirements
+   - Customers (as required by law or contracts)
+   - Law enforcement (if appropriate)
+   - Regulators (as required)
+
+5. **Post-Incident**
+   - Detailed post-mortem analysis
+   - Security control improvements
+   - Team training updates
+   - Documentation updates
+
+### Common Security Playbooks
+
+#### Credential Exposure
+
+1. Immediately rotate exposed credentials:
+   ```bash
+   # Example: Rotate AWS keys
+   aws iam create-access-key --user-name AssetAnchorProdUser
+   aws iam delete-access-key --user-name AssetAnchorProdUser --access-key-id [EXPOSED_KEY_ID]
+   
+   # Update in Render environment
+   # Update in GitHub Secrets
+   ```
+
+2. Check access logs for unauthorized usage
+3. Enable additional monitoring for affected systems
+
+#### Unauthorized Access
+
+1. Lock affected user accounts
+2. Revoke active sessions
+3. Implement IP blocks if pattern detected
+4. Review and audit access logs
+5. Enable additional authentication factors
    - Verify indexes are properly configured
    - Consider scaling up database if needed
 
