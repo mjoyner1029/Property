@@ -12,11 +12,66 @@ logger = logging.getLogger(__name__)
 def init_monitoring(app):
     """Initialize monitoring for the Flask app."""
     
+    # Initialize Sentry for error tracking (production only)
+    if not app.debug and not app.testing:
+        sentry_dsn = app.config.get('SENTRY_DSN')
+        if sentry_dsn:
+            try:
+                import sentry_sdk
+                from sentry_sdk.integrations.flask import FlaskIntegration
+                from sentry_sdk.integrations.sqlalchemy import SqlalchemyIntegration
+                
+                sentry_sdk.init(
+                    dsn=sentry_dsn,
+                    integrations=[
+                        FlaskIntegration(),
+                        SqlalchemyIntegration(),
+                    ],
+                    environment=app.config.get('APP_ENV', 'production'),
+                    traces_sample_rate=0.25,  # Adjust sampling rate as needed
+                    send_default_pii=False,  # Don't send PII by default
+                )
+                
+                # Set up Sentry context processor
+                @app.before_request
+                def sentry_context():
+                    from sentry_sdk import set_tag, set_user, set_context
+                    
+                    # Add request_id as a tag for traceability
+                    request_id = request.headers.get('X-Request-ID', '')
+                    if request_id:
+                        set_tag("request_id", request_id)
+                    
+                    # Add user info if available
+                    if hasattr(g, 'current_user') and g.current_user:
+                        set_user({
+                            "id": g.current_user.id,
+                            "role": getattr(g.current_user, 'role', None),
+                            # Don't include PII like email, name
+                        })
+                        
+                        # Add additional context if needed
+                        if hasattr(g.current_user, 'tenant_id') and g.current_user.tenant_id:
+                            set_tag("tenant_id", g.current_user.tenant_id)
+                    
+                    # Add relevant request context
+                    set_context("request", {
+                        "url": request.url,
+                        "method": request.method,
+                        "referrer": request.referrer,
+                    })
+                
+                app.logger.info("Sentry initialized for error monitoring")
+            except ImportError:
+                app.logger.warning("Sentry SDK not installed, error monitoring disabled")
+            except Exception as e:
+                app.logger.error(f"Failed to initialize Sentry: {e}")
+    
     # Request tracking middleware
     @app.before_request
     def before_request():
         g.start_time = time.time()
-        g.request_id = request.headers.get('X-Request-ID', '')
+        g.request_id = request.headers.get('X-Request-ID', '') or f"req-{time.time():.0f}"
     
     @app.after_request
     def after_request(response):
@@ -34,9 +89,11 @@ def init_monitoring(app):
                 'ip': request.remote_addr
             }
             
-            # Add user_id if authenticated
+            # Add user_id if authenticated (but not PII)
             if hasattr(g, 'current_user') and g.current_user:
                 log_data['user_id'] = g.current_user.id
+                if hasattr(g.current_user, 'role'):
+                    log_data['user_role'] = g.current_user.role
                 
             # Log different levels based on status code
             if response.status_code >= 500:
