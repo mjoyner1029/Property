@@ -1,0 +1,44 @@
+name: deploy
+on:
+  push:
+    branches: [ main ]
+
+jobs:
+  wait-on-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Wait for tests
+        uses: leonsteinhaeuser/project-beta-automations@v2 # placeholder step (no-op)
+    # This job makes the workflow show up while required checks are configured in branch protection
+
+  deploy-api:
+    runs-on: ubuntu-latest
+    needs: [ wait-on-tests ]
+    if: ${{ !contains(github.event.head_commit.message, '[skip deploy]') }}
+    steps:
+      - uses: actions/checkout@v4
+      # 1) Run migrations job (Render API call) — replace with your action/CLI if available
+      - name: Run DB migrations job
+        run: echo "TODO: call Render Deploy Job API for asset-anchor-migrations"
+      # 2) Deploy API (Render)
+      - name: Deploy API to Render
+        run: echo "TODO: call Render Deploy API for asset-anchor-api"
+      # 3) Post-deploy smoke
+      - uses: actions/setup-python@v5
+        with: { python-version: '3.11' }
+      - name: Install smoke deps
+        working-directory: backend
+        run: pip install -r requirements.txt
+      - name: Smoke test API
+        working-directory: backend
+        run: |
+          python scripts/smoke_test.py --base-url https://api.assetanchor.io
+
+  deploy-frontend:
+    runs-on: ubuntu-latest
+    needs: [ deploy-api ]
+    if: ${{ !contains(github.event.head_commit.message, '[skip deploy]') }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Deploy Frontend to Vercel
+        run: echo "TODO: vercel deploy --prod --token=$VERCEL_TOKEN"
