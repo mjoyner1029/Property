@@ -312,3 +312,31 @@ Refer to `/docs/ENVIRONMENT.md` for a complete list of environment variables and
 - **Infrastructure**: Render Dashboard
 - **Uptime Monitoring**: UptimeRobot
 - **Error Tracking**: Sentry
+
+## CI/CD & Quality Gates
+
+### Frontend (React)
+- Run all tests and check coverage:
+  ```bash
+  npm run test:ci
+  ```
+- Run Lighthouse performance & accessibility check (must meet thresholds: perf ≥ 85, a11y ≥ 90):
+  ```bash
+  LH_URL=http://localhost:3000 npm run lh:ci
+  ```
+
+### Backend (Flask)
+- Run all tests:
+  ```bash
+  pytest -q
+  ```
+
+### Deploy Workflow Sequence
+- Deploys are blocked unless all tests and Lighthouse pass in CI.
+- Deploy pipeline (see `.github/workflows/deploy.yml`):
+  1. Wait for tests to pass
+  2. Run DB migrations (Render job, TODO: API call)
+  3. Deploy API (Render, TODO: API call)
+  4. Smoke test API (`python scripts/smoke_test.py --base-url https://api.assetanchor.io`)
+  5. Deploy frontend (Vercel, TODO: vercel deploy)
+- To force-skip deploy, add `[skip deploy]` to your commit message.

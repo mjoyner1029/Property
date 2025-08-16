@@ -150,3 +150,11 @@ This checklist covers all steps required for deploying Asset Anchor to productio
 - [ ] Announce launch to stakeholders
 
 - [ ] Monitor systems closely for 24 hours post-launch
+
+## CI/CD & Quality Gates
+
+- FE tests: `npm run test:ci`
+- Lighthouse: `LH_URL=http://localhost:3000 npm run lh:ci` (perf ≥ 85, a11y ≥ 90)
+- BE tests: `pytest -q`
+- Deploy workflow: tests → migrations → API deploy → smoke → frontend deploy
+- To skip deploy: add `[skip deploy]` to your commit message
