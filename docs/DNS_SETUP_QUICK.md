@@ -1,30 +1,58 @@
-# DNS Setup for Asset Anchor
+# DNS Setup Quick Guide
 
-This document contains the exact DNS records needed for the Asset Anchor production deployment.
+This document provides the exact DNS configuration needed for Asset Anchor production deployment.
 
 ## Required DNS Records
 
-| Type  | Hostname | Value/Target | TTL |
-|-------|----------|-------------|-----|
-| A     | @ (apex) | 76.76.21.21 | Auto/3600 |
-| CNAME | www      | cname.vercel-dns.com. | Auto/3600 |
-| CNAME | api      | assetanchor.onrender.com. | Auto/3600 |
+| Type | Host/Name | Value/Target | TTL | Purpose |
+|------|-----------|--------------|-----|---------|
+| A | @ | 76.76.21.21 | 3600 | Apex domain pointing to Vercel |
+| CNAME | www | cname.vercel-dns.com. | 3600 | www subdomain for frontend |
+| CNAME | api | assetanchor-api.onrender.com. | 3600 | API subdomain for backend |
 
-## Notes
+## Verification Commands
 
-- The apex/root domain points directly to Vercel's anycast IP
-- The www subdomain is a CNAME to Vercel's DNS service
-- The api subdomain points to the Render service
-- After updating DNS records, it may take up to 24-48 hours for changes to fully propagate
-
-## Verification
-
-You can verify DNS propagation using:
+After setting up DNS records, you should verify they are properly propagated:
 
 ```bash
-dig assetanchor.io +short
-dig www.assetanchor.io +short
-dig api.assetanchor.io +short
+# Verify apex domain
+dig assetanchor.io +noall +answer
+
+# Verify www subdomain
+dig www.assetanchor.io +noall +answer
+
+# Verify api subdomain
+dig api.assetanchor.io +noall +answer
+```
+
+Expected results:
+
+```
+assetanchor.io.        3600    IN      A       76.76.21.21
+www.assetanchor.io.    3600    IN      CNAME   cname.vercel-dns.com.
+api.assetanchor.io.    3600    IN      CNAME   assetanchor-api.onrender.com.
+```
+
+## SSL/TLS Certificates
+
+SSL certificates are automatically managed by Vercel for the frontend domains and by Render for the API domain. No manual certificate configuration is required.
+
+## DNS Propagation
+
+DNS propagation can take up to 24-48 hours worldwide, but often completes within a few hours. You can check propagation status using:
+
+```bash
+# Check global propagation
+curl -s https://dnschecker.org/api/?mode=A\&domain=assetanchor.io | jq
 ```
 
 Or using an online tool like [DNSChecker](https://dnschecker.org).
+
+## Going Live Checklist
+
+- [ ] Verify all DNS records are configured correctly
+- [ ] Ensure SSL certificates are issued and valid
+- [ ] Test all domains using curl or browser
+- [ ] Verify that API requests from frontend work correctly
+- [ ] Check for mixed content warnings in browser console
+- [ ] Ensure proper redirects are in place (HTTP to HTTPS, non-www to www if desired)
