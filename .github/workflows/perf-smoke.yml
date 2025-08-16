@@ -1,0 +1,37 @@
+name: Performance Smoke Tests
+
+on:
+  workflow_dispatch:  # Manual trigger
+  schedule:
+    - cron: '0 3 * * 1'  # Run weekly on Mondays at 3am UTC
+
+jobs:
+  perf-smoke:
+    name: Run Performance Smoke Tests
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+      
+      - name: Install k6
+        run: |
+          curl -L https://github.com/grafana/k6/releases/download/v0.45.0/k6-v0.45.0-linux-amd64.tar.gz | tar xz
+          sudo cp k6-v0.45.0-linux-amd64/k6 /usr/local/bin
+      
+      - name: Run smoke test against staging
+        run: |
+          k6 run -e API_URL=https://api-staging.assetanchor.io perf/k6/smoke.js
+      
+      - name: Run smoke test against production
+        run: |
+          k6 run -e API_URL=https://api.assetanchor.io perf/k6/smoke.js
+      
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v2
+        with:
+          name: k6-results
+          path: |
+            k6-summary-*.json
+            k6-*.html
