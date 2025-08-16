@@ -1,0 +1,147 @@
+name: Security Audit
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'backend/requirements.txt'
+      - 'frontend/package.json'
+      - 'frontend/package-lock.json'
+      - '.github/workflows/security-audit.yml'
+  pull_request:
+    branches: [main]
+    paths:
+      - 'backend/requirements.txt'
+      - 'frontend/package.json'
+      - 'frontend/package-lock.json'
+      - '.github/workflows/security-audit.yml'
+  schedule:
+    - cron: '0 0 * * 0'  # Run weekly on Sundays at midnight
+
+jobs:
+  backend-audit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+          
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install pip-audit
+          
+      - name: Run pip-audit
+        run: |
+          cd backend
+          pip-audit -r requirements.txt --format json > pip-audit-results.json || true
+          
+      - name: Check for critical vulnerabilities
+        run: |
+          cd backend
+          python -c '
+          import json
+          with open("pip-audit-results.json") as f:
+              results = json.load(f)
+          critical_vulns = [v for v in results if v.get("vulnerability_id") and v.get("fix_versions")]
+          if critical_vulns:
+              print("Critical vulnerabilities found:")
+              for vuln in critical_vulns:
+                  print(f"{vuln.get(\"name\")} - {vuln.get(\"vulnerability_id\")} - Update to {vuln.get(\"fix_versions\")}")
+              exit(1)
+          else:
+              print("No critical vulnerabilities found")
+          ' || (echo "::error::Critical vulnerabilities found in Python dependencies" && exit 1)
+          
+      - name: Upload audit results
+        uses: actions/upload-artifact@v3
+        with:
+          name: backend-audit-results
+          path: backend/pip-audit-results.json
+
+  frontend-audit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '20'
+          
+      - name: Run npm audit
+        run: |
+          cd frontend
+          npm audit --json > npm-audit-results.json || true
+          
+      - name: Check for high/critical vulnerabilities
+        run: |
+          cd frontend
+          node -e '
+          const fs = require("fs");
+          const results = JSON.parse(fs.readFileSync("npm-audit-results.json", "utf8"));
+          const highSeverity = Object.values(results.vulnerabilities || {})
+            .filter(v => ["high", "critical"].includes(v.severity));
+          
+          if (highSeverity.length > 0) {
+            console.log("High or critical vulnerabilities found:");
+            highSeverity.forEach(v => {
+              console.log(`${v.name} - ${v.severity} - ${v.url}`);
+            });
+            
+            // Only warn about high severity issues but don't fail the build
+            console.log("::warning::High or critical vulnerabilities found in npm dependencies");
+          } else {
+            console.log("No high or critical vulnerabilities found");
+          }
+          '
+          
+      - name: Upload audit results
+        uses: actions/upload-artifact@v3
+        with:
+          name: frontend-audit-results
+          path: frontend/npm-audit-results.json
+
+  docker-scan:
+    if: ${{ github.event_name != 'pull_request' }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v2
+        
+      - name: Build and scan backend image
+        uses: docker/build-push-action@v4
+        with:
+          context: ./backend
+          push: false
+          load: true
+          tags: assetanchor-backend:latest
+          
+      - name: Scan backend image with Trivy
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: assetanchor-backend:latest
+          format: 'table'
+          exit-code: '0'  # Don't fail for now, just report
+          severity: 'CRITICAL,HIGH'
+          
+      - name: Build and scan frontend image
+        uses: docker/build-push-action@v4
+        with:
+          context: ./frontend
+          push: false
+          load: true
+          tags: assetanchor-frontend:latest
+          
+      - name: Scan frontend image with Trivy
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: assetanchor-frontend:latest
+          format: 'table'
+          exit-code: '0'  # Don't fail for now, just report
+          severity: 'CRITICAL,HIGH'
