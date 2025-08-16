@@ -86,15 +86,30 @@ vercel --prod
 
 Backend deployment is automated via GitHub actions. When code is merged to the main branch, it is automatically deployed to Render.
 
-Manual deployment (if needed):
+Deployment sequence:
+1. Database migrations run first via Render job ID: `srv-xyz123` (migrations)
+2. API service is deployed via Render service ID: `srv-abc456` (API)
+3. Smoke tests run to verify API is healthy
+4. Frontend deployment is triggered after successful API deployment
+
+Manual deployment via Render API:
 ```bash
-# Trigger deploy from Render dashboard
-# Or use Render CLI if available
+# Run migrations
+curl -X POST \
+  -H "Authorization: Bearer $RENDER_API_KEY" \
+  "https://api.render.com/v1/jobs/$RENDER_JOB_ID_MIGRATIONS/runs"
+
+# Deploy API service
+curl -X POST \
+  -H "Authorization: Bearer $RENDER_API_KEY" \
+  -H "Content-Type: application/json" \
+  "https://api.render.com/v1/services/$RENDER_SERVICE_ID_API/deploys" \
+  -d '{"clearCache":false}'
 ```
 
 ### Database Migrations
 
-Migrations are automatically run during deployment by the migration job defined in `render.yaml`.
+Migrations are automatically run during deployment by the Render job defined in GitHub Actions workflows.
 
 To run migrations manually:
 ```bash
