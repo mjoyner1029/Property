@@ -36,6 +36,8 @@
     "list-routes": "node scripts/verifyRoutes.mjs",
     "verify-routes": "node scripts/verifyRoutes.mjs",
     "eject": "react-scripts eject"
+    ,
+    "lh:ci": "node scripts/lh-check.mjs"
   },
   "jest": {
     "collectCoverageFrom": ["src/**/*.{js,jsx}", "!src/**/index.{js,jsx}"],
