@@ -340,3 +340,9 @@ Refer to `/docs/ENVIRONMENT.md` for a complete list of environment variables and
   4. Smoke test API (`python scripts/smoke_test.py --base-url https://api.assetanchor.io`)
   5. Deploy frontend (Vercel, TODO: vercel deploy)
 - To force-skip deploy, add `[skip deploy]` to your commit message.
+
+## Branch Protection
+
+- Protect the `main` branch in GitHub settings.
+- Require status checks: `frontend-tests`, `backend-tests` (and optionally `deploy` for visibility).
+- To skip deploy for a commit, add `[skip deploy]` to the commit message.
