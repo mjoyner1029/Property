@@ -25,7 +25,8 @@
     "@testing-library/jest-dom": "^5.17.0",
     "@testing-library/react": "^14.0.0",
     "@testing-library/user-event": "^14.5.1",
-    "chalk": "^5.5.0"
+    "chalk": "^5.5.0",
+    "framer-motion": "^12.23.12"
   },
   "scripts": {
     "start": "react-scripts start",
@@ -35,13 +36,20 @@
     "test:routes": "react-scripts test routes.spec.jsx guards.spec.jsx --watchAll=false",
     "list-routes": "node scripts/verifyRoutes.mjs",
     "verify-routes": "node scripts/verifyRoutes.mjs",
-    "eject": "react-scripts eject"
-    ,
+    "eject": "react-scripts eject",
     "lh:ci": "node scripts/lh-check.mjs"
   },
   "jest": {
-    "collectCoverageFrom": ["src/**/*.{js,jsx}", "!src/**/index.{js,jsx}"],
-    "coverageThreshold": { "global": { "lines": 70, "statements": 70 } }
+    "collectCoverageFrom": [
+      "src/**/*.{js,jsx}",
+      "!src/**/index.{js,jsx}"
+    ],
+    "coverageThreshold": {
+      "global": {
+        "lines": 70,
+        "statements": 70
+      }
+    }
   },
   "eslintConfig": {
     "extends": [
