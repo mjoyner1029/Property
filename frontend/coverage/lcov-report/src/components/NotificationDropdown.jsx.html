@@ -23,30 +23,30 @@
         <div class='clearfix'>
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">37.5% </span>
+                <span class="strong">100% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>6/16</span>
+                <span class='fraction'>16/16</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">6.66% </span>
+                <span class="strong">93.33% </span>
                 <span class="quiet">Branches</span>
-                <span class='fraction'>1/15</span>
+                <span class='fraction'>14/15</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">12.5% </span>
+                <span class="strong">100% </span>
                 <span class="quiet">Functions</span>
-                <span class='fraction'>1/8</span>
+                <span class='fraction'>8/8</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">46.15% </span>
+                <span class="strong">100% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>6/13</span>
+                <span class='fraction'>13/13</span>
             </div>
         
             
@@ -61,7 +61,7 @@
             </div>
         </template>
     </div>
-    <div class='status-line low'></div>
+    <div class='status-line high'></div>
     <pre><table class="coverage">
 <tr><td class="line-count quiet"><a name='L1'></a><a href='#L1'>1</a>
 <a name='L2'></a><a href='#L2'>2</a>
@@ -124,32 +124,29 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">3x</span>
-<span class="cline-any cline-yes">24x</span>
-<span class="cline-any cline-yes">24x</span>
+<span class="cline-any cline-yes">12x</span>
+<span class="cline-any cline-yes">12x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">24x</span>
+<span class="cline-any cline-yes">12x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">2x</span>
+<span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">24x</span>
+<span class="cline-any cline-yes">12x</span>
+<span class="cline-any cline-yes">4x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">24x</span>
+<span class="cline-any cline-yes">12x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">12x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">12x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">5x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -161,7 +158,10 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">9x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -180,30 +180,30 @@
 <span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js">import React, { useState, useRef, useEffect } from 'react';
 import { BellIcon } from '@heroicons/react/outline';
 &nbsp;
-const NotificationDropdown = ({ notifications = [] }) =&gt; {
+const NotificationDropdown = ({ notifications = <span class="branch-0 cbranch-no" title="branch not covered" >[] </span>}) =&gt; {
   const [open, setOpen] = useState(false);
   const dropdownRef = useRef(null);
 &nbsp;
   // Close dropdown when clicking outside
-  useEffect(<span class="fstat-no" title="function not covered" >()</span> =&gt; {
-    function <span class="fstat-no" title="function not covered" >handleClickOutside(</span>event) {
-<span class="cstat-no" title="statement not covered" >      if (dropdownRef.current &amp;&amp; !dropdownRef.current.contains(event.target)) {</span>
-<span class="cstat-no" title="statement not covered" >        setOpen(false);</span>
+  useEffect(() =&gt; {
+    function handleClickOutside(event) {
+      if (dropdownRef.current &amp;&amp; !dropdownRef.current.contains(event.target)) {
+        setOpen(false);
       }
     }
-<span class="cstat-no" title="statement not covered" >    if (open) {</span>
-<span class="cstat-no" title="statement not covered" >      document.addEventListener("mousedown", handleClickOutside);</span>
+    if (open) {
+      document.addEventListener("mousedown", handleClickOutside);
     }
-<span class="cstat-no" title="statement not covered" >    return <span class="fstat-no" title="function not covered" >()</span> =&gt; <span class="cstat-no" title="statement not covered" >document.removeEventListener("mousedown", handleClickOutside);</span></span>
+    return () =&gt; document.removeEventListener("mousedown", handleClickOutside);
   }, [open]);
 &nbsp;
-  const unread = notifications.some(<span class="fstat-no" title="function not covered" >n </span>=&gt; <span class="cstat-no" title="statement not covered" >!n.read)</span>;
+  const unread = notifications.some(n =&gt; !n.read);
 &nbsp;
   return (
     &lt;div className="relative" ref={dropdownRef}&gt;
       &lt;button
         className="relative focus:outline-none"
-        onClick={<span class="fstat-no" title="function not covered" >()</span> =&gt; <span class="cstat-no" title="statement not covered" >setOpen(<span class="fstat-no" title="function not covered" >(p</span>rev) =&gt; <span class="cstat-no" title="statement not covered" >!prev)</span>}</span>
+        onClick={() =&gt; setOpen((prev) =&gt; !prev)}
         aria-label="Show notifications"
       &gt;
         &lt;BellIcon className="w-6 h-6 text-gray-600" /&gt;
@@ -217,8 +217,8 @@ const NotificationDropdown = ({ notifications = [] }) =&gt; {
             {notifications.length === 0 ? (
               &lt;li className="text-sm text-gray-500 p-2"&gt;No notifications&lt;/li&gt;
             ) : (
-              notifications.map(<span class="fstat-no" title="function not covered" >(n</span>, i) =&gt; (
-<span class="cstat-no" title="statement not covered" >                &lt;li</span>
+              notifications.map((n, i) =&gt; (
+                &lt;li
                   key={i}
                   className={`text-sm p-2 ${n.read ? 'text-gray-600' : 'font-bold text-black'} hover:bg-gray-100 rounded`}
                 &gt;
@@ -241,7 +241,7 @@ export default NotificationDropdown;
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2025-08-17T01:08:51.918Z
+                at 2025-08-17T06:08:10.767Z
             </div>
         <script src="../../prettify.js"></script>
         <script>

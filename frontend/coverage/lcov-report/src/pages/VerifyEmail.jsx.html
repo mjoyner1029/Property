@@ -23,30 +23,30 @@
         <div class='clearfix'>
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">60% </span>
+                <span class="strong">100% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>6/10</span>
+                <span class='fraction'>10/10</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">40% </span>
+                <span class="strong">80% </span>
                 <span class="quiet">Branches</span>
-                <span class='fraction'>4/10</span>
+                <span class='fraction'>8/10</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">50% </span>
+                <span class="strong">100% </span>
                 <span class="quiet">Functions</span>
-                <span class='fraction'>2/4</span>
+                <span class='fraction'>4/4</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">60% </span>
+                <span class="strong">100% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>6/10</span>
+                <span class='fraction'>10/10</span>
             </div>
         
             
@@ -61,7 +61,7 @@
             </div>
         </template>
     </div>
-    <div class='status-line medium'></div>
+    <div class='status-line high'></div>
     <pre><table class="coverage">
 <tr><td class="line-count quiet"><a name='L1'></a><a href='#L1'>1</a>
 <a name='L2'></a><a href='#L2'>2</a>
@@ -225,24 +225,24 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">7x</span>
+<span class="cline-any cline-yes">12x</span>
+<span class="cline-any cline-yes">12x</span>
+<span class="cline-any cline-yes">11x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">11x</span>
 <span class="cline-any cline-yes">6x</span>
-<span class="cline-any cline-yes">6x</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">6x</span>
-<span class="cline-any cline-yes">6x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">2x</span>
+<span class="cline-any cline-yes">2x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">3x</span>
+<span class="cline-any cline-yes">3x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">6x</span>
+<span class="cline-any cline-yes">11x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -378,13 +378,13 @@ export default function VerifyEmail() {
   useEffect(() =&gt; {
     axios
       .get(`/api/verify/${token}`)
-      .then(<span class="fstat-no" title="function not covered" >re</span>s =&gt; {
-<span class="cstat-no" title="statement not covered" >        setStatus("success");</span>
-<span class="cstat-no" title="statement not covered" >        setMessage(res.data.message || "Your email has been successfully verified!");</span>
+      .then(res =&gt; {
+        setStatus("success");
+        setMessage(res.data.message || <span class="branch-1 cbranch-no" title="branch not covered" >"Your email has been successfully verified!")</span>;
       })
-      .catch(<span class="fstat-no" title="function not covered" >er</span>r =&gt; {
-<span class="cstat-no" title="statement not covered" >        setStatus("error");</span>
-<span class="cstat-no" title="statement not covered" >        setMessage(err.response?.data?.message || "Verification failed. The link may be invalid or expired.");</span>
+      .catch(err =&gt; {
+        setStatus("error");
+        setMessage(err.response?.data?.message || <span class="branch-1 cbranch-no" title="branch not covered" >"Verification failed. The link may be invalid or expired.")</span>;
       });
   }, [token]);
 &nbsp;
@@ -423,7 +423,7 @@ export default function VerifyEmail() {
           )}
           
           {status === "success" &amp;&amp; (
-<span class="branch-1 cbranch-no" title="branch not covered" >            &lt;&gt;</span>
+            &lt;&gt;
               &lt;CheckCircleOutlineIcon 
                 sx={{ 
                   fontSize: 64, 
@@ -453,7 +453,7 @@ export default function VerifyEmail() {
           )}
           
           {status === "error" &amp;&amp; (
-<span class="branch-1 cbranch-no" title="branch not covered" >            &lt;&gt;</span>
+            &lt;&gt;
               &lt;ErrorOutlineIcon 
                 sx={{ 
                   fontSize: 64, 
@@ -508,7 +508,7 @@ export default function VerifyEmail() {
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2025-08-17T01:08:51.918Z
+                at 2025-08-17T06:08:10.767Z
             </div>
         <script src="../../prettify.js"></script>
         <script>

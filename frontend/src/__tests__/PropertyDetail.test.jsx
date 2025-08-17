@@ -6,13 +6,6 @@ import { MemoryRouter, Routes, Route } from 'react-router-dom';
 import { renderWithProviders } from '../test-utils/renderWithProviders';
 import PropertyDetail from '../pages/PropertyDetail';
 
-import React from 'react';
-import { screen, waitFor } from '@testing-library/react';
-import userEvent from '@testing-library/user-event';
-import { renderWithProviders } from '../test-utils/renderWithProviders';
-import PropertyDetail from '../pages/PropertyDetail';
-import axios from 'axios';
-
 // Temporarily skip all tests in this file
 describe.skip('PropertyDetail Component', () => {
   test('placeholder', () => {
@@ -20,30 +13,10 @@ describe.skip('PropertyDetail Component', () => {
   });
 });
 
-// The original tests are commented out for now
-/*
-// Mock axios
-jest.mock('axios');
-
-// Mock react-router-dom
-jest.mock('react-router-dom', () => ({
-  ...jest.requireActual('react-router-dom'),
-  useParams: () => ({ id: '1' }),
-  useNavigate: () => jest.fn(),
+// Mocking modules
+jest.mock('../context/PropertyContext', () => ({
+  useProperty: jest.fn()
 }));
-
-// Mock PropertyContext
-jest.mock('../context/PropertyContext', () => {
-  const useProperty = jest.fn();
-  return { useProperty };
-});
-
-// Mock icon components
-jest.mock('@mui/icons-material/Edit', () => () => <div data-testid="edit-icon" />);
-jest.mock('@mui/icons-material/Delete', () => () => <div data-testid="delete-icon" />);
-jest.mock('@mui/icons-material/ArrowBack', () => () => <div data-testid="back-icon" />);
-jest.mock('@mui/icons-material/Add', () => () => <div data-testid="add-icon" />);
-jest.mock('@mui/icons-material/MoreVert', () => () => <div data-testid="more-icon" />);
 
 // Mock react-router-dom navigate function
 const mockNavigate = jest.fn();
