@@ -16,14 +16,17 @@ const theme = createTheme({
   }
 });
 
+// Helper function to render Card with ThemeProvider
+const renderWithTheme = (ui) => {
+  return render(<ThemeProvider theme={theme}>{ui}</ThemeProvider>);
+};
+
 describe('Card Component', () => {
   test('renders with title and children', () => {
-    render(
-      <ThemeProvider theme={theme}>
-        <Card title="Test Card">
-          <p data-testid="card-content">Card Content</p>
-        </Card>
-      </ThemeProvider>
+    renderWithTheme(
+      <Card title="Test Card">
+        <p data-testid="card-content">Card Content</p>
+      </Card>
     );
     
     expect(screen.getByText('Test Card')).toBeInTheDocument();
@@ -32,12 +35,10 @@ describe('Card Component', () => {
   });
   
   test('renders with subtitle', () => {
-    render(
-      <ThemeProvider theme={theme}>
-        <Card title="Test Card" subtitle="Card subtitle">
-          <p>Card Content</p>
-        </Card>
-      </ThemeProvider>
+    renderWithTheme(
+      <Card title="Test Card" subtitle="Card subtitle">
+        <p>Card Content</p>
+      </Card>
     );
     
     expect(screen.getByText('Test Card')).toBeInTheDocument();
@@ -47,12 +48,10 @@ describe('Card Component', () => {
   test('renders with icon', () => {
     const TestIcon = () => <span data-testid="test-icon">Icon</span>;
     
-    render(
-      <ThemeProvider theme={theme}>
-        <Card title="Test Card" icon={<TestIcon />}>
-          <p>Card Content</p>
-        </Card>
-      </ThemeProvider>
+    renderWithTheme(
+      <Card title="Test Card" icon={<TestIcon />}>
+        <p>Card Content</p>
+      </Card>
     );
     
     expect(screen.getByTestId('test-icon')).toBeInTheDocument();
@@ -61,43 +60,69 @@ describe('Card Component', () => {
   test('renders with action', () => {
     const ActionButton = () => <button data-testid="action-button">Action</button>;
     
-    render(
-      <ThemeProvider theme={theme}>
-        <Card title="Test Card" action={<ActionButton />}>
-          <p>Card Content</p>
-        </Card>
-      </ThemeProvider>
+    renderWithTheme(
+      <Card title="Test Card" action={<ActionButton />}>
+        <p>Card Content</p>
+      </Card>
     );
     
     expect(screen.getByTestId('action-button')).toBeInTheDocument();
   });
   
-  test('applies variant style', () => {
-    const { container } = render(
-      <ThemeProvider theme={theme}>
-        <Card title="Primary Card" variant="primary">
+  test('applies all variant styles', () => {
+    const variants = ['primary', 'success', 'warning', 'error', 'info', 'default'];
+    
+    variants.forEach(variant => {
+      const { container, unmount } = renderWithTheme(
+        <Card title={`${variant.charAt(0).toUpperCase() + variant.slice(1)} Card`} variant={variant} data-testid={`${variant}-card`}>
           <p>Card Content</p>
         </Card>
-      </ThemeProvider>
-    );
-    
-    // Check if the component renders without errors
-    expect(screen.getByText('Primary Card')).toBeInTheDocument();
-    
-    // We'd need to use a different approach to test the actual style application
-    // since the styles are applied via sx prop, but we can at least verify it renders
+      );
+      
+      // Check if the component renders without errors
+      expect(screen.getByText(`${variant.charAt(0).toUpperCase() + variant.slice(1)} Card`)).toBeInTheDocument();
+      unmount();
+    });
   });
   
   test('renders without title or icon', () => {
-    render(
-      <ThemeProvider theme={theme}>
-        <Card>
-          <p data-testid="just-content">Just Content</p>
-        </Card>
-      </ThemeProvider>
+    renderWithTheme(
+      <Card>
+        <p data-testid="just-content">Just Content</p>
+      </Card>
     );
     
     expect(screen.getByTestId('just-content')).toBeInTheDocument();
     expect(screen.getByText('Just Content')).toBeInTheDocument();
+  });
+  
+  test('applies custom className', () => {
+    const { container } = renderWithTheme(
+      <Card className="custom-card-class" data-testid="custom-class-card">
+        <p>Card with custom class</p>
+      </Card>
+    );
+    
+    const cardElement = container.firstChild;
+    expect(cardElement).toHaveClass('custom-card-class');
+  });
+  
+  test('applies different elevation values', () => {
+    const { container, unmount } = renderWithTheme(
+      <Card elevation={3} data-testid="elevated-card">
+        <p>Card with elevation 3</p>
+      </Card>
+    );
+    
+    expect(screen.getByText('Card with elevation 3')).toBeInTheDocument();
+    unmount();
+    
+    renderWithTheme(
+      <Card elevation={0} data-testid="flat-card">
+        <p>Card with elevation 0</p>
+      </Card>
+    );
+    
+    expect(screen.getByText('Card with elevation 0')).toBeInTheDocument();
   });
 });

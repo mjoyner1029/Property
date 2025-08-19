@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<coverage generated="1755410890853" clover="3.2.0">
-  <project timestamp="1755410890853" name="All files">
-    <metrics statements="2685" coveredstatements="660" conditionals="1595" coveredconditionals="255" methods="709" coveredmethods="114" elements="4989" coveredelements="1029" complexity="0" loc="2685" ncloc="2685" packages="11" files="91" classes="91"/>
+<coverage generated="1755570943926" clover="3.2.0">
+  <project timestamp="1755570943926" name="All files">
+    <metrics statements="2716" coveredstatements="33" conditionals="1632" coveredconditionals="44" methods="719" coveredmethods="7" elements="5067" coveredelements="84" complexity="0" loc="2716" ncloc="2716" packages="11" files="96" classes="96"/>
     <package name="src">
-      <metrics statements="67" coveredstatements="1" conditionals="32" coveredconditionals="0" methods="37" coveredmethods="0"/>
+      <metrics statements="67" coveredstatements="0" conditionals="32" coveredconditionals="0" methods="37" coveredmethods="0"/>
       <file name="App.jsx" path="/Users/mjoyner/Property/frontend/src/App.jsx">
         <metrics statements="66" coveredstatements="0" conditionals="32" coveredconditionals="0" methods="37" coveredmethods="0"/>
         <line num="23" count="0" type="stmt"/>
@@ -74,96 +74,96 @@
         <line num="464" count="0" type="stmt"/>
       </file>
       <file name="theme.js" path="/Users/mjoyner/Property/frontend/src/theme.js">
-        <metrics statements="1" coveredstatements="1" conditionals="0" coveredconditionals="0" methods="0" coveredmethods="0"/>
-        <line num="3" count="1" type="stmt"/>
+        <metrics statements="1" coveredstatements="0" conditionals="0" coveredconditionals="0" methods="0" coveredmethods="0"/>
+        <line num="3" count="0" type="stmt"/>
       </file>
     </package>
     <package name="src.auth">
-      <metrics statements="115" coveredstatements="88" conditionals="59" coveredconditionals="38" methods="23" coveredmethods="16"/>
+      <metrics statements="115" coveredstatements="0" conditionals="59" coveredconditionals="0" methods="23" coveredmethods="0"/>
       <file name="ForgotPassword.jsx" path="/Users/mjoyner/Property/frontend/src/auth/ForgotPassword.jsx">
-        <metrics statements="19" coveredstatements="18" conditionals="10" coveredconditionals="9" methods="3" coveredmethods="3"/>
-        <line num="6" count="49" type="stmt"/>
-        <line num="7" count="48" type="stmt"/>
-        <line num="8" count="48" type="stmt"/>
-        <line num="10" count="48" type="stmt"/>
-        <line num="11" count="3" type="stmt"/>
-        <line num="12" count="3" type="stmt"/>
-        <line num="13" count="3" type="stmt"/>
-        <line num="15" count="3" type="cond" truecount="2" falsecount="0"/>
-        <line num="16" count="1" type="stmt"/>
-        <line num="17" count="1" type="stmt"/>
-        <line num="21" count="2" type="stmt"/>
-        <line num="22" count="2" type="stmt"/>
-        <line num="27" count="2" type="cond" truecount="2" falsecount="0"/>
-        <line num="28" count="1" type="stmt"/>
-        <line num="30" count="1" type="stmt"/>
-        <line num="31" count="1" type="cond" truecount="1" falsecount="1"/>
+        <metrics statements="19" coveredstatements="0" conditionals="10" coveredconditionals="0" methods="3" coveredmethods="0"/>
+        <line num="6" count="0" type="stmt"/>
+        <line num="7" count="0" type="stmt"/>
+        <line num="8" count="0" type="stmt"/>
+        <line num="10" count="0" type="stmt"/>
+        <line num="11" count="0" type="stmt"/>
+        <line num="12" count="0" type="stmt"/>
+        <line num="13" count="0" type="stmt"/>
+        <line num="15" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="16" count="0" type="stmt"/>
+        <line num="17" count="0" type="stmt"/>
+        <line num="21" count="0" type="stmt"/>
+        <line num="22" count="0" type="stmt"/>
+        <line num="27" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="28" count="0" type="stmt"/>
+        <line num="30" count="0" type="stmt"/>
+        <line num="31" count="0" type="cond" truecount="0" falsecount="2"/>
         <line num="34" count="0" type="stmt"/>
-        <line num="38" count="48" type="stmt"/>
-        <line num="49" count="39" type="stmt"/>
+        <line num="38" count="0" type="stmt"/>
+        <line num="49" count="0" type="stmt"/>
       </file>
       <file name="Login.jsx" path="/Users/mjoyner/Property/frontend/src/auth/Login.jsx">
-        <metrics statements="30" coveredstatements="27" conditionals="17" coveredconditionals="11" methods="6" coveredmethods="4"/>
-        <line num="16" count="65" type="stmt"/>
-        <line num="17" count="64" type="stmt"/>
-        <line num="18" count="64" type="stmt"/>
-        <line num="19" count="64" type="stmt"/>
-        <line num="20" count="64" type="stmt"/>
-        <line num="22" count="64" type="stmt"/>
-        <line num="24" count="64" type="stmt"/>
-        <line num="25" count="2" type="stmt"/>
-        <line num="26" count="2" type="stmt"/>
-        <line num="27" count="2" type="stmt"/>
-        <line num="29" count="2" type="stmt"/>
-        <line num="31" count="2" type="stmt"/>
-        <line num="33" count="2" type="cond" truecount="1" falsecount="1"/>
-        <line num="34" count="2" type="stmt"/>
-        <line num="36" count="2" type="stmt"/>
-        <line num="37" count="1" type="stmt"/>
-        <line num="39" count="1" type="stmt"/>
-        <line num="40" count="1" type="stmt"/>
-        <line num="43" count="1" type="stmt"/>
-        <line num="45" count="1" type="stmt"/>
-        <line num="47" count="1" type="stmt"/>
-        <line num="48" count="1" type="cond" truecount="4" falsecount="1"/>
-        <line num="49" count="1" type="stmt"/>
+        <metrics statements="30" coveredstatements="0" conditionals="17" coveredconditionals="0" methods="6" coveredmethods="0"/>
+        <line num="16" count="0" type="stmt"/>
+        <line num="17" count="0" type="stmt"/>
+        <line num="18" count="0" type="stmt"/>
+        <line num="19" count="0" type="stmt"/>
+        <line num="20" count="0" type="stmt"/>
+        <line num="22" count="0" type="stmt"/>
+        <line num="24" count="0" type="stmt"/>
+        <line num="25" count="0" type="stmt"/>
+        <line num="26" count="0" type="stmt"/>
+        <line num="27" count="0" type="stmt"/>
+        <line num="29" count="0" type="stmt"/>
+        <line num="31" count="0" type="stmt"/>
+        <line num="33" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="34" count="0" type="stmt"/>
+        <line num="36" count="0" type="stmt"/>
+        <line num="37" count="0" type="stmt"/>
+        <line num="39" count="0" type="stmt"/>
+        <line num="40" count="0" type="stmt"/>
+        <line num="43" count="0" type="stmt"/>
+        <line num="45" count="0" type="stmt"/>
+        <line num="47" count="0" type="stmt"/>
+        <line num="48" count="0" type="cond" truecount="0" falsecount="5"/>
+        <line num="49" count="0" type="stmt"/>
         <line num="51" count="0" type="cond" truecount="0" falsecount="2"/>
-        <line num="54" count="2" type="stmt"/>
-        <line num="58" count="64" type="stmt"/>
-        <line num="133" count="33" type="stmt"/>
-        <line num="144" count="24" type="stmt"/>
+        <line num="54" count="0" type="stmt"/>
+        <line num="58" count="0" type="stmt"/>
+        <line num="133" count="0" type="stmt"/>
+        <line num="144" count="0" type="stmt"/>
         <line num="155" count="0" type="stmt"/>
         <line num="164" count="0" type="stmt"/>
       </file>
       <file name="ResetPassword.jsx" path="/Users/mjoyner/Property/frontend/src/auth/ResetPassword.jsx">
-        <metrics statements="46" coveredstatements="26" conditionals="18" coveredconditionals="9" methods="8" coveredmethods="5"/>
-        <line num="18" count="7" type="stmt"/>
-        <line num="19" count="7" type="stmt"/>
-        <line num="20" count="7" type="stmt"/>
-        <line num="21" count="6" type="stmt"/>
-        <line num="22" count="6" type="stmt"/>
-        <line num="23" count="6" type="stmt"/>
-        <line num="24" count="6" type="stmt"/>
-        <line num="25" count="6" type="stmt"/>
-        <line num="26" count="6" type="stmt"/>
-        <line num="27" count="6" type="stmt"/>
-        <line num="29" count="6" type="stmt"/>
-        <line num="31" count="2" type="cond" truecount="1" falsecount="1"/>
+        <metrics statements="46" coveredstatements="0" conditionals="18" coveredconditionals="0" methods="8" coveredmethods="0"/>
+        <line num="18" count="0" type="stmt"/>
+        <line num="19" count="0" type="stmt"/>
+        <line num="20" count="0" type="stmt"/>
+        <line num="21" count="0" type="stmt"/>
+        <line num="22" count="0" type="stmt"/>
+        <line num="23" count="0" type="stmt"/>
+        <line num="24" count="0" type="stmt"/>
+        <line num="25" count="0" type="stmt"/>
+        <line num="26" count="0" type="stmt"/>
+        <line num="27" count="0" type="stmt"/>
+        <line num="29" count="0" type="stmt"/>
+        <line num="31" count="0" type="cond" truecount="0" falsecount="2"/>
         <line num="32" count="0" type="stmt"/>
         <line num="33" count="0" type="stmt"/>
         <line num="34" count="0" type="stmt"/>
-        <line num="38" count="2" type="stmt"/>
-        <line num="39" count="2" type="stmt"/>
-        <line num="40" count="2" type="stmt"/>
+        <line num="38" count="0" type="stmt"/>
+        <line num="39" count="0" type="stmt"/>
+        <line num="40" count="0" type="stmt"/>
         <line num="42" count="0" type="stmt"/>
         <line num="43" count="0" type="stmt"/>
-        <line num="45" count="2" type="stmt"/>
-        <line num="49" count="2" type="stmt"/>
-        <line num="52" count="6" type="stmt"/>
-        <line num="53" count="1" type="stmt"/>
-        <line num="56" count="1" type="cond" truecount="1" falsecount="1"/>
-        <line num="57" count="1" type="stmt"/>
-        <line num="58" count="1" type="stmt"/>
+        <line num="45" count="0" type="stmt"/>
+        <line num="49" count="0" type="stmt"/>
+        <line num="52" count="0" type="stmt"/>
+        <line num="53" count="0" type="stmt"/>
+        <line num="56" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="57" count="0" type="stmt"/>
+        <line num="58" count="0" type="stmt"/>
         <line num="61" count="0" type="cond" truecount="0" falsecount="2"/>
         <line num="62" count="0" type="stmt"/>
         <line num="63" count="0" type="stmt"/>
@@ -177,55 +177,60 @@
         <line num="78" count="0" type="cond" truecount="0" falsecount="2"/>
         <line num="79" count="0" type="stmt"/>
         <line num="81" count="0" type="stmt"/>
-        <line num="85" count="6" type="cond" truecount="2" falsecount="0"/>
-        <line num="86" count="2" type="stmt"/>
-        <line num="101" count="4" type="stmt"/>
-        <line num="173" count="1" type="stmt"/>
+        <line num="85" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="86" count="0" type="stmt"/>
+        <line num="101" count="0" type="stmt"/>
+        <line num="173" count="0" type="stmt"/>
         <line num="184" count="0" type="stmt"/>
         <line num="205" count="0" type="stmt"/>
       </file>
       <file name="Signup.jsx" path="/Users/mjoyner/Property/frontend/src/auth/Signup.jsx">
-        <metrics statements="20" coveredstatements="17" conditionals="14" coveredconditionals="9" methods="6" coveredmethods="4"/>
-        <line num="17" count="7" type="stmt"/>
-        <line num="25" count="7" type="stmt"/>
-        <line num="26" count="7" type="stmt"/>
-        <line num="27" count="7" type="stmt"/>
-        <line num="29" count="28" type="stmt"/>
-        <line num="30" count="4" type="cond" truecount="2" falsecount="0"/>
-        <line num="31" count="4" type="stmt"/>
-        <line num="34" count="7" type="stmt"/>
-        <line num="35" count="1" type="stmt"/>
-        <line num="36" count="1" type="stmt"/>
-        <line num="37" count="1" type="stmt"/>
-        <line num="39" count="1" type="stmt"/>
-        <line num="40" count="1" type="stmt"/>
-        <line num="41" count="1" type="stmt"/>
-        <line num="42" count="1" type="stmt"/>
+        <metrics statements="20" coveredstatements="0" conditionals="14" coveredconditionals="0" methods="6" coveredmethods="0"/>
+        <line num="17" count="0" type="stmt"/>
+        <line num="25" count="0" type="stmt"/>
+        <line num="26" count="0" type="stmt"/>
+        <line num="27" count="0" type="stmt"/>
+        <line num="29" count="0" type="stmt"/>
+        <line num="30" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="31" count="0" type="stmt"/>
+        <line num="34" count="0" type="stmt"/>
+        <line num="35" count="0" type="stmt"/>
+        <line num="36" count="0" type="stmt"/>
+        <line num="37" count="0" type="stmt"/>
+        <line num="39" count="0" type="stmt"/>
+        <line num="40" count="0" type="stmt"/>
+        <line num="41" count="0" type="stmt"/>
+        <line num="42" count="0" type="stmt"/>
         <line num="44" count="0" type="cond" truecount="0" falsecount="2"/>
-        <line num="46" count="1" type="stmt"/>
-        <line num="50" count="7" type="stmt"/>
+        <line num="46" count="0" type="stmt"/>
+        <line num="50" count="0" type="stmt"/>
         <line num="156" count="0" type="stmt"/>
         <line num="164" count="0" type="stmt"/>
       </file>
     </package>
     <package name="src.components">
-      <metrics statements="307" coveredstatements="88" conditionals="318" coveredconditionals="66" methods="99" coveredmethods="21"/>
+      <metrics statements="321" coveredstatements="33" conditionals="337" coveredconditionals="44" methods="103" coveredmethods="7"/>
+      <file name="BasicTest.jsx" path="/Users/mjoyner/Property/frontend/src/components/BasicTest.jsx">
+        <metrics statements="2" coveredstatements="0" conditionals="0" coveredconditionals="0" methods="1" coveredmethods="0"/>
+        <line num="3" count="0" type="stmt"/>
+        <line num="4" count="0" type="stmt"/>
+      </file>
       <file name="Card.jsx" path="/Users/mjoyner/Property/frontend/src/components/Card.jsx">
-        <metrics statements="10" coveredstatements="1" conditionals="21" coveredconditionals="0" methods="2" coveredmethods="0"/>
-        <line num="4" count="2" type="stmt"/>
-        <line num="15" count="0" type="stmt"/>
-        <line num="16" count="0" type="cond" truecount="0" falsecount="6"/>
-        <line num="18" count="0" type="stmt"/>
-        <line num="20" count="0" type="stmt"/>
-        <line num="22" count="0" type="stmt"/>
-        <line num="24" count="0" type="stmt"/>
-        <line num="26" count="0" type="stmt"/>
-        <line num="28" count="0" type="stmt"/>
-        <line num="32" count="0" type="stmt"/>
+        <metrics statements="10" coveredstatements="10" conditionals="21" coveredconditionals="21" methods="2" coveredmethods="2"/>
+        <line num="4" count="1" type="stmt"/>
+        <line num="15" count="14" type="stmt"/>
+        <line num="16" count="14" type="cond" truecount="6" falsecount="0"/>
+        <line num="18" count="1" type="stmt"/>
+        <line num="20" count="1" type="stmt"/>
+        <line num="22" count="1" type="stmt"/>
+        <line num="24" count="1" type="stmt"/>
+        <line num="26" count="1" type="stmt"/>
+        <line num="28" count="9" type="stmt"/>
+        <line num="32" count="14" type="stmt"/>
       </file>
       <file name="Chart.jsx" path="/Users/mjoyner/Property/frontend/src/components/Chart.jsx">
-        <metrics statements="7" coveredstatements="1" conditionals="22" coveredconditionals="0" methods="5" coveredmethods="0"/>
-        <line num="9" count="2" type="stmt"/>
+        <metrics statements="7" coveredstatements="0" conditionals="22" coveredconditionals="0" methods="5" coveredmethods="0"/>
+        <line num="9" count="0" type="stmt"/>
         <line num="21" count="0" type="stmt"/>
         <line num="24" count="0" type="stmt"/>
         <line num="25" count="0" type="stmt"/>
@@ -234,13 +239,23 @@
         <line num="75" count="0" type="stmt"/>
       </file>
       <file name="ChartCard.jsx" path="/Users/mjoyner/Property/frontend/src/components/ChartCard.jsx">
-        <metrics statements="3" coveredstatements="3" conditionals="7" coveredconditionals="6" methods="1" coveredmethods="1"/>
-        <line num="6" count="2" type="stmt"/>
-        <line num="7" count="2" type="cond" truecount="1" falsecount="1"/>
-        <line num="9" count="2" type="stmt"/>
+        <metrics statements="3" coveredstatements="0" conditionals="7" coveredconditionals="0" methods="1" coveredmethods="0"/>
+        <line num="6" count="0" type="stmt"/>
+        <line num="7" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="9" count="0" type="stmt"/>
+      </file>
+      <file name="CheckoutButton.jsx" path="/Users/mjoyner/Property/frontend/src/components/CheckoutButton.jsx">
+        <metrics statements="7" coveredstatements="0" conditionals="15" coveredconditionals="0" methods="1" coveredmethods="0"/>
+        <line num="16" count="0" type="stmt"/>
+        <line num="25" count="0" type="stmt"/>
+        <line num="28" count="0" type="stmt"/>
+        <line num="35" count="0" type="stmt"/>
+        <line num="38" count="0" type="stmt"/>
+        <line num="45" count="0" type="stmt"/>
+        <line num="85" count="0" type="stmt"/>
       </file>
       <file name="DataTable.jsx" path="/Users/mjoyner/Property/frontend/src/components/DataTable.jsx">
-        <metrics statements="41" coveredstatements="1" conditionals="41" coveredconditionals="0" methods="19" coveredmethods="0"/>
+        <metrics statements="41" coveredstatements="0" conditionals="41" coveredconditionals="0" methods="19" coveredmethods="0"/>
         <line num="22" count="0" type="cond" truecount="0" falsecount="2"/>
         <line num="23" count="0" type="cond" truecount="0" falsecount="2"/>
         <line num="24" count="0" type="stmt"/>
@@ -253,7 +268,7 @@
         <line num="37" count="0" type="cond" truecount="0" falsecount="2"/>
         <line num="38" count="0" type="stmt"/>
         <line num="40" count="0" type="stmt"/>
-        <line num="43" count="2" type="stmt"/>
+        <line num="43" count="0" type="stmt"/>
         <line num="53" count="0" type="stmt"/>
         <line num="54" count="0" type="stmt"/>
         <line num="55" count="0" type="stmt"/>
@@ -284,8 +299,8 @@
         <line num="201" count="0" type="stmt"/>
       </file>
       <file name="Empty.jsx" path="/Users/mjoyner/Property/frontend/src/components/Empty.jsx">
-        <metrics statements="2" coveredstatements="1" conditionals="6" coveredconditionals="0" methods="1" coveredmethods="0"/>
-        <line num="6" count="2" type="stmt"/>
+        <metrics statements="2" coveredstatements="0" conditionals="6" coveredconditionals="0" methods="1" coveredmethods="0"/>
+        <line num="6" count="0" type="stmt"/>
         <line num="13" count="0" type="stmt"/>
       </file>
       <file name="ErrorBoundary.jsx" path="/Users/mjoyner/Property/frontend/src/components/ErrorBoundary.jsx">
@@ -321,8 +336,8 @@
         <line num="175" count="0" type="stmt"/>
       </file>
       <file name="FileUpload.jsx" path="/Users/mjoyner/Property/frontend/src/components/FileUpload.jsx">
-        <metrics statements="6" coveredstatements="1" conditionals="4" coveredconditionals="0" methods="2" coveredmethods="0"/>
-        <line num="3" count="2" type="stmt"/>
+        <metrics statements="6" coveredstatements="0" conditionals="4" coveredconditionals="0" methods="2" coveredmethods="0"/>
+        <line num="3" count="0" type="stmt"/>
         <line num="4" count="0" type="stmt"/>
         <line num="6" count="0" type="stmt"/>
         <line num="7" count="0" type="cond" truecount="0" falsecount="4"/>
@@ -330,35 +345,35 @@
         <line num="12" count="0" type="stmt"/>
       </file>
       <file name="FormSection.jsx" path="/Users/mjoyner/Property/frontend/src/components/FormSection.jsx">
-        <metrics statements="2" coveredstatements="1" conditionals="10" coveredconditionals="0" methods="1" coveredmethods="0"/>
-        <line num="4" count="2" type="stmt"/>
+        <metrics statements="2" coveredstatements="0" conditionals="10" coveredconditionals="0" methods="1" coveredmethods="0"/>
+        <line num="4" count="0" type="stmt"/>
         <line num="12" count="0" type="stmt"/>
       </file>
       <file name="Layout.jsx" path="/Users/mjoyner/Property/frontend/src/components/Layout.jsx">
-        <metrics statements="25" coveredstatements="14" conditionals="2" coveredconditionals="1" methods="9" coveredmethods="2"/>
-        <line num="32" count="2" type="stmt"/>
-        <line num="34" count="2" type="stmt"/>
-        <line num="45" count="2" type="stmt"/>
-        <line num="46" count="2" type="stmt"/>
-        <line num="47" count="2" type="stmt"/>
-        <line num="48" count="2" type="stmt"/>
-        <line num="50" count="2" type="stmt"/>
+        <metrics statements="25" coveredstatements="0" conditionals="2" coveredconditionals="0" methods="9" coveredmethods="0"/>
+        <line num="32" count="0" type="stmt"/>
+        <line num="34" count="0" type="stmt"/>
+        <line num="45" count="0" type="stmt"/>
+        <line num="46" count="0" type="stmt"/>
+        <line num="47" count="0" type="stmt"/>
+        <line num="48" count="0" type="stmt"/>
+        <line num="50" count="0" type="stmt"/>
         <line num="51" count="0" type="stmt"/>
-        <line num="54" count="2" type="stmt"/>
+        <line num="54" count="0" type="stmt"/>
         <line num="55" count="0" type="stmt"/>
-        <line num="58" count="2" type="stmt"/>
+        <line num="58" count="0" type="stmt"/>
         <line num="59" count="0" type="stmt"/>
-        <line num="62" count="2" type="stmt"/>
+        <line num="62" count="0" type="stmt"/>
         <line num="63" count="0" type="stmt"/>
         <line num="64" count="0" type="stmt"/>
         <line num="65" count="0" type="stmt"/>
         <line num="66" count="0" type="stmt"/>
-        <line num="69" count="2" type="stmt"/>
+        <line num="69" count="0" type="stmt"/>
         <line num="70" count="0" type="stmt"/>
         <line num="71" count="0" type="stmt"/>
-        <line num="75" count="2" type="stmt"/>
-        <line num="83" count="14" type="stmt"/>
-        <line num="106" count="2" type="stmt"/>
+        <line num="75" count="0" type="stmt"/>
+        <line num="83" count="0" type="stmt"/>
+        <line num="106" count="0" type="stmt"/>
         <line num="142" count="0" type="stmt"/>
         <line num="143" count="0" type="stmt"/>
       </file>
@@ -368,26 +383,26 @@
         <line num="10" count="0" type="stmt"/>
       </file>
       <file name="LoadingSpinner.jsx" path="/Users/mjoyner/Property/frontend/src/components/LoadingSpinner.jsx">
-        <metrics statements="2" coveredstatements="1" conditionals="0" coveredconditionals="0" methods="1" coveredmethods="0"/>
-        <line num="4" count="2" type="stmt"/>
+        <metrics statements="2" coveredstatements="0" conditionals="0" coveredconditionals="0" methods="1" coveredmethods="0"/>
+        <line num="4" count="0" type="stmt"/>
         <line num="5" count="0" type="stmt"/>
       </file>
       <file name="MaintenanceRequestCard.jsx" path="/Users/mjoyner/Property/frontend/src/components/MaintenanceRequestCard.jsx">
-        <metrics statements="44" coveredstatements="21" conditionals="46" coveredconditionals="16" methods="6" coveredmethods="5"/>
-        <line num="21" count="3" type="stmt"/>
-        <line num="22" count="7" type="cond" truecount="2" falsecount="2"/>
-        <line num="24" count="1" type="stmt"/>
-        <line num="26" count="6" type="stmt"/>
+        <metrics statements="44" coveredstatements="0" conditionals="46" coveredconditionals="0" methods="6" coveredmethods="0"/>
+        <line num="21" count="0" type="stmt"/>
+        <line num="22" count="0" type="cond" truecount="0" falsecount="4"/>
+        <line num="24" count="0" type="stmt"/>
+        <line num="26" count="0" type="stmt"/>
         <line num="28" count="0" type="stmt"/>
         <line num="30" count="0" type="stmt"/>
-        <line num="34" count="3" type="stmt"/>
-        <line num="35" count="7" type="cond" truecount="1" falsecount="1"/>
-        <line num="38" count="7" type="stmt"/>
-        <line num="39" count="7" type="stmt"/>
-        <line num="40" count="7" type="cond" truecount="1" falsecount="1"/>
+        <line num="34" count="0" type="stmt"/>
+        <line num="35" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="38" count="0" type="stmt"/>
+        <line num="39" count="0" type="stmt"/>
+        <line num="40" count="0" type="cond" truecount="0" falsecount="2"/>
         <line num="43" count="0" type="stmt"/>
-        <line num="47" count="7" type="cond" truecount="1" falsecount="1"/>
-        <line num="48" count="7" type="stmt"/>
+        <line num="47" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="48" count="0" type="stmt"/>
         <line num="54" count="0" type="cond" truecount="0" falsecount="2"/>
         <line num="55" count="0" type="stmt"/>
         <line num="61" count="0" type="cond" truecount="0" falsecount="2"/>
@@ -405,19 +420,19 @@
         <line num="103" count="0" type="cond" truecount="0" falsecount="2"/>
         <line num="104" count="0" type="stmt"/>
         <line num="112" count="0" type="stmt"/>
-        <line num="120" count="3" type="stmt"/>
-        <line num="135" count="7" type="stmt"/>
-        <line num="136" count="7" type="stmt"/>
-        <line num="137" count="7" type="stmt"/>
-        <line num="138" count="7" type="stmt"/>
-        <line num="139" count="7" type="stmt"/>
-        <line num="141" count="7" type="stmt"/>
-        <line num="142" count="1" type="cond" truecount="1" falsecount="1"/>
-        <line num="145" count="7" type="stmt"/>
+        <line num="120" count="0" type="stmt"/>
+        <line num="135" count="0" type="stmt"/>
+        <line num="136" count="0" type="stmt"/>
+        <line num="137" count="0" type="stmt"/>
+        <line num="138" count="0" type="stmt"/>
+        <line num="139" count="0" type="stmt"/>
+        <line num="141" count="0" type="stmt"/>
+        <line num="142" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="145" count="0" type="stmt"/>
         <line num="146" count="0" type="stmt"/>
         <line num="147" count="0" type="stmt"/>
         <line num="148" count="0" type="cond" truecount="0" falsecount="2"/>
-        <line num="151" count="7" type="stmt"/>
+        <line num="151" count="0" type="stmt"/>
       </file>
       <file name="MessageThread.jsx" path="/Users/mjoyner/Property/frontend/src/components/MessageThread.jsx">
         <metrics statements="6" coveredstatements="0" conditionals="4" coveredconditionals="0" methods="3" coveredmethods="0"/>
@@ -429,8 +444,8 @@
         <line num="13" count="0" type="stmt"/>
       </file>
       <file name="NavBar.jsx" path="/Users/mjoyner/Property/frontend/src/components/NavBar.jsx">
-        <metrics statements="25" coveredstatements="1" conditionals="14" coveredconditionals="0" methods="9" coveredmethods="0"/>
-        <line num="22" count="2" type="stmt"/>
+        <metrics statements="25" coveredstatements="0" conditionals="14" coveredconditionals="0" methods="9" coveredmethods="0"/>
+        <line num="22" count="0" type="stmt"/>
         <line num="23" count="0" type="stmt"/>
         <line num="24" count="0" type="stmt"/>
         <line num="25" count="0" type="stmt"/>
@@ -456,41 +471,49 @@
         <line num="61" count="0" type="stmt"/>
         <line num="68" count="0" type="stmt"/>
       </file>
+      <file name="NavBarSimple.jsx" path="/Users/mjoyner/Property/frontend/src/components/NavBarSimple.jsx">
+        <metrics statements="5" coveredstatements="5" conditionals="4" coveredconditionals="4" methods="2" coveredmethods="2"/>
+        <line num="15" count="1" type="stmt"/>
+        <line num="21" count="7" type="stmt"/>
+        <line num="30" count="7" type="stmt"/>
+        <line num="35" count="7" type="stmt"/>
+        <line num="43" count="15" type="stmt"/>
+      </file>
       <file name="NotificationBadge.jsx" path="/Users/mjoyner/Property/frontend/src/components/NotificationBadge.jsx">
         <metrics statements="4" coveredstatements="4" conditionals="8" coveredconditionals="8" methods="1" coveredmethods="1"/>
         <line num="4" count="1" type="cond" truecount="2" falsecount="0"/>
-        <line num="5" count="6" type="cond" truecount="4" falsecount="0"/>
-        <line num="7" count="5" type="cond" truecount="2" falsecount="0"/>
-        <line num="9" count="5" type="stmt"/>
+        <line num="5" count="10" type="cond" truecount="4" falsecount="0"/>
+        <line num="7" count="8" type="cond" truecount="2" falsecount="0"/>
+        <line num="9" count="8" type="stmt"/>
       </file>
       <file name="NotificationDropdown.jsx" path="/Users/mjoyner/Property/frontend/src/components/NotificationDropdown.jsx">
-        <metrics statements="13" coveredstatements="13" conditionals="15" coveredconditionals="14" methods="8" coveredmethods="8"/>
-        <line num="4" count="3" type="cond" truecount="0" falsecount="1"/>
-        <line num="5" count="12" type="stmt"/>
-        <line num="6" count="12" type="stmt"/>
-        <line num="9" count="12" type="stmt"/>
-        <line num="11" count="2" type="cond" truecount="4" falsecount="0"/>
-        <line num="12" count="1" type="stmt"/>
-        <line num="15" count="12" type="cond" truecount="2" falsecount="0"/>
-        <line num="16" count="4" type="stmt"/>
-        <line num="18" count="12" type="stmt"/>
-        <line num="21" count="12" type="stmt"/>
-        <line num="23" count="12" type="stmt"/>
-        <line num="27" count="5" type="stmt"/>
-        <line num="42" count="9" type="stmt"/>
+        <metrics statements="13" coveredstatements="0" conditionals="15" coveredconditionals="0" methods="8" coveredmethods="0"/>
+        <line num="4" count="0" type="cond" truecount="0" falsecount="1"/>
+        <line num="5" count="0" type="stmt"/>
+        <line num="6" count="0" type="stmt"/>
+        <line num="9" count="0" type="stmt"/>
+        <line num="11" count="0" type="cond" truecount="0" falsecount="4"/>
+        <line num="12" count="0" type="stmt"/>
+        <line num="15" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="16" count="0" type="stmt"/>
+        <line num="18" count="0" type="stmt"/>
+        <line num="21" count="0" type="stmt"/>
+        <line num="23" count="0" type="stmt"/>
+        <line num="27" count="0" type="stmt"/>
+        <line num="42" count="0" type="stmt"/>
       </file>
       <file name="PageHeader.jsx" path="/Users/mjoyner/Property/frontend/src/components/PageHeader.jsx">
-        <metrics statements="6" coveredstatements="4" conditionals="15" coveredconditionals="9" methods="2" coveredmethods="1"/>
-        <line num="6" count="4" type="stmt"/>
-        <line num="12" count="1" type="stmt"/>
-        <line num="13" count="1" type="stmt"/>
-        <line num="15" count="1" type="stmt"/>
+        <metrics statements="6" coveredstatements="0" conditionals="15" coveredconditionals="0" methods="2" coveredmethods="0"/>
+        <line num="6" count="0" type="stmt"/>
+        <line num="12" count="0" type="stmt"/>
+        <line num="13" count="0" type="stmt"/>
+        <line num="15" count="0" type="stmt"/>
         <line num="25" count="0" type="stmt"/>
         <line num="26" count="0" type="cond" truecount="0" falsecount="2"/>
       </file>
       <file name="PasswordStrengthBar.jsx" path="/Users/mjoyner/Property/frontend/src/components/PasswordStrengthBar.jsx">
-        <metrics statements="18" coveredstatements="2" conditionals="12" coveredconditionals="0" methods="2" coveredmethods="0"/>
-        <line num="3" count="2" type="stmt"/>
+        <metrics statements="18" coveredstatements="0" conditionals="12" coveredconditionals="0" methods="2" coveredmethods="0"/>
+        <line num="3" count="0" type="stmt"/>
         <line num="4" count="0" type="stmt"/>
         <line num="5" count="0" type="cond" truecount="0" falsecount="2"/>
         <line num="6" count="0" type="cond" truecount="0" falsecount="2"/>
@@ -505,13 +528,13 @@
         <line num="17" count="0" type="stmt"/>
         <line num="18" count="0" type="stmt"/>
         <line num="21" count="0" type="stmt"/>
-        <line num="24" count="2" type="stmt"/>
+        <line num="24" count="0" type="stmt"/>
         <line num="25" count="0" type="stmt"/>
         <line num="27" count="0" type="stmt"/>
       </file>
       <file name="PropertyCard.jsx" path="/Users/mjoyner/Property/frontend/src/components/PropertyCard.jsx">
-        <metrics statements="15" coveredstatements="2" conditionals="25" coveredconditionals="0" methods="3" coveredmethods="0"/>
-        <line num="11" count="2" type="stmt"/>
+        <metrics statements="15" coveredstatements="0" conditionals="25" coveredconditionals="0" methods="3" coveredmethods="0"/>
+        <line num="11" count="0" type="stmt"/>
         <line num="12" count="0" type="cond" truecount="0" falsecount="6"/>
         <line num="14" count="0" type="stmt"/>
         <line num="16" count="0" type="stmt"/>
@@ -519,7 +542,7 @@
         <line num="20" count="0" type="stmt"/>
         <line num="22" count="0" type="stmt"/>
         <line num="24" count="0" type="stmt"/>
-        <line num="28" count="2" type="stmt"/>
+        <line num="28" count="0" type="stmt"/>
         <line num="41" count="0" type="stmt"/>
         <line num="42" count="0" type="stmt"/>
         <line num="43" count="0" type="stmt"/>
@@ -536,8 +559,8 @@
         <line num="11" count="0" type="stmt"/>
       </file>
       <file name="ResendVerification.jsx" path="/Users/mjoyner/Property/frontend/src/components/ResendVerification.jsx">
-        <metrics statements="10" coveredstatements="1" conditionals="4" coveredconditionals="0" methods="2" coveredmethods="0"/>
-        <line num="4" count="2" type="stmt"/>
+        <metrics statements="10" coveredstatements="0" conditionals="4" coveredconditionals="0" methods="2" coveredmethods="0"/>
+        <line num="4" count="0" type="stmt"/>
         <line num="5" count="0" type="stmt"/>
         <line num="6" count="0" type="stmt"/>
         <line num="8" count="0" type="stmt"/>
@@ -549,13 +572,13 @@
         <line num="18" count="0" type="stmt"/>
       </file>
       <file name="ResponsiveContainer.jsx" path="/Users/mjoyner/Property/frontend/src/components/ResponsiveContainer.jsx">
-        <metrics statements="2" coveredstatements="1" conditionals="0" coveredconditionals="0" methods="1" coveredmethods="0"/>
-        <line num="3" count="2" type="stmt"/>
+        <metrics statements="2" coveredstatements="0" conditionals="0" coveredconditionals="0" methods="1" coveredmethods="0"/>
+        <line num="3" count="0" type="stmt"/>
         <line num="4" count="0" type="stmt"/>
       </file>
       <file name="StatCard.jsx" path="/Users/mjoyner/Property/frontend/src/components/StatCard.jsx">
-        <metrics statements="11" coveredstatements="1" conditionals="20" coveredconditionals="0" methods="3" coveredmethods="0"/>
-        <line num="6" count="2" type="stmt"/>
+        <metrics statements="11" coveredstatements="0" conditionals="20" coveredconditionals="0" methods="3" coveredmethods="0"/>
+        <line num="6" count="0" type="stmt"/>
         <line num="18" count="0" type="stmt"/>
         <line num="19" count="0" type="cond" truecount="0" falsecount="2"/>
         <line num="20" count="0" type="cond" truecount="0" falsecount="2"/>
@@ -568,26 +591,26 @@
         <line num="32" count="0" type="stmt"/>
       </file>
       <file name="StatsCard.jsx" path="/Users/mjoyner/Property/frontend/src/components/StatsCard.jsx">
-        <metrics statements="2" coveredstatements="2" conditionals="11" coveredconditionals="5" methods="1" coveredmethods="1"/>
-        <line num="5" count="2" type="stmt"/>
-        <line num="7" count="2" type="stmt"/>
+        <metrics statements="2" coveredstatements="0" conditionals="11" coveredconditionals="0" methods="1" coveredmethods="0"/>
+        <line num="5" count="0" type="stmt"/>
+        <line num="7" count="0" type="stmt"/>
       </file>
       <file name="StatusBadge.jsx" path="/Users/mjoyner/Property/frontend/src/components/StatusBadge.jsx">
-        <metrics statements="14" coveredstatements="12" conditionals="11" coveredconditionals="7" methods="2" coveredmethods="2"/>
-        <line num="4" count="3" type="stmt"/>
-        <line num="5" count="7" type="stmt"/>
-        <line num="54" count="7" type="cond" truecount="1" falsecount="1"/>
-        <line num="57" count="7" type="cond" truecount="1" falsecount="1"/>
-        <line num="58" count="0" type="stmt"/>
-        <line num="62" count="7" type="stmt"/>
-        <line num="63" count="63" type="cond" truecount="1" falsecount="1"/>
-        <line num="64" count="0" type="stmt"/>
-        <line num="69" count="7" type="stmt"/>
-        <line num="72" count="3" type="cond" truecount="2" falsecount="0"/>
-        <line num="73" count="7" type="cond" truecount="2" falsecount="1"/>
-        <line num="74" count="7" type="stmt"/>
-        <line num="77" count="7" type="stmt"/>
-        <line num="95" count="7" type="stmt"/>
+        <metrics statements="14" coveredstatements="14" conditionals="11" coveredconditionals="11" methods="2" coveredmethods="2"/>
+        <line num="4" count="1" type="stmt"/>
+        <line num="5" count="20" type="stmt"/>
+        <line num="54" count="20" type="cond" truecount="2" falsecount="0"/>
+        <line num="57" count="20" type="cond" truecount="2" falsecount="0"/>
+        <line num="58" count="18" type="stmt"/>
+        <line num="62" count="2" type="stmt"/>
+        <line num="63" count="10" type="cond" truecount="2" falsecount="0"/>
+        <line num="64" count="1" type="stmt"/>
+        <line num="69" count="1" type="stmt"/>
+        <line num="72" count="1" type="cond" truecount="2" falsecount="0"/>
+        <line num="73" count="20" type="cond" truecount="3" falsecount="0"/>
+        <line num="74" count="20" type="stmt"/>
+        <line num="77" count="20" type="stmt"/>
+        <line num="95" count="20" type="stmt"/>
       </file>
       <file name="Toast.jsx" path="/Users/mjoyner/Property/frontend/src/components/Toast.jsx">
         <metrics statements="3" coveredstatements="0" conditionals="2" coveredconditionals="0" methods="1" coveredmethods="0"/>
@@ -634,90 +657,90 @@
       </file>
     </package>
     <package name="src.config">
-      <metrics statements="18" coveredstatements="13" conditionals="10" coveredconditionals="7" methods="4" coveredmethods="0"/>
+      <metrics statements="18" coveredstatements="0" conditionals="10" coveredconditionals="0" methods="4" coveredmethods="0"/>
       <file name="environment.js" path="/Users/mjoyner/Property/frontend/src/config/environment.js">
-        <metrics statements="18" coveredstatements="13" conditionals="10" coveredconditionals="7" methods="4" coveredmethods="0"/>
-        <line num="9" count="20" type="cond" truecount="1" falsecount="1"/>
-        <line num="10" count="20" type="cond" truecount="1" falsecount="1"/>
-        <line num="13" count="20" type="stmt"/>
-        <line num="14" count="20" type="stmt"/>
-        <line num="15" count="20" type="stmt"/>
-        <line num="18" count="20" type="stmt"/>
-        <line num="25" count="20" type="cond" truecount="1" falsecount="1"/>
-        <line num="26" count="20" type="stmt"/>
-        <line num="27" count="20" type="stmt"/>
-        <line num="30" count="20" type="cond" truecount="2" falsecount="0"/>
-        <line num="33" count="20" type="cond" truecount="2" falsecount="0"/>
-        <line num="40" count="20" type="stmt"/>
+        <metrics statements="18" coveredstatements="0" conditionals="10" coveredconditionals="0" methods="4" coveredmethods="0"/>
+        <line num="9" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="10" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="13" count="0" type="stmt"/>
+        <line num="14" count="0" type="stmt"/>
+        <line num="15" count="0" type="stmt"/>
+        <line num="18" count="0" type="stmt"/>
+        <line num="25" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="26" count="0" type="stmt"/>
+        <line num="27" count="0" type="stmt"/>
+        <line num="30" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="33" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="40" count="0" type="stmt"/>
         <line num="41" count="0" type="stmt"/>
         <line num="42" count="0" type="stmt"/>
         <line num="44" count="0" type="stmt"/>
         <line num="45" count="0" type="stmt"/>
-        <line num="53" count="20" type="stmt"/>
+        <line num="53" count="0" type="stmt"/>
         <line num="54" count="0" type="stmt"/>
       </file>
     </package>
     <package name="src.context">
-      <metrics statements="681" coveredstatements="241" conditionals="221" coveredconditionals="40" methods="138" coveredmethods="29"/>
+      <metrics statements="681" coveredstatements="0" conditionals="221" coveredconditionals="0" methods="138" coveredmethods="0"/>
       <file name="AppContext.jsx" path="/Users/mjoyner/Property/frontend/src/context/AppContext.jsx">
-        <metrics statements="43" coveredstatements="34" conditionals="7" coveredconditionals="2" methods="14" coveredmethods="7"/>
-        <line num="5" count="18" type="stmt"/>
-        <line num="7" count="18" type="stmt"/>
-        <line num="8" count="100" type="stmt"/>
-        <line num="9" count="100" type="stmt"/>
-        <line num="10" count="100" type="stmt"/>
-        <line num="11" count="100" type="stmt"/>
-        <line num="12" count="100" type="stmt"/>
-        <line num="13" count="100" type="stmt"/>
-        <line num="19" count="100" type="stmt"/>
-        <line num="20" count="49" type="stmt"/>
+        <metrics statements="43" coveredstatements="0" conditionals="7" coveredconditionals="0" methods="14" coveredmethods="0"/>
+        <line num="5" count="0" type="stmt"/>
+        <line num="7" count="0" type="stmt"/>
+        <line num="8" count="0" type="stmt"/>
+        <line num="9" count="0" type="stmt"/>
+        <line num="10" count="0" type="stmt"/>
+        <line num="11" count="0" type="stmt"/>
+        <line num="12" count="0" type="stmt"/>
+        <line num="13" count="0" type="stmt"/>
+        <line num="19" count="0" type="stmt"/>
+        <line num="20" count="0" type="stmt"/>
         <line num="21" count="0" type="stmt"/>
-        <line num="24" count="49" type="stmt"/>
-        <line num="25" count="49" type="stmt"/>
-        <line num="29" count="100" type="stmt"/>
-        <line num="30" count="49" type="stmt"/>
-        <line num="31" count="49" type="stmt"/>
-        <line num="33" count="49" type="stmt"/>
-        <line num="34" count="49" type="stmt"/>
-        <line num="39" count="40" type="stmt"/>
-        <line num="40" count="40" type="stmt"/>
-        <line num="48" count="49" type="stmt"/>
-        <line num="52" count="49" type="stmt"/>
-        <line num="56" count="100" type="stmt"/>
+        <line num="24" count="0" type="stmt"/>
+        <line num="25" count="0" type="stmt"/>
+        <line num="29" count="0" type="stmt"/>
+        <line num="30" count="0" type="stmt"/>
+        <line num="31" count="0" type="stmt"/>
+        <line num="33" count="0" type="stmt"/>
+        <line num="34" count="0" type="stmt"/>
+        <line num="39" count="0" type="stmt"/>
+        <line num="40" count="0" type="stmt"/>
+        <line num="48" count="0" type="stmt"/>
+        <line num="52" count="0" type="stmt"/>
+        <line num="56" count="0" type="stmt"/>
         <line num="57" count="0" type="stmt"/>
-        <line num="61" count="100" type="stmt"/>
+        <line num="61" count="0" type="stmt"/>
         <line num="62" count="0" type="stmt"/>
-        <line num="66" count="100" type="stmt"/>
-        <line num="67" count="5" type="stmt"/>
-        <line num="69" count="5" type="cond" truecount="1" falsecount="1"/>
-        <line num="73" count="100" type="cond" truecount="0" falsecount="1"/>
+        <line num="66" count="0" type="stmt"/>
+        <line num="67" count="0" type="stmt"/>
+        <line num="69" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="73" count="0" type="cond" truecount="0" falsecount="1"/>
         <line num="74" count="0" type="stmt"/>
         <line num="76" count="0" type="cond" truecount="0" falsecount="2"/>
         <line num="77" count="0" type="stmt"/>
         <line num="78" count="0" type="stmt"/>
-        <line num="84" count="100" type="stmt"/>
+        <line num="84" count="0" type="stmt"/>
         <line num="85" count="0" type="stmt"/>
-        <line num="88" count="100" type="stmt"/>
-        <line num="102" count="100" type="stmt"/>
-        <line num="105" count="18" type="stmt"/>
-        <line num="106" count="5" type="stmt"/>
-        <line num="107" count="5" type="cond" truecount="1" falsecount="1"/>
+        <line num="88" count="0" type="stmt"/>
+        <line num="102" count="0" type="stmt"/>
+        <line num="105" count="0" type="stmt"/>
+        <line num="106" count="0" type="stmt"/>
+        <line num="107" count="0" type="cond" truecount="0" falsecount="2"/>
         <line num="108" count="0" type="stmt"/>
-        <line num="110" count="5" type="stmt"/>
+        <line num="110" count="0" type="stmt"/>
       </file>
       <file name="AuthContext.jsx" path="/Users/mjoyner/Property/frontend/src/context/AuthContext.jsx">
-        <metrics statements="168" coveredstatements="90" conditionals="53" coveredconditionals="20" methods="21" coveredmethods="10"/>
-        <line num="9" count="19" type="stmt"/>
-        <line num="12" count="19" type="stmt"/>
-        <line num="14" count="19" type="stmt"/>
-        <line num="15" count="125" type="stmt"/>
-        <line num="16" count="67" type="stmt"/>
-        <line num="17" count="67" type="cond" truecount="2" falsecount="0"/>
-        <line num="19" count="125" type="stmt"/>
-        <line num="20" count="125" type="cond" truecount="2" falsecount="0"/>
-        <line num="21" count="125" type="stmt"/>
-        <line num="22" count="125" type="stmt"/>
-        <line num="25" count="125" type="stmt"/>
+        <metrics statements="168" coveredstatements="0" conditionals="53" coveredconditionals="0" methods="21" coveredmethods="0"/>
+        <line num="9" count="0" type="stmt"/>
+        <line num="12" count="0" type="stmt"/>
+        <line num="14" count="0" type="stmt"/>
+        <line num="15" count="0" type="stmt"/>
+        <line num="16" count="0" type="stmt"/>
+        <line num="17" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="19" count="0" type="stmt"/>
+        <line num="20" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="21" count="0" type="stmt"/>
+        <line num="22" count="0" type="stmt"/>
+        <line num="25" count="0" type="stmt"/>
         <line num="26" count="0" type="stmt"/>
         <line num="27" count="0" type="stmt"/>
         <line num="29" count="0" type="cond" truecount="0" falsecount="2"/>
@@ -734,71 +757,71 @@
         <line num="50" count="0" type="stmt"/>
         <line num="52" count="0" type="stmt"/>
         <line num="53" count="0" type="stmt"/>
-        <line num="58" count="125" type="stmt"/>
-        <line num="59" count="57" type="cond" truecount="2" falsecount="0"/>
-        <line num="62" count="7" type="stmt"/>
-        <line num="64" count="7" type="stmt"/>
+        <line num="58" count="0" type="stmt"/>
+        <line num="59" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="62" count="0" type="stmt"/>
+        <line num="64" count="0" type="stmt"/>
         <line num="65" count="0" type="stmt"/>
-        <line num="69" count="7" type="stmt"/>
-        <line num="74" count="125" type="stmt"/>
-        <line num="75" count="51" type="stmt"/>
-        <line num="76" count="51" type="stmt"/>
-        <line num="77" count="51" type="stmt"/>
-        <line num="78" count="51" type="stmt"/>
-        <line num="80" count="51" type="cond" truecount="5" falsecount="0"/>
-        <line num="81" count="2" type="stmt"/>
-        <line num="82" count="2" type="stmt"/>
-        <line num="83" count="2" type="stmt"/>
-        <line num="86" count="2" type="stmt"/>
-        <line num="89" count="2" type="cond" truecount="1" falsecount="1"/>
-        <line num="90" count="2" type="stmt"/>
-        <line num="93" count="2" type="stmt"/>
+        <line num="69" count="0" type="stmt"/>
+        <line num="74" count="0" type="stmt"/>
+        <line num="75" count="0" type="stmt"/>
+        <line num="76" count="0" type="stmt"/>
+        <line num="77" count="0" type="stmt"/>
+        <line num="78" count="0" type="stmt"/>
+        <line num="80" count="0" type="cond" truecount="0" falsecount="5"/>
+        <line num="81" count="0" type="stmt"/>
+        <line num="82" count="0" type="stmt"/>
+        <line num="83" count="0" type="stmt"/>
+        <line num="86" count="0" type="stmt"/>
+        <line num="89" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="90" count="0" type="stmt"/>
+        <line num="93" count="0" type="stmt"/>
         <line num="94" count="0" type="stmt"/>
-        <line num="98" count="2" type="stmt"/>
-        <line num="99" count="2" type="stmt"/>
+        <line num="98" count="0" type="stmt"/>
+        <line num="99" count="0" type="stmt"/>
         <line num="101" count="0" type="stmt"/>
         <line num="103" count="0" type="cond" truecount="0" falsecount="4"/>
         <line num="104" count="0" type="stmt"/>
         <line num="105" count="0" type="cond" truecount="0" falsecount="2"/>
         <line num="106" count="0" type="stmt"/>
-        <line num="112" count="49" type="stmt"/>
-        <line num="113" count="49" type="stmt"/>
-        <line num="114" count="49" type="stmt"/>
-        <line num="117" count="51" type="stmt"/>
-        <line num="120" count="51" type="stmt"/>
-        <line num="124" count="125" type="stmt"/>
-        <line num="125" count="2" type="stmt"/>
-        <line num="126" count="2" type="stmt"/>
-        <line num="128" count="2" type="stmt"/>
-        <line num="130" count="2" type="stmt"/>
-        <line num="137" count="2" type="stmt"/>
-        <line num="139" count="2" type="stmt"/>
-        <line num="141" count="2" type="cond" truecount="1" falsecount="1"/>
+        <line num="112" count="0" type="stmt"/>
+        <line num="113" count="0" type="stmt"/>
+        <line num="114" count="0" type="stmt"/>
+        <line num="117" count="0" type="stmt"/>
+        <line num="120" count="0" type="stmt"/>
+        <line num="124" count="0" type="stmt"/>
+        <line num="125" count="0" type="stmt"/>
+        <line num="126" count="0" type="stmt"/>
+        <line num="128" count="0" type="stmt"/>
+        <line num="130" count="0" type="stmt"/>
+        <line num="137" count="0" type="stmt"/>
+        <line num="139" count="0" type="stmt"/>
+        <line num="141" count="0" type="cond" truecount="0" falsecount="2"/>
         <line num="142" count="0" type="stmt"/>
-        <line num="146" count="2" type="stmt"/>
-        <line num="152" count="2" type="stmt"/>
-        <line num="153" count="2" type="stmt"/>
-        <line num="154" count="2" type="stmt"/>
-        <line num="157" count="2" type="stmt"/>
-        <line num="158" count="2" type="stmt"/>
-        <line num="159" count="2" type="stmt"/>
-        <line num="160" count="2" type="stmt"/>
-        <line num="163" count="2" type="stmt"/>
-        <line num="165" count="2" type="stmt"/>
-        <line num="168" count="2" type="cond" truecount="2" falsecount="0"/>
-        <line num="169" count="1" type="stmt"/>
-        <line num="172" count="2" type="stmt"/>
+        <line num="146" count="0" type="stmt"/>
+        <line num="152" count="0" type="stmt"/>
+        <line num="153" count="0" type="stmt"/>
+        <line num="154" count="0" type="stmt"/>
+        <line num="157" count="0" type="stmt"/>
+        <line num="158" count="0" type="stmt"/>
+        <line num="159" count="0" type="stmt"/>
+        <line num="160" count="0" type="stmt"/>
+        <line num="163" count="0" type="stmt"/>
+        <line num="165" count="0" type="stmt"/>
+        <line num="168" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="169" count="0" type="stmt"/>
+        <line num="172" count="0" type="stmt"/>
         <line num="173" count="0" type="stmt"/>
-        <line num="177" count="2" type="stmt"/>
-        <line num="178" count="2" type="stmt"/>
-        <line num="181" count="2" type="stmt"/>
-        <line num="183" count="2" type="stmt"/>
-        <line num="187" count="2" type="stmt"/>
+        <line num="177" count="0" type="stmt"/>
+        <line num="178" count="0" type="stmt"/>
+        <line num="181" count="0" type="stmt"/>
+        <line num="183" count="0" type="stmt"/>
+        <line num="187" count="0" type="stmt"/>
         <line num="189" count="0" type="stmt"/>
         <line num="190" count="0" type="cond" truecount="0" falsecount="2"/>
         <line num="191" count="0" type="stmt"/>
-        <line num="193" count="2" type="stmt"/>
-        <line num="198" count="125" type="stmt"/>
+        <line num="193" count="0" type="stmt"/>
+        <line num="198" count="0" type="stmt"/>
         <line num="199" count="0" type="stmt"/>
         <line num="200" count="0" type="stmt"/>
         <line num="202" count="0" type="stmt"/>
@@ -821,25 +844,25 @@
         <line num="234" count="0" type="cond" truecount="0" falsecount="2"/>
         <line num="235" count="0" type="stmt"/>
         <line num="237" count="0" type="stmt"/>
-        <line num="242" count="125" type="stmt"/>
-        <line num="243" count="1" type="stmt"/>
-        <line num="245" count="1" type="cond" truecount="1" falsecount="1"/>
-        <line num="246" count="1" type="stmt"/>
+        <line num="242" count="0" type="stmt"/>
+        <line num="243" count="0" type="stmt"/>
+        <line num="245" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="246" count="0" type="stmt"/>
         <line num="249" count="0" type="stmt"/>
-        <line num="253" count="1" type="cond" truecount="1" falsecount="1"/>
-        <line num="254" count="1" type="stmt"/>
-        <line num="255" count="1" type="stmt"/>
-        <line num="259" count="1" type="stmt"/>
-        <line num="260" count="1" type="stmt"/>
-        <line num="261" count="1" type="stmt"/>
-        <line num="264" count="1" type="stmt"/>
-        <line num="265" count="1" type="stmt"/>
-        <line num="266" count="1" type="stmt"/>
-        <line num="267" count="1" type="stmt"/>
-        <line num="268" count="1" type="stmt"/>
-        <line num="271" count="1" type="stmt"/>
-        <line num="275" count="1" type="stmt"/>
-        <line num="279" count="125" type="stmt"/>
+        <line num="253" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="254" count="0" type="stmt"/>
+        <line num="255" count="0" type="stmt"/>
+        <line num="259" count="0" type="stmt"/>
+        <line num="260" count="0" type="stmt"/>
+        <line num="261" count="0" type="stmt"/>
+        <line num="264" count="0" type="stmt"/>
+        <line num="265" count="0" type="stmt"/>
+        <line num="266" count="0" type="stmt"/>
+        <line num="267" count="0" type="stmt"/>
+        <line num="268" count="0" type="stmt"/>
+        <line num="271" count="0" type="stmt"/>
+        <line num="275" count="0" type="stmt"/>
+        <line num="279" count="0" type="stmt"/>
         <line num="280" count="0" type="stmt"/>
         <line num="281" count="0" type="stmt"/>
         <line num="283" count="0" type="stmt"/>
@@ -851,7 +874,7 @@
         <line num="293" count="0" type="cond" truecount="0" falsecount="2"/>
         <line num="294" count="0" type="stmt"/>
         <line num="296" count="0" type="stmt"/>
-        <line num="301" count="125" type="stmt"/>
+        <line num="301" count="0" type="stmt"/>
         <line num="302" count="0" type="stmt"/>
         <line num="303" count="0" type="stmt"/>
         <line num="305" count="0" type="stmt"/>
@@ -860,14 +883,14 @@
         <line num="309" count="0" type="cond" truecount="0" falsecount="2"/>
         <line num="310" count="0" type="stmt"/>
         <line num="312" count="0" type="stmt"/>
-        <line num="317" count="125" type="stmt"/>
-        <line num="331" count="125" type="stmt"/>
-        <line num="335" count="19" type="stmt"/>
-        <line num="336" count="423" type="stmt"/>
-        <line num="337" count="423" type="cond" truecount="1" falsecount="1"/>
+        <line num="317" count="0" type="stmt"/>
+        <line num="331" count="0" type="stmt"/>
+        <line num="335" count="0" type="stmt"/>
+        <line num="336" count="0" type="stmt"/>
+        <line num="337" count="0" type="cond" truecount="0" falsecount="2"/>
         <line num="338" count="0" type="stmt"/>
-        <line num="340" count="423" type="stmt"/>
-        <line num="344" count="19" type="stmt"/>
+        <line num="340" count="0" type="stmt"/>
+        <line num="344" count="0" type="stmt"/>
         <line num="345" count="0" type="stmt"/>
         <line num="346" count="0" type="stmt"/>
         <line num="348" count="0" type="stmt"/>
@@ -877,51 +900,51 @@
         <line num="369" count="0" type="stmt"/>
       </file>
       <file name="MaintenanceContext.jsx" path="/Users/mjoyner/Property/frontend/src/context/MaintenanceContext.jsx">
-        <metrics statements="111" coveredstatements="38" conditionals="57" coveredconditionals="11" methods="22" coveredmethods="3"/>
-        <line num="6" count="18" type="stmt"/>
-        <line num="8" count="18" type="stmt"/>
-        <line num="9" count="113" type="stmt"/>
-        <line num="10" count="113" type="stmt"/>
-        <line num="11" count="113" type="stmt"/>
-        <line num="12" count="113" type="stmt"/>
-        <line num="19" count="113" type="stmt"/>
-        <line num="22" count="113" type="stmt"/>
-        <line num="23" count="4" type="cond" truecount="1" falsecount="1"/>
+        <metrics statements="111" coveredstatements="0" conditionals="57" coveredconditionals="0" methods="22" coveredmethods="0"/>
+        <line num="6" count="0" type="stmt"/>
+        <line num="8" count="0" type="stmt"/>
+        <line num="9" count="0" type="stmt"/>
+        <line num="10" count="0" type="stmt"/>
+        <line num="11" count="0" type="stmt"/>
+        <line num="12" count="0" type="stmt"/>
+        <line num="19" count="0" type="stmt"/>
+        <line num="22" count="0" type="stmt"/>
+        <line num="23" count="0" type="cond" truecount="0" falsecount="2"/>
         <line num="24" count="0" type="stmt"/>
         <line num="25" count="0" type="stmt"/>
-        <line num="28" count="4" type="stmt"/>
-        <line num="29" count="4" type="stmt"/>
-        <line num="31" count="4" type="stmt"/>
-        <line num="33" count="4" type="stmt"/>
-        <line num="34" count="4" type="cond" truecount="1" falsecount="1"/>
+        <line num="28" count="0" type="stmt"/>
+        <line num="29" count="0" type="stmt"/>
+        <line num="31" count="0" type="stmt"/>
+        <line num="33" count="0" type="stmt"/>
+        <line num="34" count="0" type="cond" truecount="0" falsecount="2"/>
         <line num="35" count="0" type="stmt"/>
         <line num="36" count="0" type="stmt"/>
         <line num="37" count="0" type="stmt"/>
         <line num="38" count="0" type="stmt"/>
-        <line num="42" count="4" type="stmt"/>
-        <line num="47" count="4" type="stmt"/>
-        <line num="49" count="4" type="cond" truecount="2" falsecount="0"/>
-        <line num="50" count="2" type="stmt"/>
-        <line num="51" count="2" type="cond" truecount="1" falsecount="1"/>
+        <line num="42" count="0" type="stmt"/>
+        <line num="47" count="0" type="stmt"/>
+        <line num="49" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="50" count="0" type="stmt"/>
+        <line num="51" count="0" type="cond" truecount="0" falsecount="2"/>
         <line num="52" count="0" type="stmt"/>
-        <line num="55" count="4" type="stmt"/>
-        <line num="57" count="4" type="stmt"/>
-        <line num="58" count="4" type="stmt"/>
-        <line num="61" count="2" type="cond" truecount="2" falsecount="1"/>
-        <line num="62" count="2" type="stmt"/>
-        <line num="65" count="2" type="stmt"/>
+        <line num="55" count="0" type="stmt"/>
+        <line num="57" count="0" type="stmt"/>
+        <line num="58" count="0" type="stmt"/>
+        <line num="61" count="0" type="cond" truecount="0" falsecount="3"/>
+        <line num="62" count="0" type="stmt"/>
+        <line num="65" count="0" type="stmt"/>
         <line num="66" count="0" type="stmt"/>
         <line num="67" count="0" type="stmt"/>
         <line num="68" count="0" type="stmt"/>
         <line num="72" count="0" type="stmt"/>
-        <line num="74" count="4" type="stmt"/>
-        <line num="75" count="4" type="cond" truecount="2" falsecount="0"/>
-        <line num="77" count="4" type="stmt"/>
-        <line num="82" count="113" type="stmt"/>
-        <line num="83" count="55" type="cond" truecount="2" falsecount="0"/>
-        <line num="84" count="4" type="stmt"/>
-        <line num="87" count="51" type="stmt"/>
-        <line num="92" count="113" type="stmt"/>
+        <line num="74" count="0" type="stmt"/>
+        <line num="75" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="77" count="0" type="stmt"/>
+        <line num="82" count="0" type="stmt"/>
+        <line num="83" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="84" count="0" type="stmt"/>
+        <line num="87" count="0" type="stmt"/>
+        <line num="92" count="0" type="stmt"/>
         <line num="93" count="0" type="stmt"/>
         <line num="94" count="0" type="stmt"/>
         <line num="96" count="0" type="stmt"/>
@@ -940,7 +963,7 @@
         <line num="132" count="0" type="cond" truecount="0" falsecount="2"/>
         <line num="133" count="0" type="stmt"/>
         <line num="135" count="0" type="stmt"/>
-        <line num="140" count="113" type="stmt"/>
+        <line num="140" count="0" type="stmt"/>
         <line num="141" count="0" type="stmt"/>
         <line num="142" count="0" type="stmt"/>
         <line num="144" count="0" type="stmt"/>
@@ -963,7 +986,7 @@
         <line num="175" count="0" type="cond" truecount="0" falsecount="2"/>
         <line num="176" count="0" type="stmt"/>
         <line num="178" count="0" type="stmt"/>
-        <line num="183" count="113" type="stmt"/>
+        <line num="183" count="0" type="stmt"/>
         <line num="184" count="0" type="stmt"/>
         <line num="185" count="0" type="stmt"/>
         <line num="187" count="0" type="stmt"/>
@@ -982,18 +1005,18 @@
         <line num="212" count="0" type="cond" truecount="0" falsecount="2"/>
         <line num="213" count="0" type="stmt"/>
         <line num="215" count="0" type="stmt"/>
-        <line num="219" count="113" type="stmt"/>
-        <line num="230" count="113" type="stmt"/>
-        <line num="237" count="18" type="stmt"/>
+        <line num="219" count="0" type="stmt"/>
+        <line num="230" count="0" type="stmt"/>
+        <line num="237" count="0" type="stmt"/>
         <line num="238" count="0" type="stmt"/>
         <line num="239" count="0" type="cond" truecount="0" falsecount="2"/>
         <line num="240" count="0" type="stmt"/>
         <line num="242" count="0" type="stmt"/>
       </file>
       <file name="NotificationContext.jsx" path="/Users/mjoyner/Property/frontend/src/context/NotificationContext.jsx">
-        <metrics statements="66" coveredstatements="3" conditionals="20" coveredconditionals="0" methods="23" coveredmethods="0"/>
-        <line num="7" count="5" type="stmt"/>
-        <line num="9" count="5" type="stmt"/>
+        <metrics statements="66" coveredstatements="0" conditionals="20" coveredconditionals="0" methods="23" coveredmethods="0"/>
+        <line num="7" count="0" type="stmt"/>
+        <line num="9" count="0" type="stmt"/>
         <line num="10" count="0" type="stmt"/>
         <line num="11" count="0" type="stmt"/>
         <line num="12" count="0" type="stmt"/>
@@ -1053,22 +1076,22 @@
         <line num="124" count="0" type="stmt"/>
         <line num="129" count="0" type="stmt"/>
         <line num="140" count="0" type="stmt"/>
-        <line num="147" count="5" type="stmt"/>
+        <line num="147" count="0" type="stmt"/>
         <line num="148" count="0" type="stmt"/>
         <line num="149" count="0" type="cond" truecount="0" falsecount="2"/>
         <line num="150" count="0" type="stmt"/>
         <line num="152" count="0" type="stmt"/>
       </file>
       <file name="PaymentContext.jsx" path="/Users/mjoyner/Property/frontend/src/context/PaymentContext.jsx">
-        <metrics statements="89" coveredstatements="19" conditionals="18" coveredconditionals="2" methods="15" coveredmethods="3"/>
-        <line num="6" count="18" type="stmt"/>
-        <line num="8" count="18" type="stmt"/>
-        <line num="9" count="101" type="stmt"/>
-        <line num="10" count="101" type="stmt"/>
-        <line num="11" count="101" type="stmt"/>
-        <line num="12" count="101" type="stmt"/>
-        <line num="15" count="101" type="stmt"/>
-        <line num="16" count="5" type="cond" truecount="1" falsecount="1"/>
+        <metrics statements="89" coveredstatements="0" conditionals="18" coveredconditionals="0" methods="15" coveredmethods="0"/>
+        <line num="6" count="0" type="stmt"/>
+        <line num="8" count="0" type="stmt"/>
+        <line num="9" count="0" type="stmt"/>
+        <line num="10" count="0" type="stmt"/>
+        <line num="11" count="0" type="stmt"/>
+        <line num="12" count="0" type="stmt"/>
+        <line num="15" count="0" type="stmt"/>
+        <line num="16" count="0" type="cond" truecount="0" falsecount="2"/>
         <line num="18" count="0" type="stmt"/>
         <line num="19" count="0" type="stmt"/>
         <line num="21" count="0" type="stmt"/>
@@ -1082,7 +1105,7 @@
         <line num="34" count="0" type="stmt"/>
         <line num="35" count="0" type="stmt"/>
         <line num="37" count="0" type="stmt"/>
-        <line num="42" count="101" type="stmt"/>
+        <line num="42" count="0" type="stmt"/>
         <line num="43" count="0" type="stmt"/>
         <line num="44" count="0" type="stmt"/>
         <line num="46" count="0" type="stmt"/>
@@ -1092,7 +1115,7 @@
         <line num="51" count="0" type="stmt"/>
         <line num="52" count="0" type="stmt"/>
         <line num="54" count="0" type="stmt"/>
-        <line num="59" count="101" type="stmt"/>
+        <line num="59" count="0" type="stmt"/>
         <line num="60" count="0" type="stmt"/>
         <line num="61" count="0" type="stmt"/>
         <line num="63" count="0" type="stmt"/>
@@ -1103,7 +1126,7 @@
         <line num="72" count="0" type="cond" truecount="0" falsecount="2"/>
         <line num="73" count="0" type="stmt"/>
         <line num="75" count="0" type="stmt"/>
-        <line num="80" count="101" type="stmt"/>
+        <line num="80" count="0" type="stmt"/>
         <line num="81" count="0" type="stmt"/>
         <line num="82" count="0" type="stmt"/>
         <line num="84" count="0" type="stmt"/>
@@ -1120,7 +1143,7 @@
         <line num="104" count="0" type="cond" truecount="0" falsecount="2"/>
         <line num="105" count="0" type="stmt"/>
         <line num="107" count="0" type="stmt"/>
-        <line num="112" count="101" type="stmt"/>
+        <line num="112" count="0" type="stmt"/>
         <line num="113" count="0" type="stmt"/>
         <line num="114" count="0" type="stmt"/>
         <line num="116" count="0" type="stmt"/>
@@ -1132,7 +1155,7 @@
         <line num="127" count="0" type="cond" truecount="0" falsecount="2"/>
         <line num="128" count="0" type="stmt"/>
         <line num="130" count="0" type="stmt"/>
-        <line num="135" count="101" type="stmt"/>
+        <line num="135" count="0" type="stmt"/>
         <line num="136" count="0" type="stmt"/>
         <line num="137" count="0" type="stmt"/>
         <line num="139" count="0" type="stmt"/>
@@ -1143,50 +1166,50 @@
         <line num="148" count="0" type="cond" truecount="0" falsecount="2"/>
         <line num="149" count="0" type="stmt"/>
         <line num="151" count="0" type="stmt"/>
-        <line num="156" count="101" type="stmt"/>
-        <line num="168" count="101" type="stmt"/>
-        <line num="176" count="18" type="stmt"/>
-        <line num="177" count="10" type="stmt"/>
-        <line num="178" count="10" type="cond" truecount="1" falsecount="1"/>
+        <line num="156" count="0" type="stmt"/>
+        <line num="168" count="0" type="stmt"/>
+        <line num="176" count="0" type="stmt"/>
+        <line num="177" count="0" type="stmt"/>
+        <line num="178" count="0" type="cond" truecount="0" falsecount="2"/>
         <line num="179" count="0" type="stmt"/>
-        <line num="181" count="10" type="stmt"/>
+        <line num="181" count="0" type="stmt"/>
       </file>
       <file name="PropertyContext.jsx" path="/Users/mjoyner/Property/frontend/src/context/PropertyContext.jsx">
-        <metrics statements="104" coveredstatements="34" conditionals="42" coveredconditionals="3" methods="21" coveredmethods="3"/>
-        <line num="6" count="16" type="stmt"/>
-        <line num="8" count="16" type="stmt"/>
-        <line num="9" count="110" type="stmt"/>
-        <line num="10" count="110" type="stmt"/>
-        <line num="11" count="110" type="stmt"/>
-        <line num="12" count="110" type="stmt"/>
-        <line num="13" count="110" type="stmt"/>
-        <line num="21" count="110" type="stmt"/>
-        <line num="24" count="110" type="stmt"/>
-        <line num="25" count="4" type="cond" truecount="1" falsecount="1"/>
-        <line num="27" count="4" type="stmt"/>
-        <line num="28" count="4" type="stmt"/>
-        <line num="30" count="4" type="stmt"/>
-        <line num="32" count="4" type="stmt"/>
-        <line num="34" count="4" type="stmt"/>
-        <line num="35" count="4" type="stmt"/>
-        <line num="38" count="2" type="stmt"/>
-        <line num="39" count="2" type="stmt"/>
-        <line num="41" count="2" type="stmt"/>
+        <metrics statements="104" coveredstatements="0" conditionals="42" coveredconditionals="0" methods="21" coveredmethods="0"/>
+        <line num="6" count="0" type="stmt"/>
+        <line num="8" count="0" type="stmt"/>
+        <line num="9" count="0" type="stmt"/>
+        <line num="10" count="0" type="stmt"/>
+        <line num="11" count="0" type="stmt"/>
+        <line num="12" count="0" type="stmt"/>
+        <line num="13" count="0" type="stmt"/>
+        <line num="21" count="0" type="stmt"/>
+        <line num="24" count="0" type="stmt"/>
+        <line num="25" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="27" count="0" type="stmt"/>
+        <line num="28" count="0" type="stmt"/>
+        <line num="30" count="0" type="stmt"/>
+        <line num="32" count="0" type="stmt"/>
+        <line num="34" count="0" type="stmt"/>
+        <line num="35" count="0" type="stmt"/>
+        <line num="38" count="0" type="stmt"/>
+        <line num="39" count="0" type="stmt"/>
+        <line num="41" count="0" type="stmt"/>
         <line num="42" count="0" type="cond" truecount="0" falsecount="2"/>
         <line num="43" count="0" type="stmt"/>
         <line num="44" count="0" type="stmt"/>
         <line num="48" count="0" type="stmt"/>
         <line num="49" count="0" type="cond" truecount="0" falsecount="2"/>
         <line num="51" count="0" type="stmt"/>
-        <line num="60" count="4" type="stmt"/>
-        <line num="61" count="4" type="stmt"/>
-        <line num="63" count="4" type="stmt"/>
-        <line num="68" count="110" type="stmt"/>
-        <line num="69" count="52" type="cond" truecount="2" falsecount="0"/>
-        <line num="70" count="4" type="stmt"/>
-        <line num="73" count="48" type="stmt"/>
-        <line num="74" count="48" type="stmt"/>
-        <line num="79" count="110" type="stmt"/>
+        <line num="60" count="0" type="stmt"/>
+        <line num="61" count="0" type="stmt"/>
+        <line num="63" count="0" type="stmt"/>
+        <line num="68" count="0" type="stmt"/>
+        <line num="69" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="70" count="0" type="stmt"/>
+        <line num="73" count="0" type="stmt"/>
+        <line num="74" count="0" type="stmt"/>
+        <line num="79" count="0" type="stmt"/>
         <line num="80" count="0" type="stmt"/>
         <line num="81" count="0" type="stmt"/>
         <line num="83" count="0" type="stmt"/>
@@ -1197,7 +1220,7 @@
         <line num="89" count="0" type="stmt"/>
         <line num="90" count="0" type="stmt"/>
         <line num="92" count="0" type="stmt"/>
-        <line num="97" count="110" type="stmt"/>
+        <line num="97" count="0" type="stmt"/>
         <line num="98" count="0" type="stmt"/>
         <line num="99" count="0" type="stmt"/>
         <line num="101" count="0" type="stmt"/>
@@ -1216,7 +1239,7 @@
         <line num="136" count="0" type="cond" truecount="0" falsecount="2"/>
         <line num="137" count="0" type="stmt"/>
         <line num="139" count="0" type="stmt"/>
-        <line num="144" count="110" type="stmt"/>
+        <line num="144" count="0" type="stmt"/>
         <line num="145" count="0" type="stmt"/>
         <line num="146" count="0" type="stmt"/>
         <line num="148" count="0" type="stmt"/>
@@ -1236,7 +1259,7 @@
         <line num="182" count="0" type="cond" truecount="0" falsecount="2"/>
         <line num="183" count="0" type="stmt"/>
         <line num="185" count="0" type="stmt"/>
-        <line num="190" count="110" type="stmt"/>
+        <line num="190" count="0" type="stmt"/>
         <line num="191" count="0" type="stmt"/>
         <line num="192" count="0" type="stmt"/>
         <line num="194" count="0" type="stmt"/>
@@ -1250,24 +1273,24 @@
         <line num="213" count="0" type="cond" truecount="0" falsecount="2"/>
         <line num="214" count="0" type="stmt"/>
         <line num="216" count="0" type="stmt"/>
-        <line num="220" count="110" type="stmt"/>
-        <line num="233" count="110" type="stmt"/>
-        <line num="240" count="16" type="stmt"/>
+        <line num="220" count="0" type="stmt"/>
+        <line num="233" count="0" type="stmt"/>
+        <line num="240" count="0" type="stmt"/>
         <line num="241" count="0" type="stmt"/>
         <line num="242" count="0" type="cond" truecount="0" falsecount="2"/>
         <line num="243" count="0" type="stmt"/>
         <line num="245" count="0" type="stmt"/>
       </file>
       <file name="TenantContext.jsx" path="/Users/mjoyner/Property/frontend/src/context/TenantContext.jsx">
-        <metrics statements="69" coveredstatements="18" conditionals="12" coveredconditionals="2" methods="12" coveredmethods="3"/>
-        <line num="6" count="17" type="stmt"/>
-        <line num="8" count="17" type="stmt"/>
-        <line num="9" count="101" type="stmt"/>
-        <line num="10" count="101" type="stmt"/>
-        <line num="11" count="101" type="stmt"/>
-        <line num="12" count="101" type="stmt"/>
-        <line num="15" count="101" type="stmt"/>
-        <line num="16" count="1" type="cond" truecount="1" falsecount="1"/>
+        <metrics statements="69" coveredstatements="0" conditionals="12" coveredconditionals="0" methods="12" coveredmethods="0"/>
+        <line num="6" count="0" type="stmt"/>
+        <line num="8" count="0" type="stmt"/>
+        <line num="9" count="0" type="stmt"/>
+        <line num="10" count="0" type="stmt"/>
+        <line num="11" count="0" type="stmt"/>
+        <line num="12" count="0" type="stmt"/>
+        <line num="15" count="0" type="stmt"/>
+        <line num="16" count="0" type="cond" truecount="0" falsecount="2"/>
         <line num="18" count="0" type="stmt"/>
         <line num="19" count="0" type="stmt"/>
         <line num="21" count="0" type="stmt"/>
@@ -1278,7 +1301,7 @@
         <line num="27" count="0" type="stmt"/>
         <line num="28" count="0" type="stmt"/>
         <line num="30" count="0" type="stmt"/>
-        <line num="35" count="101" type="stmt"/>
+        <line num="35" count="0" type="stmt"/>
         <line num="36" count="0" type="stmt"/>
         <line num="37" count="0" type="stmt"/>
         <line num="39" count="0" type="stmt"/>
@@ -1288,7 +1311,7 @@
         <line num="44" count="0" type="stmt"/>
         <line num="45" count="0" type="stmt"/>
         <line num="47" count="0" type="stmt"/>
-        <line num="52" count="101" type="stmt"/>
+        <line num="52" count="0" type="stmt"/>
         <line num="53" count="0" type="stmt"/>
         <line num="54" count="0" type="stmt"/>
         <line num="56" count="0" type="stmt"/>
@@ -1299,7 +1322,7 @@
         <line num="65" count="0" type="cond" truecount="0" falsecount="2"/>
         <line num="66" count="0" type="stmt"/>
         <line num="68" count="0" type="stmt"/>
-        <line num="73" count="101" type="stmt"/>
+        <line num="73" count="0" type="stmt"/>
         <line num="74" count="0" type="stmt"/>
         <line num="75" count="0" type="stmt"/>
         <line num="77" count="0" type="stmt"/>
@@ -1311,7 +1334,7 @@
         <line num="88" count="0" type="cond" truecount="0" falsecount="2"/>
         <line num="89" count="0" type="stmt"/>
         <line num="91" count="0" type="stmt"/>
-        <line num="96" count="101" type="stmt"/>
+        <line num="96" count="0" type="stmt"/>
         <line num="97" count="0" type="stmt"/>
         <line num="98" count="0" type="stmt"/>
         <line num="100" count="0" type="stmt"/>
@@ -1322,20 +1345,20 @@
         <line num="109" count="0" type="cond" truecount="0" falsecount="2"/>
         <line num="110" count="0" type="stmt"/>
         <line num="112" count="0" type="stmt"/>
-        <line num="117" count="101" type="stmt"/>
-        <line num="128" count="101" type="stmt"/>
-        <line num="136" count="17" type="stmt"/>
-        <line num="137" count="4" type="stmt"/>
-        <line num="138" count="4" type="cond" truecount="1" falsecount="1"/>
+        <line num="117" count="0" type="stmt"/>
+        <line num="128" count="0" type="stmt"/>
+        <line num="136" count="0" type="stmt"/>
+        <line num="137" count="0" type="stmt"/>
+        <line num="138" count="0" type="cond" truecount="0" falsecount="2"/>
         <line num="139" count="0" type="stmt"/>
-        <line num="141" count="4" type="stmt"/>
+        <line num="141" count="0" type="stmt"/>
       </file>
       <file name="ThemeContext.jsx" path="/Users/mjoyner/Property/frontend/src/context/ThemeContext.jsx">
-        <metrics statements="31" coveredstatements="5" conditionals="12" coveredconditionals="0" methods="10" coveredmethods="0"/>
-        <line num="6" count="5" type="stmt"/>
-        <line num="9" count="5" type="stmt"/>
-        <line num="94" count="5" type="stmt"/>
-        <line num="179" count="5" type="stmt"/>
+        <metrics statements="31" coveredstatements="0" conditionals="12" coveredconditionals="0" methods="10" coveredmethods="0"/>
+        <line num="6" count="0" type="stmt"/>
+        <line num="9" count="0" type="stmt"/>
+        <line num="94" count="0" type="stmt"/>
+        <line num="179" count="0" type="stmt"/>
         <line num="180" count="0" type="stmt"/>
         <line num="182" count="0" type="stmt"/>
         <line num="183" count="0" type="cond" truecount="0" falsecount="2"/>
@@ -1358,7 +1381,7 @@
         <line num="218" count="0" type="stmt"/>
         <line num="222" count="0" type="cond" truecount="0" falsecount="2"/>
         <line num="224" count="0" type="stmt"/>
-        <line num="234" count="5" type="stmt"/>
+        <line num="234" count="0" type="stmt"/>
         <line num="235" count="0" type="stmt"/>
         <line num="236" count="0" type="cond" truecount="0" falsecount="2"/>
         <line num="237" count="0" type="stmt"/>
@@ -1418,7 +1441,7 @@
       </file>
     </package>
     <package name="src.pages">
-      <metrics statements="1179" coveredstatements="180" conditionals="775" coveredconditionals="80" methods="342" coveredmethods="41"/>
+      <metrics statements="1179" coveredstatements="0" conditionals="775" coveredconditionals="0" methods="342" coveredmethods="0"/>
       <file name="ActivityFeed.jsx" path="/Users/mjoyner/Property/frontend/src/pages/ActivityFeed.jsx">
         <metrics statements="23" coveredstatements="0" conditionals="15" coveredconditionals="0" methods="6" coveredmethods="0"/>
         <line num="26" count="0" type="stmt"/>
@@ -1446,46 +1469,46 @@
         <line num="91" count="0" type="stmt"/>
       </file>
       <file name="AdminDashboard.jsx" path="/Users/mjoyner/Property/frontend/src/pages/AdminDashboard.jsx">
-        <metrics statements="40" coveredstatements="26" conditionals="16" coveredconditionals="9" methods="10" coveredmethods="6"/>
-        <line num="23" count="1" type="stmt"/>
-        <line num="24" count="2" type="stmt"/>
-        <line num="25" count="2" type="stmt"/>
-        <line num="26" count="2" type="stmt"/>
-        <line num="27" count="2" type="stmt"/>
-        <line num="28" count="2" type="stmt"/>
-        <line num="29" count="2" type="stmt"/>
-        <line num="31" count="2" type="stmt"/>
-        <line num="32" count="1" type="stmt"/>
-        <line num="33" count="1" type="stmt"/>
-        <line num="34" count="1" type="stmt"/>
-        <line num="35" count="1" type="stmt"/>
-        <line num="40" count="1" type="stmt"/>
-        <line num="41" count="1" type="stmt"/>
-        <line num="42" count="1" type="stmt"/>
+        <metrics statements="40" coveredstatements="0" conditionals="16" coveredconditionals="0" methods="10" coveredmethods="0"/>
+        <line num="23" count="0" type="stmt"/>
+        <line num="24" count="0" type="stmt"/>
+        <line num="25" count="0" type="stmt"/>
+        <line num="26" count="0" type="stmt"/>
+        <line num="27" count="0" type="stmt"/>
+        <line num="28" count="0" type="stmt"/>
+        <line num="29" count="0" type="stmt"/>
+        <line num="31" count="0" type="stmt"/>
+        <line num="32" count="0" type="stmt"/>
+        <line num="33" count="0" type="stmt"/>
+        <line num="34" count="0" type="stmt"/>
+        <line num="35" count="0" type="stmt"/>
+        <line num="40" count="0" type="stmt"/>
+        <line num="41" count="0" type="stmt"/>
+        <line num="42" count="0" type="stmt"/>
         <line num="44" count="0" type="stmt"/>
         <line num="45" count="0" type="stmt"/>
-        <line num="47" count="1" type="stmt"/>
-        <line num="51" count="2" type="stmt"/>
-        <line num="52" count="1" type="stmt"/>
-        <line num="55" count="2" type="stmt"/>
+        <line num="47" count="0" type="stmt"/>
+        <line num="51" count="0" type="stmt"/>
+        <line num="52" count="0" type="stmt"/>
+        <line num="55" count="0" type="stmt"/>
         <line num="56" count="0" type="stmt"/>
         <line num="57" count="0" type="stmt"/>
         <line num="58" count="0" type="stmt"/>
         <line num="60" count="0" type="stmt"/>
         <line num="61" count="0" type="stmt"/>
-        <line num="65" count="2" type="stmt"/>
+        <line num="65" count="0" type="stmt"/>
         <line num="66" count="0" type="stmt"/>
         <line num="67" count="0" type="stmt"/>
         <line num="68" count="0" type="stmt"/>
         <line num="70" count="0" type="stmt"/>
         <line num="71" count="0" type="stmt"/>
-        <line num="75" count="2" type="cond" truecount="2" falsecount="0"/>
-        <line num="76" count="1" type="stmt"/>
-        <line num="83" count="1" type="stmt"/>
-        <line num="122" count="1" type="stmt"/>
+        <line num="75" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="76" count="0" type="stmt"/>
+        <line num="83" count="0" type="stmt"/>
+        <line num="122" count="0" type="stmt"/>
         <line num="130" count="0" type="stmt"/>
-        <line num="166" count="1" type="stmt"/>
-        <line num="198" count="1" type="stmt"/>
+        <line num="166" count="0" type="stmt"/>
+        <line num="198" count="0" type="stmt"/>
         <line num="206" count="0" type="stmt"/>
       </file>
       <file name="Calendar.jsx" path="/Users/mjoyner/Property/frontend/src/pages/Calendar.jsx">
@@ -1545,56 +1568,56 @@
         <line num="252" count="0" type="stmt"/>
       </file>
       <file name="Dashboard.jsx" path="/Users/mjoyner/Property/frontend/src/pages/Dashboard.jsx">
-        <metrics statements="49" coveredstatements="38" conditionals="18" coveredconditionals="14" methods="16" coveredmethods="8"/>
-        <line num="42" count="1" type="stmt"/>
-        <line num="52" count="1" type="stmt"/>
-        <line num="63" count="1" type="stmt"/>
-        <line num="98" count="1" type="stmt"/>
-        <line num="100" count="3" type="stmt"/>
-        <line num="101" count="3" type="stmt"/>
-        <line num="102" count="3" type="stmt"/>
-        <line num="120" count="3" type="stmt"/>
-        <line num="122" count="1" type="stmt"/>
-        <line num="123" count="1" type="stmt"/>
-        <line num="128" count="3" type="stmt"/>
-        <line num="136" count="3" type="stmt"/>
-        <line num="137" count="3" type="stmt"/>
-        <line num="138" count="3" type="stmt"/>
-        <line num="139" count="3" type="stmt"/>
-        <line num="140" count="3" type="stmt"/>
-        <line num="150" count="3" type="stmt"/>
-        <line num="152" count="3" type="stmt"/>
-        <line num="155" count="3" type="stmt"/>
+        <metrics statements="49" coveredstatements="0" conditionals="18" coveredconditionals="0" methods="16" coveredmethods="0"/>
+        <line num="42" count="0" type="stmt"/>
+        <line num="52" count="0" type="stmt"/>
+        <line num="63" count="0" type="stmt"/>
+        <line num="98" count="0" type="stmt"/>
+        <line num="100" count="0" type="stmt"/>
+        <line num="101" count="0" type="stmt"/>
+        <line num="102" count="0" type="stmt"/>
+        <line num="120" count="0" type="stmt"/>
+        <line num="122" count="0" type="stmt"/>
+        <line num="123" count="0" type="stmt"/>
+        <line num="128" count="0" type="stmt"/>
+        <line num="136" count="0" type="stmt"/>
+        <line num="137" count="0" type="stmt"/>
+        <line num="138" count="0" type="stmt"/>
+        <line num="139" count="0" type="stmt"/>
+        <line num="140" count="0" type="stmt"/>
+        <line num="150" count="0" type="stmt"/>
+        <line num="152" count="0" type="stmt"/>
+        <line num="155" count="0" type="stmt"/>
         <line num="156" count="0" type="stmt"/>
-        <line num="159" count="3" type="stmt"/>
+        <line num="159" count="0" type="stmt"/>
         <line num="160" count="0" type="stmt"/>
-        <line num="164" count="3" type="stmt"/>
-        <line num="165" count="4" type="stmt"/>
-        <line num="166" count="4" type="stmt"/>
-        <line num="167" count="4" type="stmt"/>
-        <line num="169" count="4" type="cond" truecount="1" falsecount="1"/>
+        <line num="164" count="0" type="stmt"/>
+        <line num="165" count="0" type="stmt"/>
+        <line num="166" count="0" type="stmt"/>
+        <line num="167" count="0" type="stmt"/>
+        <line num="169" count="0" type="cond" truecount="0" falsecount="2"/>
         <line num="170" count="0" type="stmt"/>
-        <line num="172" count="4" type="stmt"/>
-        <line num="177" count="3" type="stmt"/>
-        <line num="178" count="4" type="cond" truecount="3" falsecount="1"/>
-        <line num="180" count="2" type="stmt"/>
-        <line num="182" count="1" type="stmt"/>
-        <line num="184" count="1" type="stmt"/>
+        <line num="172" count="0" type="stmt"/>
+        <line num="177" count="0" type="stmt"/>
+        <line num="178" count="0" type="cond" truecount="0" falsecount="4"/>
+        <line num="180" count="0" type="stmt"/>
+        <line num="182" count="0" type="stmt"/>
+        <line num="184" count="0" type="stmt"/>
         <line num="186" count="0" type="stmt"/>
-        <line num="190" count="3" type="stmt"/>
-        <line num="191" count="1" type="stmt"/>
+        <line num="190" count="0" type="stmt"/>
+        <line num="191" count="0" type="stmt"/>
         <line num="211" count="0" type="stmt"/>
         <line num="231" count="0" type="stmt"/>
         <line num="251" count="0" type="stmt"/>
-        <line num="273" count="3" type="cond" truecount="2" falsecount="0"/>
-        <line num="274" count="2" type="stmt"/>
-        <line num="281" count="1" type="cond" truecount="1" falsecount="1"/>
+        <line num="273" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="274" count="0" type="stmt"/>
+        <line num="281" count="0" type="cond" truecount="0" falsecount="2"/>
         <line num="282" count="0" type="stmt"/>
         <line num="290" count="0" type="stmt"/>
-        <line num="298" count="1" type="stmt"/>
+        <line num="298" count="0" type="stmt"/>
         <line num="307" count="0" type="stmt"/>
         <line num="369" count="0" type="stmt"/>
-        <line num="377" count="4" type="stmt"/>
+        <line num="377" count="0" type="stmt"/>
       </file>
       <file name="ForgotPassword.jsx" path="/Users/mjoyner/Property/frontend/src/pages/ForgotPassword.jsx">
         <metrics statements="17" coveredstatements="0" conditionals="8" coveredconditionals="0" methods="3" coveredmethods="0"/>
@@ -2111,39 +2134,39 @@
         <line num="149" count="0" type="stmt"/>
       </file>
       <file name="Payments.jsx" path="/Users/mjoyner/Property/frontend/src/pages/Payments.jsx">
-        <metrics statements="48" coveredstatements="18" conditionals="34" coveredconditionals="8" methods="12" coveredmethods="3"/>
-        <line num="34" count="5" type="stmt"/>
-        <line num="35" count="5" type="stmt"/>
-        <line num="36" count="5" type="stmt"/>
-        <line num="37" count="5" type="stmt"/>
-        <line num="39" count="5" type="stmt"/>
-        <line num="40" count="5" type="stmt"/>
-        <line num="41" count="5" type="cond" truecount="3" falsecount="1"/>
-        <line num="42" count="5" type="stmt"/>
-        <line num="47" count="5" type="stmt"/>
+        <metrics statements="48" coveredstatements="0" conditionals="34" coveredconditionals="0" methods="12" coveredmethods="0"/>
+        <line num="34" count="0" type="stmt"/>
+        <line num="35" count="0" type="stmt"/>
+        <line num="36" count="0" type="stmt"/>
+        <line num="37" count="0" type="stmt"/>
+        <line num="39" count="0" type="stmt"/>
+        <line num="40" count="0" type="stmt"/>
+        <line num="41" count="0" type="cond" truecount="0" falsecount="4"/>
+        <line num="42" count="0" type="stmt"/>
+        <line num="47" count="0" type="stmt"/>
         <line num="48" count="0" type="cond" truecount="0" falsecount="4"/>
         <line num="50" count="0" type="stmt"/>
         <line num="52" count="0" type="stmt"/>
         <line num="54" count="0" type="stmt"/>
         <line num="56" count="0" type="stmt"/>
-        <line num="61" count="5" type="stmt"/>
+        <line num="61" count="0" type="stmt"/>
         <line num="62" count="0" type="cond" truecount="0" falsecount="2"/>
         <line num="63" count="0" type="stmt"/>
         <line num="64" count="0" type="stmt"/>
-        <line num="71" count="5" type="stmt"/>
+        <line num="71" count="0" type="stmt"/>
         <line num="81" count="0" type="stmt"/>
         <line num="133" count="0" type="stmt"/>
         <line num="179" count="0" type="stmt"/>
-        <line num="188" count="5" type="stmt"/>
-        <line num="189" count="5" type="stmt"/>
-        <line num="196" count="5" type="stmt"/>
-        <line num="197" count="5" type="stmt"/>
-        <line num="199" count="5" type="stmt"/>
+        <line num="188" count="0" type="stmt"/>
+        <line num="189" count="0" type="stmt"/>
+        <line num="196" count="0" type="stmt"/>
+        <line num="197" count="0" type="stmt"/>
+        <line num="199" count="0" type="stmt"/>
         <line num="200" count="0" type="stmt"/>
         <line num="201" count="0" type="stmt"/>
         <line num="204" count="0" type="cond" truecount="0" falsecount="2"/>
         <line num="205" count="0" type="stmt"/>
-        <line num="209" count="5" type="stmt"/>
+        <line num="209" count="0" type="stmt"/>
         <line num="211" count="0" type="stmt"/>
         <line num="212" count="0" type="cond" truecount="0" falsecount="2"/>
         <line num="213" count="0" type="cond" truecount="0" falsecount="4"/>
@@ -2159,81 +2182,81 @@
         <line num="238" count="0" type="stmt"/>
         <line num="239" count="0" type="cond" truecount="0" falsecount="2"/>
         <line num="241" count="0" type="stmt"/>
-        <line num="245" count="5" type="stmt"/>
+        <line num="245" count="0" type="stmt"/>
       </file>
       <file name="Profile.jsx" path="/Users/mjoyner/Property/frontend/src/pages/Profile.jsx">
-        <metrics statements="19" coveredstatements="17" conditionals="16" coveredconditionals="12" methods="5" coveredmethods="4"/>
-        <line num="14" count="1" type="stmt"/>
-        <line num="15" count="15" type="cond" truecount="1" falsecount="1"/>
-        <line num="16" count="15" type="cond" truecount="1" falsecount="1"/>
-        <line num="17" count="15" type="cond" truecount="1" falsecount="1"/>
-        <line num="18" count="15" type="stmt"/>
-        <line num="19" count="15" type="stmt"/>
-        <line num="21" count="15" type="stmt"/>
-        <line num="22" count="1" type="stmt"/>
-        <line num="23" count="1" type="stmt"/>
-        <line num="25" count="1" type="stmt"/>
-        <line num="27" count="1" type="stmt"/>
-        <line num="30" count="1" type="stmt"/>
-        <line num="31" count="1" type="stmt"/>
-        <line num="33" count="1" type="stmt"/>
+        <metrics statements="19" coveredstatements="0" conditionals="16" coveredconditionals="0" methods="5" coveredmethods="0"/>
+        <line num="14" count="0" type="stmt"/>
+        <line num="15" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="16" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="17" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="18" count="0" type="stmt"/>
+        <line num="19" count="0" type="stmt"/>
+        <line num="21" count="0" type="stmt"/>
+        <line num="22" count="0" type="stmt"/>
+        <line num="23" count="0" type="stmt"/>
+        <line num="25" count="0" type="stmt"/>
+        <line num="27" count="0" type="stmt"/>
+        <line num="30" count="0" type="stmt"/>
+        <line num="31" count="0" type="stmt"/>
+        <line num="33" count="0" type="stmt"/>
         <line num="35" count="0" type="stmt"/>
-        <line num="37" count="1" type="stmt"/>
-        <line num="41" count="15" type="stmt"/>
-        <line num="85" count="11" type="stmt"/>
+        <line num="37" count="0" type="stmt"/>
+        <line num="41" count="0" type="stmt"/>
+        <line num="85" count="0" type="stmt"/>
         <line num="95" count="0" type="stmt"/>
       </file>
       <file name="Properties.jsx" path="/Users/mjoyner/Property/frontend/src/pages/Properties.jsx">
-        <metrics statements="74" coveredstatements="33" conditionals="44" coveredconditionals="15" methods="30" coveredmethods="7"/>
-        <line num="28" count="2" type="stmt"/>
-        <line num="29" count="2" type="stmt"/>
-        <line num="30" count="2" type="stmt"/>
-        <line num="31" count="2" type="stmt"/>
-        <line num="32" count="2" type="stmt"/>
-        <line num="33" count="2" type="stmt"/>
-        <line num="34" count="2" type="stmt"/>
-        <line num="35" count="2" type="stmt"/>
-        <line num="36" count="2" type="stmt"/>
-        <line num="37" count="2" type="stmt"/>
-        <line num="38" count="2" type="stmt"/>
-        <line num="40" count="2" type="stmt"/>
-        <line num="41" count="2" type="stmt"/>
-        <line num="42" count="2" type="stmt"/>
-        <line num="46" count="2" type="stmt"/>
-        <line num="47" count="2" type="cond" truecount="2" falsecount="2"/>
+        <metrics statements="74" coveredstatements="0" conditionals="44" coveredconditionals="0" methods="30" coveredmethods="0"/>
+        <line num="28" count="0" type="stmt"/>
+        <line num="29" count="0" type="stmt"/>
+        <line num="30" count="0" type="stmt"/>
+        <line num="31" count="0" type="stmt"/>
+        <line num="32" count="0" type="stmt"/>
+        <line num="33" count="0" type="stmt"/>
+        <line num="34" count="0" type="stmt"/>
+        <line num="35" count="0" type="stmt"/>
+        <line num="36" count="0" type="stmt"/>
+        <line num="37" count="0" type="stmt"/>
+        <line num="38" count="0" type="stmt"/>
+        <line num="40" count="0" type="stmt"/>
+        <line num="41" count="0" type="stmt"/>
+        <line num="42" count="0" type="stmt"/>
+        <line num="46" count="0" type="stmt"/>
+        <line num="47" count="0" type="cond" truecount="0" falsecount="4"/>
         <line num="48" count="0" type="stmt"/>
-        <line num="53" count="2" type="stmt"/>
-        <line num="57" count="4" type="cond" truecount="1" falsecount="1"/>
-        <line num="61" count="4" type="cond" truecount="1" falsecount="1"/>
-        <line num="63" count="4" type="cond" truecount="2" falsecount="0"/>
-        <line num="66" count="2" type="cond" truecount="1" falsecount="1"/>
+        <line num="53" count="0" type="stmt"/>
+        <line num="57" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="61" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="63" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="66" count="0" type="cond" truecount="0" falsecount="2"/>
         <line num="67" count="0" type="cond" truecount="0" falsecount="6"/>
         <line num="68" count="0" type="cond" truecount="0" falsecount="2"/>
         <line num="69" count="0" type="cond" truecount="0" falsecount="2"/>
         <line num="70" count="0" type="cond" truecount="0" falsecount="2"/>
         <line num="71" count="0" type="stmt"/>
         <line num="73" count="0" type="stmt"/>
-        <line num="77" count="2" type="stmt"/>
+        <line num="77" count="0" type="stmt"/>
         <line num="78" count="0" type="stmt"/>
-        <line num="81" count="2" type="stmt"/>
+        <line num="81" count="0" type="stmt"/>
         <line num="82" count="0" type="stmt"/>
-        <line num="85" count="2" type="stmt"/>
+        <line num="85" count="0" type="stmt"/>
         <line num="86" count="0" type="stmt"/>
-        <line num="89" count="2" type="stmt"/>
+        <line num="89" count="0" type="stmt"/>
         <line num="90" count="0" type="stmt"/>
         <line num="91" count="0" type="stmt"/>
         <line num="92" count="0" type="stmt"/>
         <line num="93" count="0" type="stmt"/>
-        <line num="96" count="2" type="stmt"/>
+        <line num="96" count="0" type="stmt"/>
         <line num="97" count="0" type="stmt"/>
-        <line num="100" count="2" type="stmt"/>
+        <line num="100" count="0" type="stmt"/>
         <line num="101" count="0" type="stmt"/>
-        <line num="104" count="2" type="stmt"/>
+        <line num="104" count="0" type="stmt"/>
         <line num="105" count="0" type="stmt"/>
         <line num="106" count="0" type="stmt"/>
-        <line num="109" count="2" type="stmt"/>
+        <line num="109" count="0" type="stmt"/>
         <line num="110" count="0" type="stmt"/>
-        <line num="113" count="2" type="stmt"/>
+        <line num="113" count="0" type="stmt"/>
         <line num="114" count="0" type="cond" truecount="0" falsecount="2"/>
         <line num="116" count="0" type="stmt"/>
         <line num="117" count="0" type="stmt"/>
@@ -2241,7 +2264,7 @@
         <line num="119" count="0" type="stmt"/>
         <line num="121" count="0" type="stmt"/>
         <line num="123" count="0" type="stmt"/>
-        <line num="127" count="2" type="stmt"/>
+        <line num="127" count="0" type="stmt"/>
         <line num="146" count="0" type="stmt"/>
         <line num="204" count="0" type="stmt"/>
         <line num="210" count="0" type="stmt"/>
@@ -2249,8 +2272,8 @@
         <line num="226" count="0" type="stmt"/>
         <line num="232" count="0" type="stmt"/>
         <line num="238" count="0" type="stmt"/>
-        <line num="268" count="4" type="stmt"/>
-        <line num="279" count="10" type="cond" truecount="2" falsecount="0"/>
+        <line num="268" count="0" type="stmt"/>
+        <line num="279" count="0" type="cond" truecount="0" falsecount="2"/>
         <line num="280" count="0" type="stmt"/>
         <line num="281" count="0" type="stmt"/>
         <line num="303" count="0" type="stmt"/>
@@ -2453,21 +2476,21 @@
         <line num="45" count="0" type="stmt"/>
       </file>
       <file name="Settings.jsx" path="/Users/mjoyner/Property/frontend/src/pages/Settings.jsx">
-        <metrics statements="31" coveredstatements="19" conditionals="8" coveredconditionals="5" methods="10" coveredmethods="6"/>
-        <line num="20" count="1" type="stmt"/>
-        <line num="21" count="17" type="stmt"/>
-        <line num="22" count="16" type="stmt"/>
-        <line num="23" count="16" type="stmt"/>
-        <line num="24" count="16" type="stmt"/>
-        <line num="25" count="16" type="stmt"/>
-        <line num="26" count="16" type="stmt"/>
-        <line num="27" count="16" type="stmt"/>
-        <line num="28" count="16" type="stmt"/>
-        <line num="30" count="16" type="stmt"/>
-        <line num="32" count="1" type="stmt"/>
-        <line num="35" count="1" type="cond" truecount="1" falsecount="1"/>
-        <line num="36" count="1" type="stmt"/>
-        <line num="37" count="1" type="stmt"/>
+        <metrics statements="31" coveredstatements="0" conditionals="8" coveredconditionals="0" methods="10" coveredmethods="0"/>
+        <line num="20" count="0" type="stmt"/>
+        <line num="21" count="0" type="stmt"/>
+        <line num="22" count="0" type="stmt"/>
+        <line num="23" count="0" type="stmt"/>
+        <line num="24" count="0" type="stmt"/>
+        <line num="25" count="0" type="stmt"/>
+        <line num="26" count="0" type="stmt"/>
+        <line num="27" count="0" type="stmt"/>
+        <line num="28" count="0" type="stmt"/>
+        <line num="30" count="0" type="stmt"/>
+        <line num="32" count="0" type="stmt"/>
+        <line num="35" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="36" count="0" type="stmt"/>
+        <line num="37" count="0" type="stmt"/>
         <line num="40" count="0" type="cond" truecount="0" falsecount="2"/>
         <line num="41" count="0" type="stmt"/>
         <line num="42" count="0" type="stmt"/>
@@ -2477,13 +2500,13 @@
         <line num="53" count="0" type="stmt"/>
         <line num="56" count="0" type="stmt"/>
         <line num="57" count="0" type="stmt"/>
-        <line num="61" count="16" type="stmt"/>
+        <line num="61" count="0" type="stmt"/>
         <line num="91" count="0" type="stmt"/>
-        <line num="101" count="1" type="stmt"/>
+        <line num="101" count="0" type="stmt"/>
         <line num="111" count="0" type="stmt"/>
-        <line num="159" count="5" type="stmt"/>
-        <line num="172" count="5" type="stmt"/>
-        <line num="209" count="1" type="stmt"/>
+        <line num="159" count="0" type="stmt"/>
+        <line num="172" count="0" type="stmt"/>
+        <line num="209" count="0" type="stmt"/>
         <line num="223" count="0" type="stmt"/>
       </file>
       <file name="Support.jsx" path="/Users/mjoyner/Property/frontend/src/pages/Support.jsx">
@@ -2606,22 +2629,22 @@
         <line num="56" count="0" type="stmt"/>
       </file>
       <file name="Tenants.jsx" path="/Users/mjoyner/Property/frontend/src/pages/Tenants.jsx">
-        <metrics statements="48" coveredstatements="19" conditionals="35" coveredconditionals="9" methods="17" coveredmethods="3"/>
-        <line num="38" count="2" type="stmt"/>
-        <line num="39" count="2" type="stmt"/>
-        <line num="40" count="2" type="stmt"/>
-        <line num="41" count="2" type="stmt"/>
-        <line num="42" count="2" type="stmt"/>
-        <line num="43" count="2" type="stmt"/>
-        <line num="46" count="2" type="stmt"/>
-        <line num="47" count="1" type="cond" truecount="3" falsecount="1"/>
-        <line num="48" count="1" type="stmt"/>
-        <line num="52" count="2" type="stmt"/>
+        <metrics statements="48" coveredstatements="0" conditionals="35" coveredconditionals="0" methods="17" coveredmethods="0"/>
+        <line num="38" count="0" type="stmt"/>
+        <line num="39" count="0" type="stmt"/>
+        <line num="40" count="0" type="stmt"/>
+        <line num="41" count="0" type="stmt"/>
+        <line num="42" count="0" type="stmt"/>
+        <line num="43" count="0" type="stmt"/>
+        <line num="46" count="0" type="stmt"/>
+        <line num="47" count="0" type="cond" truecount="0" falsecount="4"/>
+        <line num="48" count="0" type="stmt"/>
+        <line num="52" count="0" type="stmt"/>
         <line num="53" count="0" type="stmt"/>
         <line num="54" count="0" type="stmt"/>
-        <line num="57" count="2" type="stmt"/>
+        <line num="57" count="0" type="stmt"/>
         <line num="58" count="0" type="cond" truecount="0" falsecount="3"/>
-        <line num="63" count="2" type="stmt"/>
+        <line num="63" count="0" type="stmt"/>
         <line num="95" count="0" type="stmt"/>
         <line num="124" count="0" type="stmt"/>
         <line num="155" count="0" type="stmt"/>
@@ -2631,16 +2654,16 @@
         <line num="184" count="0" type="stmt"/>
         <line num="195" count="0" type="stmt"/>
         <line num="211" count="0" type="stmt"/>
-        <line num="220" count="2" type="stmt"/>
-        <line num="221" count="2" type="stmt"/>
-        <line num="231" count="2" type="stmt"/>
-        <line num="232" count="2" type="stmt"/>
-        <line num="234" count="2" type="stmt"/>
+        <line num="220" count="0" type="stmt"/>
+        <line num="221" count="0" type="stmt"/>
+        <line num="231" count="0" type="stmt"/>
+        <line num="232" count="0" type="stmt"/>
+        <line num="234" count="0" type="stmt"/>
         <line num="235" count="0" type="stmt"/>
         <line num="236" count="0" type="stmt"/>
         <line num="238" count="0" type="cond" truecount="0" falsecount="2"/>
         <line num="239" count="0" type="stmt"/>
-        <line num="243" count="2" type="stmt"/>
+        <line num="243" count="0" type="stmt"/>
         <line num="245" count="0" type="stmt"/>
         <line num="246" count="0" type="cond" truecount="0" falsecount="2"/>
         <line num="247" count="0" type="cond" truecount="0" falsecount="2"/>
@@ -2654,7 +2677,7 @@
         <line num="259" count="0" type="stmt"/>
         <line num="260" count="0" type="cond" truecount="0" falsecount="2"/>
         <line num="262" count="0" type="stmt"/>
-        <line num="266" count="2" type="stmt"/>
+        <line num="266" count="0" type="stmt"/>
       </file>
       <file name="Terms.jsx" path="/Users/mjoyner/Property/frontend/src/pages/Terms.jsx">
         <metrics statements="0" coveredstatements="0" conditionals="0" coveredconditionals="0" methods="0" coveredmethods="0"/>
@@ -2665,17 +2688,17 @@
         <line num="13" count="0" type="stmt"/>
       </file>
       <file name="VerifyEmail.jsx" path="/Users/mjoyner/Property/frontend/src/pages/VerifyEmail.jsx">
-        <metrics statements="10" coveredstatements="10" conditionals="10" coveredconditionals="8" methods="4" coveredmethods="4"/>
-        <line num="17" count="12" type="stmt"/>
-        <line num="18" count="12" type="stmt"/>
-        <line num="19" count="11" type="stmt"/>
-        <line num="21" count="11" type="stmt"/>
-        <line num="22" count="6" type="stmt"/>
-        <line num="25" count="2" type="stmt"/>
-        <line num="26" count="2" type="cond" truecount="1" falsecount="1"/>
-        <line num="29" count="3" type="stmt"/>
-        <line num="30" count="3" type="cond" truecount="1" falsecount="1"/>
-        <line num="34" count="11" type="stmt"/>
+        <metrics statements="10" coveredstatements="0" conditionals="10" coveredconditionals="0" methods="4" coveredmethods="0"/>
+        <line num="17" count="0" type="stmt"/>
+        <line num="18" count="0" type="stmt"/>
+        <line num="19" count="0" type="stmt"/>
+        <line num="21" count="0" type="stmt"/>
+        <line num="22" count="0" type="stmt"/>
+        <line num="25" count="0" type="stmt"/>
+        <line num="26" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="29" count="0" type="stmt"/>
+        <line num="30" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="34" count="0" type="stmt"/>
       </file>
       <file name="WelcomePage.jsx" path="/Users/mjoyner/Property/frontend/src/pages/WelcomePage.jsx">
         <metrics statements="20" coveredstatements="0" conditionals="6" coveredconditionals="0" methods="7" coveredmethods="0"/>
@@ -2702,69 +2725,92 @@
       </file>
     </package>
     <package name="src.routes">
-      <metrics statements="25" coveredstatements="25" conditionals="19" coveredconditionals="19" methods="3" coveredmethods="3"/>
+      <metrics statements="25" coveredstatements="0" conditionals="19" coveredconditionals="0" methods="3" coveredmethods="0"/>
       <file name="guards.jsx" path="/Users/mjoyner/Property/frontend/src/routes/guards.jsx">
-        <metrics statements="24" coveredstatements="24" conditionals="19" coveredconditionals="19" methods="3" coveredmethods="3"/>
-        <line num="12" count="1" type="stmt"/>
-        <line num="13" count="3" type="stmt"/>
-        <line num="15" count="3" type="cond" truecount="2" falsecount="0"/>
-        <line num="16" count="1" type="stmt"/>
-        <line num="32" count="2" type="cond" truecount="2" falsecount="0"/>
-        <line num="33" count="1" type="stmt"/>
-        <line num="36" count="1" type="stmt"/>
-        <line num="44" count="1" type="stmt"/>
-        <line num="45" count="3" type="stmt"/>
-        <line num="47" count="3" type="cond" truecount="2" falsecount="0"/>
-        <line num="48" count="1" type="stmt"/>
-        <line num="63" count="2" type="cond" truecount="2" falsecount="0"/>
-        <line num="64" count="1" type="stmt"/>
-        <line num="67" count="1" type="stmt"/>
-        <line num="75" count="1" type="cond" truecount="1" falsecount="0"/>
-        <line num="76" count="5" type="stmt"/>
-        <line num="78" count="5" type="cond" truecount="2" falsecount="0"/>
-        <line num="80" count="5" type="cond" truecount="2" falsecount="0"/>
-        <line num="81" count="1" type="stmt"/>
-        <line num="96" count="4" type="cond" truecount="2" falsecount="0"/>
-        <line num="97" count="1" type="stmt"/>
-        <line num="100" count="3" type="cond" truecount="4" falsecount="0"/>
-        <line num="101" count="1" type="stmt"/>
-        <line num="104" count="2" type="stmt"/>
+        <metrics statements="24" coveredstatements="0" conditionals="19" coveredconditionals="0" methods="3" coveredmethods="0"/>
+        <line num="12" count="0" type="stmt"/>
+        <line num="13" count="0" type="stmt"/>
+        <line num="15" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="16" count="0" type="stmt"/>
+        <line num="32" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="33" count="0" type="stmt"/>
+        <line num="36" count="0" type="stmt"/>
+        <line num="44" count="0" type="stmt"/>
+        <line num="45" count="0" type="stmt"/>
+        <line num="47" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="48" count="0" type="stmt"/>
+        <line num="63" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="64" count="0" type="stmt"/>
+        <line num="67" count="0" type="stmt"/>
+        <line num="75" count="0" type="cond" truecount="0" falsecount="1"/>
+        <line num="76" count="0" type="stmt"/>
+        <line num="78" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="80" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="81" count="0" type="stmt"/>
+        <line num="96" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="97" count="0" type="stmt"/>
+        <line num="100" count="0" type="cond" truecount="0" falsecount="4"/>
+        <line num="101" count="0" type="stmt"/>
+        <line num="104" count="0" type="stmt"/>
       </file>
       <file name="routeConfig.jsx" path="/Users/mjoyner/Property/frontend/src/routes/routeConfig.jsx">
-        <metrics statements="1" coveredstatements="1" conditionals="0" coveredconditionals="0" methods="0" coveredmethods="0"/>
-        <line num="6" count="1" type="stmt"/>
+        <metrics statements="1" coveredstatements="0" conditionals="0" coveredconditionals="0" methods="0" coveredmethods="0"/>
+        <line num="6" count="0" type="stmt"/>
       </file>
     </package>
     <package name="src.test-utils">
-      <metrics statements="4" coveredstatements="4" conditionals="6" coveredconditionals="5" methods="1" coveredmethods="1"/>
+      <metrics statements="21" coveredstatements="0" conditionals="24" coveredconditionals="0" methods="7" coveredmethods="0"/>
+      <file name="heroicons-stub.js" path="/Users/mjoyner/Property/frontend/src/test-utils/heroicons-stub.js">
+        <metrics statements="3" coveredstatements="0" conditionals="0" coveredconditionals="0" methods="2" coveredmethods="0"/>
+        <line num="1" count="0" type="stmt"/>
+        <line num="2" count="0" type="stmt"/>
+        <line num="3" count="0" type="stmt"/>
+      </file>
       <file name="renderWithProviders.jsx" path="/Users/mjoyner/Property/frontend/src/test-utils/renderWithProviders.jsx">
-        <metrics statements="4" coveredstatements="4" conditionals="6" coveredconditionals="5" methods="1" coveredmethods="1"/>
-        <line num="14" count="18" type="cond" truecount="1" falsecount="1"/>
-        <line num="15" count="18" type="stmt"/>
-        <line num="19" count="57" type="stmt"/>
-        <line num="21" count="57" type="stmt"/>
+        <metrics statements="17" coveredstatements="0" conditionals="24" coveredconditionals="0" methods="5" coveredmethods="0"/>
+        <line num="14" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="15" count="0" type="stmt"/>
+        <line num="25" count="0" type="stmt"/>
+        <line num="26" count="0" type="stmt"/>
+        <line num="49" count="0" type="stmt"/>
+        <line num="51" count="0" type="stmt"/>
+        <line num="53" count="0" type="stmt"/>
+        <line num="57" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="58" count="0" type="stmt"/>
+        <line num="59" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="60" count="0" type="stmt"/>
+        <line num="64" count="0" type="stmt"/>
+        <line num="82" count="0" type="stmt"/>
+        <line num="85" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="86" count="0" type="stmt"/>
+        <line num="89" count="0" type="stmt"/>
+        <line num="92" count="0" type="stmt"/>
+      </file>
+      <file name="style-mock.js" path="/Users/mjoyner/Property/frontend/src/test-utils/style-mock.js">
+        <metrics statements="1" coveredstatements="0" conditionals="0" coveredconditionals="0" methods="0" coveredmethods="0"/>
+        <line num="2" count="0" type="stmt"/>
       </file>
     </package>
     <package name="src.utils">
-      <metrics statements="215" coveredstatements="20" conditionals="111" coveredconditionals="0" methods="45" coveredmethods="3"/>
+      <metrics statements="215" coveredstatements="0" conditionals="111" coveredconditionals="0" methods="45" coveredmethods="0"/>
       <file name="api.js" path="/Users/mjoyner/Property/frontend/src/utils/api.js">
-        <metrics statements="55" coveredstatements="6" conditionals="16" coveredconditionals="0" methods="9" coveredmethods="0"/>
-        <line num="7" count="20" type="stmt"/>
-        <line num="16" count="20" type="stmt"/>
-        <line num="17" count="20" type="stmt"/>
-        <line num="19" count="20" type="cond" truecount="0" falsecount="1"/>
+        <metrics statements="55" coveredstatements="0" conditionals="16" coveredconditionals="0" methods="9" coveredmethods="0"/>
+        <line num="7" count="0" type="stmt"/>
+        <line num="16" count="0" type="stmt"/>
+        <line num="17" count="0" type="stmt"/>
+        <line num="19" count="0" type="cond" truecount="0" falsecount="1"/>
         <line num="20" count="0" type="stmt"/>
         <line num="21" count="0" type="cond" truecount="0" falsecount="2"/>
         <line num="22" count="0" type="stmt"/>
         <line num="24" count="0" type="stmt"/>
         <line num="28" count="0" type="stmt"/>
-        <line num="32" count="20" type="stmt"/>
+        <line num="32" count="0" type="stmt"/>
         <line num="34" count="0" type="stmt"/>
         <line num="35" count="0" type="cond" truecount="0" falsecount="2"/>
         <line num="36" count="0" type="stmt"/>
         <line num="38" count="0" type="stmt"/>
         <line num="40" count="0" type="stmt"/>
-        <line num="44" count="20" type="stmt"/>
+        <line num="44" count="0" type="stmt"/>
         <line num="45" count="0" type="stmt"/>
         <line num="47" count="0" type="stmt"/>
         <line num="50" count="0" type="stmt"/>
@@ -2806,24 +2852,24 @@
         <line num="137" count="0" type="stmt"/>
       </file>
       <file name="auth.js" path="/Users/mjoyner/Property/frontend/src/utils/auth.js">
-        <metrics statements="35" coveredstatements="7" conditionals="19" coveredconditionals="0" methods="7" coveredmethods="0"/>
-        <line num="9" count="2" type="stmt"/>
+        <metrics statements="35" coveredstatements="0" conditionals="19" coveredconditionals="0" methods="7" coveredmethods="0"/>
+        <line num="9" count="0" type="stmt"/>
         <line num="10" count="0" type="stmt"/>
-        <line num="17" count="2" type="stmt"/>
+        <line num="17" count="0" type="stmt"/>
         <line num="18" count="0" type="cond" truecount="0" falsecount="2"/>
         <line num="19" count="0" type="cond" truecount="0" falsecount="2"/>
         <line num="20" count="0" type="stmt"/>
         <line num="22" count="0" type="cond" truecount="0" falsecount="2"/>
         <line num="24" count="0" type="stmt"/>
         <line num="25" count="0" type="stmt"/>
-        <line num="32" count="2" type="stmt"/>
+        <line num="32" count="0" type="stmt"/>
         <line num="33" count="0" type="stmt"/>
         <line num="34" count="0" type="cond" truecount="0" falsecount="2"/>
-        <line num="41" count="2" type="stmt"/>
+        <line num="41" count="0" type="stmt"/>
         <line num="42" count="0" type="stmt"/>
-        <line num="49" count="2" type="stmt"/>
+        <line num="49" count="0" type="stmt"/>
         <line num="50" count="0" type="stmt"/>
-        <line num="57" count="2" type="cond" truecount="0" falsecount="1"/>
+        <line num="57" count="0" type="cond" truecount="0" falsecount="1"/>
         <line num="58" count="0" type="stmt"/>
         <line num="60" count="0" type="cond" truecount="0" falsecount="2"/>
         <line num="61" count="0" type="stmt"/>
@@ -2834,7 +2880,7 @@
         <line num="70" count="0" type="stmt"/>
         <line num="71" count="0" type="stmt"/>
         <line num="74" count="0" type="stmt"/>
-        <line num="83" count="2" type="stmt"/>
+        <line num="83" count="0" type="stmt"/>
         <line num="84" count="0" type="cond" truecount="0" falsecount="2"/>
         <line num="86" count="0" type="cond" truecount="0" falsecount="2"/>
         <line num="88" count="0" type="cond" truecount="0" falsecount="4"/>
@@ -2844,13 +2890,13 @@
         <line num="96" count="0" type="stmt"/>
       </file>
       <file name="authApi.js" path="/Users/mjoyner/Property/frontend/src/utils/authApi.js">
-        <metrics statements="9" coveredstatements="4" conditionals="0" coveredconditionals="0" methods="8" coveredmethods="3"/>
-        <line num="10" count="19" type="stmt"/>
-        <line num="20" count="2" type="stmt"/>
+        <metrics statements="9" coveredstatements="0" conditionals="0" coveredconditionals="0" methods="8" coveredmethods="0"/>
+        <line num="10" count="0" type="stmt"/>
+        <line num="20" count="0" type="stmt"/>
         <line num="29" count="0" type="stmt"/>
         <line num="38" count="0" type="stmt"/>
-        <line num="51" count="2" type="stmt"/>
-        <line num="64" count="1" type="stmt"/>
+        <line num="51" count="0" type="stmt"/>
+        <line num="64" count="0" type="stmt"/>
         <line num="72" count="0" type="stmt"/>
         <line num="81" count="0" type="stmt"/>
         <line num="91" count="0" type="stmt"/>
@@ -2937,19 +2983,19 @@
         <line num="52" count="0" type="stmt"/>
       </file>
       <file name="formatters.js" path="/Users/mjoyner/Property/frontend/src/utils/formatters.js">
-        <metrics statements="15" coveredstatements="3" conditionals="14" coveredconditionals="0" methods="3" coveredmethods="0"/>
-        <line num="7" count="1" type="cond" truecount="0" falsecount="1"/>
+        <metrics statements="15" coveredstatements="0" conditionals="14" coveredconditionals="0" methods="3" coveredmethods="0"/>
+        <line num="7" count="0" type="cond" truecount="0" falsecount="1"/>
         <line num="8" count="0" type="cond" truecount="0" falsecount="4"/>
         <line num="10" count="0" type="stmt"/>
         <line num="17" count="0" type="stmt"/>
-        <line num="25" count="1" type="stmt"/>
+        <line num="25" count="0" type="stmt"/>
         <line num="26" count="0" type="cond" truecount="0" falsecount="2"/>
         <line num="29" count="0" type="stmt"/>
         <line num="32" count="0" type="stmt"/>
         <line num="34" count="0" type="cond" truecount="0" falsecount="2"/>
         <line num="35" count="0" type="stmt"/>
         <line num="38" count="0" type="stmt"/>
-        <line num="47" count="1" type="cond" truecount="0" falsecount="1"/>
+        <line num="47" count="0" type="cond" truecount="0" falsecount="1"/>
         <line num="48" count="0" type="cond" truecount="0" falsecount="2"/>
         <line num="50" count="0" type="cond" truecount="0" falsecount="2"/>
         <line num="52" count="0" type="stmt"/>

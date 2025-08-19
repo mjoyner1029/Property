@@ -23,30 +23,30 @@
         <div class='clearfix'>
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">85.71% </span>
+                <span class="strong">0% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>18/21</span>
+                <span class='fraction'>0/21</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">64.28% </span>
+                <span class="strong">0% </span>
                 <span class="quiet">Branches</span>
-                <span class='fraction'>9/14</span>
+                <span class='fraction'>0/14</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">66.66% </span>
+                <span class="strong">0% </span>
                 <span class="quiet">Functions</span>
-                <span class='fraction'>4/6</span>
+                <span class='fraction'>0/6</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">85% </span>
+                <span class="strong">0% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>17/20</span>
+                <span class='fraction'>0/20</span>
             </div>
         
             
@@ -61,7 +61,7 @@
             </div>
         </template>
     </div>
-    <div class='status-line high'></div>
+    <div class='status-line low'></div>
     <pre><table class="coverage">
 <tr><td class="line-count quiet"><a name='L1'></a><a href='#L1'>1</a>
 <a name='L2'></a><a href='#L2'>2</a>
@@ -282,7 +282,7 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">7x</span>
+<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -290,32 +290,32 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">7x</span>
-<span class="cline-any cline-yes">7x</span>
-<span class="cline-any cline-yes">7x</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">28x</span>
-<span class="cline-any cline-yes">4x</span>
-<span class="cline-any cline-yes">4x</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">7x</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">7x</span>
+<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -484,8 +484,8 @@ import {
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 &nbsp;
-export default function Signup() {
-  const [formData, setFormData] = useState({
+export default function <span class="fstat-no" title="function not covered" >Signup(</span>) {
+  const [formData, setFormData] = <span class="cstat-no" title="statement not covered" >useState({</span>
     full_name: "",
     email: "",
     password: "",
@@ -493,32 +493,32 @@ export default function Signup() {
     tos_agreed: false,
   });
 &nbsp;
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
-  const navigate = useNavigate();
+  const [loading, setLoading] = <span class="cstat-no" title="statement not covered" >useState(false);</span>
+  const [error, setError] = <span class="cstat-no" title="statement not covered" >useState("");</span>
+  const navigate = <span class="cstat-no" title="statement not covered" >useNavigate();</span>
 &nbsp;
-  const handleChange = (field) =&gt; (e) =&gt; {
-    const value = field === "tos_agreed" ? e.target.checked : e.target.value;
-    setFormData({ ...formData, [field]: value });
+  const handleChange = <span class="cstat-no" title="statement not covered" ><span class="fstat-no" title="function not covered" >(f</span>ield) =&gt; <span class="cstat-no" title="statement not covered" ><span class="fstat-no" title="function not covered" >(e</span>) =&gt; {</span></span>
+    const value = <span class="cstat-no" title="statement not covered" >field === "tos_agreed" ? e.target.checked : e.target.value;</span>
+<span class="cstat-no" title="statement not covered" >    setFormData({ ...formData, [field]: value });</span>
   };
 &nbsp;
-  const handleSubmit = async (e) =&gt; {
-    e.preventDefault();
-    setError("");
-    setLoading(true);
+  const handleSubmit = <span class="cstat-no" title="statement not covered" ><span class="fstat-no" title="function not covered" >as</span>ync (e) =&gt; {</span>
+<span class="cstat-no" title="statement not covered" >    e.preventDefault();</span>
+<span class="cstat-no" title="statement not covered" >    setError("");</span>
+<span class="cstat-no" title="statement not covered" >    setLoading(true);</span>
 &nbsp;
-    try {
-      const res = await axios.post("/api/auth/signup", formData);
-      localStorage.setItem("role", formData.role);
-      navigate(`/onboarding/${formData.role}`);
+<span class="cstat-no" title="statement not covered" >    try {</span>
+      const res = <span class="cstat-no" title="statement not covered" >await axios.post("/api/auth/signup", formData);</span>
+<span class="cstat-no" title="statement not covered" >      localStorage.setItem("role", formData.role);</span>
+<span class="cstat-no" title="statement not covered" >      navigate(`/onboarding/${formData.role}`);</span>
     } catch (err) {
 <span class="cstat-no" title="statement not covered" >      setError(err.response?.data?.msg || "Signup failed");</span>
     } finally {
-      setLoading(false);
+<span class="cstat-no" title="statement not covered" >      setLoading(false);</span>
     }
   };
 &nbsp;
-  return (
+<span class="cstat-no" title="statement not covered" >  return (</span>
     &lt;Box
       sx={{
         display: "flex",
@@ -578,7 +578,7 @@ export default function Signup() {
           &lt;/Typography&gt;
 &nbsp;
           {error &amp;&amp; (
-<span class="branch-1 cbranch-no" title="branch not covered" >            &lt;Alert severity="error" sx={{ mb: 2 }}&gt;</span>
+            &lt;Alert severity="error" sx={{ mb: 2 }}&gt;
               {error}
             &lt;/Alert&gt;
           )}
@@ -621,7 +621,7 @@ export default function Signup() {
 &nbsp;
             &lt;Box sx={{ mt: 2, display: "flex", justifyContent: "space-between" }}&gt;
               &lt;Button
-                variant={formData.role === "landlord" ? <span class="branch-0 cbranch-no" title="branch not covered" >"contained" </span>: "outlined"}
+                variant={formData.role === "landlord" ? "contained" : "outlined"}
                 fullWidth
                 sx={{ mr: 1 }}
                 onClick={<span class="fstat-no" title="function not covered" >()</span> =&gt; <span class="cstat-no" title="statement not covered" >setFormData({ ...formData, role: "landlord" })}</span>
@@ -629,7 +629,7 @@ export default function Signup() {
                 Landlord
               &lt;/Button&gt;
               &lt;Button
-                variant={formData.role === "tenant" ? "contained" : <span class="branch-1 cbranch-no" title="branch not covered" >"outlined"}</span>
+                variant={formData.role === "tenant" ? "contained" : "outlined"}
                 fullWidth
                 sx={{ ml: 1 }}
                 onClick={<span class="fstat-no" title="function not covered" >()</span> =&gt; <span class="cstat-no" title="statement not covered" >setFormData({ ...formData, role: "tenant" })}</span>
@@ -679,7 +679,7 @@ export default function Signup() {
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2025-08-17T06:08:10.767Z
+                at 2025-08-19T02:35:43.847Z
             </div>
         <script src="../../prettify.js"></script>
         <script>

@@ -78,3 +78,9 @@ class IntersectionObserver {
   disconnect() {}
 }
 global.IntersectionObserver = IntersectionObserver;
+
+// Clear all mocks after each test
+afterEach(() => { 
+  jest.clearAllMocks(); 
+  jest.restoreAllMocks(); 
+});

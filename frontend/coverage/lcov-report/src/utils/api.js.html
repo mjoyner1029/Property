@@ -23,9 +23,9 @@
         <div class='clearfix'>
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">10.9% </span>
+                <span class="strong">0% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>6/55</span>
+                <span class='fraction'>0/55</span>
             </div>
         
             
@@ -44,9 +44,9 @@
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">10.9% </span>
+                <span class="strong">0% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>6/55</span>
+                <span class='fraction'>0/55</span>
             </div>
         
             
@@ -210,7 +210,7 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">20x</span>
+<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -219,10 +219,10 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">20x</span>
-<span class="cline-any cline-yes">20x</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">20x</span>
+<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
@@ -235,19 +235,19 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">20x</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">20x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
@@ -351,7 +351,7 @@ import axios from 'axios';
 import { API_URL } from '../config/environment';
 &nbsp;
 // Create axios instance with default config
-const api = axios.create({
+const api = <span class="cstat-no" title="statement not covered" >axios.create({</span>
   baseURL: API_URL,
   headers: {
     'Content-Type': 'application/json',
@@ -360,10 +360,10 @@ const api = axios.create({
 });
 &nbsp;
 // Keep track of refresh token promise to prevent multiple refresh calls
-let isRefreshing = false;
-let failedQueue = [];
+let isRefreshing = <span class="cstat-no" title="statement not covered" >false;</span>
+let failedQueue = <span class="cstat-no" title="statement not covered" >[];</span>
 &nbsp;
-const processQueue = <span class="fstat-no" title="function not covered" >(e</span>rror, token = <span class="branch-0 cbranch-no" title="branch not covered" >null)</span> =&gt; {
+const processQueue = <span class="cstat-no" title="statement not covered" ><span class="fstat-no" title="function not covered" >(e</span>rror, token = <span class="branch-0 cbranch-no" title="branch not covered" >null)</span> =&gt; {</span>
 <span class="cstat-no" title="statement not covered" >  failedQueue.forEach(<span class="fstat-no" title="function not covered" >pr</span>om =&gt; {</span>
 <span class="cstat-no" title="statement not covered" >    if (error) {</span>
 <span class="cstat-no" title="statement not covered" >      prom.reject(error);</span>
@@ -376,7 +376,7 @@ const processQueue = <span class="fstat-no" title="function not covered" >(e</sp
 };
 &nbsp;
 // Add request interceptor to add auth token to every request
-api.interceptors.request.use(
+<span class="cstat-no" title="statement not covered" >api.interceptors.request.use(</span>
 <span class="fstat-no" title="function not covered" >  (c</span>onfig) =&gt; {
     const token = <span class="cstat-no" title="statement not covered" >localStorage.getItem('token');</span>
 <span class="cstat-no" title="statement not covered" >    if (token) {</span>
@@ -388,7 +388,7 @@ api.interceptors.request.use(
 );
 &nbsp;
 // Add response interceptor to handle auth errors and token refresh
-api.interceptors.response.use(
+<span class="cstat-no" title="statement not covered" >api.interceptors.response.use(</span>
 <span class="fstat-no" title="function not covered" >  (r</span>esponse) =&gt; <span class="cstat-no" title="statement not covered" >response,</span>
 <span class="fstat-no" title="function not covered" >  as</span>ync (error) =&gt; {
     const originalRequest = <span class="cstat-no" title="statement not covered" >error.config;</span>
@@ -493,7 +493,7 @@ export default api;</pre></td></tr></table></pre>
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2025-08-17T06:08:10.767Z
+                at 2025-08-19T02:35:43.847Z
             </div>
         <script src="../../prettify.js"></script>
         <script>

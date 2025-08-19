@@ -23,9 +23,9 @@
         <div class='clearfix'>
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">44.44% </span>
+                <span class="strong">0% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>4/9</span>
+                <span class='fraction'>0/9</span>
             </div>
         
             
@@ -37,16 +37,16 @@
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">37.5% </span>
+                <span class="strong">0% </span>
                 <span class="quiet">Functions</span>
-                <span class='fraction'>3/8</span>
+                <span class='fraction'>0/8</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">44.44% </span>
+                <span class="strong">0% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>4/9</span>
+                <span class='fraction'>0/9</span>
             </div>
         
             
@@ -167,17 +167,8 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">19x</span>
+<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">2x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -204,11 +195,7 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">2x</span>
+<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -221,7 +208,20 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -262,7 +262,7 @@ import { API_URL } from '../config/environment';
  * Authentication API service
  * Provides methods for authentication-related API calls
  */
-const authApi = {
+const authApi = <span class="cstat-no" title="statement not covered" >{</span>
   /**
    * Login with email and password
    * @param {Object} credentials - Login credentials
@@ -271,8 +271,8 @@ const authApi = {
    * @param {string} credentials.role - Optional user portal/role
    * @returns {Promise&lt;Object&gt;} Login response with tokens and user data
    */
-  login: (credentials) =&gt; {
-    return api.post('/auth/login', credentials);
+  login: <span class="fstat-no" title="function not covered" >(c</span>redentials) =&gt; {
+<span class="cstat-no" title="statement not covered" >    return api.post('/auth/login', credentials);</span>
   },
   
   /**
@@ -302,8 +302,8 @@ const authApi = {
    * @param {string} token - JWT access token
    * @returns {Promise&lt;Object&gt;} User data if token is valid
    */
-  validateToken: (token) =&gt; {
-    return api.get('/auth/verify', {
+  validateToken: <span class="fstat-no" title="function not covered" >(t</span>oken) =&gt; {
+<span class="cstat-no" title="statement not covered" >    return api.get('/auth/verify', {</span>
       headers: {
         'Authorization': `Bearer ${token}`
       }
@@ -315,8 +315,8 @@ const authApi = {
    * @param {string} token - JWT access token
    * @returns {Promise&lt;Object&gt;} Logout confirmation
    */
-  logout: () =&gt; {
-    return api.post('/auth/logout');
+  logout: <span class="fstat-no" title="function not covered" >()</span> =&gt; {
+<span class="cstat-no" title="statement not covered" >    return api.post('/auth/logout');</span>
   },
   
   /**
@@ -355,7 +355,7 @@ export default authApi;
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2025-08-17T06:08:10.767Z
+                at 2025-08-19T02:35:43.847Z
             </div>
         <script src="../../prettify.js"></script>
         <script>

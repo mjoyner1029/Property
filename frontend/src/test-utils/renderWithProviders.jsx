@@ -34,13 +34,14 @@ export function renderWithProviders(
   { 
     route = '/', 
     initialEntries = [route], 
+    routerProps = {},
     providerProps = {}, 
     propertyValue,
     appValue,
     maintenanceValue,
     paymentValue,
     tenantValue,
-    providers = [], // New providers array param
+    providers = [], // Array of [Context, value] tuples for ad-hoc context injection
     wrapper: OuterWrapper,
     ...options 
   } = {}
