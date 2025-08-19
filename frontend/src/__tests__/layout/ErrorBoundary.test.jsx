@@ -1,10 +1,11 @@
 import React from 'react';
 import { render, screen } from '@testing-library/react';
 import ErrorBoundary from '../../components/ErrorBoundary';
+import axios from 'axios';
 
 // Mock axios
 jest.mock('axios', () => ({
-  post: jest.fn().mockResolvedValue({ data: { success: true } })
+  post: jest.fn()
 }));
 
 // Mock localStorage
@@ -29,6 +30,9 @@ afterAll(() => {
 });
 
 test('shows fallback UI on error', () => {
+  // Set up the axios mock to resolve successfully
+  axios.post.mockResolvedValue({ data: { success: true } });
+  
   render(
     <ErrorBoundary>
       <Boom />
@@ -36,9 +40,48 @@ test('shows fallback UI on error', () => {
   );
   
   expect(screen.getByText(/something went wrong/i)).toBeInTheDocument();
+  expect(screen.getByText(/reload page/i)).toBeInTheDocument();
+  expect(screen.getByText(/go to home/i)).toBeInTheDocument();
 });
 
-test('renders children when there is no error', () => {
+test('shows fallback UI when API call fails', () => {
+  // Set up the axios mock to reject
+  axios.post.mockRejectedValue(new Error('API Error'));
+  
+  render(
+    <ErrorBoundary>
+      <Boom />
+    </ErrorBoundary>
+  );
+  
+  expect(screen.getByText(/something went wrong/i)).toBeInTheDocument();
+  // Still shows the fallback UI even when the error logging fails
+  expect(screen.getByText(/reload page/i)).toBeInTheDocument();
+});
+
+  test('accepts custom fallback component', () => {
+  // Set up the axios mock to resolve successfully
+  axios.post.mockResolvedValue({ data: { success: true } });
+  
+  // Custom fallback component
+  const customFallback = (error, reset) => (
+    <div>
+      <h1>Custom Error UI</h1>
+      <p>Error: {error}</p>
+      <button onClick={reset}>Try Again</button>
+    </div>
+  );
+  
+  render(
+    <ErrorBoundary fallback={customFallback}>
+      <Boom />
+    </ErrorBoundary>
+  );
+  
+  expect(screen.getByText(/custom error ui/i)).toBeInTheDocument();
+  expect(screen.getByText(/error: error: boom/i)).toBeInTheDocument();
+  expect(screen.getByText(/try again/i)).toBeInTheDocument();
+});test('renders children when there is no error', () => {
   render(
     <ErrorBoundary>
       <div data-testid="child">Everything is fine</div>
