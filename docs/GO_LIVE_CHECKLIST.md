@@ -158,3 +158,22 @@ This checklist covers all steps required for deploying Asset Anchor to productio
 - BE tests: `pytest -q`
 - Deploy workflow: tests → migrations → API deploy → smoke → frontend deploy
 - To skip deploy: add `[skip deploy]` to your commit message
+
+## CI/CD Secrets
+
+- [x] Verified GitHub Actions secrets on 2025-08-19:
+  - [x] STRIPE_SECRET_KEY
+  - [x] STRIPE_WEBHOOK_SECRET
+  - [x] DATABASE_URL (staging + prod)
+  - [x] REDIS_URL
+  - [x] S3_ACCESS_KEY_ID
+  - [x] S3_SECRET_ACCESS_KEY
+  - [x] S3_BUCKET
+  - [x] S3_REGION
+  - [x] SENTRY_DSN
+  - [x] SENTRY_ENV (staging|production)
+  - [x] EMAIL_* (provider credentials)
+  - [x] APP_BASE_URL
+  - [x] JWT_SECRET
+  - [x] CORS_ALLOWED_ORIGINS
+  - [x] CSP_* (configuration)
