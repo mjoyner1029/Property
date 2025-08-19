@@ -134,18 +134,20 @@ talisman = Talisman(
 REDIS_URL = os.getenv("REDIS_URL")
 DISABLE_RATE_LIMIT = os.getenv("DISABLE_RATE_LIMIT", "false").lower() == "true"
 
-def request_filter():
-    return DISABLE_RATE_LIMIT
-
 limiter = Limiter(
     key_func=get_remote_address,
     default_limits=["200 per minute", "5000 per hour"],
     storage_uri=os.getenv("RATELIMIT_STORAGE_URI") or (REDIS_URL if REDIS_URL else "memory://"),
     strategy="fixed-window-elastic-expiry",
     headers_enabled=True,
-    on_breach=lambda _: ({"error": "Rate limit exceeded", "status": 429}, 429),
-    request_filter=request_filter
+    on_breach=lambda _: ({"error": "Rate limit exceeded", "status": 429}, 429)
 )
+
+# Configure limiter to be disabled in test mode
+if DISABLE_RATE_LIMIT:
+    @limiter.request_filter
+    def limiter_disabled():
+        return True
 
 # Email sending
 mail = Mail()

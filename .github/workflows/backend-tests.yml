@@ -28,7 +28,7 @@ jobs:
           SENTRY_DSN: ""
           STRIPE_SECRET_KEY: "sk_test_dummy"
           STRIPE_WEBHOOK_SECRET: "whsec_dummy"
-        run: python -m pytest src/tests -q
+        run: python -m pytest src/tests -v
       - name: Upload coverage report
         uses: actions/upload-artifact@v4
         with:
