@@ -1,0 +1,61 @@
+import React from 'react';
+import { render, screen, fireEvent } from '@testing-library/react';
+import Empty from '../../components/Empty';
+
+describe('Empty component', () => {
+  test('renders with default props', () => {
+    render(<Empty />);
+    
+    // Should render the default title
+    expect(screen.getByText('No data found')).toBeInTheDocument();
+    
+    // Should render the default message
+    expect(screen.getByText('There are no items to display at this time.')).toBeInTheDocument();
+  });
+  
+  test('renders with custom title and message', () => {
+    const title = 'Custom Empty State';
+    const message = 'This is a custom empty state message';
+    
+    render(<Empty title={title} message={message} />);
+    
+    expect(screen.getByText(title)).toBeInTheDocument();
+    expect(screen.getByText(message)).toBeInTheDocument();
+  });
+  
+  test('renders action button when actionText and onActionClick are provided', () => {
+    const actionText = 'Add New Item';
+    const handleClick = jest.fn();
+    
+    render(<Empty actionText={actionText} onActionClick={handleClick} />);
+    
+    const actionButton = screen.getByText(actionText);
+    expect(actionButton).toBeInTheDocument();
+    
+    fireEvent.click(actionButton);
+    expect(handleClick).toHaveBeenCalledTimes(1);
+  });
+  
+  test('does not trigger action without onActionClick handler', () => {
+    const actionText = 'Add New Item';
+    
+    render(<Empty actionText={actionText} />);
+    
+    // Button should be rendered even without onActionClick
+    const button = screen.getByText(actionText);
+    expect(button).toBeInTheDocument();
+    
+    // But clicking it shouldn't cause errors
+    fireEvent.click(button);
+    // No assertion needed - we're just making sure it doesn't error
+  });
+  
+  test('does not render action button when only onActionClick is provided', () => {
+    const handleClick = jest.fn();
+    
+    render(<Empty onActionClick={handleClick} />);
+    
+    // There should be no button element since actionText is required
+    expect(screen.queryByRole('button')).not.toBeInTheDocument();
+  });
+});
