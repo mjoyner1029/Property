@@ -167,7 +167,7 @@ function Login() {
             </Typography>
           </Divider>
           
-          <Box component="form" onSubmit={handleSubmit} noValidate>
+                    <Box component="form" onSubmit={handleSubmit} sx={{ mt: 3 }}>
             <TextField
               margin="normal"
               required
@@ -178,8 +178,8 @@ function Login() {
               autoComplete="email"
               autoFocus
               value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              sx={{ mb: 2 }}
+              onChange={e => setEmail(e.target.value)}
+              inputProps={{ 'aria-label': 'email' }}
             />
             <TextField
               margin="normal"
@@ -192,6 +192,7 @@ function Login() {
               autoComplete="current-password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
+              inputProps={{ 'aria-label': 'password' }}
               sx={{ mb: 3 }}
             />
             <Button
@@ -208,7 +209,7 @@ function Login() {
                 boxShadow: '0 4px 10px rgba(37, 99, 235, 0.25)'
               }}
             >
-              {loading ? <CircularProgress size={24} /> : 'Sign In'}
+              {loading ? <CircularProgress size={24} /> : 'Log In'}
             </Button>
             
             <Grid container spacing={2} sx={{ mt: 1 }}>

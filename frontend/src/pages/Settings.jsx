@@ -10,7 +10,6 @@ import {
   Paper,
   Divider,
   Switch,
-  FormGroup,
   Alert,
   Snackbar,
   Grid
@@ -61,7 +60,7 @@ const Settings = () => {
   return (
     <Container maxWidth="md">
       <Box sx={{ py: 3 }}>
-        <Typography variant="h5" fontWeight={600} sx={{ mb: 3 }}>
+        <Typography variant="h5" fontWeight={600} sx={{ mb: 3 }} component="h1" role="heading" aria-level="1">
           Settings
         </Typography>
         
@@ -78,21 +77,25 @@ const Settings = () => {
             >
               <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
                 <NotificationsIcon sx={{ mr: 1, color: 'primary.main' }} />
-                <Typography variant="h6" fontWeight={600}>
+                <Typography variant="h6" fontWeight={600} component="h2" role="heading" aria-level="2">
                   Notification Preferences
                 </Typography>
               </Box>
               
-              <FormGroup>
+              <FormGroup role="group" aria-label="notification settings">
                 <FormControlLabel
                   control={
                     <Switch 
                       checked={emailNotifications} 
                       onChange={(e) => setEmailNotifications(e.target.checked)}
                       color="primary"
+                      aria-checked={emailNotifications}
+                      aria-label="email notifications"
+                      role="switch"
                     />
                   }
                   label="Email Notifications"
+                  data-testid="email-notifications"
                 />
                 <FormControlLabel
                   control={
@@ -100,9 +103,13 @@ const Settings = () => {
                       checked={smsNotifications} 
                       onChange={(e) => setSmsNotifications(e.target.checked)}
                       color="primary"
+                      aria-checked={smsNotifications}
+                      aria-label="sms notifications"
+                      role="switch"
                     />
                   }
                   label="SMS Notifications"
+                  data-testid="sms-notifications"
                 />
                 <FormControlLabel
                   control={
@@ -110,9 +117,13 @@ const Settings = () => {
                       checked={appNotifications} 
                       onChange={(e) => setAppNotifications(e.target.checked)}
                       color="primary"
+                      aria-checked={appNotifications}
+                      aria-label="app notifications"
+                      role="switch"
                     />
                   }
                   label="In-App Notifications"
+                  data-testid="app-notifications"
                 />
               </FormGroup>
               
@@ -121,6 +132,7 @@ const Settings = () => {
                   variant="contained" 
                   startIcon={<SaveIcon />}
                   sx={{ borderRadius: 2 }}
+                  aria-label="save preferences"
                 >
                   Save Preferences
                 </Button>
@@ -139,7 +151,7 @@ const Settings = () => {
             >
               <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
                 <SecurityIcon sx={{ mr: 1, color: 'primary.main' }} />
-                <Typography variant="h6" fontWeight={600}>
+                <Typography variant="h6" fontWeight={600} component="h2" role="heading" aria-level="2">
                   Security Settings
                 </Typography>
               </Box>
@@ -150,7 +162,7 @@ const Settings = () => {
                 </Alert>
               )}
               
-              <TextField
+                <TextField
                 fullWidth
                 type="password"
                 label="New Password"
@@ -158,12 +170,16 @@ const Settings = () => {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 margin="normal"
+                id="new-password"
+                aria-label="New Password"
+                inputProps={{
+                  'aria-label': 'New Password'
+                }}
                 InputProps={{
                   sx: { borderRadius: 2 }
                 }}
-              />
-              
-              <TextField
+                data-testid="new-password"
+              />              <TextField
                 fullWidth
                 type="password"
                 label="Confirm Password"
@@ -171,9 +187,15 @@ const Settings = () => {
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
                 margin="normal"
+                id="confirm-password"
+                aria-label="Confirm Password"
+                inputProps={{
+                  'aria-label': 'Confirm Password'
+                }}
                 InputProps={{
                   sx: { borderRadius: 2 }
                 }}
+                data-testid="confirm-password"
               />
               
               <Box sx={{ mt: 3 }}>
@@ -182,6 +204,7 @@ const Settings = () => {
                   onClick={handlePasswordChange}
                   disabled={!password || !confirmPassword}
                   sx={{ borderRadius: 2 }}
+                  aria-label="change password"
                 >
                   Change Password
                 </Button>
@@ -198,20 +221,27 @@ const Settings = () => {
                 borderRadius: 3
               }}
             >
-              <Typography variant="h6" fontWeight={600} sx={{ mb: 2 }}>
+              <Typography variant="h6" fontWeight={600} component="h2" role="heading" aria-level="2">
                 Appearance
               </Typography>
               
-              <FormControlLabel
-                control={
-                  <Switch 
-                    checked={darkMode} 
-                    onChange={(e) => setDarkMode(e.target.checked)}
-                    color="primary"
-                  />
-                }
-                label="Dark Mode"
-              />
+              <FormGroup role="group" aria-label="appearance settings">
+                <FormControlLabel
+                  control={
+                    <Switch 
+                      checked={darkMode} 
+                      onChange={(e) => setDarkMode(e.target.checked)}
+                      color="primary"
+                      aria-checked={darkMode}
+                      inputProps={{
+                        'aria-label': 'dark mode'
+                      }}
+                      role="switch"
+                    />
+                  }
+                  label="Dark Mode"
+                />
+              </FormGroup>
             </Paper>
           </Grid>
         </Grid>

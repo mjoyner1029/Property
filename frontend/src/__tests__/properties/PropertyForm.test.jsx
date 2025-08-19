@@ -58,11 +58,11 @@ describe('PropertyForm Component', () => {
 
     expect(mockUpdatePageTitle).toHaveBeenCalledWith('Add Property');
 
-    fireEvent.change(screen.getByTestId('input-name'), { target: { value: 'Loft 9' } });
-    fireEvent.change(screen.getByTestId('input-address'), { target: { value: '9 Elm' } });
-    fireEvent.change(screen.getByTestId('input-rent'), { target: { value: '3000' } });
+    fireEvent.change(screen.getByLabelText(/property name/i), { target: { value: 'Loft 9' } });
+    fireEvent.change(screen.getByLabelText(/property address/i), { target: { value: '9 Elm' } });
+    fireEvent.change(screen.getByLabelText(/property type/i), { target: { value: 'apartment' } });
 
-    const submitButton = screen.getByTestId('button-save');
+    const submitButton = screen.getByRole('button', { name: /save property details/i });
     fireEvent.click(submitButton);
 
     await waitFor(() => {
@@ -88,12 +88,12 @@ describe('PropertyForm Component', () => {
       </MemoryRouter>
     );
 
-    fireEvent.change(screen.getByTestId('input-name'), { target: { value: 'Loft 9' } });
-    fireEvent.change(screen.getByTestId('input-address'), { target: { value: '9 Elm' } });
-    fireEvent.change(screen.getByTestId('input-rent'), { target: { value: '3000' } });
+    fireEvent.change(screen.getByLabelText(/property name/i), { target: { value: 'Loft 9' } });
+    fireEvent.change(screen.getByLabelText(/property address/i), { target: { value: '9 Elm' } });
+    fireEvent.change(screen.getByLabelText(/property type/i), { target: { value: 'apartment' } });
 
     await act(async () => {
-      fireEvent.click(screen.getByTestId('button-save'));
+      fireEvent.click(screen.getByRole('button', { name: /save property details/i }));
     });
 
     await waitFor(() => {
@@ -115,12 +115,12 @@ describe('PropertyForm Component', () => {
     expect(mockCreateProperty).not.toHaveBeenCalled();
   });
 
-  test('handles rent as number', async () => {
+  test('handles details validation', async () => {
     mockCreateProperty.mockResolvedValue({
       id: 99,
       name: 'Loft 9',
       address: '9 Elm',
-      rent: 3000
+      type: 'apartment'
     });
 
     render(
@@ -129,12 +129,12 @@ describe('PropertyForm Component', () => {
       </MemoryRouter>
     );
 
-    fireEvent.change(screen.getByTestId('input-name'), { target: { value: 'Loft 9' } });
-    fireEvent.change(screen.getByTestId('input-address'), { target: { value: '9 Elm' } });
-    fireEvent.change(screen.getByTestId('input-rent'), { target: { value: '3000' } });
+    fireEvent.change(screen.getByLabelText(/property name/i), { target: { value: 'Loft 9' } });
+    fireEvent.change(screen.getByLabelText(/property address/i), { target: { value: '9 Elm' } });
+    fireEvent.change(screen.getByLabelText(/property type/i), { target: { value: 'apartment' } });
 
     await act(async () => {
-      fireEvent.click(screen.getByTestId('button-save'));
+      fireEvent.click(screen.getByRole('button', { name: /save property details/i }));
     });
 
     await waitFor(() => {

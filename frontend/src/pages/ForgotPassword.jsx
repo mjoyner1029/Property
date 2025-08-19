@@ -67,18 +67,24 @@ const ForgotPassword = () => {
           )}
 
           <Box component="form" onSubmit={handleSubmit} noValidate>
-            <TextField
+                        <TextField
               margin="normal"
               required
               fullWidth
               id="email"
-              label="Email Address"
+              label="Email"
               name="email"
               autoComplete="email"
               autoFocus
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               sx={{ mb: 2 }}
+              inputProps={{
+                'aria-label': 'email'
+              }}
+              inputLabelProps={{
+                'aria-label': 'email'
+              }}
             />
             
             <Button
@@ -87,13 +93,15 @@ const ForgotPassword = () => {
               variant="contained"
               color="primary"
               disabled={loading}
+              aria-label="reset password"
+              data-testid="button-save"
               sx={{ 
                 py: 1.5,
                 mb: 2,
                 borderRadius: 2
               }}
             >
-              {loading ? "Sending..." : "Send Reset Link"}
+              {loading ? "Sending..." : "Reset Password"}
             </Button>
             
             <Box sx={{ 

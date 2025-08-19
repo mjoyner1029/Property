@@ -86,6 +86,7 @@ function Register() {
               autoFocus
               value={formData.name}
               onChange={handleChange}
+              inputProps={{ 'aria-label': 'name' }}
               sx={{ mb: 2 }}
             />
             <TextField
@@ -98,6 +99,7 @@ function Register() {
               autoComplete="email"
               value={formData.email}
               onChange={handleChange}
+              inputProps={{ 'aria-label': 'email' }}
               sx={{ mb: 2 }}
             />
             <TextField
@@ -111,6 +113,7 @@ function Register() {
               autoComplete="new-password"
               value={formData.password}
               onChange={handleChange}
+              inputProps={{ 'aria-label': 'password' }}
               sx={{ mb: 2 }}
             />
             <TextField
@@ -123,6 +126,7 @@ function Register() {
               id="confirmPassword"
               value={formData.confirmPassword}
               onChange={handleChange}
+              inputProps={{ 'aria-label': 'confirm password' }}
               sx={{ mb: 3 }}
             />
 

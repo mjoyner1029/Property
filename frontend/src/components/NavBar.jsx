@@ -149,6 +149,8 @@ const NavBar = () => {
             color="inherit" 
             onClick={handleNotificationsOpen}
             sx={{ mx: 1 }}
+            data-testid="notification-icon"
+            aria-label="Show notifications"
           >
             <Badge badgeContent={3} color="error">
               <NotificationsIcon />
@@ -159,6 +161,9 @@ const NavBar = () => {
             color="inherit"
             onClick={handleMenuOpen}
             sx={{ ml: 1 }}
+            aria-label="Account of current user"
+            aria-controls="menu-appbar"
+            aria-haspopup="true"
           >
             {user?.avatar ? (
               <Avatar 
@@ -193,13 +198,8 @@ const NavBar = () => {
             Settings
           </MenuItem>
           <MenuItem 
-            component={Link} 
-            to="/support" 
-            onClick={handleMenuClose}
+            onClick={handleLogout}
           >
-            Support
-          </MenuItem>
-          <MenuItem onClick={handleLogout}>
             Logout
           </MenuItem>
         </Menu>

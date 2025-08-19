@@ -195,6 +195,10 @@ export default function PropertyForm() {
                       value={formData.name}
                       onChange={handleChange}
                       placeholder="E.g. Sunset Apartments"
+                      aria-label="Property name"
+                      inputProps={{
+                        'aria-label': 'Property name'
+                      }}
                       InputProps={{
                         sx: { borderRadius: 2 }
                       }}
@@ -208,6 +212,10 @@ export default function PropertyForm() {
                       name="type"
                       value={formData.type}
                       onChange={handleChange}
+                      aria-label="Property type"
+                      inputProps={{
+                        'aria-label': 'Property type'
+                      }}
                       InputProps={{
                         sx: { borderRadius: 2 }
                       }}
@@ -251,6 +259,10 @@ export default function PropertyForm() {
                       name="address"
                       value={formData.address}
                       onChange={handleChange}
+                      aria-label="Property address"
+                      inputProps={{
+                        'aria-label': 'Property address'
+                      }}
                       InputProps={{
                         sx: { borderRadius: 2 }
                       }}
@@ -434,6 +446,7 @@ export default function PropertyForm() {
                 fullWidth
                 startIcon={submitLoading ? null : <SaveIcon />}
                 disabled={submitLoading}
+                aria-label="Save property details"
                 sx={{ 
                   py: 1.5,
                   borderRadius: 2

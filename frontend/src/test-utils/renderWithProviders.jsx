@@ -3,6 +3,8 @@ import React from 'react';
 import { MemoryRouter } from 'react-router-dom';
 import { render } from '@testing-library/react';
 import axios from 'axios';
+import { ThemeProvider } from '@mui/material/styles';
+import theme from '../theme';
 import { AuthProvider } from '../context/AuthContext';
 import { PropertyProvider } from '../context/PropertyContext';
 import { AppProvider } from '../context/AppContext';
@@ -29,65 +31,30 @@ export function makeMockProvider(Context, value) {
   );
 }
 
+import { NotificationProvider } from '../context/NotificationContext';
+
 export function renderWithProviders(
   ui,
   { 
-    route = '/', 
-    initialEntries = [route], 
-    routerProps = {},
-    providerProps = {}, 
-    propertyValue,
-    appValue,
-    maintenanceValue,
-    paymentValue,
-    tenantValue,
-    providers = [], // Array of [Context, value] tuples for ad-hoc context injection
-    wrapper: OuterWrapper,
-    ...options 
+    route = '/',
+    ...renderOptions 
   } = {}
 ) {
-  window.history.pushState({}, 'Test page', route);
+  function Wrapper({ children }) {
+    return (
+      <MemoryRouter initialEntries={[route]}>
+        <ThemeProvider theme={theme}>
+          <AuthProvider>
+            <AppProvider>
+              <NotificationProvider>
+                {children}
+              </NotificationProvider>
+            </AppProvider>
+          </AuthProvider>
+        </ThemeProvider>
+      </MemoryRouter>
+    );
+  }
 
-  const AllProviders = ({ children }) => {
-    // Start with the component children
-    let tree = children;
-    
-    // If custom providers are specified, wrap the children with them in reverse order
-    // (so the first provider in the array is the outermost one)
-    if (providers.length > 0) {
-      tree = providers.reduceRight((acc, [Context, value]) => {
-        const ContextProvider = Context.Provider || Context;
-        return <ContextProvider value={value}>{acc}</ContextProvider>;
-      }, tree);
-    } else {
-      // Otherwise use the default providers
-      tree = (
-        <AuthProvider {...providerProps}>
-          <AppProvider {...(appValue && { value: appValue })}>
-            <PropertyProvider {...(propertyValue && { value: propertyValue })}>
-              <MaintenanceProvider {...(maintenanceValue && { value: maintenanceValue })}>
-                <PaymentProvider {...(paymentValue && { value: paymentValue })}>
-                  <TenantProvider {...(tenantValue && { value: tenantValue })}>
-                    {children}
-                  </TenantProvider>
-                </PaymentProvider>
-              </MaintenanceProvider>
-            </PropertyProvider>
-          </AppProvider>
-        </AuthProvider>
-      );
-    }
-    
-    // Always wrap in MemoryRouter
-    tree = <MemoryRouter initialEntries={initialEntries}>{tree}</MemoryRouter>;
-    
-    // Apply any outer wrapper if provided
-    if (OuterWrapper) {
-      tree = <OuterWrapper>{tree}</OuterWrapper>;
-    }
-    
-    return tree;
-  };
-
-  return render(ui, { wrapper: AllProviders, ...options });
+  return { ...render(ui, { wrapper: Wrapper, ...renderOptions }) };
 }
