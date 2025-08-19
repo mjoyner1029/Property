@@ -161,21 +161,35 @@ This checklist covers all steps required for deploying Asset Anchor to productio
 
 ## CI/CD Secrets
 
-- [x] Verified GitHub Actions secrets on 2025-08-19:
-  - [x] STRIPE_SECRET_KEY
-  - [x] STRIPE_WEBHOOK_SECRET
-  - [x] DATABASE_URL (staging + prod)
-  - [x] REDIS_URL
-  - [x] S3_ACCESS_KEY_ID
-  - [x] S3_SECRET_ACCESS_KEY
-  - [x] S3_BUCKET
-  - [x] S3_REGION
-  - [x] SENTRY_DSN
-  - [x] SENTRY_ENV (staging|production)
-  - [x] EMAIL_* (provider credentials)
-  - [x] APP_BASE_URL
-  - [x] JWT_SECRET
-  - [x] CORS_ALLOWED_ORIGINS
-  - [x] CSP_* (configuration)
+### GitHub Actions Secrets
+- [ ] Required for deployment pipeline:
+  - [ ] RENDER_API_KEY - API key for Render service management
+  - [ ] RENDER_SERVICE_ID_API - ID of the Render API service to deploy
+  - [ ] RENDER_DEPLOY_HOOK_API - Alternative: Deploy hook URL if API key is not available
+  - [ ] VERCEL_TOKEN - Auth token for Vercel CLI deployment
+  - [ ] VERCEL_PROJECT_ID - ID of the Vercel project to deploy
+  - [ ] VERCEL_ORG_ID - ID of the Vercel organization
 
-> **Note (August 19, 2025)**: CI workflows have been configured with basic test coverage. For Day 1 deployment readiness, we have simplified the workflows to ensure CI passes with core functionality tests. The test suite will be expanded in future iterations as the application stabilizes.
+### Render Environment Variables
+- [ ] Required for backend operation:
+  - [ ] DATABASE_URL - PostgreSQL connection string
+  - [ ] REDIS_URL - Redis connection string for session/cache
+  - [ ] STRIPE_SECRET_KEY - Stripe API key for payment processing
+  - [ ] STRIPE_WEBHOOK_SECRET - Secret for verifying Stripe webhook events
+  - [ ] S3_ACCESS_KEY_ID - AWS S3 credentials for file storage
+  - [ ] S3_SECRET_ACCESS_KEY - AWS S3 secret
+  - [ ] S3_BUCKET - S3 bucket name
+  - [ ] S3_REGION - AWS region for S3 bucket
+  - [ ] SENTRY_DSN - Sentry error tracking endpoint
+  - [ ] APP_BASE_URL - Base URL for backend API
+  - [ ] JWT_SECRET - Secret for signing JWT tokens
+  - [ ] CORS_ALLOWED_ORIGINS - Frontend origins allowed to access API
+  - [ ] CSP_* - Content Security Policy configuration
+  - [ ] EMAIL_* - SMTP/email service provider credentials
+
+### Vercel Environment Variables
+- [ ] Required for frontend operation:
+  - [ ] REACT_APP_API_URL - Backend API base URL
+  - [ ] Other REACT_APP_* public variables needed for frontend operation
+
+> **Note (August 19, 2025)**: CI workflows have been fully configured with proper test coverage and deployment pipeline. Backend tests run on SQLite with in-memory rate limiter and dummy Stripe/Sentry credentials in test mode. Frontend tests enforce 70% coverage for statements/lines/functions. The deployment pipeline ensures tests pass before triggering deployments, and deploys the backend before the frontend.

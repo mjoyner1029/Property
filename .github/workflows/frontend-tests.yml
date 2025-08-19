@@ -13,11 +13,17 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
-        with: { node-version: 20 }
+        with:
+          node-version: 20
+          cache: 'npm'
       - name: Install dependencies
         run: npm ci
-      - name: Run tests
-        run: npx react-scripts test BasicTests.test.jsx --watchAll=false --testTimeout=10000
-      # Skipping build and lighthouse for initial test pass
-      - name: Placeholder for build step
-        run: echo "Skipping build step for initial test pass"
+      - name: Run tests with coverage
+        run: npm run test:ci
+      - name: Build application
+        run: npm run build
+      - name: Upload coverage report
+        uses: actions/upload-artifact@v4
+        with:
+          name: frontend-coverage
+          path: frontend/coverage

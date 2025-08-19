@@ -1,6 +1,4 @@
-pytest==7.4.0
-pytest-mock==3.11.1
-pytest-cov==4.1.0
-requests-mock==1.11.0
-python-magic==0.4.27  # For file validation tests
-jq==1.6.0             # For JSON processing in tests
+pytest==8.2.2
+pytest-cov==5.0.0
+pytest-mock==3.14.0
+requests-mock==1.12.1
