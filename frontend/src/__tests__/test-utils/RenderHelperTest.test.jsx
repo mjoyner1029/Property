@@ -12,15 +12,16 @@ const TestConsumer = () => {
 };
 
 describe('renderWithProviders', () => {
-  test('renders with providers array', () => {
+  test('renders with providers array', async () => {
     renderWithProviders(<TestConsumer />, {
       providers: [[TestContext, { message: 'Hello from context' }]]
     });
 
+    await screen.findByTestId('test-value');
     expect(screen.getByTestId('test-value')).toHaveTextContent('Hello from context');
   });
 
-  test('renders with makeMockProvider', () => {
+  test('renders with makeMockProvider', async () => {
     const MockProvider = makeMockProvider(TestContext, { message: 'Hello from mock provider' });
     
     render(
@@ -29,6 +30,7 @@ describe('renderWithProviders', () => {
       </MockProvider>
     );
 
+    await screen.findByTestId('test-value');
     expect(screen.getByTestId('test-value')).toHaveTextContent('Hello from mock provider');
   });
 });
