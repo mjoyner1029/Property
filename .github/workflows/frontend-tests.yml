@@ -14,11 +14,13 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with: { node-version: 20 }
-      - run: npm ci
-      - name: Temporary test bypass for Day 1 deployment prep
-        run: echo "Skipping tests for initial deployment setup" && exit 0
-      # Will restore these tests after initial deployment setup
-      # - run: npm run test:ci
-      # - run: npm run build
-      # - run: npx serve -s build -l 3000 &
-      # - run: LH_URL=http://localhost:3000 npm run lh:ci
+      - name: Install dependencies
+        run: npm ci
+      - name: Run tests
+        run: npm run test:ci
+      - name: Build application
+        run: npm run build
+      - name: Start server for Lighthouse
+        run: npx serve -s build -l 3000 &
+      - name: Run Lighthouse checks
+        run: LH_URL=http://localhost:3000 npm run lh:ci

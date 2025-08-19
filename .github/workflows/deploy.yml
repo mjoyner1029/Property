@@ -7,9 +7,20 @@ jobs:
   wait-on-tests:
     runs-on: ubuntu-latest
     steps:
-      - name: Skip waiting for tests (temporary)
-        run: echo "Temporarily bypassing test dependencies"
-    # This job makes the workflow show up while required checks are configured in branch protection
+      - name: Wait for backend tests to succeed
+        uses: lewagon/wait-on-check-action@v1.3.1
+        with:
+          ref: ${{ github.ref }}
+          check-name: 'backend-tests'
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
+          wait-interval: 10
+      - name: Wait for frontend tests to succeed
+        uses: lewagon/wait-on-check-action@v1.3.1
+        with:
+          ref: ${{ github.ref }}
+          check-name: 'frontend-tests'
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
+          wait-interval: 10
 
   deploy-api:
     runs-on: ubuntu-latest
@@ -17,29 +28,34 @@ jobs:
     if: ${{ !contains(github.event.head_commit.message, '[skip deploy]') }}
     steps:
       - uses: actions/checkout@v4
-      - name: Temporary deploy bypass for Day 1 setup
-        run: echo "Skipping actual deployment for initial CI setup"
-      # We'll restore these steps after initial CI setup is working
-      # (A) Trigger Render migrations job
-      # - name: Run DB migrations job (Render)
-      #   env:
-      #     RENDER_API_KEY: ${{ secrets.RENDER_API_KEY }}
-      #     RENDER_JOB_ID_MIGRATIONS: ${{ secrets.RENDER_JOB_ID_MIGRATIONS }}
-      #   run: |
-      #     set -euo pipefail
-      #     RUN_JSON=$(curl -fsS -X POST \
-      #       "https://api.render.com/v1/jobs/${RENDER_JOB_ID_MIGRATIONS}/runs" \
-      #       -H "Authorization: Bearer ${RENDER_API_KEY}")
-      #     echo "$RUN_JSON"
-
-      # We'll restore these steps after initial CI setup is working
-      # (B) Deploy API service on Render
-      # - name: Deploy API to Render
-      #   id: deploy_api
-      #   env:
-      #     RENDER_API_KEY: ${{ secrets.RENDER_API_KEY }}
-      #     RENDER_SERVICE_ID_API: ${{ secrets.RENDER_SERVICE_ID_API }}
-      #   run: |
+      - name: Run DB migrations job (Render)
+        env:
+          RENDER_API_KEY: ${{ secrets.RENDER_API_KEY }}
+          RENDER_JOB_ID_MIGRATIONS: ${{ secrets.RENDER_JOB_ID_MIGRATIONS }}
+        run: |
+          set -euo pipefail
+          RUN_JSON=$(curl -fsS -X POST \
+            "https://api.render.com/v1/jobs/${RENDER_JOB_ID_MIGRATIONS}/runs" \
+            -H "Authorization: Bearer ${RENDER_API_KEY}")
+          echo "$RUN_JSON"
+      
+      - name: Wait for migrations to complete (30s)
+        run: sleep 30
+      
+      - name: Deploy API to Render
+        id: deploy_api
+        env:
+          RENDER_API_KEY: ${{ secrets.RENDER_API_KEY }}
+          RENDER_SERVICE_ID_API: ${{ secrets.RENDER_SERVICE_ID_API }}
+        run: |
+          set -euo pipefail
+          DEPLOY_JSON=$(curl -fsS -X POST \
+            "https://api.render.com/v1/services/${RENDER_SERVICE_ID_API}/deploys" \
+            -H "Authorization: Bearer ${RENDER_API_KEY}" \
+            -H "Content-Type: application/json" \
+            -d '{"clearCache":false}')
+          echo "$DEPLOY_JSON" | jq -r '.' || echo "$DEPLOY_JSON"
+          DEPLOY_ID=$(echo "$DEPLOY_JSON" | jq -r '.id' || echo "")
       #     set -euo pipefail
       #     DEPLOY_JSON=$(curl -fsS -X POST \
       #       "https://api.render.com/v1/services/${RENDER_SERVICE_ID_API}/deploys" \
@@ -94,17 +110,14 @@ jobs:
     if: ${{ !contains(github.event.head_commit.message, '[skip deploy]') }}
     steps:
       - uses: actions/checkout@v4
-      - name: Temporary deploy frontend bypass
-        run: echo "Skipping frontend deployment for initial CI setup"
-      # We'll restore these steps after initial CI setup is working
-      # - name: Use Node
-      #   uses: actions/setup-node@v4
-      #   with: { node-version: 20 }
-      # - name: Install & build
-      #   working-directory: frontend
-      #   run: |
-      #     npm ci
-      #     npm run build
+      - name: Use Node
+        uses: actions/setup-node@v4
+        with: { node-version: 20 }
+      - name: Install & build
+        working-directory: frontend
+        run: |
+          npm ci
+          npm run build
       # Vercel deploy (production)
       - name: Deploy to Vercel
         uses: amondnet/vercel-action@v25
@@ -112,5 +125,6 @@ jobs:
           vercel-token: ${{ secrets.VERCEL_TOKEN }}
           vercel-org-id: ${{ secrets.VERCEL_ORG_ID }}
           vercel-project-id: ${{ secrets.VERCEL_PROJECT_ID }}
+          vercel-args: '--prod'
           working-directory: ./frontend
           prod: true
