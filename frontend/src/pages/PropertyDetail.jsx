@@ -151,8 +151,14 @@ export default function PropertyDetail() {
 
   if (loading) {
     return (
-      <Box display="flex" justifyContent="center" alignItems="center" minHeight="80vh">
-        <CircularProgress />
+      <Box 
+        display="flex" 
+        justifyContent="center" 
+        alignItems="center" 
+        minHeight="80vh"
+        aria-label="Loading property details..."
+      >
+        <CircularProgress role="progressbar" aria-label="Loading property details..." />
       </Box>
     );
   }
@@ -459,7 +465,11 @@ export default function PropertyDetail() {
           { text: selectedProperty.name }
         ]}
         action={
-          <IconButton onClick={handleMenuOpen}>
+          <IconButton 
+            onClick={handleMenuOpen} 
+            data-testid="menu-button"
+            aria-label="open menu"
+          >
             <MoreVertIcon />
           </IconButton>
         }
@@ -564,6 +574,7 @@ export default function PropertyDetail() {
         anchorEl={menuAnchorEl}
         open={Boolean(menuAnchorEl)}
         onClose={handleMenuClose}
+        aria-label="Property actions"
         PaperProps={{
           elevation: 0,
           sx: {
@@ -573,11 +584,11 @@ export default function PropertyDetail() {
           }
         }}
       >
-        <MenuItem onClick={handleEditProperty}>
-          <EditIcon fontSize="small" sx={{ mr: 1 }} /> Edit Property
+        <MenuItem onClick={handleEditProperty} role="menuitem">
+          <EditIcon fontSize="small" sx={{ mr: 1 }} aria-hidden="true" /> Edit Property
         </MenuItem>
-        <MenuItem onClick={handleDeleteDialogOpen} sx={{ color: 'error.main' }}>
-          <DeleteIcon fontSize="small" sx={{ mr: 1 }} /> Delete Property
+        <MenuItem onClick={handleDeleteDialogOpen} sx={{ color: 'error.main' }} role="menuitem">
+          <DeleteIcon fontSize="small" sx={{ mr: 1 }} aria-hidden="true" /> Delete Property
         </MenuItem>
       </Menu>
 
@@ -607,6 +618,7 @@ export default function PropertyDetail() {
           <Button 
             onClick={handleDeleteDialogClose} 
             color="primary"
+            aria-label="Cancel deletion"
             sx={{ borderRadius: 2 }}
           >
             Cancel
@@ -615,6 +627,7 @@ export default function PropertyDetail() {
             onClick={handleDeleteProperty} 
             color="error"
             variant="contained"
+            aria-label="Confirm delete property"
             sx={{ borderRadius: 2 }}
           >
             Delete

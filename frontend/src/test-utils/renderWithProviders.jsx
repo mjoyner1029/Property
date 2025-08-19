@@ -47,7 +47,17 @@ export function renderWithProviders(
           <AuthProvider>
             <AppProvider>
               <NotificationProvider>
-                {children}
+                <PropertyProvider>
+                  <MaintenanceProvider>
+                    <PaymentProvider>
+                      <TenantProvider>
+                        <div>
+                          {children}
+                        </div>
+                      </TenantProvider>
+                    </PaymentProvider>
+                  </MaintenanceProvider>
+                </PropertyProvider>
               </NotificationProvider>
             </AppProvider>
           </AuthProvider>

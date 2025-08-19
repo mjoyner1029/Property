@@ -1,61 +1,187 @@
 import React from 'react';
-import { render, screen, waitFor, fireEvent } from '@testing-library/react';
-import { MemoryRouter, Routes, Route } from 'react-router-dom';
+import { screen, waitFor, fireEvent } from '@testing-library/react';
+import { renderWithProviders } from '../../test-utils/renderWithProviders';
 import PropertyDetail from '../../pages/PropertyDetail';
-import axios from 'axios';
-import api from '../../utils/api';
+import * as PropertyContext from '../../context/PropertyContext';
+import * as AppContext from '../../context/AppContext';
 
-jest.mock('../../utils/api');
+const mockNavigate = jest.fn();
+const mockParams = { id: '123' };
+const mockUpdatePageTitle = jest.fn();
+
+// Mock useNavigate and useParams
+jest.mock('react-router-dom', () => ({
+  ...jest.requireActual('react-router-dom'),
+  useNavigate: () => mockNavigate,
+  useParams: () => mockParams
+}));
+
+// Mock useApp
+jest.spyOn(AppContext, 'useApp').mockReturnValue({
+  updatePageTitle: mockUpdatePageTitle
+});
+
+// These will be used in our tests
+const mockPropertyData = {
+  id: 123,
+  name: 'Unit 123',
+  address: '77 Ocean Ave',
+  city: 'Newport',
+  state: 'RI',
+  zip_code: '02840',
+  type: 'Apartment',
+  units: [
+    { id: 1, unit_number: '101', rent: 2450, status: 'occupied', tenant_name: 'John Smith' }
+  ]
+};
+
+const defaultMockPropertyContext = {
+  selectedProperty: null,
+  loading: false,
+  error: null,
+  fetchPropertyById: jest.fn()
+};
+
+// Mock axios
 jest.mock('axios');
 
-describe('PropertyDetail', () => {
-  afterEach(() => {
-    jest.clearAllMocks();
-  });
+beforeEach(() => {
+  jest.clearAllMocks();
+  mockNavigate.mockReset();
+  mockUpdatePageTitle.mockReset();
 
+  // Reset API mock
+  axios.get.mockReset();
+  axios.post.mockReset();
+  axios.put.mockReset();
+  axios.delete.mockReset();
+
+  // Reset AppContext mock
+  jest.spyOn(AppContext, 'useApp').mockReturnValue({
+    updatePageTitle: mockUpdatePageTitle
+  });
+});
+
+describe('PropertyDetail', () => {
   test('renders details after fetch', async () => {
-    api.get.mockResolvedValueOnce({
-      data: { id: 123, name: 'Unit 123', address: '77 Ocean Ave', rent: 2450 }
+    // Mock API response
+    axios.get.mockResolvedValueOnce({ data: mockPropertyData });
+
+    const mockFetchPropertyById = jest.fn().mockResolvedValue(mockPropertyData);
+    const mockWithAuth = {
+      ...defaultMockPropertyContext,
+      selectedProperty: mockPropertyData,
+      fetchPropertyById: mockFetchPropertyById,
+      isAuthenticated: true
+    };
+    
+    jest.spyOn(PropertyContext, 'useProperty').mockReturnValue(mockWithAuth);
+
+    renderWithProviders(<PropertyDetail />, {
+      route: '/properties/123'
     });
 
-    render(
-      <MemoryRouter initialEntries={["/properties/123"]}>
-        <Routes>
-          <Route path="/properties/:id" element={<PropertyDetail />} />
-        </Routes>
-      </MemoryRouter>
-    );
+    // First verify that fetchPropertyById was called with the correct ID
+    await waitFor(() => {
+      expect(PropertyContext.useProperty().fetchPropertyById).toHaveBeenCalledWith(mockParams.id);
+    });
 
-    expect(await screen.findByText('Unit 123')).toBeInTheDocument();
-    expect(screen.getByText('77 Ocean Ave')).toBeInTheDocument();
-    expect(screen.getByText('2450')).toBeInTheDocument();
+    // Then check for the property details
+    expect(screen.getByText('Address')).toBeInTheDocument();
+    expect(screen.getByText(mockPropertyData.address)).toBeInTheDocument();
+    expect(screen.getByText(`${mockPropertyData.city}, ${mockPropertyData.state} ${mockPropertyData.zip_code}`)).toBeInTheDocument();
   });
 
   test('deletes property and navigates', async () => {
-    api.get.mockResolvedValueOnce({
-      data: { id: 123, name: 'Unit 123', address: '77 Ocean Ave', rent: 2450 }
+    // Mock API responses
+    axios.get.mockResolvedValueOnce({ data: mockPropertyData });
+    axios.delete.mockResolvedValueOnce({});
+
+    const mockFetchPropertyById = jest.fn().mockResolvedValue(mockPropertyData);
+    const mockDeleteProperty = jest.fn().mockResolvedValue(true);
+
+    jest.spyOn(PropertyContext, 'useProperty').mockReturnValue({
+      ...defaultMockPropertyContext,
+      selectedProperty: mockPropertyData,
+      fetchPropertyById: mockFetchPropertyById,
+      deleteProperty: mockDeleteProperty,
+      isAuthenticated: true,
+      selectedProperty: mockPropertyData,
+      fetchPropertyById: mockFetchPropertyById
     });
-    api.delete.mockResolvedValueOnce({ status: 204 });
 
-    const mockNavigate = jest.fn();
-    jest.mock('react-router-dom', () => ({
-      ...jest.requireActual('react-router-dom'),
-      useNavigate: () => mockNavigate
-    }));
+    renderWithProviders(<PropertyDetail />, {
+      route: '/properties/123'
+    });
 
-    render(
-      <MemoryRouter initialEntries={["/properties/123"]}>
-        <Routes>
-          <Route path="/properties/:id" element={<PropertyDetail />} />
-        </Routes>
-      </MemoryRouter>
-    );
-
-    fireEvent.click(await screen.findByText('Delete'));
-
+    // Wait for the property data to be displayed
     await waitFor(() => {
-      expect(api.delete).toHaveBeenCalledWith('/api/properties/123');
+      expect(screen.getByText(mockPropertyData.address)).toBeInTheDocument();
+    });
+
+    // Open the more menu
+    const menuButton = screen.getByRole('button', { name: /open menu/i });
+    fireEvent.click(menuButton);
+
+    // Find and click delete option in menu
+    const deleteButton = screen.getByRole('menuitem', { name: /delete property/i });
+    fireEvent.click(deleteButton);
+
+    // Confirm in the dialog
+    const confirmButton = screen.getByRole('button', { name: /delete/i });
+    fireEvent.click(confirmButton);
+
+    // Verify delete API was called
+    await waitFor(() => {
+      expect(axios.delete).toHaveBeenCalledWith(`/api/properties/${mockPropertyData.id}`);
+      expect(mockDeleteProperty).toHaveBeenCalledWith(mockPropertyData.id);
+    });
+
+    // Verify successful navigation
+    await waitFor(() => {
       expect(mockNavigate).toHaveBeenCalledWith('/properties');
     });
+  });
+
+  test('shows loading state', () => {
+    // Mock loading state with a pending fetch
+    const mockFetchPropertyById = jest.fn();
+    
+    jest.spyOn(PropertyContext, 'useProperty').mockReturnValue({
+      ...defaultMockPropertyContext,
+      loading: true,
+      selectedProperty: null,
+      fetchPropertyById: mockFetchPropertyById
+    });
+
+    renderWithProviders(<PropertyDetail />, {
+      route: '/properties/123'
+    });
+
+    // CircularProgress should be wrapped in a container div with aria-label
+    expect(screen.getByLabelText('Loading property details...')).toBeInTheDocument();
+    // The CircularProgress component itself should have role="progressbar"
+    expect(screen.getByRole('progressbar')).toBeInTheDocument();
+  });
+
+  test('shows error state', () => {
+    // Mock error state after failed fetch
+    const mockFetchPropertyById = jest.fn().mockRejectedValue(new Error('Failed to load property'));
+
+    jest.spyOn(PropertyContext, 'useProperty').mockReturnValue({
+      ...defaultMockPropertyContext,
+      error: 'Failed to load property',
+      selectedProperty: null,
+      fetchPropertyById: mockFetchPropertyById
+    });
+
+    renderWithProviders(<PropertyDetail />, {
+      route: '/properties/123'
+    });
+
+    // MUI Alert has role="alert"
+    const errorAlert = screen.getByRole('alert');
+    expect(errorAlert).toBeInTheDocument();
+    expect(errorAlert).toHaveTextContent('Failed to load property');
   });
 });
