@@ -17,7 +17,8 @@ const renderNavBar = (ui) => {
 describe('NavBarSimple Component', () => {
   const defaultLinks = [
     { path: '/dashboard', label: 'Dashboard' },
-    { path: '/properties', label: 'Properties' }
+    { path: '/properties', label: 'Properties' },
+    { path: '/settings', label: 'Settings' }
   ];
 
   test('renders title and navigation links', () => {
@@ -82,5 +83,35 @@ describe('NavBarSimple Component', () => {
     // In a real test this would check if navigation occurred
     // We're just verifying it doesn't crash when links are clicked
     expect(screen.getByTestId('nav-link-0')).toBeInTheDocument();
+  });
+  
+  test('applies additional custom styles', () => {
+    renderNavBar(
+      <NavBarSimple 
+        title="Custom Style NavBar" 
+        style={{ borderBottom: '2px solid white', fontSize: '1.2rem' }}
+      />
+    );
+    
+    const navbar = screen.getByTestId('navbar-simple');
+    expect(navbar).toHaveStyle({ 
+      borderBottom: '2px solid white',
+      fontSize: '1.2rem'
+    });
+  });
+  
+  test('renders correct number of links', () => {
+    renderNavBar(
+      <NavBarSimple title="Link Count Test" links={defaultLinks} />
+    );
+    
+    // There should be 3 links rendered
+    const links = screen.getAllByTestId(/^nav-link-/);
+    expect(links).toHaveLength(3);
+    
+    // Verify each link has the correct label
+    expect(links[0]).toHaveTextContent('Dashboard');
+    expect(links[1]).toHaveTextContent('Properties');
+    expect(links[2]).toHaveTextContent('Settings');
   });
 });
