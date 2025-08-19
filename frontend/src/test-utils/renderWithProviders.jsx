@@ -15,25 +15,48 @@ if (!axios.defaults) {
   axios.defaults = { headers: { common: {} } };
 }
 
-export function renderWithProviders(ui, { route = '/', initialEntries = [route], providerProps = {}, ...options } = {}) {
+export function renderWithProviders(
+  ui,
+  { 
+    route = '/', 
+    initialEntries = [route], 
+    providerProps = {}, 
+    propertyValue,
+    appValue,
+    maintenanceValue,
+    paymentValue,
+    tenantValue,
+    wrapper: OuterWrapper,
+    ...options 
+  } = {}
+) {
   window.history.pushState({}, 'Test page', route);
 
-  return render(
-    <MemoryRouter initialEntries={initialEntries}>
-      <AuthProvider {...providerProps}>
-        <AppProvider>
-          <PropertyProvider>
-            <MaintenanceProvider>
-              <PaymentProvider>
-                <TenantProvider>
-                  {ui}
-                </TenantProvider>
-              </PaymentProvider>
-            </MaintenanceProvider>
-          </PropertyProvider>
-        </AppProvider>
-      </AuthProvider>
-    </MemoryRouter>,
-    options
-  );
+  const AllProviders = ({ children }) => {
+    let tree = (
+      <MemoryRouter initialEntries={initialEntries}>
+        <AuthProvider {...providerProps}>
+          <AppProvider {...(appValue && { value: appValue })}>
+            <PropertyProvider {...(propertyValue && { value: propertyValue })}>
+              <MaintenanceProvider {...(maintenanceValue && { value: maintenanceValue })}>
+                <PaymentProvider {...(paymentValue && { value: paymentValue })}>
+                  <TenantProvider {...(tenantValue && { value: tenantValue })}>
+                    {children}
+                  </TenantProvider>
+                </PaymentProvider>
+              </MaintenanceProvider>
+            </PropertyProvider>
+          </AppProvider>
+        </AuthProvider>
+      </MemoryRouter>
+    );
+    
+    if (OuterWrapper) {
+      tree = <OuterWrapper>{tree}</OuterWrapper>;
+    }
+    
+    return tree;
+  };
+
+  return render(ui, { wrapper: AllProviders, ...options });
 }

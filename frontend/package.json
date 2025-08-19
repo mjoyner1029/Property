@@ -49,6 +49,10 @@
         "lines": 70,
         "statements": 70
       }
+    },
+    "moduleNameMapper": {
+      "@heroicons/(.*)$": "<rootDir>/src/test-utils/heroicons-stub.js",
+      "\\.(css|less|sass|scss)$": "<rootDir>/src/test-utils/style-mock.js"
     }
   },
   "eslintConfig": {

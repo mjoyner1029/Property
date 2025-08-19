@@ -5,10 +5,29 @@ import { renderWithProviders } from '../test-utils/renderWithProviders';
 import Settings from '../pages/Settings';
 import axios from 'axios';
 
-// Temporarily skip all tests in this file
+// Tests for the Settings component
 describe('Settings Component', () => {
-  // Mock axios
-  // jest.mock('axios');
+  // Mock axios for API calls
+  jest.mock('axios');
+
+  // Mock localStorage
+  const mockLocalStorage = (() => {
+    let store = {};
+    return {
+      getItem: jest.fn(key => store[key]),
+      setItem: jest.fn((key, value) => {
+        store[key] = value;
+      }),
+      clear: jest.fn(() => {
+        store = {};
+      }),
+      removeItem: jest.fn(key => {
+        delete store[key];
+      })
+    };
+  })();
+  
+  Object.defineProperty(window, 'localStorage', { value: mockLocalStorage });
 
   // Mock react-router-dom
   jest.mock('react-router-dom', () => ({
@@ -38,7 +57,7 @@ describe('Settings Component', () => {
     jest.clearAllMocks();
   });
 
-  test.skip('renders loading state initially', () => {
+  test('renders loading state initially', () => {
     // Mock auth context with loading state
     const authContextValue = {
       currentUser: null,
@@ -53,7 +72,7 @@ describe('Settings Component', () => {
     expect(true).toBe(true);
   });
 
-  test.skip('renders settings form', async () => {
+  test('renders settings form', async () => {
     // Mock auth context with user data
     const authContextValue = {
       currentUser: mockUser,
@@ -65,7 +84,7 @@ describe('Settings Component', () => {
     
     // Wait for settings form to load
     await waitFor(() => {
-      expect(screen.getByText(/settings/i)).toBeInTheDocument();
+      expect(screen.getByText(/^Settings$/)).toBeInTheDocument();
     });
     
     // Check for notification settings
@@ -128,7 +147,7 @@ describe('Settings Component', () => {
     await userEvent.click(saveButton);
   });
 
-  test.skip('shows error on invalid password change', async () => {
+  test('shows error on invalid password change', async () => {
     // Mock auth context with user data
     const authContextValue = {
       currentUser: mockUser,
@@ -158,7 +177,7 @@ describe('Settings Component', () => {
     expect(true).toBe(true);
   });
 
-  test.skip('shows success message when password is changed correctly', async () => {
+  test('shows success message when password is changed correctly', async () => {
     // Mock auth context with user data
     const authContextValue = {
       currentUser: mockUser,
