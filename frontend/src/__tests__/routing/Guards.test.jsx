@@ -87,7 +87,7 @@ describe("Routing guards", () => {
     );
 
     // The RoleRoute component will redirect to /unauthorized
-    expect(await screen.findByText(/unauthorized/i)).toBeInTheDocument();
+    expect(await screen.findByText("Unauthorized Access")).toBeInTheDocument();
     expect(screen.queryByText(/admin panel/i)).not.toBeInTheDocument();
   });
 

@@ -7,8 +7,8 @@ jobs:
   wait-on-tests:
     runs-on: ubuntu-latest
     steps:
-      - name: Wait for tests
-        uses: leonsteinhaeuser/project-beta-automations@v2 # placeholder step (no-op)
+      - name: Skip waiting for tests (temporary)
+        run: echo "Temporarily bypassing test dependencies"
     # This job makes the workflow show up while required checks are configured in branch protection
 
   deploy-api:
