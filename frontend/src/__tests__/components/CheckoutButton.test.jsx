@@ -83,4 +83,38 @@ describe('CheckoutButton Component', () => {
     const button = screen.getByTestId('checkout-button');
     expect(button.className).toContain('custom-class');
   });
+
+  // New test for uncovered branch - invalid variant fallback
+  test('uses primary variant when invalid variant is provided', () => {
+    render(<CheckoutButton onClick={() => {}} variant="invalid" />);
+    
+    const button = screen.getByTestId('checkout-button');
+    // Should fallback to primary styles
+    expect(button.className).toContain('bg-blue-600');
+  });
+
+  // New test for disabled/loading click behavior
+  test('does not call onClick when disabled', async () => {
+    const handleClick = jest.fn();
+    const user = userEvent.setup();
+    
+    render(<CheckoutButton onClick={handleClick} disabled={true} />);
+    
+    const button = screen.getByTestId('checkout-button');
+    await user.click(button);
+    
+    expect(handleClick).not.toHaveBeenCalled();
+  });
+
+  test('does not call onClick when loading', async () => {
+    const handleClick = jest.fn();
+    const user = userEvent.setup();
+    
+    render(<CheckoutButton onClick={handleClick} isLoading={true} />);
+    
+    const button = screen.getByTestId('checkout-button');
+    await user.click(button);
+    
+    expect(handleClick).not.toHaveBeenCalled();
+  });
 });
