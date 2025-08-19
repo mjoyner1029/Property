@@ -137,19 +137,18 @@ describe('TenantDetail', () => {
     });
 
     // Try to update
-    const editButton = screen.getByRole('button', { name: /edit/i });
+    const editButton = await screen.findByRole('button', { name: /edit/i });
     await userEvent.click(editButton);
 
-    const nameInput = screen.getByLabelText(/name/i);
+    const nameInput = await screen.findByLabelText(/name/i);
     await userEvent.clear(nameInput);
     await userEvent.type(nameInput, 'New Name');
 
-    const saveButton = screen.getByRole('button', { name: /save/i });
+    const saveButton = await screen.findByRole('button', { name: /save/i });
     await userEvent.click(saveButton);
 
-    // Check for error message
-    await waitFor(() => {
-      expect(screen.getByText(/failed to update tenant/i)).toBeInTheDocument();
-    });
+    // Check for error message using findByText instead of getByText
+    const errorMessage = await screen.findByText(/failed to update tenant/i);
+    expect(errorMessage).toBeInTheDocument();
   });
 });
