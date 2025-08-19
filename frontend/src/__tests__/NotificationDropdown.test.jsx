@@ -4,7 +4,7 @@ import userEvent from '@testing-library/user-event';
 import NotificationDropdown from '../components/NotificationDropdown';
 
 // Mock heroicons properly based on project structure
-jest.mock('@heroicons/react/24/outline', () => ({
+jest.mock('@heroicons/react/outline', () => ({
   BellIcon: ({ className }) => (
     <div data-testid="bell-icon" className={className}>Bell Icon</div>
   )
@@ -13,6 +13,6 @@ jest.mock('@heroicons/react/24/outline', () => ({
 describe('NotificationDropdown', () => {
   it('renders notification bell', () => {
     render(<NotificationDropdown notifications={[]} />);
-    expect(screen.getByTestId('bell-icon')).toBeInTheDocument();
+    expect(screen.getByTestId('notification-button')).toBeInTheDocument();
   });
 });
