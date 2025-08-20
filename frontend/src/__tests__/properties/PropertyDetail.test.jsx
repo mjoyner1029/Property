@@ -4,11 +4,6 @@ import { renderWithProviders } from '../../test-utils/renderWithProviders';
 import PropertyDetail from '../../pages/PropertyDetail';
 import * as PropertyContext from '../../context/PropertyContext';
 import * as AppContext from '../../context/AppContext';
-import { withLocalStorage } from '../../test-utils/mockLocalStorage';
-import { resetAxios } from '../../test-utils/mockApiRoutes';
-
-// Unmock PropertyContext for this test file
-jest.unmock('../../context/PropertyContext');
 
 const mockNavigate = jest.fn();
 const mockParams = { id: '123' };
@@ -47,28 +42,19 @@ const defaultMockPropertyContext = {
   fetchPropertyById: jest.fn()
 };
 
-// Import axios instead of mocking it directly
-import axios from 'axios';
+// Mock axios
+jest.mock('axios');
 
 beforeEach(() => {
   jest.clearAllMocks();
   mockNavigate.mockReset();
   mockUpdatePageTitle.mockReset();
-  
-  // Setup localStorage
-  withLocalStorage();
 
-  // Configure axios mocks
-  jest.spyOn(axios, 'get').mockImplementation((url) => {
-    if (url.includes(`/api/properties/${mockParams.id}`)) {
-      return Promise.resolve({ data: mockPropertyData });
-    }
-    return Promise.resolve({ data: {} });
-  });
-  
-  jest.spyOn(axios, 'delete').mockImplementation(() => {
-    return Promise.resolve({});
-  });
+  // Reset API mock
+  axios.get.mockReset();
+  axios.post.mockReset();
+  axios.put.mockReset();
+  axios.delete.mockReset();
 
   // Reset AppContext mock
   jest.spyOn(AppContext, 'useApp').mockReturnValue({

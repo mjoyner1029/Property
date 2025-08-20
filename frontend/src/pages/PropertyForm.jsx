@@ -202,7 +202,6 @@ export default function PropertyForm() {
                       InputProps={{
                         sx: { borderRadius: 2 }
                       }}
-                      data-testid="property-name-input"
                     />
                   </Grid>
                   <Grid item xs={12}>
@@ -267,7 +266,6 @@ export default function PropertyForm() {
                       InputProps={{
                         sx: { borderRadius: 2 }
                       }}
-                      data-testid="property-address-input"
                     />
                   </Grid>
                   <Grid item xs={12} sm={6}>

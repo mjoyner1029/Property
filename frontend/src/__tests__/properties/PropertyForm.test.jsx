@@ -1,10 +1,9 @@
 import React from 'react';
 import { render, screen, fireEvent, waitFor, act } from '@testing-library/react';
-import userEvent from '@testing-library/user-event';
+import { MemoryRouter } from 'react-router-dom';
 import PropertyForm from '../../pages/PropertyForm';
-import { renderWithProviders } from '../../test-utils/renderWithProviders';
-import { withLocalStorage } from '../../test-utils/mockLocalStorage';
-import axios from 'axios';
+import { useProperty } from '../../context/PropertyContext';
+import { useApp } from '../../context/AppContext';
 
 // Mock navigate function
 const mockNavigate = jest.fn();
@@ -16,174 +15,134 @@ jest.mock('react-router-dom', () => ({
   useParams: () => ({})
 }));
 
-describe('PropertyForm Component', () => {
-  // Define mock property data
-  const mockProperty = {
-    id: 99,
-    name: 'Loft 9',
-    address: '9 Elm',
-    type: 'apartment',
-    rent: '3000'
-  };
+// Mock context hooks
+const mockCreateProperty = jest.fn();
+const mockUpdateProperty = jest.fn();
+const mockFetchPropertyById = jest.fn();
+const mockUpdatePageTitle = jest.fn();
 
+jest.mock('../../context/PropertyContext');
+jest.mock('../../context/AppContext');
+
+describe('PropertyForm Component', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    withLocalStorage();
-    
-    // Setup axios mock responses
-    axios.post.mockImplementation((url) => {
-      if (url.includes('/api/properties')) {
-        return Promise.resolve({ data: mockProperty });
-      }
-      return Promise.resolve({ data: {} });
+
+    useProperty.mockReturnValue({
+      selectedProperty: null,
+      loading: false,
+      error: null,
+      createProperty: mockCreateProperty,
+      updateProperty: mockUpdateProperty,
+      fetchPropertyById: mockFetchPropertyById
     });
-    
-    axios.put.mockImplementation((url) => {
-      if (url.includes('/api/properties')) {
-        return Promise.resolve({ data: mockProperty });
-      }
-      return Promise.resolve({ data: {} });
+
+    useApp.mockReturnValue({
+      updatePageTitle: mockUpdatePageTitle
     });
   });
 
   test('creates a property successfully', async () => {
-    // Setup auth context
-    const authValue = {
-      isAuthenticated: true,
-      user: { role: 'admin', first_name: 'Admin', last_name: 'User' },
-      logout: jest.fn()
-    };
-    
-    // Setup property context
-    const propertyValue = {
-      properties: [],
-      loading: false,
-      error: null,
-      fetchProperties: jest.fn(),
-      createProperty: jest.fn().mockResolvedValue(mockProperty),
-      updateProperty: jest.fn().mockResolvedValue(mockProperty),
-      deleteProperty: jest.fn(),
-      fetchPropertyById: jest.fn()
-    };
-    
-    renderWithProviders(<PropertyForm />, {
-      authValue: authValue,
-      propertyValue: propertyValue
+    mockCreateProperty.mockResolvedValue({
+      id: 99,
+      name: 'Loft 9',
+      address: '9 Elm',
+      rent: 3000
     });
 
-    // Fill in the form fields using data-testid
-    await act(async () => {
-      const nameField = screen.getByTestId('property-name-input');
-      const addressField = screen.getByTestId('property-address-input');
-      
-      await userEvent.type(nameField, 'Loft 9');
-      await userEvent.type(addressField, '9 Elm');
-    });
-    
-    // Submit the form
-    const submitButton = screen.getByRole('button', { name: /save property details/i }) || 
-                         screen.getByText(/save property details/i);
-    await act(async () => {
-      fireEvent.click(submitButton);
-    });
+    render(
+      <MemoryRouter>
+        <PropertyForm />
+      </MemoryRouter>
+    );
 
-    // Verify API was called and navigation occurred
+    expect(mockUpdatePageTitle).toHaveBeenCalledWith('Add Property');
+
+    fireEvent.change(screen.getByLabelText(/property name/i), { target: { value: 'Loft 9' } });
+    fireEvent.change(screen.getByLabelText(/property address/i), { target: { value: '9 Elm' } });
+    fireEvent.change(screen.getByLabelText(/property type/i), { target: { value: 'apartment' } });
+
+    const submitButton = screen.getByRole('button', { name: /save property details/i });
+    fireEvent.click(submitButton);
+
     await waitFor(() => {
-      expect(axios.post).toHaveBeenCalled();
+      expect(mockCreateProperty).toHaveBeenCalledWith(
+        expect.objectContaining({
+          name: 'Loft 9',
+          address: '9 Elm',
+          rent: '3000'
+        })
+      );
       expect(mockNavigate).toHaveBeenCalledWith('/properties');
     });
   });
 
   test('shows server error from API (500)', async () => {
-    // Override axios for this specific test case
     const apiError = new Error('Server error');
     apiError.response = { status: 500, data: { message: 'Server error' } };
-    axios.post.mockRejectedValueOnce(apiError);
-    
-    // Setup auth context
-    const authValue = {
-      isAuthenticated: true,
-      user: { role: 'admin', first_name: 'Admin', last_name: 'User' },
-      logout: jest.fn()
-    };
-    
-    // Setup property context
-    const propertyValue = {
-      properties: [],
-      loading: false,
-      error: null,
-      fetchProperties: jest.fn(),
-      createProperty: jest.fn().mockRejectedValue(apiError),
-      updateProperty: jest.fn(),
-      deleteProperty: jest.fn(),
-      fetchPropertyById: jest.fn()
-    };
-    
-    renderWithProviders(<PropertyForm />, {
-      authValue: authValue,
-      propertyValue: propertyValue
+    mockCreateProperty.mockRejectedValue(apiError);
+
+    render(
+      <MemoryRouter>
+        <PropertyForm />
+      </MemoryRouter>
+    );
+
+    fireEvent.change(screen.getByLabelText(/property name/i), { target: { value: 'Loft 9' } });
+    fireEvent.change(screen.getByLabelText(/property address/i), { target: { value: '9 Elm' } });
+    fireEvent.change(screen.getByLabelText(/property type/i), { target: { value: 'apartment' } });
+
+    await act(async () => {
+      fireEvent.click(screen.getByRole('button', { name: /save property details/i }));
     });
 
-    // Fill in the form fields using data-testid
-    await act(async () => {
-      const nameField = screen.getByTestId('property-name-input');
-      const addressField = screen.getByTestId('property-address-input');
-      
-      await userEvent.type(nameField, 'Loft 9');
-      await userEvent.type(addressField, '9 Elm');
-    });
-    
-    // Submit the form
-    const submitButton = screen.getByRole('button', { name: /save property details/i }) || 
-                         screen.getByText(/save property details/i);
-    await act(async () => {
-      fireEvent.click(submitButton);
-    });
-
-    // Check for error message - use a more generic pattern
     await waitFor(() => {
-      expect(screen.getByText(/failed|error|failed to save property/i)).toBeInTheDocument();
+      expect(screen.getByTestId('alert-error')).toBeInTheDocument();
     });
   });
 
-  // Skip this test temporarily while resolving selectors
-  test.skip('client validation prevents submit when required fields are missing', async () => {
-    render(<PropertyForm />, { wrapper: renderWithProviders });
-    
-    // Submit without filling any fields
-    const submitButton = screen.getByRole('button', { name: /save property details/i }) ||
-                         screen.getByText(/save property details/i);
+  test('client validation prevents submit when required fields are missing', async () => {
+    render(
+      <MemoryRouter>
+        <PropertyForm />
+      </MemoryRouter>
+    );
+
     await act(async () => {
-      fireEvent.click(submitButton);
+      fireEvent.click(screen.getByTestId('button-save'));
     });
-    
-    // API shouldn't have been called
-    await waitFor(() => {
-      expect(axios.post).not.toHaveBeenCalled();
-    });
+
+    expect(mockCreateProperty).not.toHaveBeenCalled();
   });
 
-  test.skip('handles details validation', async () => {
-    render(<PropertyForm />, { wrapper: renderWithProviders });
-    
-    // Fill required fields
-    await act(async () => {
-      const nameField = screen.getByLabelText(/property name/i) || screen.getByPlaceholderText(/e.g. sunset apartments/i);
-      const addressField = screen.getByLabelText(/street address/i);
-      fireEvent.change(nameField, { target: { value: 'Loft 9' } });
-      fireEvent.change(addressField, { target: { value: '9 Elm' } });
+  test('handles details validation', async () => {
+    mockCreateProperty.mockResolvedValue({
+      id: 99,
+      name: 'Loft 9',
+      address: '9 Elm',
+      type: 'apartment'
     });
-    
-    // Submit the form
-    const submitButton = screen.getByRole('button', { name: /save property details/i }) ||
-                         screen.getByText(/save property details/i);
+
+    render(
+      <MemoryRouter>
+        <PropertyForm />
+      </MemoryRouter>
+    );
+
+    fireEvent.change(screen.getByLabelText(/property name/i), { target: { value: 'Loft 9' } });
+    fireEvent.change(screen.getByLabelText(/property address/i), { target: { value: '9 Elm' } });
+    fireEvent.change(screen.getByLabelText(/property type/i), { target: { value: 'apartment' } });
+
     await act(async () => {
-      fireEvent.click(submitButton);
+      fireEvent.click(screen.getByRole('button', { name: /save property details/i }));
     });
-    
-    // Verify API was called with valid data
+
     await waitFor(() => {
-      expect(axios.post).toHaveBeenCalled();
+      expect(mockCreateProperty).toHaveBeenCalledWith(
+        expect.objectContaining({
+          rent: '3000'
+        })
+      );
     });
   });
 });

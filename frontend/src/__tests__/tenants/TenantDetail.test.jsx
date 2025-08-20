@@ -30,47 +30,12 @@ describe('TenantDetail', () => {
         status: 'active'
       }
     });
-    
-    // Setup mock auth context data
-    const authValue = {
-      isAuthenticated: true,
-      user: { role: 'admin', first_name: 'Admin', last_name: 'User' },
-      logout: jest.fn()
-    };
-    
-    // Setup mock tenant context data
-    const tenantValue = {
-      tenants: [{
-        id: 1,
-        name: 'Alice',
-        email: 'alice@example.com',
-        phone: '555-1234',
-        status: 'active'
-      }],
-      loading: false,
-      error: null,
-      fetchTenants: jest.fn(),
-      getTenant: jest.fn().mockResolvedValue({
-        id: 1,
-        name: 'Alice',
-        email: 'alice@example.com',
-        phone: '555-1234',
-        status: 'active'
-      }),
-      createTenant: jest.fn(),
-      updateTenant: jest.fn(),
-      deleteTenant: jest.fn()
-    };
 
     renderWithProviders(
       <Routes>
         <Route path="/tenants/:id" element={<TenantDetail />} />
       </Routes>,
-      { 
-        route: '/tenants/1',
-        authValue: authValue,
-        tenantValue: tenantValue
-      }
+      { route: '/tenants/1' }
     );
 
     // Wait for and verify tenant data
@@ -172,18 +137,19 @@ describe('TenantDetail', () => {
     });
 
     // Try to update
-    const editButton = await screen.findByRole('button', { name: /edit/i });
+    const editButton = screen.getByRole('button', { name: /edit/i });
     await userEvent.click(editButton);
 
-    const nameInput = await screen.findByLabelText(/name/i);
+    const nameInput = screen.getByLabelText(/name/i);
     await userEvent.clear(nameInput);
     await userEvent.type(nameInput, 'New Name');
 
-    const saveButton = await screen.findByRole('button', { name: /save/i });
+    const saveButton = screen.getByRole('button', { name: /save/i });
     await userEvent.click(saveButton);
 
-    // Check for error message using findByText instead of getByText
-    const errorMessage = await screen.findByText(/failed to update tenant/i);
-    expect(errorMessage).toBeInTheDocument();
+    // Check for error message
+    await waitFor(() => {
+      expect(screen.getByText(/failed to update tenant/i)).toBeInTheDocument();
+    });
   });
 });

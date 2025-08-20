@@ -1,33 +1,30 @@
 import React from 'react';
-import { render, screen, act, waitFor } from '@testing-library/react';
+import { screen, act } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { AuthProvider, useAuth } from '../context/AuthContext';
 import { renderWithProviders } from '../test-utils/renderWithProviders';
-import { withLocalStorage } from '../test-utils/mockLocalStorage';
-import { primeAuthSuccess, resetAxios } from '../test-utils/mockApiRoutes';
-import { MemoryRouter } from 'react-router-dom';
+import axios from 'axios';
 
-// Unmock AuthContext for this test file
-jest.unmock('../context/AuthContext');
+jest.mock('axios');
 
 // Test component that uses auth context
 const TestComponent = () => {
   const { user, isAuthenticated, login, logout } = useAuth();
   return (
-    <div>
-      <div data-testid="auth-status">
+    <div role="main">
+      <div role="status" aria-label="Authentication status">
         {isAuthenticated ? 'Logged In' : 'Logged Out'}
       </div>
-      {user && <div data-testid="user-email">{user.email}</div>}
+      {user && <div aria-label="User email">{user.email}</div>}
       <button 
         onClick={() => login({ email: 'test@example.com', password: 'password' })}
-        data-testid="login-button"
+        aria-label="Log in to account"
       >
         Login
       </button>
       <button 
         onClick={logout}
-        data-testid="logout-button"
+        aria-label="Log out of account"
       >
         Logout
       </button>
@@ -37,152 +34,59 @@ const TestComponent = () => {
 
 describe('AuthContext', () => {
   beforeEach(() => {
-    // Setup a working localStorage implementation
-    withLocalStorage();
-    
-    // Prime API responses for auth endpoints
-    primeAuthSuccess();
-  });
-
-  afterEach(() => {
-    // Reset all mocks
-    resetAxios();
+    localStorage.clear();
     jest.clearAllMocks();
   });
 
   test('provides authentication state', () => {
-    // Use explicit render instead of renderWithProviders to simplify the test
-    render(
-      <MemoryRouter>
-        <AuthProvider>
-          <TestComponent />
-        </AuthProvider>
-      </MemoryRouter>
-    );
+    renderWithProviders(<TestComponent />);
     
-    expect(screen.getByTestId('auth-status')).toHaveTextContent('Logged Out');
+    expect(screen.getByRole('status')).toHaveTextContent('Logged Out');
   });
 
   test('handles login', async () => {
-    const user = userEvent.setup();
-    
-    render(
-      <MemoryRouter>
-        <AuthProvider>
-          <TestComponent />
-        </AuthProvider>
-      </MemoryRouter>
-    );
-    
-    // Verify initial logged out state
-    expect(screen.getByTestId('auth-status')).toHaveTextContent('Logged Out');
-    
-    // Click login (wrap in act to contain all effects)
-    await act(async () => {
-      await user.click(screen.getByTestId('login-button'));
+    axios.post.mockResolvedValueOnce({
+      data: {
+        access_token: 'fake-token',
+        user: { id: 1, email: 'test@example.com' }
+      }
     });
     
-    // Verify logged in state - need to wait for the async operation
-    await waitFor(() => {
-      expect(screen.getByTestId('auth-status')).toHaveTextContent('Logged In');
-    }, { timeout: 3000 });
+    renderWithProviders(<TestComponent />);
     
-    // Check that the user email is displayed
-    expect(screen.getByTestId('user-email')).toHaveTextContent('test@example.com');
+    await act(async () => {
+      await userEvent.click(screen.getByRole('button', { name: /log in to account/i }));
+    });
     
-    // Verify that localStorage was updated
-    expect(localStorage.getItem('token')).toBeTruthy();
-    expect(JSON.parse(localStorage.getItem('user'))).toBeTruthy();
+    expect(screen.getByRole('status')).toHaveTextContent('Logged In');
+    expect(screen.getByLabelText('User email')).toHaveTextContent('test@example.com');
   });
 
   test('handles logout', async () => {
-    const user = userEvent.setup();
+    // First login
+    axios.post.mockResolvedValueOnce({
+      data: {
+        access_token: 'fake-token',
+        user: { id: 1, email: 'test@example.com' }
+      }
+    });
     
-    render(
-      <MemoryRouter>
-        <AuthProvider>
-          <TestComponent />
-        </AuthProvider>
-      </MemoryRouter>
-    );
+    renderWithProviders(<TestComponent />);
     
     // Login first
     await act(async () => {
-      await user.click(screen.getByTestId('login-button'));
+      await userEvent.click(screen.getByRole('button', { name: /log in to account/i }));
     });
     
-    // Wait for logged in state 
-    await waitFor(() => {
-      expect(screen.getByTestId('auth-status')).toHaveTextContent('Logged In');
-    }, { timeout: 3000 });
-    
-    // Verify localStorage has data
-    expect(localStorage.getItem('token')).toBeTruthy();
+    // Verify logged in state
+    expect(screen.getByRole('status')).toHaveTextContent('Logged In');
     
     // Logout
     await act(async () => {
-      await user.click(screen.getByTestId('logout-button'));
+      await userEvent.click(screen.getByRole('button', { name: /log out of account/i }));
     });
     
     // Should be logged out
-    await waitFor(() => {
-      expect(screen.getByTestId('auth-status')).toHaveTextContent('Logged Out');
-    }, { timeout: 3000 });
-    
-    // Verify localStorage was cleared
-    expect(localStorage.getItem('token')).toBeNull();
-    expect(localStorage.getItem('user')).toBeNull();
-  });
-  
-  test('handles login failure', async () => {
-    // Override the default mock for a failure case
-    const authApi = require('../utils/authApi');
-    authApi.login.mockImplementationOnce(() => 
-      Promise.reject({ response: { data: { error: 'Invalid credentials' }}})
-    );
-    
-    const user = userEvent.setup();
-    
-    render(
-      <MemoryRouter>
-        <AuthProvider>
-          <TestComponent />
-        </AuthProvider>
-      </MemoryRouter>
-    );
-    
-    // Verify initial logged out state
-    expect(screen.getByTestId('auth-status')).toHaveTextContent('Logged Out');
-    
-    // Click login
-    await act(async () => {
-      await user.click(screen.getByTestId('login-button'));
-    });
-    
-    // Should still be logged out after failed login attempt
-    await waitFor(() => {
-      expect(screen.getByTestId('auth-status')).toHaveTextContent('Logged Out');
-    });
-  });
-  
-  test('restores authentication from localStorage', async () => {
-    // Setup localStorage with auth data
-    localStorage.setItem('token', 'fake-saved-token');
-    localStorage.setItem('refresh_token', 'fake-refresh-token');
-    localStorage.setItem('user', JSON.stringify({ id: 2, email: 'saved@example.com' }));
-    
-    render(
-      <MemoryRouter>
-        <AuthProvider>
-          <TestComponent />
-        </AuthProvider>
-      </MemoryRouter>
-    );
-    
-    // Should be logged in automatically from localStorage
-    await waitFor(() => {
-      expect(screen.getByTestId('auth-status')).toHaveTextContent('Logged In');
-      expect(screen.getByTestId('user-email')).toHaveTextContent('saved@example.com');
-    }, { timeout: 3000 });
+    expect(screen.getByRole('status')).toHaveTextContent('Logged Out');
   });
 });

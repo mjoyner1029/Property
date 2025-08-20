@@ -1,8 +1,18 @@
 import React from 'react';
-import { screen, waitFor } from '@testing-library/react';
+import { render, screen, waitFor } from '@testing-library/react';
+import { MemoryRouter } from 'react-router-dom';
 import Tenants from '../../pages/Tenants';
 import axios from 'axios';
-import { renderWithProviders } from '../../test-utils/renderWithProviders';
+
+// Mock context
+jest.mock('../../context/TenantContext', () => ({
+  useTenant: () => ({
+    tenants: [],
+    loading: false,
+    error: null,
+    fetchTenants: jest.fn()
+  })
+}));
 
 jest.mock('axios');
 
@@ -12,43 +22,18 @@ describe('Tenants', () => {
   });
 
   test('renders tenant rows on success', async () => {
-    // Setup mock auth context data
-    const authValue = {
-      isAuthenticated: true,
-      user: { role: 'admin', first_name: 'Admin', last_name: 'User' },
-      logout: jest.fn()
-    };
-    
-    // Setup mock notification context data
-    const notificationValue = {
-      notifications: [],
-      unreadCount: 0,
-      loading: false,
-      markAsRead: jest.fn(),
-      markAllAsRead: jest.fn(),
-      fetchNotifications: jest.fn()
-    };
-    
-    // Setup mock tenant context data
-    const tenantValue = {
-      tenants: [
+    axios.get.mockResolvedValueOnce({
+      data: [
         { id: 1, name: 'Alice', email: 'alice@ex.com', phone: '111-111' },
         { id: 2, name: 'Bob', email: 'bob@ex.com', phone: '222-222' }
-      ],
-      loading: false,
-      error: null,
-      fetchTenants: jest.fn(),
-      getTenant: jest.fn(),
-      createTenant: jest.fn(),
-      updateTenant: jest.fn(),
-      deleteTenant: jest.fn()
-    };
-    
-    renderWithProviders(<Tenants />, {
-      authValue: authValue,
-      notificationValue: notificationValue,
-      tenantValue: tenantValue
+      ]
     });
+
+    render(
+      <MemoryRouter>
+        <Tenants />
+      </MemoryRouter>
+    );
 
     expect(await screen.findByText('Alice')).toBeInTheDocument();
     expect(screen.getByText('alice@ex.com')).toBeInTheDocument();
@@ -57,79 +42,25 @@ describe('Tenants', () => {
   });
 
   test('shows empty state when no tenants', async () => {
-    // Setup mock auth context data
-    const authValue = {
-      isAuthenticated: true,
-      user: { role: 'admin', first_name: 'Admin', last_name: 'User' },
-      logout: jest.fn()
-    };
-    
-    // Setup mock notification context data
-    const notificationValue = {
-      notifications: [],
-      unreadCount: 0,
-      loading: false,
-      markAsRead: jest.fn(),
-      markAllAsRead: jest.fn(),
-      fetchNotifications: jest.fn()
-    };
-    
-    // Setup mock tenant context data with empty tenants array
-    const tenantValue = {
-      tenants: [],
-      loading: false,
-      error: null,
-      fetchTenants: jest.fn(),
-      getTenant: jest.fn(),
-      createTenant: jest.fn(),
-      updateTenant: jest.fn(),
-      deleteTenant: jest.fn()
-    };
-    
-    renderWithProviders(<Tenants />, {
-      authValue: authValue,
-      notificationValue: notificationValue,
-      tenantValue: tenantValue
-    });
+    axios.get.mockResolvedValueOnce({ data: [] });
+
+    render(
+      <MemoryRouter>
+        <Tenants />
+      </MemoryRouter>
+    );
 
     expect(await screen.findByText('No tenants found')).toBeInTheDocument();
   });
 
   test('shows error state on failure', async () => {
-    // Setup mock auth context data
-    const authValue = {
-      isAuthenticated: true,
-      user: { role: 'admin', first_name: 'Admin', last_name: 'User' },
-      logout: jest.fn()
-    };
-    
-    // Setup mock notification context data
-    const notificationValue = {
-      notifications: [],
-      unreadCount: 0,
-      loading: false,
-      markAsRead: jest.fn(),
-      markAllAsRead: jest.fn(),
-      fetchNotifications: jest.fn()
-    };
-    
-    // Setup mock tenant context with error
-    const tenantValue = {
-      tenants: [],
-      loading: false,
-      error: "Error loading tenants",
-      fetchTenants: jest.fn(),
-      getTenant: jest.fn(),
-      createTenant: jest.fn(),
-      updateTenant: jest.fn(),
-      deleteTenant: jest.fn()
-    };
-    
-    renderWithProviders(<Tenants />, {
-      authValue: authValue,
-      notificationValue: notificationValue,
-      tenantValue: tenantValue
-    });
+    axios.get.mockRejectedValueOnce(new Error('network'));
+
+    render(
+      <MemoryRouter>
+        <Tenants />
+      </MemoryRouter>
+    );
 
     expect(await screen.findByText('Error loading tenants')).toBeInTheDocument();
   });

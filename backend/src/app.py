@@ -103,10 +103,6 @@ def create_app(config_name='default'):
     try:
         from .routes.status_routes import bp as status_bp
         app.register_blueprint(status_bp)
-
-        # Register health check routes
-        from .routes.health_routes import bp as health_bp
-        app.register_blueprint(health_bp)
     except ImportError as e:
         app.logger.error(f"Failed to import status routes: {e}")
         
