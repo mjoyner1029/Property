@@ -12,7 +12,7 @@ const TestComponent = () => {
   const { user, isAuthenticated, login, logout } = useAuth();
   return (
     <div role="main">
-      <div role="status">
+      <div data-testid="auth-status">
         {isAuthenticated ? 'Logged In' : 'Logged Out'}
       </div>
       {user && <div data-testid="user-email">{user.email}</div>}
@@ -58,7 +58,7 @@ describe('AuthContext', () => {
       </AuthProvider>
     );
     
-    expect(screen.getByRole('status')).toHaveTextContent('Logged Out');
+    expect(screen.getByTestId('auth-status')).toHaveTextContent('Logged Out');
   });
 
   test('handles login', async () => {
@@ -71,13 +71,13 @@ describe('AuthContext', () => {
     );
     
     // Verify initial logged out state
-    expect(screen.getByRole('status')).toHaveTextContent('Logged Out');
+    expect(screen.getByTestId('auth-status')).toHaveTextContent('Logged Out');
     
     // Click login
     await user.click(screen.getByTestId('login-button'));
     
     // Verify logged in state
-    expect(screen.getByRole('status')).toHaveTextContent('Logged In');
+    expect(screen.getByTestId('auth-status')).toHaveTextContent('Logged In');
     expect(screen.getByTestId('user-email')).toHaveTextContent('test@example.com');
   });
 
@@ -94,13 +94,13 @@ describe('AuthContext', () => {
     await user.click(screen.getByTestId('login-button'));
     
     // Verify logged in state
-    expect(screen.getByRole('status')).toHaveTextContent('Logged In');
+    expect(screen.getByTestId('auth-status')).toHaveTextContent('Logged In');
     
     // Logout
     await user.click(screen.getByTestId('logout-button'));
     
     // Should be logged out
-    expect(screen.getByRole('status')).toHaveTextContent('Logged Out');
+    expect(screen.getByTestId('auth-status')).toHaveTextContent('Logged Out');
   });
   
   test('handles login failure', async () => {
@@ -119,13 +119,13 @@ describe('AuthContext', () => {
     );
     
     // Verify initial logged out state
-    expect(screen.getByRole('status')).toHaveTextContent('Logged Out');
+    expect(screen.getByTestId('auth-status')).toHaveTextContent('Logged Out');
     
     // Click login
     await user.click(screen.getByTestId('login-button'));
     
     // Should still be logged out
-    expect(screen.getByRole('status')).toHaveTextContent('Logged Out');
+    expect(screen.getByTestId('auth-status')).toHaveTextContent('Logged Out');
     
     mockAlert.mockRestore();
   });
@@ -142,7 +142,7 @@ describe('AuthContext', () => {
     );
     
     // Should be logged in automatically from localStorage
-    expect(screen.getByRole('status')).toHaveTextContent('Logged In');
+    expect(screen.getByTestId('auth-status')).toHaveTextContent('Logged In');
     expect(screen.getByTestId('user-email')).toHaveTextContent('saved@example.com');
   });
 });
