@@ -146,6 +146,7 @@ export default function Login() {
               margin="normal"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
+              inputProps={{ "data-testid": "password-input" }}
               InputProps={{
                 style: { color: "#F3F4F6" },
                 endAdornment: (
