@@ -2,6 +2,17 @@
 
 This document serves as an operator's guide for managing, maintaining, and troubleshooting the Asset Anchor application in production.
 
+## Development Environment
+
+### Backend Dev Setup
+
+```bash
+cd backend
+python3 -m venv venv && source venv/bin/activate
+pip install -r requirements.txt
+make test
+```
+
 ## Service Architecture
 
 Asset Anchor consists of:

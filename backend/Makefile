@@ -1,5 +1,5 @@
 test:
-	pytest -q
+	pytest -q --disable-warnings --maxfail=1
 
 perf-smoke:
 	k6 run perf/k6/smoke.js
