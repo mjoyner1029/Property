@@ -143,9 +143,12 @@ limiter = Limiter(
     storage_uri=os.getenv("RATELIMIT_STORAGE_URI") or (REDIS_URL if REDIS_URL else "memory://"),
     strategy="fixed-window-elastic-expiry",
     headers_enabled=True,
-    on_breach=lambda _: ({"error": "Rate limit exceeded", "status": 429}, 429),
-    request_filter=request_filter
+    on_breach=lambda _: ({"error": "Rate limit exceeded", "status": 429}, 429)
 )
+
+# Apply rate limiting conditionally based on DISABLE_RATE_LIMIT
+if DISABLE_RATE_LIMIT:
+    limiter.enabled = False
 
 # Email sending
 mail = Mail()
