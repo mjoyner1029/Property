@@ -12,18 +12,17 @@ jobs:
     defaults:
       run:
         working-directory: backend
-    steps:
-      - uses: actions/checkout@v3
-
-      - name: Setup Python
-        uses: actions/setup-python@v4
+...
+      - name: Upload Trivy backend scan results
+        if: hashFiles('backend/Dockerfile') != ''
+        uses: github/codeql-action/upload-sarif@v2
         with:
-          python-version: '3.11'
+          sarif_file: 'trivy-backend-results.sarif'
+          category: trivy-backend
 
-      - name: Install dependencies
-        run: pip install -r requirements.txt
-
-      - name: Run tests (optional)
-        run: |
-          pip install pytest
-          pytest || echo "No tests yet"
+      - name: Upload Trivy frontend scan results
+        if: hashFiles('frontend/Dockerfile') != ''
+        uses: github/codeql-action/upload-sarif@v2
+        with:
+          sarif_file: 'trivy-frontend-results.sarif'
+          category: trivy-frontend
