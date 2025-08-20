@@ -15,13 +15,8 @@ console.error = (...args) => {
   originalConsoleError(...args);
 };
 
-// Mock all contexts
-jest.mock('./context/AppContext');
-jest.mock('./context/AuthContext');
-jest.mock('./context/PropertyContext');
-jest.mock('./context/TenantContext');
-jest.mock('./context/MaintenanceContext');
-jest.mock('./context/PaymentContext');
+// NOTE: Removed global context mocks to allow tests to use real contexts
+// Individual tests can still mock contexts as needed using jest.mock() in their files
 
 // Mock axios
 jest.mock('axios', () => ({

@@ -37,30 +37,45 @@ export function renderWithProviders(
   ui,
   { 
     route = '/',
+    authValue = null,
+    appValue = null,
+    notificationValue = null,
+    propertyValue = null,
+    maintenanceValue = null,
+    paymentValue = null,
+    tenantValue = null,
+    themeValue = theme,
     ...renderOptions 
   } = {}
 ) {
   function Wrapper({ children }) {
+    // Create custom provider components when values are provided
+    const CustomAuthProvider = authValue ? makeMockProvider(require('../context/AuthContext').AuthContext, authValue) : AuthProvider;
+    const CustomAppProvider = appValue ? makeMockProvider(require('../context/AppContext').AppContext, appValue) : AppProvider;
+    const CustomNotificationProvider = notificationValue ? makeMockProvider(require('../context/NotificationContext').NotificationContext, notificationValue) : NotificationProvider;
+    const CustomPropertyProvider = propertyValue ? makeMockProvider(require('../context/PropertyContext').PropertyContext, propertyValue) : PropertyProvider;
+    const CustomMaintenanceProvider = maintenanceValue ? makeMockProvider(require('../context/MaintenanceContext').MaintenanceContext, maintenanceValue) : MaintenanceProvider;
+    const CustomPaymentProvider = paymentValue ? makeMockProvider(require('../context/PaymentContext').PaymentContext, paymentValue) : PaymentProvider;
+    const CustomTenantProvider = tenantValue ? makeMockProvider(require('../context/TenantContext').TenantContext, tenantValue) : TenantProvider;
+    
     return (
       <MemoryRouter initialEntries={[route]}>
-        <ThemeProvider theme={theme}>
-          <AuthProvider>
-            <AppProvider>
-              <NotificationProvider>
-                <PropertyProvider>
-                  <MaintenanceProvider>
-                    <PaymentProvider>
-                      <TenantProvider>
-                        <div>
-                          {children}
-                        </div>
-                      </TenantProvider>
-                    </PaymentProvider>
-                  </MaintenanceProvider>
-                </PropertyProvider>
-              </NotificationProvider>
-            </AppProvider>
-          </AuthProvider>
+        <ThemeProvider theme={themeValue}>
+          <CustomAuthProvider>
+            <CustomAppProvider>
+              <CustomNotificationProvider>
+                <CustomPropertyProvider>
+                  <CustomMaintenanceProvider>
+                    <CustomPaymentProvider>
+                      <CustomTenantProvider>
+                        {children}
+                      </CustomTenantProvider>
+                    </CustomPaymentProvider>
+                  </CustomMaintenanceProvider>
+                </CustomPropertyProvider>
+              </CustomNotificationProvider>
+            </CustomAppProvider>
+          </CustomAuthProvider>
         </ThemeProvider>
       </MemoryRouter>
     );
