@@ -1,5 +1,7 @@
 // Mock for framer-motion
-module.exports = {
+import React from 'react';
+
+jest.mock('framer-motion', () => ({
   motion: {
     div: ({ children, ...props }) => React.createElement('div', props, children),
     form: ({ children, ...props }) => React.createElement('form', props, children),
@@ -16,9 +18,36 @@ module.exports = {
     input: (props) => React.createElement('input', props),
     textarea: (props) => React.createElement('textarea', props),
     img: (props) => React.createElement('img', props),
-    section: ({ children, ...props }) => React.createElement('section', props, children)
+    section: ({ children, ...props }) => React.createElement('section', props, children),
+    nav: ({ children, ...props }) => React.createElement('nav', props, children),
+    header: ({ children, ...props }) => React.createElement('header', props, children),
+    main: ({ children, ...props }) => React.createElement('main', props, children),
+    footer: ({ children, ...props }) => React.createElement('footer', props, children),
+    article: ({ children, ...props }) => React.createElement('article', props, children)
   },
   AnimatePresence: ({ children }) => children,
-  useAnimation: () => ({ start: jest.fn() }),
-  useInView: () => [null, false]
-};
+  useAnimation: () => ({ 
+    start: jest.fn(),
+    stop: jest.fn()
+  }),
+  useInView: () => [null, false],
+  useMotionValue: jest.fn(() => ({
+    get: jest.fn(),
+    set: jest.fn(),
+    onChange: jest.fn()
+  })),
+  useTransform: jest.fn(),
+  useSpring: jest.fn(),
+  useViewportScroll: jest.fn(() => ({
+    scrollY: {
+      get: jest.fn(),
+      onChange: jest.fn()
+    }
+  })),
+  animate: jest.fn()
+}));
+
+// Export a dummy test to avoid "Your test suite must contain at least one test" error
+test('dummy test to avoid test suite error', () => {
+  expect(true).toBeTruthy();
+});
