@@ -1,6 +1,20 @@
 // frontend/src/setupTests.js
 import '@testing-library/jest-dom';
 
+// Silence React Router v6 useNavigate/useLoc warnings
+const originalConsoleError = console.error;
+console.error = (...args) => {
+  if (
+    args[0]?.includes?.('Warning: useNavigate() may be used only in the context of a <Router> component') ||
+    args[0]?.includes?.('Warning: useLocation() may be used only in the context of a <Router> component') ||
+    args[0]?.includes?.('Warning: useParams() may be used only in the context of a <Router> component') ||
+    args[0]?.includes?.('Warning: useRoutes() may be used only in the context of a <Router> component')
+  ) {
+    return;
+  }
+  originalConsoleError(...args);
+};
+
 // Mock all contexts
 jest.mock('./context/AppContext');
 jest.mock('./context/AuthContext');
