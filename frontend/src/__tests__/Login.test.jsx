@@ -5,8 +5,12 @@ import Login from "../auth/Login";
 import axios from 'axios';
 import { renderWithProviders } from '../test-utils/renderWithProviders';
 
-// Mock axios
-jest.mock('axios');
+// Mock useNavigate
+const mockNavigate = jest.fn();
+jest.mock('react-router-dom', () => ({
+  ...jest.requireActual('react-router-dom'),
+  useNavigate: () => mockNavigate
+}));
 
 describe('Login Component', () => {
   beforeEach(() => {
@@ -17,13 +21,15 @@ describe('Login Component', () => {
   test("renders login form", () => {
     renderWithProviders(<Login />);
     
-    // Check for form elements using labels/roles
-    expect(screen.getByRole('textbox', { name: /email/i })).toBeInTheDocument();
+    // Check for form elements using test IDs and labels
+    expect(screen.getByTestId('email-input')).toBeInTheDocument();
     expect(screen.getByLabelText(/password/i)).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: /log in/i })).toBeInTheDocument();
+    expect(screen.getByTestId('login-button')).toBeInTheDocument();
   });
   
   test("handles form submission and successful login", async () => {
+    const user = userEvent.setup();
+    
     // Mock successful login
     axios.post.mockResolvedValueOnce({
       data: {
@@ -35,15 +41,15 @@ describe('Login Component', () => {
     renderWithProviders(<Login />);
     
     // Fill out the form using userEvent for better interaction simulation
-    const email = screen.getByRole('textbox', { name: /email/i });
+    const email = screen.getByTestId('email-input');
     const password = screen.getByLabelText(/password/i);
-    const submitButton = screen.getByRole('button', { name: /log in/i });
+    const submitButton = screen.getByTestId('login-button');
     
-    await userEvent.type(email, 'test@example.com');
-    await userEvent.type(password, 'password123');
+    await user.type(email, 'test@example.com');
+    await user.type(password, 'password123');
     
     // Submit the form
-    await userEvent.click(submitButton);
+    await user.click(submitButton);
     
     // Check if axios was called with the right data
     await waitFor(() => {
@@ -52,9 +58,16 @@ describe('Login Component', () => {
         { email: 'test@example.com', password: 'password123', role: 'tenant' }
       );
     });
+    
+    // Check if navigation occurred
+    await waitFor(() => {
+      expect(mockNavigate).toHaveBeenCalledWith('/dashboard');
+    });
   });
   
   test("displays error message on failed login", async () => {
+    const user = userEvent.setup();
+    
     // Mock failed login
     axios.post.mockRejectedValueOnce({
       response: { data: { error: 'Invalid credentials' } }
@@ -63,18 +76,56 @@ describe('Login Component', () => {
     renderWithProviders(<Login />);
     
     // Fill out and submit the form
-    const email = screen.getByRole('textbox', { name: /email/i });
+    const email = screen.getByTestId('email-input');
     const password = screen.getByLabelText(/password/i);
-    const submitButton = screen.getByRole('button', { name: /log in/i });
+    const submitButton = screen.getByTestId('login-button');
     
-    await userEvent.type(email, 'wrong@example.com');
-    await userEvent.type(password, 'wrongpassword');
+    await user.type(email, 'wrong@example.com');
+    await user.type(password, 'wrongpassword');
     
-    await userEvent.click(submitButton);
+    await user.click(submitButton);
     
     // Check for error message
     await waitFor(() => {
-      expect(screen.getByText(/Invalid credentials/i)).toBeInTheDocument();
+      expect(screen.getByTestId('error-message')).toHaveTextContent(/Invalid credentials/i);
     });
+  });
+  
+  test("toggles password visibility", async () => {
+    const user = userEvent.setup();
+    renderWithProviders(<Login />);
+    
+    const passwordField = screen.getByLabelText(/password/i);
+    const visibilityToggle = screen.getByTestId('toggle-password-visibility');
+    
+    // Password should start as hidden
+    expect(passwordField).toHaveAttribute('type', 'password');
+    
+    // Click toggle button to show password
+    await user.click(visibilityToggle);
+    expect(passwordField).toHaveAttribute('type', 'text');
+    
+    // Click again to hide
+    await user.click(visibilityToggle);
+    expect(passwordField).toHaveAttribute('type', 'password');
+  });
+  
+  test("handles form validation", async () => {
+    const user = userEvent.setup();
+    renderWithProviders(<Login />);
+    
+    const submitButton = screen.getByTestId('login-button');
+    
+    // Submit empty form
+    await user.click(submitButton);
+    
+    // Should show validation errors
+    await waitFor(() => {
+      expect(screen.getByText(/email is required/i)).toBeInTheDocument();
+      expect(screen.getByText(/password is required/i)).toBeInTheDocument();
+    });
+    
+    // No API call should have been made
+    expect(axios.post).not.toHaveBeenCalled();
   });
 });

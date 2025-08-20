@@ -8,13 +8,16 @@ import {
   Paper,
   Alert,
   CircularProgress,
+  IconButton,
 } from "@mui/material";
+import { Visibility, VisibilityOff } from "@mui/icons-material";
 import { useNavigate, Link } from "react-router-dom";
 import axios from "axios";
 
 export default function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const [role, setRole] = useState("tenant");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -117,7 +120,7 @@ export default function Login() {
           </Typography>
 
           {error && (
-            <Alert severity="error" sx={{ my: 2 }}>
+            <Alert severity="error" sx={{ my: 2 }} data-testid="error-message">
               {error}
             </Alert>
           )}
@@ -133,16 +136,29 @@ export default function Login() {
               onChange={(e) => setEmail(e.target.value)}
               InputProps={{ style: { color: "#F3F4F6" } }}
               InputLabelProps={{ style: { color: "#9CA3AF" } }}
+              inputProps={{ "data-testid": "email-input" }}
             />
             <TextField
               label="Password"
-              type="password"
+              type={showPassword ? "text" : "password"}
               fullWidth
               required
               margin="normal"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              InputProps={{ style: { color: "#F3F4F6" } }}
+              InputProps={{
+                style: { color: "#F3F4F6" },
+                endAdornment: (
+                  <IconButton
+                    aria-label="toggle password visibility"
+                    onClick={() => setShowPassword(!showPassword)}
+                    edge="end"
+                    data-testid="toggle-password-visibility"
+                  >
+                    {showPassword ? <VisibilityOff /> : <Visibility />}
+                  </IconButton>
+                ),
+              }}
               InputLabelProps={{ style: { color: "#9CA3AF" } }}
             />
 
@@ -172,6 +188,7 @@ export default function Login() {
               fullWidth
               disabled={loading}
               variant="contained"
+              data-testid="login-button"
               sx={{
                 mt: 3,
                 backgroundColor: "#3B82F6",
