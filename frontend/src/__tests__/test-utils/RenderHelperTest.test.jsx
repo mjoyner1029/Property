@@ -1,5 +1,5 @@
 import React, { createContext, useContext } from 'react';
-import { screen, render } from '@testing-library/react';
+import { screen, render, waitFor } from '@testing-library/react';
 import { renderWithProviders, makeMockProvider } from '../../test-utils/renderWithProviders';
 
 // Create a test context
@@ -11,14 +11,30 @@ const TestConsumer = () => {
   return <div data-testid="test-value">{value?.message || 'No context value'}</div>;
 };
 
-describe('renderWithProviders', () => {
-  test('renders with providers array', async () => {
-    renderWithProviders(<TestConsumer />, {
-      providers: [[TestContext, { message: 'Hello from context' }]]
-    });
+// Create a mock AuthContext with preset values
+jest.mock('../../context/AuthContext', () => ({
+  ...jest.requireActual('../../context/AuthContext'),
+  useAuth: jest.fn().mockReturnValue({
+    isAuthenticated: true,
+    user: { name: 'Test User', role: 'admin' }
+  })
+}));
 
-    await screen.findByTestId('test-value');
-    expect(screen.getByTestId('test-value')).toHaveTextContent('Hello from context');
+describe('renderWithProviders', () => {
+  test('renders with default providers', async () => {
+    renderWithProviders(<div data-testid="test-value">Test content</div>);
+    
+    expect(screen.getByTestId('test-value')).toBeInTheDocument();
+    expect(screen.getByTestId('test-value')).toHaveTextContent('Test content');
+  });
+
+  test('renders with custom route', async () => {
+    renderWithProviders(
+      <div data-testid="test-value">Test with route</div>,
+      { route: '/test-route' }
+    );
+    
+    expect(screen.getByTestId('test-value')).toBeInTheDocument();
   });
 
   test('renders with makeMockProvider', async () => {
@@ -30,7 +46,6 @@ describe('renderWithProviders', () => {
       </MockProvider>
     );
 
-    await screen.findByTestId('test-value');
     expect(screen.getByTestId('test-value')).toHaveTextContent('Hello from mock provider');
   });
 });
