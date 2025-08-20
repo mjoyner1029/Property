@@ -1,11 +1,10 @@
 import React from 'react';
-import { screen, waitFor } from "@testing-library/react";
+import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from '@testing-library/user-event';
 import Profile from "../pages/Profile";
 import axios from "axios";
 import { renderWithProviders } from '../test-utils/renderWithProviders';
-
-jest.mock("axios");
+import { withLocalStorage } from '../test-utils/mockLocalStorage';
 
 describe('Profile Component', () => {
   // Mock user data
@@ -17,16 +16,12 @@ describe('Profile Component', () => {
     role: 'tenant'
   };
   
+  let localStorage;
+  
   beforeEach(() => {
-    // Setup localStorage mock
-    Storage.prototype.getItem = jest.fn(() => JSON.stringify(mockUser));
-    Storage.prototype.setItem = jest.fn();
-    
-    // Mock auth context
-    jest.spyOn(require('../context/AuthContext'), 'useAuth').mockReturnValue({
-      user: mockUser,
-      isAuthenticated: true
-    });
+    // Setup localStorage with proper implementation
+    localStorage = withLocalStorage();
+    localStorage.setItem('user', JSON.stringify(mockUser));
     
     // Mock API calls
     axios.get.mockResolvedValue({ data: mockUser });
@@ -34,67 +29,51 @@ describe('Profile Component', () => {
   });
   
   afterEach(() => {
-    jest.restoreAllMocks();
+    jest.clearAllMocks();
   });
   
   test("renders profile with user data", async () => {
-    await waitFor(() => {
-      renderWithProviders(<Profile />);
-    });
+    renderWithProviders(<Profile />);
     
     // Check for profile title
-    await waitFor(() => {
-      expect(screen.getByText(/My Profile/i)).toBeInTheDocument();
-    });
+    expect(screen.getByText(/My Profile/i)).toBeInTheDocument();
     
-    // Check for user data
+    // Check for user data (data-testid would be better here)
     await waitFor(() => {
-      expect(screen.getByDisplayValue('Jane Doe')).toBeInTheDocument();
-      expect(screen.getByDisplayValue('jane@example.com')).toBeInTheDocument();
+      const nameInput = screen.getByLabelText(/Full Name/i);
+      const emailInput = screen.getByLabelText(/Email Address/i);
+      expect(nameInput.value).toBe('Jane Doe');
+      expect(emailInput.value).toBe('jane@example.com');
     });
   });
   
   test("handles profile update", async () => {
     const user = userEvent.setup();
     
+    renderWithProviders(<Profile />);
+    
+    // Wait for inputs to be populated
+    let nameInput;
     await waitFor(() => {
-      renderWithProviders(<Profile />);
+      nameInput = screen.getByLabelText(/Full Name/i);
+      expect(nameInput.value).toBe('Jane Doe');
     });
     
-    // Profile should be loaded immediately with localStorage data
-    await waitFor(() => {
-      expect(screen.getByDisplayValue('Jane Doe')).toBeInTheDocument();
-    });
-    
-    // Get form fields
-    const nameInput = screen.getByDisplayValue('Jane Doe');
-    
-    // Wrap all interactions in waitFor to handle act() warnings
-    await waitFor(async () => {
-      // Change name
-      await user.clear(nameInput);
-    });
-    
-    await waitFor(async () => {
-      await user.type(nameInput, 'Jane Smith');
-    });
+    // Change name using proper userEvent patterns
+    await user.clear(nameInput);
+    await user.type(nameInput, 'Jane Smith');
     
     // Submit form
-    await waitFor(async () => {
-      await user.click(screen.getByRole('button', { name: /save changes/i }));
-    });
-    
-    // Check if localStorage was updated
-    await waitFor(() => {
-      expect(localStorage.setItem).toHaveBeenCalledWith(
-        'user', 
-        expect.stringContaining('Jane Smith')
-      );
-    });
+    const submitButton = screen.getByRole('button', { name: /save changes/i });
+    await user.click(submitButton);
     
     // Check for success message
     await waitFor(() => {
       expect(screen.getByText(/Profile updated successfully/i)).toBeInTheDocument();
     });
+    
+    // Verify localStorage was updated with the new name
+    const savedUser = JSON.parse(localStorage.getItem('user'));
+    expect(savedUser.full_name).toBe('Jane Smith');
   });
 });

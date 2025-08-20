@@ -1,8 +1,9 @@
 import React from "react";
-import { render, screen } from "@testing-library/react";
-import { MemoryRouter, Routes, Route } from "react-router-dom";
+import { screen } from "@testing-library/react";
+import { Routes, Route } from "react-router-dom";
 import { RoleRoute as ProtectedRoute, PublicRoute, PrivateRoute } from "../../routes/guards";
 import Unauthorized from "../../pages/Unauthorized";
+import { renderWithProviders } from "../../test-utils/renderWithProviders";
 
 // Mock the MUI components before other imports
 jest.mock('@mui/material/Box', () => function MockBox(props) {
@@ -13,14 +14,6 @@ jest.mock('@mui/material/CircularProgress', () => function MockCircularProgress(
   return <div data-testid="loading-spinner">Loading Spinner</div>;
 });
 
-// Mock the useAuth hook
-jest.mock('../../context', () => ({
-  useAuth: jest.fn()
-}));
-
-// Import the mocked useAuth
-import { useAuth } from "../../context";
-
 // Tiny page markers
 const AdminPage = () => <div>Admin Panel</div>;
 const LoginPage = () => <div>Login Form</div>;
@@ -30,15 +23,6 @@ const ProtectedContent = () => <div>Protected Content</div>;
 const LoadingDisplay = () => <div>Loading Spinner</div>;
 
 describe("Routing guards", () => {
-  // Helper function to set up the authentication mock
-  const setupAuthMock = (isAuthenticated, loading, role) => {
-    useAuth.mockReturnValue({
-      isAuthenticated,
-      loading,
-      user: role ? { role } : null
-    });
-  };
-  
   // Clear mocks after each test
   afterEach(() => {
     jest.clearAllMocks();
@@ -46,21 +30,27 @@ describe("Routing guards", () => {
 
   test("ProtectedRoute allows admin to access /admin", async () => {
     // Set up auth mock for admin user
-    setupAuthMock(true, false, "admin");
+    const authValue = {
+      isAuthenticated: true,
+      loading: false,
+      user: { role: "admin" }
+    };
 
-    render(
-      <MemoryRouter initialEntries={["/admin"]}>
-        <Routes>
-          <Route
-            path="/admin"
-            element={
-              <ProtectedRoute role="admin">
-                <AdminPage />
-              </ProtectedRoute>
-            }
-          />
-        </Routes>
-      </MemoryRouter>
+    renderWithProviders(
+      <Routes>
+        <Route
+          path="/admin"
+          element={
+            <ProtectedRoute role="admin">
+              <AdminPage />
+            </ProtectedRoute>
+          }
+        />
+      </Routes>,
+      { 
+        route: "/admin",
+        authValue
+      }
     );
 
     expect(await screen.findByText(/admin panel/i)).toBeInTheDocument();
@@ -68,22 +58,28 @@ describe("Routing guards", () => {
 
   test("ProtectedRoute blocks tenant from /admin", async () => {
     // Set up auth mock for tenant user
-    setupAuthMock(true, false, "tenant");
+    const authValue = {
+      isAuthenticated: true,
+      loading: false,
+      user: { role: "tenant" }
+    };
 
-    render(
-      <MemoryRouter initialEntries={["/admin"]}>
-        <Routes>
-          <Route
-            path="/admin"
-            element={
-              <ProtectedRoute role="admin">
-                <AdminPage />
-              </ProtectedRoute>
-            }
-          />
-          <Route path="/unauthorized" element={<Unauthorized />} />
-        </Routes>
-      </MemoryRouter>
+    renderWithProviders(
+      <Routes>
+        <Route
+          path="/admin"
+          element={
+            <ProtectedRoute role="admin">
+              <AdminPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route path="/unauthorized" element={<Unauthorized />} />
+      </Routes>,
+      {
+        route: "/admin",
+        authValue
+      }
     );
 
     // The RoleRoute component will redirect to /unauthorized
@@ -93,22 +89,28 @@ describe("Routing guards", () => {
 
   test("PublicRoute hides /login for authenticated users", async () => {
     // Set up auth mock for authenticated user
-    setupAuthMock(true, false, "tenant");
+    const authValue = {
+      isAuthenticated: true,
+      loading: false,
+      user: { role: "tenant" }
+    };
 
-    render(
-      <MemoryRouter initialEntries={["/login"]}>
-        <Routes>
-          <Route
-            path="/login"
-            element={
-              <PublicRoute>
-                <LoginPage />
-              </PublicRoute>
-            }
-          />
-          <Route path="/dashboard" element={<Dashboard />} />
-        </Routes>
-      </MemoryRouter>
+    renderWithProviders(
+      <Routes>
+        <Route
+          path="/login"
+          element={
+            <PublicRoute>
+              <LoginPage />
+            </PublicRoute>
+          }
+        />
+        <Route path="/dashboard" element={<Dashboard />} />
+      </Routes>,
+      {
+        route: "/login",
+        authValue
+      }
     );
 
     // PublicRoute should redirect to dashboard if user is already authenticated
@@ -118,22 +120,28 @@ describe("Routing guards", () => {
   
   test("ProtectedRoute redirects unauthenticated users to /login", async () => {
     // Set up auth mock for unauthenticated user
-    setupAuthMock(false, false, null);
+    const authValue = {
+      isAuthenticated: false,
+      loading: false,
+      user: null
+    };
 
-    render(
-      <MemoryRouter initialEntries={["/admin"]}>
-        <Routes>
-          <Route
-            path="/admin"
-            element={
-              <ProtectedRoute role="admin">
-                <AdminPage />
-              </ProtectedRoute>
-            }
-          />
-          <Route path="/login" element={<LoginPage />} />
-        </Routes>
-      </MemoryRouter>
+    renderWithProviders(
+      <Routes>
+        <Route
+          path="/admin"
+          element={
+            <ProtectedRoute role="admin">
+              <AdminPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route path="/login" element={<LoginPage />} />
+      </Routes>,
+      {
+        route: "/admin",
+        authValue
+      }
     );
 
     // Should redirect to login
@@ -143,21 +151,27 @@ describe("Routing guards", () => {
   
   test("ProtectedRoute shows loading marker when auth is loading", async () => {
     // Set up auth mock for loading state
-    setupAuthMock(false, true, null);
+    const authValue = {
+      isAuthenticated: false,
+      loading: true,
+      user: null
+    };
     
-    render(
-      <MemoryRouter initialEntries={["/admin"]}>
-        <Routes>
-          <Route
-            path="/admin"
-            element={
-              <ProtectedRoute role="admin">
-                <AdminPage />
-              </ProtectedRoute>
-            }
-          />
-        </Routes>
-      </MemoryRouter>
+    renderWithProviders(
+      <Routes>
+        <Route
+          path="/admin"
+          element={
+            <ProtectedRoute role="admin">
+              <AdminPage />
+            </ProtectedRoute>
+          }
+        />
+      </Routes>,
+      {
+        route: "/admin",
+        authValue
+      }
     );
 
     // Check for loading indicator using the test IDs from our mocks
@@ -167,21 +181,27 @@ describe("Routing guards", () => {
   
   test("ProtectedRoute with roles=[admin, landlord] allows landlord", async () => {
     // Set up auth mock for landlord user
-    setupAuthMock(true, false, "landlord");
+    const authValue = {
+      isAuthenticated: true,
+      loading: false,
+      user: { role: "landlord" }
+    };
 
-    render(
-      <MemoryRouter initialEntries={["/property"]}>
-        <Routes>
-          <Route
-            path="/property"
-            element={
-              <ProtectedRoute roles={["admin", "landlord"]}>
-                <LandlordPage />
-              </ProtectedRoute>
-            }
-          />
-        </Routes>
-      </MemoryRouter>
+    renderWithProviders(
+      <Routes>
+        <Route
+          path="/property"
+          element={
+            <ProtectedRoute roles={["admin", "landlord"]}>
+              <LandlordPage />
+            </ProtectedRoute>
+          }
+        />
+      </Routes>,
+      {
+        route: "/property",
+        authValue
+      }
     );
 
     // Landlord should be allowed to access
@@ -190,22 +210,28 @@ describe("Routing guards", () => {
   
   test("ProtectedRoute with roles=[admin, landlord] blocks tenant and redirects", async () => {
     // Set up auth mock for tenant user
-    setupAuthMock(true, false, "tenant");
+    const authValue = {
+      isAuthenticated: true,
+      loading: false,
+      user: { role: "tenant" }
+    };
 
-    render(
-      <MemoryRouter initialEntries={["/property"]}>
-        <Routes>
-          <Route
-            path="/property"
-            element={
-              <ProtectedRoute roles={["admin", "landlord"]}>
-                <LandlordPage />
-              </ProtectedRoute>
-            }
-          />
-          <Route path="/unauthorized" element={<Unauthorized />} />
-        </Routes>
-      </MemoryRouter>
+    renderWithProviders(
+      <Routes>
+        <Route
+          path="/property"
+          element={
+            <ProtectedRoute roles={["admin", "landlord"]}>
+              <LandlordPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route path="/unauthorized" element={<Unauthorized />} />
+      </Routes>,
+      {
+        route: "/property",
+        authValue
+      }
     );
 
     // Tenant should be redirected to unauthorized
@@ -215,21 +241,27 @@ describe("Routing guards", () => {
   
   test("PublicRoute shows login for unauthenticated users", async () => {
     // Set up auth mock for unauthenticated user
-    setupAuthMock(false, false, null);
+    const authValue = {
+      isAuthenticated: false,
+      loading: false,
+      user: null
+    };
 
-    render(
-      <MemoryRouter initialEntries={["/login"]}>
-        <Routes>
-          <Route
-            path="/login"
-            element={
-              <PublicRoute>
-                <LoginPage />
-              </PublicRoute>
-            }
-          />
-        </Routes>
-      </MemoryRouter>
+    renderWithProviders(
+      <Routes>
+        <Route
+          path="/login"
+          element={
+            <PublicRoute>
+              <LoginPage />
+            </PublicRoute>
+          }
+        />
+      </Routes>,
+      {
+        route: "/login",
+        authValue
+      }
     );
 
     // Should show login form
@@ -238,21 +270,27 @@ describe("Routing guards", () => {
   
   test("PublicRoute shows loading indicator when auth is loading", async () => {
     // Set up auth mock for loading state
-    setupAuthMock(false, true, null);
+    const authValue = {
+      isAuthenticated: false,
+      loading: true,
+      user: null
+    };
 
-    render(
-      <MemoryRouter initialEntries={["/login"]}>
-        <Routes>
-          <Route
-            path="/login"
-            element={
-              <PublicRoute>
-                <LoginPage />
-              </PublicRoute>
-            }
-          />
-        </Routes>
-      </MemoryRouter>
+    renderWithProviders(
+      <Routes>
+        <Route
+          path="/login"
+          element={
+            <PublicRoute>
+              <LoginPage />
+            </PublicRoute>
+          }
+        />
+      </Routes>,
+      {
+        route: "/login",
+        authValue
+      }
     );
 
     // Check for loading indicator using the test IDs from our mocks
@@ -262,21 +300,27 @@ describe("Routing guards", () => {
 
   test("PrivateRoute shows loading indicator when auth is loading", async () => {
     // Set up auth mock for loading state
-    setupAuthMock(false, true, null);
+    const authValue = {
+      isAuthenticated: false,
+      loading: true,
+      user: null
+    };
 
-    render(
-      <MemoryRouter initialEntries={["/dashboard"]}>
-        <Routes>
-          <Route
-            path="/dashboard"
-            element={
-              <PrivateRoute>
-                <Dashboard />
-              </PrivateRoute>
-            }
-          />
-        </Routes>
-      </MemoryRouter>
+    renderWithProviders(
+      <Routes>
+        <Route
+          path="/dashboard"
+          element={
+            <PrivateRoute>
+              <Dashboard />
+            </PrivateRoute>
+          }
+        />
+      </Routes>,
+      {
+        route: "/dashboard",
+        authValue
+      }
     );
 
     // Check for loading indicator using the test IDs from our mocks

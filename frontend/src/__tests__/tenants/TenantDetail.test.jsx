@@ -30,12 +30,47 @@ describe('TenantDetail', () => {
         status: 'active'
       }
     });
+    
+    // Setup mock auth context data
+    const authValue = {
+      isAuthenticated: true,
+      user: { role: 'admin', first_name: 'Admin', last_name: 'User' },
+      logout: jest.fn()
+    };
+    
+    // Setup mock tenant context data
+    const tenantValue = {
+      tenants: [{
+        id: 1,
+        name: 'Alice',
+        email: 'alice@example.com',
+        phone: '555-1234',
+        status: 'active'
+      }],
+      loading: false,
+      error: null,
+      fetchTenants: jest.fn(),
+      getTenant: jest.fn().mockResolvedValue({
+        id: 1,
+        name: 'Alice',
+        email: 'alice@example.com',
+        phone: '555-1234',
+        status: 'active'
+      }),
+      createTenant: jest.fn(),
+      updateTenant: jest.fn(),
+      deleteTenant: jest.fn()
+    };
 
     renderWithProviders(
       <Routes>
         <Route path="/tenants/:id" element={<TenantDetail />} />
       </Routes>,
-      { route: '/tenants/1' }
+      { 
+        route: '/tenants/1',
+        authValue: authValue,
+        tenantValue: tenantValue
+      }
     );
 
     // Wait for and verify tenant data

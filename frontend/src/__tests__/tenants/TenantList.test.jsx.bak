@@ -1,6 +1,28 @@
 import React from 'react';
 import { screen, waitFor } from '@testing-library/react';
-import Tenants from '../../pages/Tenants';
+    // Setup mock auth context data
+    const authValue = {
+      isAuthenticated: true,
+      user: { role: 'admin', first_name: 'Admin', last_name: 'User' },
+      logout: jest.fn()
+    };
+    
+    // Setup mock tenant context data with error
+    const tenantValue = {
+      tenants: [],
+      loading: false,
+      error: 'Failed to load tenants',
+      fetchTenants: jest.fn(),
+      getTenant: jest.fn(),
+      createTenant: jest.fn(),
+      updateTenant: jest.fn(),
+      deleteTenant: jest.fn()
+    };
+    
+    renderWithProviders(<Tenants />, {
+      authValue: authValue,
+      tenantValue: tenantValue
+    });port Tenants from '../../pages/Tenants';
 import axios from 'axios';
 import { renderWithProviders } from '../../test-utils/renderWithProviders';
 
@@ -17,16 +39,6 @@ describe('Tenants', () => {
       isAuthenticated: true,
       user: { role: 'admin', first_name: 'Admin', last_name: 'User' },
       logout: jest.fn()
-    };
-    
-    // Setup mock notification context data
-    const notificationValue = {
-      notifications: [],
-      unreadCount: 0,
-      loading: false,
-      markAsRead: jest.fn(),
-      markAllAsRead: jest.fn(),
-      fetchNotifications: jest.fn()
     };
     
     // Setup mock tenant context data
@@ -46,7 +58,6 @@ describe('Tenants', () => {
     
     renderWithProviders(<Tenants />, {
       authValue: authValue,
-      notificationValue: notificationValue,
       tenantValue: tenantValue
     });
 
@@ -64,16 +75,6 @@ describe('Tenants', () => {
       logout: jest.fn()
     };
     
-    // Setup mock notification context data
-    const notificationValue = {
-      notifications: [],
-      unreadCount: 0,
-      loading: false,
-      markAsRead: jest.fn(),
-      markAllAsRead: jest.fn(),
-      fetchNotifications: jest.fn()
-    };
-    
     // Setup mock tenant context data with empty tenants array
     const tenantValue = {
       tenants: [],
@@ -88,7 +89,6 @@ describe('Tenants', () => {
     
     renderWithProviders(<Tenants />, {
       authValue: authValue,
-      notificationValue: notificationValue,
       tenantValue: tenantValue
     });
 
@@ -101,16 +101,6 @@ describe('Tenants', () => {
       isAuthenticated: true,
       user: { role: 'admin', first_name: 'Admin', last_name: 'User' },
       logout: jest.fn()
-    };
-    
-    // Setup mock notification context data
-    const notificationValue = {
-      notifications: [],
-      unreadCount: 0,
-      loading: false,
-      markAsRead: jest.fn(),
-      markAllAsRead: jest.fn(),
-      fetchNotifications: jest.fn()
     };
     
     // Setup mock tenant context with error
@@ -127,7 +117,6 @@ describe('Tenants', () => {
     
     renderWithProviders(<Tenants />, {
       authValue: authValue,
-      notificationValue: notificationValue,
       tenantValue: tenantValue
     });
 

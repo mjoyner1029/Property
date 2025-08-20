@@ -1,14 +1,47 @@
 import React from 'react';
-import { render, screen, act, waitFor } from '@testing-library/react';
+import { render, screen, waitFor, act } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { AuthProvider, useAuth } from '../context/AuthContext';
-import { renderWithProviders } from '../test-utils/renderWithProviders';
+import { MemoryRouter } from 'react-router-dom';
 import { withLocalStorage } from '../test-utils/mockLocalStorage';
 import { primeAuthSuccess, resetAxios } from '../test-utils/mockApiRoutes';
-import { MemoryRouter } from 'react-router-dom';
 
 // Unmock AuthContext for this test file
 jest.unmock('../context/AuthContext');
+
+// Mock authApi module that's imported by AuthContext with full implementation
+jest.mock('../utils/authApi', () => ({
+  login: jest.fn().mockImplementation(() => Promise.resolve({
+    data: {
+      access_token: 'fake-token',
+      refresh_token: 'fake-refresh-token',
+      user: { id: 1, email: 'test@example.com' }
+    }
+  })),
+  validateToken: jest.fn().mockResolvedValue({ data: { valid: true } }),
+  refreshToken: jest.fn().mockResolvedValue({ data: { access_token: 'refreshed-token' } }),
+  logout: jest.fn().mockResolvedValue({ data: { message: 'Logout successful' } }),
+  register: jest.fn().mockResolvedValue({ 
+    data: { 
+      access_token: 'fake-token',
+      refresh_token: 'fake-refresh-token',
+      user: { id: 1, email: 'test@example.com' }
+    } 
+  }),
+  getCurrentUser: jest.fn().mockResolvedValue({
+    data: { id: 1, email: 'test@example.com' }
+  })
+})); 
+    data: { access_token: 'refreshed-token' } 
+  })
+}));
+
+// Mock api module that's imported by AuthContext
+jest.mock('../utils/api', () => ({
+  get: jest.fn().mockResolvedValue({ data: {} }),
+  post: jest.fn().mockResolvedValue({ data: {} }),
+  put: jest.fn().mockResolvedValue({ data: {} })
+}));
 
 // Test component that uses auth context
 const TestComponent = () => {
@@ -35,23 +68,64 @@ const TestComponent = () => {
   );
 };
 
-describe('AuthContext', () => {
+describe('AuthContext Integration', () => {
+  // Create a real localStorage mock that works properly for auth tests
+  const localStorageMock = (function() {
+    let store = {};
+    return {
+      getItem: function(key) {
+        return store[key] || null;
+      },
+      setItem: function(key, value) {
+        store[key] = value.toString();
+      },
+      removeItem: function(key) {
+        delete store[key];
+      },
+      clear: function() {
+        store = {};
+      }
+    };
+  })();
+  
   beforeEach(() => {
-    // Setup a working localStorage implementation
-    withLocalStorage();
+    // Replace the global localStorage mock with our local one
+    Object.defineProperty(window, 'localStorage', {
+      value: localStorageMock,
+      writable: true
+    });
     
-    // Prime API responses for auth endpoints
-    primeAuthSuccess();
-  });
-
-  afterEach(() => {
-    // Reset all mocks
-    resetAxios();
+    // Clear localStorage
+    localStorageMock.clear();
     jest.clearAllMocks();
+    
+    // Setup default axios responses for auth endpoints
+    axios.post.mockImplementation((url) => {
+      if (url.includes('/auth/login') || url.includes('/api/auth/login')) {
+        return Promise.resolve({
+          data: {
+            access_token: 'fake-token',
+            refresh_token: 'fake-refresh-token',
+            user: { id: 1, email: 'test@example.com' }
+          }
+        });
+      }
+      return Promise.resolve({ data: {} });
+    });
+
+    // Mock the axios.get for token validation
+    axios.get.mockImplementation((url) => {
+      if (url.includes('/auth/verify') || url.includes('/api/auth/verify')) {
+        return Promise.resolve({ data: { valid: true } });
+      }
+      if (url.includes('/auth/me') || url.includes('/api/auth/me')) {
+        return Promise.resolve({ data: { id: 1, email: 'test@example.com' } });
+      }
+      return Promise.resolve({ data: {} });
+    });
   });
 
   test('provides authentication state', () => {
-    // Use explicit render instead of renderWithProviders to simplify the test
     render(
       <MemoryRouter>
         <AuthProvider>
@@ -77,10 +151,8 @@ describe('AuthContext', () => {
     // Verify initial logged out state
     expect(screen.getByTestId('auth-status')).toHaveTextContent('Logged Out');
     
-    // Click login (wrap in act to contain all effects)
-    await act(async () => {
-      await user.click(screen.getByTestId('login-button'));
-    });
+    // Click login
+    await user.click(screen.getByTestId('login-button'));
     
     // Verify logged in state - need to wait for the async operation
     await waitFor(() => {
@@ -88,11 +160,16 @@ describe('AuthContext', () => {
     }, { timeout: 3000 });
     
     // Check that the user email is displayed
-    expect(screen.getByTestId('user-email')).toHaveTextContent('test@example.com');
-    
+    await waitFor(() => {
+      expect(screen.getByTestId('user-email')).toHaveTextContent('test@example.com');
+    });
+
     // Verify that localStorage was updated
-    expect(localStorage.getItem('token')).toBeTruthy();
-    expect(JSON.parse(localStorage.getItem('user'))).toBeTruthy();
+    expect(localStorage.getItem('token')).toBe('fake-token');
+    expect(localStorage.getItem('refresh_token')).toBe('fake-refresh-token');
+    expect(JSON.parse(localStorage.getItem('user'))).toEqual(
+      expect.objectContaining({ email: 'test@example.com' })
+    );
   });
 
   test('handles logout', async () => {
@@ -107,22 +184,18 @@ describe('AuthContext', () => {
     );
     
     // Login first
-    await act(async () => {
-      await user.click(screen.getByTestId('login-button'));
-    });
+    await user.click(screen.getByTestId('login-button'));
     
     // Wait for logged in state 
     await waitFor(() => {
       expect(screen.getByTestId('auth-status')).toHaveTextContent('Logged In');
     }, { timeout: 3000 });
-    
+
     // Verify localStorage has data
-    expect(localStorage.getItem('token')).toBeTruthy();
+    expect(localStorage.getItem('token')).toBe('fake-token');
     
     // Logout
-    await act(async () => {
-      await user.click(screen.getByTestId('logout-button'));
-    });
+    await user.click(screen.getByTestId('logout-button'));
     
     // Should be logged out
     await waitFor(() => {
@@ -135,9 +208,8 @@ describe('AuthContext', () => {
   });
   
   test('handles login failure', async () => {
-    // Override the default mock for a failure case
-    const authApi = require('../utils/authApi');
-    authApi.login.mockImplementationOnce(() => 
+    // Mock failed login
+    axios.post.mockImplementationOnce(() => 
       Promise.reject({ response: { data: { error: 'Invalid credentials' }}})
     );
     
@@ -155,9 +227,7 @@ describe('AuthContext', () => {
     expect(screen.getByTestId('auth-status')).toHaveTextContent('Logged Out');
     
     // Click login
-    await act(async () => {
-      await user.click(screen.getByTestId('login-button'));
-    });
+    await user.click(screen.getByTestId('login-button'));
     
     // Should still be logged out after failed login attempt
     await waitFor(() => {
@@ -183,6 +253,6 @@ describe('AuthContext', () => {
     await waitFor(() => {
       expect(screen.getByTestId('auth-status')).toHaveTextContent('Logged In');
       expect(screen.getByTestId('user-email')).toHaveTextContent('saved@example.com');
-    }, { timeout: 3000 });
+    });
   });
 });
