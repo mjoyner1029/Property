@@ -103,12 +103,19 @@ def create_app(config_name='default'):
         except ImportError as e:
             app.logger.error(f"Failed to import a blueprint: {e}")
     
-    # Health check endpoints are defined in status_routes.py
+    # Health check endpoints
     try:
         from .routes.status_routes import bp as status_bp
         app.register_blueprint(status_bp)
     except ImportError as e:
         app.logger.error(f"Failed to import status routes: {e}")
+        
+    # New health endpoint with DB status + git SHA
+    try:
+        from .routes.health import bp as health_bp
+        app.register_blueprint(health_bp)
+    except ImportError as e:
+        app.logger.error(f"Failed to import health routes: {e}")
         
     # CSP Report endpoint
     @app.route('/api/csp-report', methods=['POST'])
