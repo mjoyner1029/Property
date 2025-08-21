@@ -89,22 +89,96 @@ The following secrets must be configured in the GitHub repository settings for t
 | `SENTRY_DSN_STAGING` | Sentry DSN for staging error reporting | `https://abcdef@sentry.io/123456` |
 | `REDIS_URL_STAGING` | Redis connection string for rate limit tests | `redis://user:password@redis-staging:6379` |
 
-## Next Steps (Day 3+)
+## Day 3 Achievements
 
-🔜 **Manual QA Integration**
-- Add formal manual QA test cases for authentication flows
-- Implement CRUD operation validation suite
-- Add role-based access control verification
+✅ **Manual QA Integration**
+- Added formal manual QA test cases for authentication flows
+- Implemented CRUD operation validation suite
+- Added role-based access control verification
 
-🔜 **Extended Payment Testing**
-- Expand Stripe test coverage to include subscription flows
-- Add one-time payment verification
-- Implement refund and dispute handling tests
+✅ **Extended Payment Testing**
+- Expanded Stripe test coverage to include subscription flows
+- Added one-time payment verification
+- Implemented refund and dispute handling tests
 
-🔜 **Frontend Performance Gating**
-- Add Lighthouse CI for frontend performance metrics
+✅ **Frontend Performance Gating**
+- Added Lighthouse CI for frontend performance metrics
 - Set up performance budgets and thresholds
-- Implement automatic verification of accessibility standards
+- Implemented automatic verification of accessibility standards
+
+## Day 4 Achievements — Release Candidate & Cutover Rehearsal
+
+✅ **Release Candidate Automation**
+- Created `.github/workflows/release-candidate.yml` workflow for automating:
+  - Test execution for backend and frontend
+  - Deployment to staging for RC tags
+  - Smoke tests and validation checks
+- Implemented branch and tag naming convention enforcement
+
+✅ **Blue/Green Cutover Rehearsal**
+- Created `.github/workflows/staging-bluegreen-rehearsal.yml` for:
+  - Database migration execution
+  - Backend deployment and health checks
+  - Smoke testing between steps
+  - Frontend deployment and health checks
+  - Full verification of deployed system
+- Added Stripe webhook verification for end-to-end flow validation
+
+✅ **Rollback Tooling**
+- Added `scripts/rollback_backend.sh` for Render service rollbacks
+- Added `scripts/rollback_frontend.sh` for Vercel deployment rollbacks
+- Created `scripts/release_readiness_gate.sh` for pre-release validation
+
+✅ **Security Header Verification**
+- Created `.github/workflows/rc-security-headers.yml` for:
+  - CSP (Content Security Policy) validation
+  - HSTS (HTTP Strict Transport Security) checks
+  - XFO (X-Frame-Options) enforcement verification
+  - Referrer-Policy configuration validation
+- Added `scripts/check_security_headers.py` for manual and automated security checks
+
+✅ **Documentation**
+- Created RELEASE_NOTES.md with:
+  - RC template for consistent release notes
+  - Blue/Green cutover and rollback process documentation
+  - Rehearsal checklist for pre-production validation
+- Updated CI_CD_STATUS.md with Day 4 instructions and progress
+
+## How Release Candidate & Cutover Works
+
+### Release Candidate Process
+
+1. Create a release branch from main: `git checkout -b release/x.y.z`
+2. Create an RC tag: `git tag -a vx.y.z-rc.1 -m "Release Candidate 1"`
+3. Push branch and tag: `git push origin release/x.y.z --tags`
+4. RC workflow automatically runs tests and deploys to staging
+5. Security header workflow automatically verifies security configurations
+6. If issues are found, fix on release branch and create new RC tag
+
+### Blue/Green Cutover Rehearsal
+
+1. Trigger the blue/green rehearsal workflow on your release branch
+2. Workflow simulates production cutover by:
+   - Running database migrations
+   - Deploying backend to a new instance
+   - Verifying backend functionality
+   - Deploying frontend with updated API endpoints
+   - Final verification of the complete system
+3. Practice rollback procedures using the provided scripts
+
+## Required GitHub Actions Secrets for Day 4
+
+In addition to existing secrets, the following are required for Day 4 workflows:
+
+| Secret Name | Description | Example |
+|-------------|-------------|---------|
+| `RENDER_API_KEY` | Render API key for deployments | `rnd_123456abcdef` |
+| `RENDER_SERVICE_ID_API` | Render service ID for backend API | `srv_123456abcdef` |
+| `VERCEL_TOKEN` | Vercel API token for frontend deployments | `vercel_token_123456` |
+| `VERCEL_PROJECT_ID` | Vercel project ID for the frontend | `prj_123456abcdef` |
+| `VERCEL_ORG_ID` | Vercel organization ID | `team_123456abcdef` |
+
+## Next Steps
 
 🔜 **Notification System**
 - Wire up Slack/email notifications for CI/CD failures
@@ -118,4 +192,4 @@ The following secrets must be configured in the GitHub repository settings for t
 
 ## Conclusion
 
-The CI/CD pipeline now provides a robust foundation for continuous delivery with automated verification. Day 1 and Day 2 implementations ensure both smooth deployments and comprehensive post-deploy validation. The next phases will focus on expanding test coverage, enhancing security controls, and improving overall automation and notifications.
+The CI/CD pipeline now provides a comprehensive system for continuous delivery with automated verification, release management, and cutover procedures. Days 1-4 implementations ensure smooth deployments, thorough validation, and rehearsed cutover/rollback processes. With the release candidate workflow and blue/green cutover rehearsal in place, the team can confidently prepare and execute releases with minimal risk. The next phases will focus on enhancing notifications and advanced security controls to further improve the overall delivery pipeline.
