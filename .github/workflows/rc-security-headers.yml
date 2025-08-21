@@ -1,0 +1,70 @@
+name: RC Security Header Check
+
+on:
+  push:
+    tags:
+      - 'v*-rc.*'
+  workflow_dispatch:
+    inputs:
+      url:
+        description: 'Custom URL to check'
+        required: false
+        type: string
+
+jobs:
+  check-security-headers:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+      
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.10'
+      
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install requests
+      
+      - name: Make script executable
+        run: chmod +x ./scripts/check_security_headers.py
+      
+      - name: Determine URLs to check
+        id: get-urls
+        run: |
+          # Use custom URL if provided, otherwise use default staging URLs
+          if [[ "${{ github.event.inputs.url }}" != "" ]]; then
+            URLS="${{ github.event.inputs.url }}"
+          else
+            URLS="${{ secrets.STAGING_API_URL }} ${{ secrets.STAGING_FE_URL }}"
+          fi
+          echo "urls=$URLS" >> $GITHUB_OUTPUT
+      
+      - name: Check security headers
+        run: |
+          echo "Checking security headers for: ${{ steps.get-urls.outputs.urls }}"
+          ./scripts/check_security_headers.py ${{ steps.get-urls.outputs.urls }}
+      
+      - name: Generate report
+        if: always()
+        run: |
+          echo "# Security Headers Report" > security_header_report.md
+          echo "Generated on $(date)" >> security_header_report.md
+          echo "" >> security_header_report.md
+          
+          for URL in ${{ steps.get-urls.outputs.urls }}; do
+            echo "## $URL" >> security_header_report.md
+            echo '```' >> security_header_report.md
+            ./scripts/check_security_headers.py "$URL" >> security_header_report.md
+            echo '```' >> security_header_report.md
+            echo "" >> security_header_report.md
+          done
+      
+      - name: Upload security headers report
+        if: always()
+        uses: actions/upload-artifact@v3
+        with:
+          name: security-header-report
+          path: security_header_report.md
