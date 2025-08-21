@@ -1,0 +1,9 @@
+#!/usr/bin/env bash
+set -e
+files=$(git diff --cached --name-only | grep -E '^backend/migrations/versions/.*\.py$' || true)
+for f in $files; do
+  if grep -q 'down_revision\s*=\s*None' "$f"; then
+    echo "❌ $f has down_revision=None (only the initial migration may use None). Fix the chain."
+    exit 1
+  fi
+done
