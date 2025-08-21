@@ -1,7 +1,7 @@
 """Add indexes for performance hot paths
 
 Revision ID: 42fd63a85b12
-Revises: (use the most recent revision ID here)
+Revises: 7d4e5f6g7h8i
 Create Date: 2025-08-20 10:00:00.000000
 
 """
@@ -11,7 +11,7 @@ import sqlalchemy as sa
 
 # revision identifiers, used by Alembic.
 revision = '42fd63a85b12'
-down_revision = None  # Replace with your actual previous migration
+down_revision = '7d4e5f6g7h8i'
 branch_labels = None
 depends_on = None
 
