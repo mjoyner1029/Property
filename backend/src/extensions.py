@@ -134,16 +134,13 @@ talisman = Talisman(
 REDIS_URL = os.getenv("REDIS_URL")
 DISABLE_RATE_LIMIT = os.getenv("DISABLE_RATE_LIMIT", "false").lower() == "true"
 
-def request_filter():
-    return DISABLE_RATE_LIMIT
-
 limiter = Limiter(
     key_func=get_remote_address,
     default_limits=["200 per minute", "5000 per hour"],
     storage_uri=os.getenv("RATELIMIT_STORAGE_URI") or (REDIS_URL if REDIS_URL else "memory://"),
-    strategy="fixed-window-elastic-expiry",
+    strategy="fixed-window",
     headers_enabled=True,
-    on_breach=lambda _: ({"error": "Rate limit exceeded", "status": 429}, 429)
+    on_breach=lambda *a, **k: ({"error": "Rate limit exceeded", "status": 429}, 429)
 )
 
 # Apply rate limiting conditionally based on DISABLE_RATE_LIMIT
