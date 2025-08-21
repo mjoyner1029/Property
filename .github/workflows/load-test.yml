@@ -1,0 +1,129 @@
+name: Performance Load Testing
+
+on:
+  schedule:
+    - cron: '0 2 * * *'  # Run nightly at 2 AM UTC
+  workflow_dispatch:     # Allow manual triggering
+
+jobs:
+  load-test:
+    name: API Load Test
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    
+    env:
+      API_BASE_URL: ${{ secrets.STAGING_API_URL }}
+      AUTH_TOKEN: ${{ secrets.LOAD_TEST_AUTH_TOKEN }}
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Install k6
+        run: |
+          curl -L https://github.com/grafana/k6/releases/download/v0.45.0/k6-v0.45.0-linux-amd64.tar.gz | tar -xz
+          sudo cp k6-v0.45.0-linux-amd64/k6 /usr/local/bin
+      
+      - name: Run load tests
+        id: run-load-tests
+        run: |
+          mkdir -p load-test-results
+          # Run moderate load test (20 VUs, 60s, p95<300ms)
+          echo "Running moderate load test against key API endpoints"
+          k6 run --out json=load-test-results/raw_results.json perf/load/api_load_test.js --tag testType=moderate
+          
+          # Create summary report
+          echo "Generating summary report"
+          cat > load-test-results/summary.md << EOL
+          # Load Test Results
+
+          Date: $(date)
+
+          ## Test Configuration
+          - Target API: $API_BASE_URL
+          - Test Duration: 60s
+          - Virtual Users: 20
+          - P95 Latency Target: < 300ms
+
+          ## Summary Results
+          EOL
+          
+          # Extract key metrics from JSON results
+          python -c '
+          import json
+          import sys
+          
+          with open("load-test-results/raw_results.json") as f:
+              data = json.load(f)
+          
+          metrics = data["metrics"]
+          
+          # Extract the important metrics
+          http_req_duration = metrics.get("http_req_duration", {})
+          properties_latency = metrics.get("properties_latency", {})
+          tenants_latency = metrics.get("tenants_latency", {})
+          payments_history_latency = metrics.get("payments_history_latency", {})
+          failed_requests = metrics.get("failed_requests", {})
+          
+          with open("load-test-results/summary.md", "a") as out:
+              out.write(f"\n| Metric | Value | Pass/Fail |\n")
+              out.write(f"|--------|-------|-----------|\n")
+              
+              # Overall latency
+              p95 = http_req_duration.get("p(95)", 0)
+              status = "✅ PASS" if p95 < 300 else "❌ FAIL" 
+              out.write(f"| Overall P95 Latency | {p95:.2f}ms | {status} |\n")
+              
+              # Individual endpoint latencies
+              p95_properties = properties_latency.get("p(95)", 0) 
+              status = "✅ PASS" if p95_properties < 300 else "❌ FAIL"
+              out.write(f"| Properties P95 Latency | {p95_properties:.2f}ms | {status} |\n")
+              
+              p95_tenants = tenants_latency.get("p(95)", 0)
+              status = "✅ PASS" if p95_tenants < 300 else "❌ FAIL"
+              out.write(f"| Tenants P95 Latency | {p95_tenants:.2f}ms | {status} |\n")
+              
+              p95_payments = payments_history_latency.get("p(95)", 0)
+              status = "✅ PASS" if p95_payments < 300 else "❌ FAIL"
+              out.write(f"| Payments P95 Latency | {p95_payments:.2f}ms | {status} |\n")
+              
+              # Error rate
+              error_rate = failed_requests.get("rate", 0) * 100  # Convert to percentage
+              status = "✅ PASS" if error_rate < 1.0 else "❌ FAIL"
+              out.write(f"| Error Rate | {error_rate:.2f}% | {status} |\n")
+              
+              # Check if we passed all thresholds
+              passed_all = (p95 < 300 and p95_properties < 300 and 
+                           p95_tenants < 300 and p95_payments < 300 and 
+                           error_rate < 1.0)
+              
+              if passed_all:
+                  print("PASSED=true")
+              else:
+                  print("PASSED=false")
+          ' >> load-test-results/results.env
+          
+          source load-test-results/results.env
+          echo "test_passed=$PASSED" >> $GITHUB_OUTPUT
+          
+          # Add charts/graphs if needed later...
+          
+          echo "Load test complete. Check the artifacts for detailed results."
+      
+      - name: Upload test results
+        uses: actions/upload-artifact@v3
+        if: always()
+        with:
+          name: load-test-results
+          path: load-test-results/
+          retention-days: 30
+      
+      - name: Post results to GitHub summary
+        if: always()
+        run: cat load-test-results/summary.md >> $GITHUB_STEP_SUMMARY
+      
+      - name: Check if tests passed
+        if: steps.run-load-tests.outputs.test_passed == 'false'
+        run: |
+          echo "::error::Load test failed! P95 latency exceeded 300ms threshold."
+          exit 1
