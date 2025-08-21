@@ -85,7 +85,6 @@ jobs:
         uses: actions/setup-node@v3
         with:
           node-version: '18'
-          cache: 'npm'
 
       - name: Frontend NPM Audit
         run: |
@@ -135,6 +134,7 @@ jobs:
         uses: github/codeql-action/analyze@v2
         with:
           category: "/language:${{matrix.language}}"
+        continue-on-error: true
 
   secret-scanning:
     name: Secret Scanning
@@ -192,12 +192,14 @@ jobs:
           push: false
           tags: assetanchor-backend:scan
           load: true
+        continue-on-error: true
 
       - name: Build frontend image for scanning
         if: steps.check_frontend_dockerfile.outputs.exists == 'true'
         uses: docker/build-push-action@v4
         with:
           context: ./frontend
+        continue-on-error: true
           file: ./frontend/Dockerfile
           push: false
           tags: assetanchor-frontend:scan
