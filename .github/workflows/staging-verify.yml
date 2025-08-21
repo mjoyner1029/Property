@@ -1,0 +1,83 @@
+name: staging-verify
+
+on:
+  workflow_run:
+    workflows: ["deploy"]           # must match the name of your deploy workflow
+    types: [completed]
+
+jobs:
+  verify-staging:
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+    name: Day 2 - Staging Hardening & Verification
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    env:
+      # Required staging URLs (set these as GitHub Action secrets)
+      STAGING_API_URL: ${{ secrets.STAGING_API_URL }}          # e.g. https://api-staging.assetanchor.io
+      STAGING_FE_URL:  ${{ secrets.STAGING_FE_URL }}           # e.g. https://staging.assetanchor.io
+
+      # Auth / tokens for scripted checks
+      ADMIN_BEARER_TOKEN: ${{ secrets.ADMIN_BEARER_TOKEN }}     # JWT or API key with admin permissions
+
+      # Stripe + Sentry (staging)
+      STRIPE_WEBHOOK_SECRET: ${{ secrets.STRIPE_WEBHOOK_SECRET_STAGING }}
+      SENTRY_DSN: ${{ secrets.SENTRY_DSN_STAGING }}
+
+      # Optional Redis/limiter settings (if scripts need them)
+      REDIS_URL: ${{ secrets.REDIS_URL_STAGING }}
+
+      # Strict fail switches: set to "true" to enforce
+      FAIL_ON_PAYMENTS: "true"
+      FAIL_ON_MULTITENANCY: "true"
+      FAIL_ON_RATELIMIT: "true"
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install Python deps for verification
+        run: |
+          python -m pip install --upgrade pip
+          # If we need extra libs for analyze_csp.py etc., install here:
+          pip install requests pytest rich
+
+      - name: Prepare results folder
+        run: |
+          mkdir -p day2-results
+
+      # Optional: print inputs (URL only, no secrets)
+      - name: Echo target URLs
+        run: |
+          echo "STAGING_API_URL=${STAGING_API_URL}"
+          echo "STAGING_FE_URL=${STAGING_FE_URL}"
+
+      - name: Run Day-2 verification suite
+        run: |
+          chmod +x ./scripts/run_day2_tests.sh
+          # The script should:
+          #  - use env vars above
+          #  - write outputs to ./day2-results/*.json|*.log|*.txt
+          #  - exit non-zero for critical failures (payments/multitenancy/ratelimit) when FAIL_ON_*="true"
+          ./scripts/run_day2_tests.sh
+
+      - name: Upload Day-2 results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: day2-staging-results
+          path: day2-results
+
+      # Optional: post a short job summary
+      - name: Job Summary
+        if: always()
+        run: |
+          echo "## Day 2 Staging Verification" >> $GITHUB_STEP_SUMMARY
+          echo "- API: ${STAGING_API_URL}" >> $GITHUB_STEP_SUMMARY
+          echo "- FE: ${STAGING_FE_URL}" >> $GITHUB_STEP_SUMMARY
+          echo "- See artifacts: day2-staging-results" >> $GITHUB_STEP_SUMMARY

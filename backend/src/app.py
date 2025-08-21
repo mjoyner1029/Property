@@ -15,7 +15,11 @@ def create_app(config_name='default'):
     app = Flask(__name__)
     
     # Load config
-    from .config import config_by_name
+    try:
+        from .config import config_by_name
+    except ImportError:
+        from config import config_by_name
+    
     app.config.from_object(config_by_name[config_name])
     
     # Set up logging

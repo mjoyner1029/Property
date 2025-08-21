@@ -28,6 +28,9 @@ def app():
     app = create_app()
     app.config.from_object("config.TestingConfig")
     
+    # Override SQLite path to use memory database
+    app.config['SQLALCHEMY_DATABASE_URI'] = "sqlite:///:memory:"
+    
     # Create the database and tables for testing
     with app.app_context():
         _db.create_all()
