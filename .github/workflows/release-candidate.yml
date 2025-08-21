@@ -1,0 +1,19 @@
+name: release-candidate
+
+on:
+  push:
+    branches: [ "release/*" ]
+    tags:
+      - "v*.*.*-rc.*"
+
+jobs:
+  fe-tests:
+    uses: ./.github/workflows/frontend-tests.yml
+
+  be-tests:
+    uses: ./.github/workflows/backend-tests.yml
+
+  # Optional: run deploy to staging automatically for RC tags
+  deploy:
+    if: startsWith(github.ref, 'refs/tags/v') && contains(github.ref, '-rc.')
+    uses: ./.github/workflows/deploy.yml
