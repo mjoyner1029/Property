@@ -1,143 +1,282 @@
+# backend/src/controllers/payment_controller.py
+from __future__ import annotations
+
 import logging
-from datetime import datetime
-from sqlalchemy.exc import SQLAlchemyError
-from flask import request, jsonify, current_app
-from flask_jwt_extended import jwt_required, get_jwt_identity
+from datetime import datetime, date
+from decimal import Decimal, InvalidOperation
+from typing import Any, Dict, List, Tuple, Optional
+
+from sqlalchemy.exc import SQLAlchemyError, IntegrityError
+from sqlalchemy import and_
+
 from src.models.payment import Payment
-from src.models.user import User
-from src.models.tenant_property import TenantProperty
-from src.models.property import Property
-from src.services.stripe_service import StripeService
 from src.extensions import db
-from sqlalchemy import desc
-import stripe
-import os
+
+# Optional: if you later wire routes calling into these functions, keep imports local there.
+# from flask_jwt_extended import jwt_required, get_jwt_identity
+# from flask import request, jsonify, current_app
 
 logger = logging.getLogger(__name__)
 
-# Import functions from payment_checkout.py
-from .payment_checkout import create_checkout_session, get_payment_history
+# Import functions from payment_checkout.py (leave as-is if used by routes elsewhere)
+try:
+    from .payment_checkout import create_checkout_session, get_payment_history  # noqa: F401
+except Exception:
+    # Defer errors until actually called by routes that need these
+    logger.debug("payment_checkout helpers not available; continuing")
 
-def create_payment(data):
+
+# ------------------------------------------------------------------------------
+# Helpers
+# ------------------------------------------------------------------------------
+
+def _as_decimal(val: Any) -> Optional[Decimal]:
+    """
+    Convert a value to Decimal safely. Accepts string/float/int.
+    Returns None if invalid or negative.
+    """
+    if val is None:
+        return None
+    try:
+        d = Decimal(str(val))
+        # Optional: enforce non-negative amounts
+        if d < Decimal("0"):
+            return None
+        # Normalize to 2 decimal places commonly used for currency
+        return d.quantize(Decimal("0.01"))
+    except (InvalidOperation, ValueError, TypeError):
+        return None
+
+
+def _as_date(val: Any) -> Optional[date]:
+    """
+    Accepts ISO date ('YYYY-MM-DD') or datetime string. Returns a date or None.
+    """
+    if not val:
+        return None
+    if isinstance(val, (date, datetime)):
+        return val.date() if isinstance(val, datetime) else val
+    s = str(val).strip()
+    # Try date first
+    for fmt in ("%Y-%m-%d", "%Y-%m-%dT%H:%M:%S", "%Y-%m-%dT%H:%M:%S.%fZ"):
+        try:
+            dt = datetime.strptime(s, fmt)
+            return dt.date()
+        except ValueError:
+            continue
+    # Last resort: fromisoformat may handle more variants
+    try:
+        return datetime.fromisoformat(s).date()
+    except Exception:
+        return None
+
+
+def _payment_to_dict(p: Payment) -> Dict[str, Any]:
+    return {
+        "id": p.id,
+        "tenant_id": p.tenant_id,
+        "amount": float(p.amount) if p.amount is not None else None,
+        "status": p.status,
+        "due_date": p.due_date.isoformat() if getattr(p, "due_date", None) else None,
+        "paid_date": p.paid_date.isoformat() if getattr(p, "paid_date", None) else None,
+        "created_at": p.created_at.isoformat() if getattr(p, "created_at", None) else None,
+        "updated_at": p.updated_at.isoformat() if getattr(p, "updated_at", None) else None,
+    }
+
+
+# ------------------------------------------------------------------------------
+# CRUD (service-layer functions; call from routes)
+# ------------------------------------------------------------------------------
+
+def create_payment(data: Dict[str, Any]) -> Tuple[Dict[str, Any], int]:
     """Create a new payment record."""
     # Validate required fields
-    required_fields = ["tenant_id", "amount"]
-    for field in required_fields:
-        if field not in data:
-            logger.warning(f"Payment creation failed: missing {field}")
-            return {"error": f"Missing required field: {field}"}, 400
-            
+    missing = [f for f in ("tenant_id", "amount") if f not in data or data[f] in (None, "")]
+    if missing:
+        logger.warning("Payment creation failed: missing %s", ", ".join(missing))
+        return {"error": f"Missing required field(s): {', '.join(missing)}"}, 400
+
+    tenant_id = data.get("tenant_id")
+    amount = _as_decimal(data.get("amount"))
+    if not isinstance(tenant_id, int):
+        try:
+            tenant_id = int(tenant_id)
+        except Exception:
+            return {"error": "tenant_id must be an integer"}, 400
+
+    if amount is None:
+        return {"error": "amount must be a non-negative number"}, 400
+
+    status = str(data.get("status", "pending")).strip().lower() or "pending"
+    if status not in {"pending", "due", "paid", "failed", "void"}:
+        return {"error": "Invalid status. Use one of: pending, due, paid, failed, void"}, 400
+
+    due_date = _as_date(data.get("due_date"))
+    paid_date = _as_date(data.get("paid_date"))
+
     try:
         payment = Payment(
-            tenant_id=data["tenant_id"],
-            amount=data["amount"],
-            status=data.get("status", "pending"),
-            due_date=data.get("due_date"),
-            paid_date=data.get("paid_date")
+            tenant_id=tenant_id,
+            amount=amount,
+            status=status,
+            due_date=due_date,
+            paid_date=paid_date,
         )
         db.session.add(payment)
         db.session.commit()
-        
-        logger.info(f"Payment created for tenant {data['tenant_id']}, amount: {data['amount']}")
-        return {"message": "Payment created", "id": payment.id}, 201
+
+        logger.info("Payment created (id=%s) for tenant %s amount=%s", payment.id, tenant_id, amount)
+        return {"message": "Payment created", "id": payment.id, "payment": _payment_to_dict(payment)}, 201
+
+    except IntegrityError as e:
+        db.session.rollback()
+        logger.warning("Integrity error creating payment: %s", e)
+        return {"error": "Integrity error creating payment"}, 400
     except SQLAlchemyError as e:
         db.session.rollback()
-        logger.error(f"Failed to create payment: {str(e)}")
+        logger.error("DB error creating payment: %s", e)
+        return {"error": "Failed to create payment"}, 500
+    except Exception as e:
+        db.session.rollback()
+        logger.exception("Unexpected error creating payment")
         return {"error": "Failed to create payment"}, 500
 
-def list_payments(filters=None):
+
+def list_payments(filters: Optional[Dict[str, Any]] = None) -> Tuple[Any, int]:
     """Get all payments with optional filtering."""
     try:
-        query = Payment.query
-        
-        # Apply filters if provided
+        q = Payment.query
+
         if filters:
-            if 'tenant_id' in filters:
-                query = query.filter_by(tenant_id=filters['tenant_id'])
-            if 'status' in filters:
-                query = query.filter_by(status=filters['status'])
-            if 'from_date' in filters and 'to_date' in filters:
-                query = query.filter(Payment.due_date.between(filters['from_date'], filters['to_date']))
-        
-        payments = query.all()
-        
-        return [{
-            "id": p.id,
-            "tenant_id": p.tenant_id,
-            "amount": p.amount,
-            "status": p.status,
-            "due_date": p.due_date.isoformat() if p.due_date else None,
-            "paid_date": p.paid_date.isoformat() if p.paid_date else None
-        } for p in payments], 200
+            tenant_id = filters.get("tenant_id")
+            if tenant_id is not None:
+                try:
+                    tenant_id = int(tenant_id)
+                    q = q.filter(Payment.tenant_id == tenant_id)
+                except Exception:
+                    return {"error": "tenant_id must be an integer"}, 400
+
+            status = filters.get("status")
+            if status:
+                q = q.filter(Payment.status == str(status).strip().lower())
+
+            from_date = _as_date(filters.get("from_date"))
+            to_date = _as_date(filters.get("to_date"))
+            if from_date and to_date:
+                # Assuming due_date is the primary filterable field
+                q = q.filter(and_(Payment.due_date >= from_date, Payment.due_date <= to_date))
+            elif from_date:
+                q = q.filter(Payment.due_date >= from_date)
+            elif to_date:
+                q = q.filter(Payment.due_date <= to_date)
+
+        payments: List[Payment] = q.order_by(Payment.due_date.asc().nulls_last()).all()
+
+        return ([_payment_to_dict(p) for p in payments], 200)
+
     except SQLAlchemyError as e:
-        logger.error(f"Database error when listing payments: {str(e)}")
+        logger.error("Database error when listing payments: %s", e)
+        return {"error": "Failed to retrieve payments"}, 500
+    except Exception as e:
+        logger.exception("Unexpected error when listing payments")
         return {"error": "Failed to retrieve payments"}, 500
 
-def get_payment(payment_id):
+
+def get_payment(payment_id: Any) -> Tuple[Dict[str, Any], int]:
     """Get a specific payment by ID."""
     try:
-        payment = Payment.query.get(payment_id)
-        
+        pid = int(payment_id)
+    except Exception:
+        return {"error": "payment_id must be an integer"}, 400
+
+    try:
+        payment = Payment.query.get(pid)
         if not payment:
             return {"error": "Payment not found"}, 404
-            
-        return {
-            "id": payment.id,
-            "tenant_id": payment.tenant_id,
-            "amount": payment.amount,
-            "status": payment.status,
-            "due_date": payment.due_date.isoformat() if payment.due_date else None,
-            "paid_date": payment.paid_date.isoformat() if payment.paid_date else None
-        }, 200
+        return _payment_to_dict(payment), 200
     except SQLAlchemyError as e:
-        logger.error(f"Database error when getting payment {payment_id}: {str(e)}")
+        logger.error("Database error when getting payment %s: %s", pid, e)
+        return {"error": "Failed to retrieve payment"}, 500
+    except Exception:
+        logger.exception("Unexpected error when getting payment")
         return {"error": "Failed to retrieve payment"}, 500
 
-def update_payment(payment_id, data):
+
+def update_payment(payment_id: Any, data: Dict[str, Any]) -> Tuple[Dict[str, Any], int]:
     """Update an existing payment."""
     try:
-        payment = Payment.query.get(payment_id)
-        
+        pid = int(payment_id)
+    except Exception:
+        return {"error": "payment_id must be an integer"}, 400
+
+    try:
+        payment = Payment.query.get(pid)
         if not payment:
             return {"error": "Payment not found"}, 404
-            
+
         if "status" in data:
-            payment.status = data["status"]
-            
+            status = str(data["status"]).strip().lower()
+            if status not in {"pending", "due", "paid", "failed", "void"}:
+                return {"error": "Invalid status. Use one of: pending, due, paid, failed, void"}, 400
+            payment.status = status
             # If marking as paid, update the paid_date
-            if data["status"] == "paid" and not payment.paid_date:
-                payment.paid_date = datetime.utcnow()
-                
+            if status == "paid" and not payment.paid_date:
+                payment.paid_date = datetime.utcnow().date()
+
         if "amount" in data:
-            payment.amount = data["amount"]
+            amt = _as_decimal(data["amount"])
+            if amt is None:
+                return {"error": "amount must be a non-negative number"}, 400
+            payment.amount = amt
+
         if "due_date" in data:
-            payment.due_date = data["due_date"]
+            dd = _as_date(data["due_date"])
+            if data["due_date"] is not None and dd is None:
+                return {"error": "due_date must be an ISO date (YYYY-MM-DD)"}, 400
+            payment.due_date = dd
+
         if "paid_date" in data:
-            payment.paid_date = data["paid_date"]
-            
+            pd = _as_date(data["paid_date"])
+            if data["paid_date"] is not None and pd is None:
+                return {"error": "paid_date must be an ISO date (YYYY-MM-DD)"}, 400
+            payment.paid_date = pd
+
         db.session.commit()
-        logger.info(f"Payment {payment_id} updated")
-        
-        return {"message": "Payment updated"}, 200
+        logger.info("Payment %s updated", pid)
+        return {"message": "Payment updated", "payment": _payment_to_dict(payment)}, 200
+
     except SQLAlchemyError as e:
         db.session.rollback()
-        logger.error(f"Failed to update payment: {str(e)}")
+        logger.error("Failed to update payment %s: %s", payment_id, e)
+        return {"error": "Failed to update payment"}, 500
+    except Exception:
+        db.session.rollback()
+        logger.exception("Unexpected error updating payment")
         return {"error": "Failed to update payment"}, 500
 
-def delete_payment(payment_id):
+
+def delete_payment(payment_id: Any) -> Tuple[Dict[str, Any], int]:
     """Delete a payment."""
     try:
-        payment = Payment.query.get(payment_id)
-        
+        pid = int(payment_id)
+    except Exception:
+        return {"error": "payment_id must be an integer"}, 400
+
+    try:
+        payment = Payment.query.get(pid)
         if not payment:
             return {"error": "Payment not found"}, 404
-            
+
         db.session.delete(payment)
         db.session.commit()
-        logger.info(f"Payment {payment_id} deleted")
-        
+        logger.info("Payment %s deleted", pid)
         return {"message": "Payment deleted"}, 200
+
     except SQLAlchemyError as e:
         db.session.rollback()
-        logger.error(f"Failed to delete payment: {str(e)}")
+        logger.error("Failed to delete payment %s: %s", payment_id, e)
+        return {"error": "Failed to delete payment"}, 500
+    except Exception:
+        db.session.rollback()
+        logger.exception("Unexpected error deleting payment")
         return {"error": "Failed to delete payment"}, 500

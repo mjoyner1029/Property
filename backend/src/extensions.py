@@ -1,4 +1,5 @@
 # backend/src/extensions.py
+from __future__ import annotations
 
 import os
 from flask_sqlalchemy import SQLAlchemy
@@ -14,130 +15,98 @@ from flask_limiter.util import get_remote_address
 import sentry_sdk
 from sentry_sdk.integrations.flask import FlaskIntegration
 
-APP_ENV = os.getenv("APP_ENV", os.getenv("FLASK_ENV", "development")).lower()
 
-# ---- Sentry (enabled in prod if DSN set) ----
-SENTRY_DSN = os.getenv("SENTRY_DSN")
-if SENTRY_DSN and APP_ENV == "production":
+def _env(name: str, default: str = "") -> str:
+    val = os.getenv(name)
+    return val if val is not None else default
+
+
+def _env_bool(name: str, default: bool = False) -> bool:
+    v = os.getenv(name)
+    if v is None:
+        return default
+    return str(v).strip().lower() in {"1", "true", "yes", "on"}
+
+
+APP_ENV = _env("APP_ENV", _env("FLASK_ENV", "development")).strip().lower()
+IS_PROD = APP_ENV == "production"
+
+# -----------------------------
+# Sentry (enabled only if DSN)
+# -----------------------------
+SENTRY_DSN = _env("SENTRY_DSN", "").strip()
+SENTRY_ENABLED = _env_bool("SENTRY_ENABLED", default=IS_PROD)
+
+if SENTRY_DSN and SENTRY_ENABLED:
     sentry_sdk.init(
         dsn=SENTRY_DSN,
         integrations=[FlaskIntegration()],
-        traces_sample_rate=0.2,
+        # Conservative defaults; override via env when investigating incidents
+        traces_sample_rate=float(_env("SENTRY_TRACES_SAMPLE_RATE", "0.2")),
+        profiles_sample_rate=float(_env("SENTRY_PROFILES_SAMPLE_RATE", "0.0")),
         send_default_pii=False,
         environment=APP_ENV,
     )
 
-# ---- Core extensions ----
+# -----------------------------
+# Core extensions (unbound)
+# -----------------------------
 db = SQLAlchemy()
 jwt = JWTManager()
 migrate = Migrate()
 mail = Mail()
 
-# ---- Socket.IO ----
+# -----------------------------
+# Socket.IO (options applied here; app binds it)
+# -----------------------------
+# CORS origins for Socket.IO: prefer SOCKETIO_CORS_ORIGINS, fall back to CORS_ORIGINS, else "*"
+_socketio_cors = _env("SOCKETIO_CORS_ORIGINS", _env("CORS_ORIGINS", "")).strip()
+_socketio_cors_list = (
+    [o.strip() for o in _socketio_cors.split(",") if o.strip()] if _socketio_cors else ["*"]
+)
+
+# Use a message queue (e.g., Redis) for multi-instance deployments
+_socketio_message_queue = _env("SOCKETIO_MESSAGE_QUEUE", "").strip() or None  # e.g. redis://localhost:6379/0
+
 socketio = SocketIO(
-    cors_allowed_origins=os.getenv('CORS_ORIGINS', '*').split(',') if APP_ENV == 'production' else "*"
+    async_mode=None,
+    logger=False,
+    engineio_logger=False,
+    cors_allowed_origins=_socketio_cors_list or "*",
+    message_queue=_socketio_message_queue,
 )
 
-# ---- CORS (configured at init_app in app.py) ----
-CORS_ORIGINS = os.getenv('CORS_ORIGINS', 'http://localhost:3000').split(',')
-cors = CORS(resources={
-    r"/api/*": {
-        "origins": CORS_ORIGINS,
-        "supports_credentials": True,
-        "expose_headers": [
-            "Content-Disposition",
-            "X-RateLimit-Limit",
-            "X-RateLimit-Remaining",
-            "X-RateLimit-Reset",
-        ],
-        "max_age": 600,
-    }
-})
+# -----------------------------
+# CORS / Talisman placeholders
+# -----------------------------
+# Policies are initialized in app.py to keep a single source of truth.
+cors = CORS()
+talisman = Talisman()
 
-# ---- Security headers / CSP ----
-connect_src = [
-    "'self'",
-    'https://api.stripe.com',
-    os.getenv('API_BASE_URL', 'https://api.assetanchor.io'),
-    os.getenv('WS_BASE_URL', 'wss://api.assetanchor.io'),
-    'https://www.google-analytics.com',
-]
-if SENTRY_DSN:
-    connect_src.append('https://sentry.io')
+# -----------------------------
+# Rate Limiting
+# -----------------------------
+# Prefer explicit RATELIMIT_STORAGE_URI; else Redis if provided; else in-memory
+ratelimit_storage_uri = _env("RATELIMIT_STORAGE_URI").strip()
+if not ratelimit_storage_uri:
+    redis_url = _env("REDIS_URL").strip()
+    ratelimit_storage_uri = redis_url if redis_url else "memory://"
 
-csp = {
-    'default-src': ["'self'"],
-    'script-src': [
-        "'self'",
-        'https://js.stripe.com',
-        'https://cdn.jsdelivr.net',
-        'https://www.google-analytics.com',
-        "'nonce-{nonce}'",
-    ],
-    'style-src': [
-        "'self'",
-        "'unsafe-inline'",  # Needed by many UI libs; prefer hashing where possible
-        'https://fonts.googleapis.com',
-        'https://cdn.jsdelivr.net',
-    ],
-    'img-src': [
-        "'self'",
-        'data:',
-        'https://s3.amazonaws.com',
-        'https://cdn.jsdelivr.net',
-        'https://*.assetanchor.io',
-        'https://*.stripe.com',
-        'https://www.google-analytics.com',
-        'https://stats.g.doubleclick.net',
-    ],
-    'connect-src': connect_src,
-    'frame-src': [
-        "'self'",
-        'https://js.stripe.com',
-        'https://hooks.stripe.com',
-        'https://checkout.stripe.com',
-    ],
-    'font-src': [
-        "'self'",
-        'https://fonts.gstatic.com',
-        'https://cdn.jsdelivr.net',
-    ],
-    'object-src': ["'none'"],
-    'base-uri': ["'self'"],
-    'form-action': ["'self'"],
-    'frame-ancestors': ["'self'"],
-    'report-uri': ['/api/csp-report'],
-}
-# Upgrade insecure requests only in prod
-if APP_ENV == 'production':
-    csp['upgrade-insecure-requests'] = []
+# Toggle globally via RATELIMIT_ENABLED (true by default)
+ratelimit_enabled = _env_bool("RATELIMIT_ENABLED", default=True)
 
-talisman = Talisman(
-    content_security_policy=csp,
-    content_security_policy_report_only=(os.getenv("CSP_ENFORCE", "true").lower() != "true"),
-    force_https=(APP_ENV == 'production'),
-    strict_transport_security=True,
-    strict_transport_security_max_age=31536000,
-    strict_transport_security_include_subdomains=True,
-    strict_transport_security_preload=True,
-    frame_options='DENY',
-    session_cookie_secure=(APP_ENV == 'production'),
-    session_cookie_http_only=True,
-    session_cookie_samesite='Lax',
-    # Permissions-Policy (formerly Feature-Policy) is set via headers by Talisman internally when available.
-    referrer_policy='same-origin',
-)
-
-# ---- Rate Limiting ----
-REDIS_URL = os.getenv("REDIS_URL")
-DISABLE_RATE_LIMIT = os.getenv("DISABLE_RATE_LIMIT", "false").lower() == "true"
+# Default limits can be overridden by RATELIMIT_DEFAULTS (comma-separated string)
+_default_limits_env = _env("RATELIMIT_DEFAULTS", "").strip()
+if _default_limits_env:
+    default_limits = [s.strip() for s in _default_limits_env.split(",") if s.strip()]
+else:
+    default_limits = ["200 per minute", "5000 per hour"]
 
 limiter = Limiter(
     key_func=get_remote_address,
-    default_limits=["200 per minute", "5000 per hour"],
-    storage_uri=os.getenv("RATELIMIT_STORAGE_URI") or (REDIS_URL if REDIS_URL else "memory://"),
+    storage_uri=ratelimit_storage_uri,
     strategy="fixed-window",
     headers_enabled=True,
+    default_limits=default_limits,
 )
-if DISABLE_RATE_LIMIT:
-    limiter.enabled = False
+limiter.enabled = bool(ratelimit_enabled)

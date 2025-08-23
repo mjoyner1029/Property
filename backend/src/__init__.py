@@ -1,28 +1,9 @@
-from flask import Flask
-from flask_cors import CORS
-from flask_talisman import Talisman
+# backend/src/__init__.py
+from __future__ import annotations
 
-# Import extensions
-from .extensions import db, migrate, jwt, socketio, mail
+__version__ = "1.0.0"
 
-# This file should be minimal and not try to import all routes
-# We'll move route registration to the app.py file
-
-__version__ = '1.0.0'
-
-def create_app():
-    app = Flask(__name__)
-    app.config.from_object("config.Config")
-
-    # Security and CORS
-    CORS(app, supports_credentials=True, origins=["https://your-frontend.com"])
-    Talisman(app, content_security_policy=None)
-
-    # Extensions
-    db.init_app(app)
-    migrate.init_app(app, db)
-    jwt.init_app(app)
-    socketio.init_app(app)
-    mail.init_app(app)
-
-    return app
+# Re-export the app factory from app.py so WSGI (gunicorn) can do:
+#   from src import create_app
+#   app = create_app()
+from .app import create_app  # noqa: F401

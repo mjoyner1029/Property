@@ -1,223 +1,241 @@
-# backend/src/routes/notifications.py
+# backend/src/routes/notification_routes.py
+from __future__ import annotations
 
-from flask import Blueprint, request, jsonify
+from datetime import datetime
+from typing import Any, Dict
+
+from flask import Blueprint, request, jsonify, current_app
 from flask_jwt_extended import jwt_required, get_jwt_identity
+
 from ..models.notification import Notification
 from ..models.user import User
-from ..extensions import db
-from datetime import datetime
+from ..extensions import db, limiter
 
-# Create the blueprint with correct name to match imports in __init__.py
-notification_bp = Blueprint('notifications', __name__)
+# app.py registers this at url_prefix="/api/notifications"
+notification_bp = Blueprint("notifications", __name__)
 
-@notification_bp.route('/', methods=['GET'])
+def _ok(payload, code=200):
+    return jsonify(payload), code
+
+def _err(msg, code=400):
+    return jsonify({"error": msg}), code
+
+
+@notification_bp.route("/", methods=["GET"])
 @jwt_required()
+@limiter.limit("480/hour")
 def get_notifications():
-    """Get all notifications for the current user"""
-    current_user_id = get_jwt_identity()
-    
+    """
+    Get notifications for the current user.
+    Query params:
+      - page (int, default 1)
+      - per_page (int, default 20, max 100)
+      - only_unread (bool)
+    """
+    uid = get_jwt_identity()
     try:
-        # Get unread notifications first, then read ones, both ordered by most recent
-        notifications = Notification.query.filter_by(user_id=current_user_id)\
-            .order_by(Notification.is_read, Notification.created_at.desc())\
-            .all()
-            
-        return jsonify({
-            'notifications': [notification.to_dict() for notification in notifications]
-        }), 200
-    except Exception as e:
-        return jsonify({'error': str(e)}), 500
+        page = max(1, int(request.args.get("page", 1)))
+        per_page = min(max(1, int(request.args.get("per_page", 20))), 100)
+        only_unread = str(request.args.get("only_unread", "false")).lower() in {"1", "true", "yes", "on"}
 
-@notification_bp.route('/<int:notification_id>', methods=['GET'])
-@jwt_required()
-def get_notification(notification_id):
-    """Get a specific notification"""
-    current_user_id = get_jwt_identity()
-    
-    try:
-        notification = Notification.query.filter_by(
-            id=notification_id, 
-            user_id=current_user_id
-        ).first()
-        
-        if not notification:
-            return jsonify({'error': 'Notification not found'}), 404
-            
-        return jsonify({'notification': notification.to_dict()}), 200
-    except Exception as e:
-        return jsonify({'error': str(e)}), 500
+        q = Notification.query.filter_by(user_id=uid)
+        if only_unread:
+            q = q.filter_by(is_read=False)
 
-@notification_bp.route('/<int:notification_id>/read', methods=['PUT'])
+        # Unread first, most recent first
+        q = q.order_by(Notification.is_read.asc(), Notification.created_at.desc())
+
+        pagination = q.paginate(page=page, per_page=per_page, error_out=False)
+        return _ok({
+            "notifications": [n.to_dict() for n in pagination.items],
+            "total": pagination.total,
+            "pages": pagination.pages,
+            "page": page,
+            "per_page": per_page,
+        })
+    except Exception:
+        current_app.logger.exception("Failed to get notifications for user %s", uid)
+        return _err("Internal server error", 500)
+
+
+@notification_bp.route("/<int:notification_id>", methods=["GET"])
 @jwt_required()
-def mark_as_read(notification_id):
-    """Mark a notification as read"""
-    current_user_id = get_jwt_identity()
-    
+@limiter.limit("960/hour")
+def get_notification(notification_id: int):
+    """Get a specific notification belonging to the current user."""
+    uid = get_jwt_identity()
     try:
-        notification = Notification.query.filter_by(
-            id=notification_id, 
-            user_id=current_user_id
-        ).first()
-        
-        if not notification:
-            return jsonify({'error': 'Notification not found'}), 404
-            
-        notification.is_read = True
-        notification.updated_at = datetime.utcnow()
-        db.session.commit()
-        
-        return jsonify({
-            'message': 'Notification marked as read',
-            'notification': notification.to_dict()
-        }), 200
-    except Exception as e:
+        n = Notification.query.filter_by(id=notification_id, user_id=uid).first()
+        if not n:
+            return _err("Notification not found", 404)
+        return _ok({"notification": n.to_dict()})
+    except Exception:
+        current_app.logger.exception("Failed to get notification %s", notification_id)
+        return _err("Internal server error", 500)
+
+
+@notification_bp.route("/<int:notification_id>/read", methods=["PUT"])
+@jwt_required()
+@limiter.limit("240/hour")
+def mark_as_read(notification_id: int):
+    """Mark a notification as read."""
+    uid = get_jwt_identity()
+    try:
+        n = Notification.query.filter_by(id=notification_id, user_id=uid).first()
+        if not n:
+            return _err("Notification not found", 404)
+        if not n.is_read:
+            n.is_read = True
+            n.updated_at = datetime.utcnow()
+            db.session.commit()
+        return _ok({"message": "Notification marked as read", "notification": n.to_dict()})
+    except Exception:
         db.session.rollback()
-        return jsonify({'error': str(e)}), 500
+        current_app.logger.exception("Failed to mark notification %s as read", notification_id)
+        return _err("Internal server error", 500)
 
-@notification_bp.route('/mark-all-read', methods=['PUT'])
+
+@notification_bp.route("/mark-all-read", methods=["PUT"])
 @jwt_required()
+@limiter.limit("60/hour")
 def mark_all_read():
-    """Mark all notifications as read for the current user"""
-    current_user_id = get_jwt_identity()
-    
+    """Mark all notifications as read for the current user."""
+    uid = get_jwt_identity()
     try:
-        notifications = Notification.query.filter_by(
-            user_id=current_user_id,
-            is_read=False
-        ).all()
-        
-        for notification in notifications:
-            notification.is_read = True
-            notification.updated_at = datetime.utcnow()
-        
+        # Bulk update is_read for efficiency if supported by your ORM setup
+        q = Notification.query.filter_by(user_id=uid, is_read=False)
+        updated = 0
+        for n in q.all():
+            n.is_read = True
+            n.updated_at = datetime.utcnow()
+            updated += 1
         db.session.commit()
-        
-        return jsonify({
-            'message': 'All notifications marked as read',
-            'count': len(notifications)
-        }), 200
-    except Exception as e:
+        return _ok({"message": "All notifications marked as read", "count": updated})
+    except Exception:
         db.session.rollback()
-        return jsonify({'error': str(e)}), 500
+        current_app.logger.exception("Failed to mark all notifications read for user %s", uid)
+        return _err("Internal server error", 500)
 
-@notification_bp.route('/<int:notification_id>', methods=['DELETE'])
+
+@notification_bp.route("/<int:notification_id>", methods=["DELETE"])
 @jwt_required()
-def delete_notification(notification_id):
-    """Delete a notification"""
-    current_user_id = get_jwt_identity()
-    
+@limiter.limit("120/hour")
+def delete_notification(notification_id: int):
+    """Delete a single notification."""
+    uid = get_jwt_identity()
     try:
-        notification = Notification.query.filter_by(
-            id=notification_id, 
-            user_id=current_user_id
-        ).first()
-        
-        if not notification:
-            return jsonify({'error': 'Notification not found'}), 404
-            
-        db.session.delete(notification)
+        n = Notification.query.filter_by(id=notification_id, user_id=uid).first()
+        if not n:
+            return _err("Notification not found", 404)
+        db.session.delete(n)
         db.session.commit()
-        
-        return jsonify({
-            'message': 'Notification deleted'
-        }), 200
-    except Exception as e:
+        return _ok({"message": "Notification deleted"})
+    except Exception:
         db.session.rollback()
-        return jsonify({'error': str(e)}), 500
+        current_app.logger.exception("Failed to delete notification %s", notification_id)
+        return _err("Internal server error", 500)
 
-@notification_bp.route('/clear-all', methods=['DELETE'])
+
+@notification_bp.route("/clear-all", methods=["DELETE"])
 @jwt_required()
+@limiter.limit("30/hour")
 def clear_all_notifications():
-    """Clear all notifications for the current user"""
-    current_user_id = get_jwt_identity()
-    
+    """Delete all notifications for the current user."""
+    uid = get_jwt_identity()
     try:
-        notifications = Notification.query.filter_by(user_id=current_user_id).all()
-        count = len(notifications)
-        
-        for notification in notifications:
-            db.session.delete(notification)
-        
+        q = Notification.query.filter_by(user_id=uid)
+        count = q.count()
+        # If you prefer a single SQL DELETE, ensure your ORM model supports it safely
+        for n in q.all():
+            db.session.delete(n)
         db.session.commit()
-        
-        return jsonify({
-            'message': 'All notifications cleared',
-            'count': count
-        }), 200
-    except Exception as e:
+        return _ok({"message": "All notifications cleared", "count": count})
+    except Exception:
         db.session.rollback()
-        return jsonify({'error': str(e)}), 500
+        current_app.logger.exception("Failed to clear notifications for user %s", uid)
+        return _err("Internal server error", 500)
 
-@notification_bp.route('/unread-count', methods=['GET'])
+
+@notification_bp.route("/unread-count", methods=["GET"])
 @jwt_required()
+@limiter.limit("960/hour")
 def get_unread_count():
-    """Get count of unread notifications"""
-    current_user_id = get_jwt_identity()
-    
+    """Get count of unread notifications for the current user."""
+    uid = get_jwt_identity()
     try:
-        count = Notification.query.filter_by(
-            user_id=current_user_id,
-            is_read=False
-        ).count()
-        
-        return jsonify({'unread_count': count}), 200
-    except Exception as e:
-        return jsonify({'error': str(e)}), 500
+        count = Notification.query.filter_by(user_id=uid, is_read=False).count()
+        return _ok({"unread_count": count})
+    except Exception:
+        current_app.logger.exception("Failed to get unread count for user %s", uid)
+        return _err("Internal server error", 500)
 
-@notification_bp.route('/send', methods=['POST'])
+
+@notification_bp.route("/send", methods=["POST"])
 @jwt_required()
+@limiter.limit("60/hour")
 def create_notification():
-    """Create a new notification"""
-    current_user_id = get_jwt_identity()
-    data = request.get_json()
-    
+    """Create a new notification for the current user."""
+    uid = get_jwt_identity()
+    data: Dict[str, Any] = request.get_json(silent=True) or {}
     try:
-        new_notification = Notification(
-            user_id=current_user_id,
-            message=data['message'],
+        message = (data.get("message") or "").strip()
+        if not message:
+            return _err("Field 'message' is required", 400)
+
+        n = Notification(
+            user_id=uid,
+            message=message,
             is_read=False,
             created_at=datetime.utcnow(),
-            updated_at=datetime.utcnow()
+            updated_at=datetime.utcnow(),
         )
-        
-        db.session.add(new_notification)
+        db.session.add(n)
         db.session.commit()
-        
-        return jsonify({
-            'message': 'Notification created',
-            'notification': new_notification.to_dict()
-        }), 201
-    except Exception as e:
+        return _ok({"message": "Notification created", "notification": n.to_dict()}, 201)
+    except Exception:
         db.session.rollback()
-        return jsonify({'error': str(e)}), 500
+        current_app.logger.exception("Failed to create notification for user %s", uid)
+        return _err("Internal server error", 500)
 
-@notification_bp.route('/broadcast', methods=['POST'])
+
+@notification_bp.route("/broadcast", methods=["POST"])
 @jwt_required()
+@limiter.limit("10/hour")
 def broadcast_notification():
-    """Send a notification to all users"""
-    data = request.get_json()
-    
+    """Send a notification to all users (admin-only if you wire role_required)."""
+    data: Dict[str, Any] = request.get_json(silent=True) or {}
     try:
-        users = User.query.all()
+        message = (data.get("message") or "").strip()
+        if not message:
+            return _err("Field 'message' is required", 400)
+
+        users = User.query.with_entities(User.id).all()
+        if not users:
+            return _ok({"message": "No users to notify", "notifications": []}, 201)
+
         notifications = []
-        
-        for user in users:
-            new_notification = Notification(
-                user_id=user.id,
-                message=data['message'],
+        now = datetime.utcnow()
+        for (user_id,) in users:
+            n = Notification(
+                user_id=user_id,
+                message=message,
                 is_read=False,
-                created_at=datetime.utcnow(),
-                updated_at=datetime.utcnow()
+                created_at=now,
+                updated_at=now,
             )
-            db.session.add(new_notification)
-            notifications.append(new_notification.to_dict())
-        
+            db.session.add(n)
+            notifications.append(n)
+
         db.session.commit()
-        
-        return jsonify({
-            'message': 'Notification broadcasted to all users',
-            'notifications': notifications
-        }), 201
-    except Exception as e:
+        return _ok(
+            {
+                "message": "Notification broadcasted to all users",
+                "count": len(notifications),
+                "notifications": [n.to_dict() for n in notifications],
+            },
+            201,
+        )
+    except Exception:
         db.session.rollback()
-        return jsonify({'error': str(e)}), 500
+        current_app.logger.exception("Failed to broadcast notification")
+        return _err("Internal server error", 500)
