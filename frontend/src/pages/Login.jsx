@@ -14,11 +14,15 @@ import {
   ToggleButtonGroup,
   ToggleButton,
   Divider,
-  Card
+  Card,
+  InputAdornment,
+  IconButton
 } from '@mui/material';
 import HomeIcon from '@mui/icons-material/Home';
 import PersonIcon from '@mui/icons-material/Person';
 import AdminPanelSettingsIcon from '@mui/icons-material/AdminPanelSettings';
+import Visibility from '@mui/icons-material/Visibility';
+import VisibilityOff from '@mui/icons-material/VisibilityOff';
 import logo from '../assets/logo.png';
 
 function Login() {
@@ -27,6 +31,7 @@ function Login() {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const [portalType, setPortalType] = useState('tenant'); // Default to tenant portal
+  const [showPassword, setShowPassword] = useState(false);
   const { login } = useAuth();
   const navigate = useNavigate();
 
@@ -34,6 +39,10 @@ function Login() {
     if (newPortal !== null) {
       setPortalType(newPortal);
     }
+  };
+  
+  const handleTogglePasswordVisibility = () => {
+    setShowPassword((show) => !show);
   };
 
   const handleSubmit = async (e) => {
@@ -187,13 +196,26 @@ function Login() {
               fullWidth
               name="password"
               label="Password"
-              type="password"
+              type={showPassword ? 'text' : 'password'}
               id="password"
               autoComplete="current-password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               inputProps={{ 'aria-label': 'password' }}
               sx={{ mb: 3 }}
+              InputProps={{
+                endAdornment: (
+                  <InputAdornment position="end">
+                    <IconButton
+                      aria-label="toggle password visibility"
+                      onClick={handleTogglePasswordVisibility}
+                      edge="end"
+                    >
+                      {showPassword ? <VisibilityOff /> : <Visibility />}
+                    </IconButton>
+                  </InputAdornment>
+                )
+              }}
             />
             <Button
               type="submit"

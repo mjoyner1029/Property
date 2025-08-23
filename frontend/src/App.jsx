@@ -54,10 +54,6 @@ const RoutesIndex = React.lazy(() => import('./pages/RoutesIndex'));
 import ErrorBoundary from './components/ErrorBoundary';
 import Toast from './components/Toast';
 
-// Import the error boundary and toast components
-import ErrorBoundary from './components/ErrorBoundary';
-import Toast from './components/Toast';
-
 export default function App() {
   return (
     <BrowserRouter>

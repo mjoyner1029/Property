@@ -13,7 +13,8 @@ class MessageThread(db.Model):
     # Relationships
     user1 = db.relationship('User', foreign_keys=[user1_id])
     user2 = db.relationship('User', foreign_keys=[user2_id])
-    messages = db.relationship('Message', backref='thread', lazy=True, cascade="all, delete-orphan")
+    # Remove the invalid relationship that's causing the error
+    # messages = db.relationship('Message', backref='thread', lazy=True, cascade="all, delete-orphan")
     
     def __repr__(self):
         return f"<MessageThread {self.id} between User {self.user1_id} and User {self.user2_id}>"

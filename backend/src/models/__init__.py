@@ -4,6 +4,8 @@ from .tenant_profile import TenantProfile
 from .maintenance_request import MaintenanceRequest
 from .notification import Notification
 from .payment import Payment
+from .conversation_participant import ConversationParticipant
+from .conversation import Conversation
 from .message import Message
 from .message_thread import MessageThread
 from .unit import Unit

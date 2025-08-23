@@ -5,6 +5,7 @@ from ..extensions import db
 from werkzeug.security import generate_password_hash, check_password_hash
 
 class User(db.Model):
+    landlord_profile = db.relationship('LandlordProfile', back_populates='user', uselist=False)
     __tablename__ = "user"  # Table name in the database is 'user'
     
     id = db.Column(db.Integer, primary_key=True)
