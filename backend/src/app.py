@@ -1,4 +1,3 @@
-# backend/src/app.py
 from __future__ import annotations
 
 import logging
@@ -37,7 +36,7 @@ def _load_config(app: Flask, config_name: str) -> None:
             config_name = "default"
         app.config.from_object(config_by_name[config_name])
     except Exception as exc:
-        # Absolute last resort sane defaults
+        # Absolute last-resort sane defaults
         app.logger.error("Failed to load config: %s", exc)
         app.config.update(
             SECRET_KEY=os.environ.get("SECRET_KEY", "change-me"),
@@ -48,6 +47,8 @@ def _load_config(app: Flask, config_name: str) -> None:
             UPLOAD_FOLDER=os.environ.get("UPLOAD_FOLDER", "uploads"),
             CORS_ALLOW_ORIGINS=os.environ.get("CORS_ALLOW_ORIGINS", "").strip(),
             LOG_LEVEL=os.environ.get("LOG_LEVEL", "INFO"),
+            # Socket.IO: allow override, but default to threading
+            SOCKETIO_ASYNC_MODE=os.environ.get("SOCKETIO_ASYNC_MODE", "threading"),
         )
 
 
@@ -66,7 +67,6 @@ def _init_security_and_middlewares(app: Flask) -> None:
     os.makedirs(app.config.get("UPLOAD_FOLDER", "uploads"), exist_ok=True)
 
     # Respect X-Forwarded-* headers behind proxies (Render/NGINX/etc.)
-    # Include x_port to preserve correct URL generation
     app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1, x_proto=1, x_host=1, x_port=1)
 
     # ---- Security Headers (Talisman) ----
@@ -96,15 +96,16 @@ def _init_security_and_middlewares(app: Flask) -> None:
         referrer_policy="no-referrer",
     )
 
-    # ---- CORS ----
+    # ---- CORS (REST endpoints) ----
     # Accept comma-separated list or wildcard. Prefer explicit allowlist in prod.
     raw = app.config.get("CORS_ALLOW_ORIGINS", "").strip()
     if raw:
         origins = [o.strip() for o in raw.split(",") if o.strip()]
     else:
-        # Default to frontend URL env if present, else no CORS (not '*')
+        # Default to FRONTEND_URL env if present, else no wildcard here
         fe = os.environ.get("FRONTEND_URL", "").strip()
         origins = [fe] if fe else []
+
     cors.init_app(
         app,
         resources={r"/api/*": {"origins": origins or []}},
@@ -112,7 +113,7 @@ def _init_security_and_middlewares(app: Flask) -> None:
         expose_headers=[
             "Content-Type",
             "Authorization",
-            "Content-Disposition",      # expose filenames on downloads
+            "Content-Disposition",  # expose filenames on downloads
             "X-RateLimit-Limit",
             "X-RateLimit-Remaining",
             "X-RateLimit-Reset",
@@ -128,22 +129,14 @@ def _init_security_and_middlewares(app: Flask) -> None:
 
 def _init_extensions(app: Flask) -> None:
     db.init_app(app)
-    jwt.init_app(app)
     migrate.init_app(app, db)
+    jwt.init_app(app)
     mail.init_app(app)
 
-    # Socket.IO
-    allowed = app.config.get("CORS_ALLOW_ORIGINS", "*")
-    sio_origins = (
-        [o.strip() for o in allowed.split(",") if o.strip()] if allowed else ["*"]
-    )
-    socketio.init_app(
-        app,
-        cors_allowed_origins=sio_origins or "*",
-        async_mode=app.config.get("SOCKETIO_ASYNC_MODE", None),
-        logger=False,
-        engineio_logger=False,
-    )
+    # ---- Socket.IO ----
+    # The SocketIO instance (with async_mode/cors/message_queue) is configured in extensions.py.
+    # Here we bind it to the app. No need to pass async_mode again.
+    socketio.init_app(app)
 
 
 def _register_blueprint(app: Flask, module_path: str, attr: str, prefix: str | None) -> None:
@@ -162,37 +155,37 @@ def _register_blueprint(app: Flask, module_path: str, attr: str, prefix: str | N
 def _register_blueprints(app: Flask) -> None:
     with app.app_context():
         # Auth (+ optional test helpers)
-        _register_blueprint(app, ".routes.auth.auth_routes", "bp", "/api/auth")
-        _register_blueprint(app, ".controllers.test.test_auth", "test_auth_bp", "/api/auth")
+        _register_blueprint(app, "src.routes.auth.auth_routes", "bp", "/api/auth")
+        _register_blueprint(app, "src.controllers.test.test_auth", "test_auth_bp", "/api/auth")
 
         # Domain controllers / admin
-        _register_blueprint(app, ".controllers.landlord_controller", "landlord_bp", "/api/landlords")
-        _register_blueprint(app, ".routes.admin_routes", "admin_bp", "/api/admin")
+        _register_blueprint(app, "src.controllers.landlord_controller", "landlord_bp", "/api/landlords")
+        _register_blueprint(app, "src.routes.admin_routes", "admin_bp", "/api/admin")
 
         # Logging / telemetry
-        _register_blueprint(app, ".controllers.logs_controller", "logs_bp", "/api")
+        _register_blueprint(app, "src.controllers.logs_controller", "logs_bp", "/api")
 
         # Messaging
-        _register_blueprint(app, ".routes.messages_routes", "messaging_bp", "/api/messages")
+        _register_blueprint(app, "src.routes.messages_routes", "messaging_bp", "/api/messages")
 
         # Other domain routes (optional)
-        _register_blueprint(app, ".routes.notification_routes", "notification_bp", "/api/notifications")
-        _register_blueprint(app, ".routes.property_routes", "property_bp", "/api/properties")
-        _register_blueprint(app, ".routes.tenant_routes", "tenant_bp", "/api/tenants")
-        _register_blueprint(app, ".routes.maintenance_routes", "bp", "/api/maintenance")
+        _register_blueprint(app, "src.routes.notification_routes", "notification_bp", "/api/notifications")
+        _register_blueprint(app, "src.routes.property_routes", "property_bp", "/api/properties")
+        _register_blueprint(app, "src.routes.tenant_routes", "tenant_bp", "/api/tenants")
+        _register_blueprint(app, "src.routes.maintenance_routes", "bp", "/api/maintenance")
 
         # Billing: Invoices & Payments
-        _register_blueprint(app, ".routes.invoice_routes", "invoice_bp", "/api/invoices")
-        _register_blueprint(app, ".routes.payment_routes", "payment_bp", "/api/payments")
+        _register_blueprint(app, "src.routes.invoice_routes", "invoice_bp", "/api/invoices")
+        _register_blueprint(app, "src.routes.payment_routes", "payment_bp", "/api/payments")
 
         # Health / status / webhook (blueprints define their own rules)
-        _register_blueprint(app, ".routes.status_routes", "bp", None)
-        _register_blueprint(app, ".routes.health", "bp", None)
-        _register_blueprint(app, ".routes.stripe_webhook", "bp", None)
+        _register_blueprint(app, "src.routes.status_routes", "bp", None)
+        _register_blueprint(app, "src.routes.health", "bp", None)
+        _register_blueprint(app, "src.routes.stripe_webhook", "bp", None)
 
         # Metrics (prod only)
         if app.config.get("ENV") == "production":
-            _register_blueprint(app, ".routes.metrics_routes", "metrics_bp", "/metrics")
+            _register_blueprint(app, "src.routes.metrics_routes", "metrics_bp", "/metrics")
 
 
 def _register_error_handlers(app: Flask) -> None:

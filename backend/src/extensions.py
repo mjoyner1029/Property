@@ -1,4 +1,3 @@
-# backend/src/extensions.py
 from __future__ import annotations
 
 import os
@@ -16,6 +15,9 @@ import sentry_sdk
 from sentry_sdk.integrations.flask import FlaskIntegration
 
 
+# -----------------------------
+# Env helpers
+# -----------------------------
 def _env(name: str, default: str = "") -> str:
     val = os.getenv(name)
     return val if val is not None else default
@@ -57,7 +59,7 @@ migrate = Migrate()
 mail = Mail()
 
 # -----------------------------
-# Socket.IO (options applied here; app binds it)
+# Socket.IO (threading by default; app binds it)
 # -----------------------------
 # CORS origins for Socket.IO: prefer SOCKETIO_CORS_ORIGINS, fall back to CORS_ORIGINS, else "*"
 _socketio_cors = _env("SOCKETIO_CORS_ORIGINS", _env("CORS_ORIGINS", "")).strip()
@@ -66,10 +68,16 @@ _socketio_cors_list = (
 )
 
 # Use a message queue (e.g., Redis) for multi-instance deployments
-_socketio_message_queue = _env("SOCKETIO_MESSAGE_QUEUE", "").strip() or None  # e.g. redis://localhost:6379/0
+# e.g. SOCKETIO_MESSAGE_QUEUE=redis://localhost:6379/0
+_socketio_message_queue = _env("SOCKETIO_MESSAGE_QUEUE", "").strip() or None
+
+# Async mode: default to "threading" (plays nicely on Python 3.13 without eventlet/gevent)
+_socketio_async_mode = (_env("SOCKETIO_ASYNC_MODE", "threading") or "threading").strip().lower()
+if _socketio_async_mode in {"none", "null"}:
+    _socketio_async_mode = "threading"
 
 socketio = SocketIO(
-    async_mode=None,
+    async_mode=_socketio_async_mode,
     logger=False,
     engineio_logger=False,
     cors_allowed_origins=_socketio_cors_list or "*",

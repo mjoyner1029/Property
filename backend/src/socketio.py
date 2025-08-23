@@ -1,196 +1,251 @@
 """
 Socket.IO event handlers for real-time communication.
+Threading-friendly auth: authenticate on connect, store user_id in session.
 """
-from flask import request, current_app
-from flask_jwt_extended import verify_jwt_in_request, get_jwt_identity
-from flask_socketio import emit, join_room, leave_room, disconnect  # Added disconnect
+from __future__ import annotations
+
 from functools import wraps
 from datetime import datetime
 
+from flask import request, current_app, session
+from flask_socketio import emit, join_room, leave_room, disconnect
+
+# Use the shared SocketIO instance created in extensions.py
 from .extensions import socketio
 from .models.user import User
 
-# Authenticate socket connections using JWT
-def authenticated_only(f):
-    @wraps(f)
-    def wrapped(*args, **kwargs):
+
+# -------- Auth helpers --------
+
+def _extract_token(auth) -> str | None:
+    """
+    Try to pull a JWT from:
+    1) Socket.IO auth payload: io(url, { auth: { token } })
+    2) Authorization header: Bearer <token>
+    3) Query string: ?token=<token>
+    """
+    # 1) from auth payload
+    if isinstance(auth, dict):
+        token = auth.get("token")
+        if token:
+            return token
+
+    # 2) from Authorization header
+    auth_header = request.headers.get("Authorization", "") or request.headers.get("authorization", "")
+    if auth_header.lower().startswith("bearer "):
+        return auth_header.split(None, 1)[1].strip()
+
+    # 3) from query string
+    token = request.args.get("token")
+    if token:
+        return token
+
+    return None
+
+
+def _decode_user_id(token: str) -> int | None:
+    """
+    Decode JWT and return the subject (user_id).
+    Relies on Flask-JWT-Extended configuration already set on the app.
+    """
+    try:
+        # Using flask_jwt_extended's decode_token validates signature/exp.
+        from flask_jwt_extended import decode_token
+        claims = decode_token(token)
+        # Default identity key is 'sub'
+        user_id = claims.get("sub")
+        # normalize to int when possible
         try:
-            verify_jwt_in_request()
-            return f(*args, **kwargs)
-        except Exception as e:
-            current_app.logger.error(f"Socket authentication failed: {str(e)}")
-            disconnect()
+            return int(user_id) if user_id is not None else None
+        except (TypeError, ValueError):
+            return None
+    except Exception as e:
+        current_app.logger.error(f"Socket JWT decode error: {e}")
         return None
-    return wrapped
 
-@socketio.on('connect')
-def handle_connect():
-    current_app.logger.info('Client connected')
 
-@socketio.on('disconnect')
+def authenticated_only(fn):
+    @wraps(fn)
+    def wrapper(*args, **kwargs):
+        uid = session.get("user_id")
+        if not uid:
+            emit("error", {"message": "Unauthorized"}, to=request.sid)
+            disconnect()
+            return None
+        return fn(*args, **kwargs)
+    return wrapper
+
+
+# -------- Connection lifecycle --------
+
+@socketio.on("connect")
+def handle_connect(auth):
+    """
+    Authenticate once when the socket connects.
+    Store user_id in the Socket.IO session for later events.
+    """
+    token = _extract_token(auth)
+    if not token:
+        current_app.logger.warning("Socket connect missing token")
+        return False  # disconnect
+
+    user_id = _decode_user_id(token)
+    if not user_id:
+        current_app.logger.warning("Socket connect invalid token")
+        return False  # disconnect
+
+    session["user_id"] = user_id
+    current_app.logger.info(f"Client connected user_id={user_id}")
+
+
+@socketio.on("disconnect")
 def handle_disconnect():
-    current_app.logger.info('Client disconnected')
+    uid = session.get("user_id")
+    current_app.logger.info(f"Client disconnected user_id={uid}")
 
-@socketio.on('join')
+
+# -------- App events --------
+
+@socketio.on("join")
 @authenticated_only
 def handle_join(data):
-    user_id = get_jwt_identity()
-    room = data.get('room')
-    
-    # Validate room access
+    user_id = session.get("user_id")
+    room = (data or {}).get("room")
+
+    if not room:
+        emit("error", {"message": "Room is required"})
+        return
+
     if validate_room_access(user_id, room):
         join_room(room)
-        emit('status', {'message': f'Joined room {room}'}, room=room)
-        current_app.logger.info(f'User {user_id} joined room {room}')
+        emit("status", {"message": f"Joined room {room}"}, room=room)
+        current_app.logger.info(f"User {user_id} joined room {room}")
     else:
-        emit('error', {'message': 'Access denied to this room'})
-        current_app.logger.warning(f'User {user_id} attempted to join room {room} - access denied')
+        emit("error", {"message": "Access denied to this room"})
+        current_app.logger.warning(f"User {user_id} attempted to join room {room} - access denied")
 
-@socketio.on('leave')
+
+@socketio.on("leave")
 @authenticated_only
 def handle_leave(data):
-    user_id = get_jwt_identity()
-    room = data.get('room')
-    leave_room(room)
-    emit('status', {'message': f'Left room {room}'}, room=room)
-    current_app.logger.info(f'User {user_id} left room {room}')
+    user_id = session.get("user_id")
+    room = (data or {}).get("room")
+    if room:
+        leave_room(room)
+        emit("status", {"message": f"Left room {room}"}, room=room)
+        current_app.logger.info(f"User {user_id} left room {room}")
 
-@socketio.on('send_message')
+
+@socketio.on("send_message")
 @authenticated_only
 def handle_send_message(data):
-    user_id = get_jwt_identity()
-    room = data.get('room')
-    message = data.get('message')
-    
-    # Validate message and room access
+    user_id = session.get("user_id")
+    room = (data or {}).get("room")
+    message = (data or {}).get("message")
+
     if not message or not room or not validate_room_access(user_id, room):
-        emit('error', {'message': 'Invalid message or access denied'})
+        emit("error", {"message": "Invalid message or access denied"})
         return
-    
+
     # Get user details for the message
     user = User.query.get(user_id)
     if not user:
-        emit('error', {'message': 'User not found'})
+        emit("error", {"message": "User not found"})
         return
-    
-    # Create response with user info
+
     response = {
-        'room': room,
-        'message': message,
-        'user': {
-            'id': user.id,
-            'name': user.name,
-            'role': user.role
-        },
-        'timestamp': datetime.utcnow().isoformat()
+        "room": room,
+        "message": message,
+        "user": {"id": user.id, "name": getattr(user, "name", None), "role": getattr(user, "role", None)},
+        "timestamp": datetime.utcnow().isoformat(),
     }
-    
-    # Broadcast message to the room
-    emit('receive_message', response, room=room)
-    
-    # Store the message in database if needed
+
+    # Broadcast to room
+    emit("receive_message", response, room=room)
+
+    # Persist (best-effort)
     try:
         from .models.message import Message
         from .extensions import db
-        
-        db_message = Message(
-            sender_id=user_id,
-            content=message,
-            room=room
-        )
+
+        db_message = Message(sender_id=user_id, content=message, room=room)
         db.session.add(db_message)
         db.session.commit()
     except Exception as e:
-        current_app.logger.error(f"Error storing message: {str(e)}")
+        current_app.logger.error(f"Error storing message: {e}")
 
-# Property-specific events
-@socketio.on('maintenance_update')
+
+@socketio.on("maintenance_update")
 @authenticated_only
 def handle_maintenance_update(data):
-    user_id = get_jwt_identity()
-    request_id = data.get('request_id')
-    property_id = data.get('property_id')
-    
-    # Create room name for the property
-    property_room = f"property_{property_id}"
-    
-    # Broadcast update to property room
-    emit('maintenance_updated', data, room=property_room)
-    current_app.logger.info(f'Maintenance request {request_id} updated by user {user_id}')
+    user_id = session.get("user_id")
+    request_id = (data or {}).get("request_id")
+    property_id = (data or {}).get("property_id")
 
-@socketio.on('payment_received')
+    property_room = f"property_{property_id}"
+    emit("maintenance_updated", data, room=property_room)
+    current_app.logger.info(f"Maintenance request {request_id} updated by user {user_id}")
+
+
+@socketio.on("payment_received")
 @authenticated_only
 def handle_payment_received(data):
-    user_id = get_jwt_identity()
-    payment_id = data.get('payment_id')
-    property_id = data.get('property_id')
-    
-    # Create room name for the property
-    property_room = f"property_{property_id}"
-    
-    # Broadcast payment notification to property room
-    emit('payment_notification', data, room=property_room)
-    current_app.logger.info(f'Payment {payment_id} notification sent by user {user_id}')
+    user_id = session.get("user_id")
+    payment_id = (data or {}).get("payment_id")
+    property_id = (data or {}).get("property_id")
 
-# Helper functions
-def validate_room_access(user_id, room):
+    property_room = f"property_{property_id}"
+    emit("payment_notification", data, room=property_room)
+    current_app.logger.info(f"Payment {payment_id} notification sent by user {user_id}")
+
+
+# -------- Access control --------
+
+def validate_room_access(user_id: int | None, room: str) -> bool:
     """
     Validate if a user has access to a specific room.
     Rooms can be for properties, conversations, etc.
-    
-    Args:
-        user_id: The user ID
-        room: The room name
-        
-    Returns:
-        Boolean indicating if the user has access
     """
-    # Property room access check (format: "property_123")
+    if not user_id or not room:
+        return False
+
+    # Property room access: property_<id>
     if room.startswith("property_"):
         try:
             property_id = int(room.split("_")[1])
         except (IndexError, ValueError):
             return False
-        
-        # Check if user is landlord or tenant of this property
+
         from .models.property import Property
         from .models.tenant import Tenant
-        
-        # Check if user is property owner
-        property_check = Property.query.filter_by(id=property_id, owner_id=user_id).first()
-        if property_check:
+
+        # Landlord/owner
+        if Property.query.filter_by(id=property_id, owner_id=user_id).first():
             return True
-        
-        # Check if user is tenant of this property
-        tenant_check = Tenant.query.filter_by(property_id=property_id, user_id=user_id).first()
-        if tenant_check:
+
+        # Tenant of this property
+        if Tenant.query.filter_by(property_id=property_id, user_id=user_id).first():
             return True
-        
+
         return False
-    
-    # Conversation room access check (format: "conversation_123")
-    elif room.startswith("conversation_"):
+
+    # Conversation room access: conversation_<id>
+    if room.startswith("conversation_"):
         try:
             conversation_id = int(room.split("_")[1])
         except (IndexError, ValueError):
             return False
-        
-        # Check if user is participant in this conversation
-        from .models.conversation import Conversation
-        from .models.conversation_participant import ConversationParticipant
-        
+
+        from .models.conversation import ConversationParticipant
+
         participant = ConversationParticipant.query.filter_by(
-            conversation_id=conversation_id, 
-            user_id=user_id
+            conversation_id=conversation_id, user_id=user_id
         ).first()
-        
         return participant is not None
-    
-    # Admin room access check
-    elif room == "admin":
-        # Check if user is admin
+
+    # Admin broadcast
+    if room == "admin":
         user = User.query.get(user_id)
-        return user and user.role == "admin"
-    
-    # By default, deny access
+        return bool(user and getattr(user, "role", None) == "admin")
+
     return False
