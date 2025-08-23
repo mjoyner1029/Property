@@ -112,6 +112,7 @@ def _init_security_and_middlewares(app: Flask) -> None:
         expose_headers=[
             "Content-Type",
             "Authorization",
+            "Content-Disposition",      # <-- expose filenames on downloads
             "X-RateLimit-Limit",
             "X-RateLimit-Remaining",
             "X-RateLimit-Reset",
@@ -170,6 +171,9 @@ def _register_blueprints(app: Flask) -> None:
 
         # Logging / telemetry
         _register_blueprint(app, ".controllers.logs_controller", "logs_bp", "/api")
+
+        # Messaging
+        _register_blueprint(app, ".routes.messages_routes", "messaging_bp", "/api/messages")
 
         # Other domain routes (optional)
         _register_blueprint(app, ".routes.notification_routes", "notification_bp", "/api/notifications")
