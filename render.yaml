@@ -1,8 +1,12 @@
 services:
   - type: web
     name: asset-anchor-api
-    env: python
+    runtime: python
     plan: standard
+    region: oregon
+    repo: https://github.com/mjoyner1029/Property.git
+    branch: main
+    rootDir: backend
     buildCommand: pip install -r requirements.txt
     startCommand: >
       gunicorn wsgi:app
@@ -10,16 +14,14 @@ services:
       --threads 4
       --worker-class gthread
       --timeout 120
-      --bind 0.0.0.0:$PORT
+      --bind 0.0.0.0:${PORT}
       --max-requests 1000
       --max-requests-jitter 100
-    region: oregon
-    repo: https://github.com/mjoyner1029/Property.git
-    branch: main
-    rootDir: backend
     healthCheckPath: /api/health
     dependsOn:
-      - asset-anchor-redis
+      - name: asset-anchor-redis
+      - name: asset-anchor-db
+      - name: asset-anchor-migrations
     envVars:
       - key: APP_ENV
         value: production
@@ -62,33 +64,30 @@ services:
         sync: false
       - key: REDIS_URL
         fromService:
-          type: redis
+          type: keyvalue
           name: asset-anchor-redis
           property: connectionString
       - key: CSP_ENFORCE
         value: "true"
 
-  - type: postgres
-    name: asset-anchor-db
-    plan: standard
-    ipAllowList: []
-    region: oregon
-
-  - type: redis
+  # Render Key Value (Redis-compatible)
+  - type: keyvalue
     name: asset-anchor-redis
     plan: free
-    ipAllowList: []
     region: oregon
+    # Empty allow list = internal-only (no external access)
+    ipAllowList: []
 
+  # One-off job to run DB migrations (invoked during deploys)
   - type: job
     name: asset-anchor-migrations
-    env: python
-    buildCommand: pip install -r requirements.txt
-    startCommand: bash scripts/run_migrations.sh
+    runtime: python
     region: oregon
     repo: https://github.com/mjoyner1029/Property.git
     branch: main
     rootDir: backend
+    buildCommand: pip install -r requirements.txt
+    startCommand: bash scripts/run_migrations.sh
     envVars:
       - key: FLASK_APP
         value: wsgi.py
@@ -97,6 +96,13 @@ services:
       - key: APP_ENV
         value: production
       - fromGroup: asset-anchor-db-env
+
+databases:
+  - name: asset-anchor-db
+    plan: standard
+    region: oregon
+    # Empty allow list = internal-only (recommended)
+    ipAllowList: []
 
 envVarGroups:
   - name: asset-anchor-db-env
