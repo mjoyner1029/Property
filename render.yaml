@@ -70,15 +70,12 @@ services:
       - key: CSP_ENFORCE
         value: "true"
 
-  # Render Key Value (Redis-compatible)
   - type: keyvalue
     name: asset-anchor-redis
     plan: free
     region: oregon
-    # Empty allow list = internal-only (no external access)
     ipAllowList: []
 
-  # One-off job to run DB migrations (invoked during deploys)
   - type: job
     name: asset-anchor-migrations
     runtime: python
@@ -87,7 +84,8 @@ services:
     branch: main
     rootDir: backend
     buildCommand: pip install -r requirements.txt
-    startCommand: bash scripts/run_migrations.sh
+    # scripts/run_migrations.sh is at the repo root, so hop up one level
+    startCommand: bash ../scripts/run_migrations.sh
     envVars:
       - key: FLASK_APP
         value: wsgi.py
@@ -101,7 +99,6 @@ databases:
   - name: asset-anchor-db
     plan: standard
     region: oregon
-    # Empty allow list = internal-only (recommended)
     ipAllowList: []
 
 envVarGroups:

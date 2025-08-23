@@ -1,1 +1,0 @@
-from src.app import create_app; from flask_jwt_extended import create_access_token, decode_token; app = create_app(); with app.app_context(): token = create_access_token(identity={"user_id": 1, "role": "admin"}); print("Token:", token); print("Decoded:", decode_token(token))

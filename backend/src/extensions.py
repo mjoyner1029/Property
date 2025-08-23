@@ -1,136 +1,134 @@
+# backend/src/extensions.py
+
 import os
 from flask_sqlalchemy import SQLAlchemy
 from flask_jwt_extended import JWTManager
 from flask_migrate import Migrate
 from flask_socketio import SocketIO
-from flask_mail import Mail 
+from flask_mail import Mail
 from flask_cors import CORS
 from flask_talisman import Talisman
 from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
+
 import sentry_sdk
 from sentry_sdk.integrations.flask import FlaskIntegration
 
-# Define environment variables
 APP_ENV = os.getenv("APP_ENV", os.getenv("FLASK_ENV", "development")).lower()
 
-# Initialize Sentry only in production if DSN is provided
-sentry_dsn = os.getenv('SENTRY_DSN')
-if sentry_dsn and APP_ENV == "production":
+# ---- Sentry (enabled in prod if DSN set) ----
+SENTRY_DSN = os.getenv("SENTRY_DSN")
+if SENTRY_DSN and APP_ENV == "production":
     sentry_sdk.init(
-        dsn=sentry_dsn,
+        dsn=SENTRY_DSN,
         integrations=[FlaskIntegration()],
         traces_sample_rate=0.2,
         send_default_pii=False,
         environment=APP_ENV,
     )
 
-# Database ORM
+# ---- Core extensions ----
 db = SQLAlchemy()
-
-# JWT Authentication
 jwt = JWTManager()
-
-# Cross-Origin Resource Sharing
-CORS_ORIGINS = os.getenv('CORS_ORIGINS', 'http://localhost:3000').split(',')
-cors = CORS(
-    resources={
-        r"/api/*": {
-            "origins": CORS_ORIGINS,
-            "supports_credentials": True,
-            "expose_headers": ["Content-Disposition", "X-RateLimit-Limit", "X-RateLimit-Remaining", "X-RateLimit-Reset"],
-            "max_age": 600  # Cache preflight requests for 10 minutes
-        }
-    }
-)
-
-# Database migrations
 migrate = Migrate()
+mail = Mail()
 
-# Real-time communication
+# ---- Socket.IO ----
 socketio = SocketIO(
-    cors_allowed_origins=os.getenv('CORS_ORIGINS', '*').split(',') 
-    if os.getenv('FLASK_ENV') == 'production' 
-    else "*"
+    cors_allowed_origins=os.getenv('CORS_ORIGINS', '*').split(',') if APP_ENV == 'production' else "*"
 )
 
-# Security headers with configurable CSP enforcement
-# See docs/SECURITY_CHECKLIST.md for CSP configuration details
-CSP_ENFORCE = os.getenv("CSP_ENFORCE", "true").lower() == "true"
+# ---- CORS (configured at init_app in app.py) ----
+CORS_ORIGINS = os.getenv('CORS_ORIGINS', 'http://localhost:3000').split(',')
+cors = CORS(resources={
+    r"/api/*": {
+        "origins": CORS_ORIGINS,
+        "supports_credentials": True,
+        "expose_headers": [
+            "Content-Disposition",
+            "X-RateLimit-Limit",
+            "X-RateLimit-Remaining",
+            "X-RateLimit-Reset",
+        ],
+        "max_age": 600,
+    }
+})
+
+# ---- Security headers / CSP ----
+connect_src = [
+    "'self'",
+    'https://api.stripe.com',
+    os.getenv('API_BASE_URL', 'https://api.assetanchor.io'),
+    os.getenv('WS_BASE_URL', 'wss://api.assetanchor.io'),
+    'https://www.google-analytics.com',
+]
+if SENTRY_DSN:
+    connect_src.append('https://sentry.io')
+
 csp = {
     'default-src': ["'self'"],
     'script-src': [
-        "'self'", 
+        "'self'",
         'https://js.stripe.com',
         'https://cdn.jsdelivr.net',
         'https://www.google-analytics.com',
-        "'nonce-{nonce}'"
+        "'nonce-{nonce}'",
     ],
     'style-src': [
-        "'self'", 
-        "'unsafe-inline'",  # Unsafe-inline needed for MUI
+        "'self'",
+        "'unsafe-inline'",  # Needed by many UI libs; prefer hashing where possible
         'https://fonts.googleapis.com',
-        'https://cdn.jsdelivr.net'
+        'https://cdn.jsdelivr.net',
     ],
     'img-src': [
-        "'self'", 
-        'data:', 
+        "'self'",
+        'data:',
         'https://s3.amazonaws.com',
         'https://cdn.jsdelivr.net',
-        'https://*.assetanchor.io', 
+        'https://*.assetanchor.io',
         'https://*.stripe.com',
         'https://www.google-analytics.com',
-        'https://stats.g.doubleclick.net'
+        'https://stats.g.doubleclick.net',
     ],
-    'connect-src': [
-        "'self'", 
-        'https://api.stripe.com', 
-        'https://api.assetanchor.io',
-        'wss://api.assetanchor.io',
-        'https://www.google-analytics.com',
-        'https://sentry.io' if os.getenv('SENTRY_DSN') else None
-    ],
+    'connect-src': connect_src,
     'frame-src': [
-        "'self'", 
-        'https://js.stripe.com', 
+        "'self'",
+        'https://js.stripe.com',
         'https://hooks.stripe.com',
-        'https://checkout.stripe.com'
+        'https://checkout.stripe.com',
     ],
     'font-src': [
-        "'self'", 
+        "'self'",
         'https://fonts.gstatic.com',
-        'https://cdn.jsdelivr.net'
+        'https://cdn.jsdelivr.net',
     ],
     'object-src': ["'none'"],
     'base-uri': ["'self'"],
     'form-action': ["'self'"],
     'frame-ancestors': ["'self'"],
     'report-uri': ['/api/csp-report'],
-    'upgrade-insecure-requests': [] if APP_ENV == 'production' else None
 }
+# Upgrade insecure requests only in prod
+if APP_ENV == 'production':
+    csp['upgrade-insecure-requests'] = []
 
 talisman = Talisman(
     content_security_policy=csp,
-    content_security_policy_report_only=not CSP_ENFORCE,
-    force_https=APP_ENV == 'production',
+    content_security_policy_report_only=(os.getenv("CSP_ENFORCE", "true").lower() != "true"),
+    force_https=(APP_ENV == 'production'),
     strict_transport_security=True,
-    strict_transport_security_max_age=31536000, # 1 year in seconds
+    strict_transport_security_max_age=31536000,
     strict_transport_security_include_subdomains=True,
     strict_transport_security_preload=True,
     frame_options='DENY',
-    session_cookie_secure=APP_ENV == 'production',
+    session_cookie_secure=(APP_ENV == 'production'),
     session_cookie_http_only=True,
     session_cookie_samesite='Lax',
-    feature_policy={
-        'geolocation': "'none'",
-        'microphone': "'none'",
-        'camera': "'none'",
-        'payment': "'self'"
-    },
-    referrer_policy='same-origin'
+    # Permissions-Policy (formerly Feature-Policy) is set via headers by Talisman internally when available.
+    referrer_policy='same-origin',
 )
 
-# Rate limiting
+# ---- Rate Limiting ----
 REDIS_URL = os.getenv("REDIS_URL")
 DISABLE_RATE_LIMIT = os.getenv("DISABLE_RATE_LIMIT", "false").lower() == "true"
 
@@ -140,15 +138,6 @@ limiter = Limiter(
     storage_uri=os.getenv("RATELIMIT_STORAGE_URI") or (REDIS_URL if REDIS_URL else "memory://"),
     strategy="fixed-window",
     headers_enabled=True,
-    on_breach=lambda *a, **k: ({"error": "Rate limit exceeded", "status": 429}, 429)
 )
-
-# Apply rate limiting conditionally based on DISABLE_RATE_LIMIT
 if DISABLE_RATE_LIMIT:
     limiter.enabled = False
-
-# Email sending
-mail = Mail()
-
-
-#new
