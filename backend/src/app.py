@@ -112,7 +112,7 @@ def _init_security_and_middlewares(app: Flask) -> None:
         expose_headers=[
             "Content-Type",
             "Authorization",
-            "Content-Disposition",      # <-- expose filenames on downloads
+            "Content-Disposition",      # expose filenames on downloads
             "X-RateLimit-Limit",
             "X-RateLimit-Remaining",
             "X-RateLimit-Reset",
@@ -180,6 +180,10 @@ def _register_blueprints(app: Flask) -> None:
         _register_blueprint(app, ".routes.property_routes", "property_bp", "/api/properties")
         _register_blueprint(app, ".routes.tenant_routes", "tenant_bp", "/api/tenants")
         _register_blueprint(app, ".routes.maintenance_routes", "bp", "/api/maintenance")
+
+        # Billing: Invoices & Payments
+        _register_blueprint(app, ".routes.invoice_routes", "invoice_bp", "/api/invoices")
+        _register_blueprint(app, ".routes.payment_routes", "payment_bp", "/api/payments")
 
         # Health / status / webhook (blueprints define their own rules)
         _register_blueprint(app, ".routes.status_routes", "bp", None)

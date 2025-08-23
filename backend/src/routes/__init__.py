@@ -7,7 +7,7 @@ def register_routes(app):
     from .auth_routes import bp as auth_bp
     from .admin_routes import admin_bp
     from .notification_routes import notification_bp
-    from .messaging_routes import messaging_bp
+    from .messages_routes import messaging_bp
     from .invite_routes import invite_bp
     from .verify_email_routes import verify_email_bp
     from .maintenance_routes import bp as maintenance_bp
