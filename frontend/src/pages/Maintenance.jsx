@@ -1,5 +1,5 @@
 // frontend/src/pages/Maintenance.jsx
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import {
   Box,
   Grid,
@@ -7,7 +7,6 @@ import {
   Button,
   TextField,
   InputAdornment,
-  IconButton,
   Tabs,
   Tab,
   Menu,
@@ -27,20 +26,119 @@ import AddIcon from "@mui/icons-material/Add";
 import SearchIcon from "@mui/icons-material/Search";
 import FilterListIcon from "@mui/icons-material/FilterList";
 import BuildIcon from "@mui/icons-material/Build";
-import EngineeringIcon from "@mui/icons-material/Engineering";
+
 import {
   Layout,
   PageHeader,
   MaintenanceRequestCard,
   Empty,
   LoadingSpinner,
-  Card,
 } from "../components";
 import { useMaintenance, useApp, useProperty } from "../context";
 
+const STATUS_TABS = ["all", "open", "in_progress", "completed"];
+
+// Centralized maintenance type catalogue for consistency across UI/back-end
+const MAINTENANCE_CATALOG = [
+  {
+    header: "Plumbing",
+    items: [
+      ["plumbing_leaking", "Leaking faucet or pipe"],
+      ["plumbing_clogged", "Clogged toilet or drain"],
+      ["plumbing_no_hot_water", "No hot water"],
+      ["plumbing_running_toilet", "Running toilet"],
+      ["plumbing_low_pressure", "Low water pressure"],
+      ["plumbing_disposal", "Broken garbage disposal"],
+      ["plumbing_water_heater", "Water heater issue"],
+    ],
+  },
+  {
+    header: "Electrical",
+    items: [
+      ["electrical_no_power", "No power in outlet or room"],
+      ["electrical_light_fixture", "Light fixture not working"],
+      ["electrical_circuit_breaker", "Circuit breaker tripping"],
+      ["electrical_fan", "Broken ceiling fan"],
+      ["electrical_power_surge", "Power surge or flickering lights"],
+      ["electrical_smoke_detector", "Smoke detector not working"],
+    ],
+  },
+  {
+    header: "HVAC",
+    items: [
+      ["hvac_no_heat", "No heat"],
+      ["hvac_no_ac", "No A/C"],
+      ["hvac_noise", "Strange HVAC noise"],
+      ["hvac_thermostat", "Thermostat not working"],
+      ["hvac_filter", "Air filter replacement"],
+    ],
+  },
+  {
+    header: "Doors, Windows & Locks",
+    items: [
+      ["door_broken", "Broken or stuck door"],
+      ["lock_not_working", "Lock not working"],
+      ["lock_lost_key", "Lost key or lockout"],
+      ["window_stuck", "Window won't open/close"],
+      ["window_broken", "Broken screen or cracked window"],
+    ],
+  },
+  {
+    header: "Interior & Structural",
+    items: [
+      ["interior_wall_ceiling", "Wall or ceiling damage"],
+      ["interior_floor", "Floor damage"],
+      ["interior_cabinet", "Cabinet/drawer broken"],
+      ["interior_paint", "Paint peeling"],
+      ["interior_mold", "Mold or mildew"],
+    ],
+  },
+  {
+    header: "Appliances",
+    items: [
+      ["appliance_refrigerator", "Refrigerator not cooling"],
+      ["appliance_stove", "Stove/oven not working"],
+      ["appliance_washer_dryer", "Washer/dryer issue"],
+      ["appliance_dishwasher", "Dishwasher not draining"],
+      ["appliance_microwave", "Microwave issue"],
+    ],
+  },
+  {
+    header: "Pest & Infestation",
+    items: [
+      ["pest_insects_rodents", "Roaches, ants, or rodents"],
+      ["pest_termite", "Termite concern"],
+      ["pest_bees", "Bees/wasps"],
+      ["pest_bedbugs", "Bed bugs"],
+      ["pest_fleas", "Fleas"],
+    ],
+  },
+  {
+    header: "Exterior",
+    items: [
+      ["exterior_roof", "Roof leak"],
+      ["exterior_gutter", "Broken gutter"],
+      ["exterior_yard", "Yard maintenance"],
+      ["exterior_lighting", "Exterior lighting issue"],
+      ["exterior_flooding", "Flooding"],
+    ],
+  },
+  {
+    header: "Emergency / Safety",
+    headerProps: { sx: { bgcolor: "error.light", color: "primary.contrastText", fontWeight: "bold" } },
+    items: [
+      ["emergency_gas", "Gas leak"],
+      ["emergency_fire_alarm", "Fire alarm issue"],
+      ["emergency_carbon_monoxide", "Carbon monoxide detector issue"],
+      ["emergency_lockout", "Lockout"],
+      ["emergency_security", "Broken security feature"],
+    ],
+  },
+];
+
 export default function Maintenance() {
   const navigate = useNavigate();
-  const { maintenanceRequests, stats, loading, error, fetchRequests, createRequest } =
+  const { maintenanceRequests, loading, error, fetchRequests, createRequest } =
     useMaintenance();
   const { properties } = useProperty();
   const { updatePageTitle } = useApp();
@@ -50,6 +148,7 @@ export default function Maintenance() {
   const [filterAnchorEl, setFilterAnchorEl] = useState(null);
   const [menuAnchorEl, setMenuAnchorEl] = useState(null);
   const [selectedRequestId, setSelectedRequestId] = useState(null);
+
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
   const [newRequestData, setNewRequestData] = useState({
     title: "",
@@ -61,79 +160,65 @@ export default function Maintenance() {
   });
   const [formErrors, setFormErrors] = useState({});
 
-  // Fetch requests on component mount
+  // Derived: units for the selected property (if API provides them on the property object)
+  const unitsForSelectedProperty = useMemo(() => {
+    const p = properties?.find((prop) => String(prop.id) === String(newRequestData.property_id));
+    // Support different shapes: prop.units (array) or prop.units_list (array of {id, name})
+    if (!p) return [];
+    if (Array.isArray(p.units)) return p.units;
+    if (Array.isArray(p.units_list)) return p.units_list;
+    return [];
+  }, [properties, newRequestData.property_id]);
+
   useEffect(() => {
     updatePageTitle("Maintenance");
-    
-    // Force a fetch regardless of state to ensure we have latest data
     fetchRequests();
-    
-    console.log('Maintenance component mounted - current state:', {
-      requestCount: maintenanceRequests.length,
-      isLoading: loading,
-      hasError: error
-    });
-    
-    // Log axios headers to debug authentication issues
-    const token = localStorage.getItem('token');
-    console.log('Current auth token available:', !!token);
-    if (token) {
-      console.log('Token first 20 chars:', token.substring(0, 20));
-    }
   }, [updatePageTitle, fetchRequests]);
 
-  // Filter requests
-  const filteredRequests = maintenanceRequests.filter((request) => {
-    // Status filter
-    const statusMatch =
-      currentStatus === "all" || request.status === currentStatus;
+  const filteredRequests = useMemo(() => {
+    const term = searchTerm.trim().toLowerCase();
+    return (maintenanceRequests || []).filter((request) => {
+      const statusMatch =
+        currentStatus === "all" || request.status === currentStatus;
 
-    // Search filter
-    const searchMatch =
-      request.title?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      request.description?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      request.property_name?.toLowerCase().includes(searchTerm.toLowerCase());
+      const haystack = [
+        request.title,
+        request.description,
+        request.property_name,
+        request.priority,
+        request.maintenance_type,
+      ]
+        .map((v) => (v || "").toString().toLowerCase())
+        .join(" ");
 
-    return statusMatch && searchMatch;
-  });
+      const searchMatch = term ? haystack.includes(term) : true;
+      return statusMatch && searchMatch;
+    });
+  }, [maintenanceRequests, currentStatus, searchTerm]);
 
-  // Handle status tab change
-  const handleStatusChange = (event, newValue) => {
+  const handleStatusChange = (_e, newValue) => {
     setCurrentStatus(newValue);
   };
 
-  // Menu handlers
   const handleFilterClick = (event) => {
     setFilterAnchorEl(event.currentTarget);
   };
+  const handleFilterClose = () => setFilterAnchorEl(null);
 
-  const handleFilterClose = () => {
-    setFilterAnchorEl(null);
-  };
-
-  // Handle request click
   const handleRequestClick = (id) => {
     navigate(`/maintenance/${id}`);
   };
 
-  // Handle request menu
   const handleRequestMenuClick = (e, id) => {
     e.stopPropagation();
     e.preventDefault();
     setSelectedRequestId(id);
     setMenuAnchorEl(e.currentTarget);
   };
+  const handleMenuClose = () => setMenuAnchorEl(null);
 
-  const handleMenuClose = () => {
-    setMenuAnchorEl(null);
-  };
-
-  // New request dialog
-  const handleCreateDialogOpen = () => {
-    setCreateDialogOpen(true);
-  };
-
-  const handleCreateDialogClose = () => {
+  const openCreateDialog = () => setCreateDialogOpen(true);
+  const closeCreateDialog = () => {
     setCreateDialogOpen(false);
     setNewRequestData({
       title: "",
@@ -146,51 +231,47 @@ export default function Maintenance() {
     setFormErrors({});
   };
 
-  // Form change handlers
   const handleNewRequestChange = (e) => {
     const { name, value } = e.target;
     setNewRequestData((prev) => ({ ...prev, [name]: value }));
-
-    // Clear validation error for this field
     if (formErrors[name]) {
       setFormErrors((prev) => ({ ...prev, [name]: undefined }));
     }
+    // If property changes, reset unit
+    if (name === "property_id") {
+      setNewRequestData((prev) => ({ ...prev, unit_id: "" }));
+    }
   };
 
-  // Form submission
-  const handleCreateRequest = async () => {
-    // Validate form
+  const validateForm = () => {
     const errors = {};
     if (!newRequestData.title) errors.title = "Title is required";
     if (!newRequestData.description) errors.description = "Description is required";
     if (!newRequestData.property_id) errors.property_id = "Property is required";
     if (!newRequestData.maintenance_type) errors.maintenance_type = "Maintenance type is required";
+    return errors;
+  };
 
-    if (Object.keys(errors).length > 0) {
+  const handleCreateRequest = async () => {
+    const errors = validateForm();
+    if (Object.keys(errors).length) {
       setFormErrors(errors);
       return;
     }
-
     try {
-      // Submit form data using context method
       await createRequest(newRequestData);
-
-      // Close dialog
-      handleCreateDialogClose();
-
-      // Success notification can be added here
-
-    } catch (error) {
-      console.error("Error creating request:", error);
-      // Show error to user
-      setFormErrors({ submit: error.message || "Failed to create request" });
+      // Refresh list to ensure the new item appears
+      await fetchRequests();
+      closeCreateDialog();
+    } catch (err) {
+      setFormErrors({ submit: err?.message || "Failed to create request" });
     }
   };
 
-  // Render count by status
   const getRequestsCount = (status) => {
-    if (status === "all") return maintenanceRequests.length;
-    return maintenanceRequests.filter((req) => req.status === status).length;
+    if (status === "all") return (maintenanceRequests || []).length;
+    return (maintenanceRequests || []).filter((r) => r.status === status).length;
+    // If your API returns aggregated stats, you can swap to those here.
   };
 
   return (
@@ -204,7 +285,7 @@ export default function Maintenance() {
         ]}
         actionText="New Request"
         actionIcon={<AddIcon />}
-        onActionClick={handleCreateDialogOpen}
+        onActionClick={openCreateDialog}
       />
 
       {/* Status Tabs */}
@@ -215,24 +296,16 @@ export default function Maintenance() {
           aria-label="maintenance request status"
           variant="scrollable"
           scrollButtons="auto"
-          TabIndicatorProps={{
-            sx: { backgroundColor: 'primary.main' }
-          }}
+          TabIndicatorProps={{ sx: { backgroundColor: "primary.main" } }}
         >
           <Tab label={`All (${getRequestsCount("all")})`} value="all" />
           <Tab label={`Open (${getRequestsCount("open")})`} value="open" />
-          <Tab
-            label={`In Progress (${getRequestsCount("in_progress")})`}
-            value="in_progress"
-          />
-          <Tab
-            label={`Completed (${getRequestsCount("completed")})`}
-            value="completed"
-          />
+          <Tab label={`In Progress (${getRequestsCount("in_progress")})`} value="in_progress" />
+          <Tab label={`Completed (${getRequestsCount("completed")})`} value="completed" />
         </Tabs>
       </Box>
 
-      {/* Search and filters */}
+      {/* Search and Filters */}
       <Box sx={{ display: "flex", mb: 3, gap: 2, flexWrap: "wrap" }}>
         <TextField
           placeholder="Search requests..."
@@ -254,17 +327,14 @@ export default function Maintenance() {
             },
           }}
           size="small"
+          inputProps={{ "aria-label": "Search maintenance requests" }}
         />
 
         <Button
           startIcon={<FilterListIcon />}
           onClick={handleFilterClick}
           variant="outlined"
-          sx={{ 
-            minWidth: 100,
-            borderRadius: 2,
-            py: 0.9
-          }}
+          sx={{ minWidth: 100, borderRadius: 2, py: 0.9 }}
         >
           Filter
         </Button>
@@ -273,21 +343,15 @@ export default function Maintenance() {
           anchorEl={filterAnchorEl}
           open={Boolean(filterAnchorEl)}
           onClose={handleFilterClose}
-          anchorOrigin={{
-            vertical: "bottom",
-            horizontal: "right",
-          }}
-          transformOrigin={{
-            vertical: "top",
-            horizontal: "right",
-          }}
+          anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
+          transformOrigin={{ vertical: "top", horizontal: "right" }}
           PaperProps={{
             elevation: 0,
             sx: {
-              boxShadow: '0px 2px 8px rgba(0,0,0,0.05)',
+              boxShadow: "0px 2px 8px rgba(0,0,0,0.05)",
               borderRadius: 3,
-              mt: 0.5
-            }
+              mt: 0.5,
+            },
           }}
         >
           <MenuItem
@@ -325,14 +389,14 @@ export default function Maintenance() {
         </Menu>
       </Box>
 
-      {/* Maintenance Requests Grid */}
+      {/* Requests Grid */}
       {loading ? (
         <Box sx={{ py: 8, textAlign: "center" }}>
           <LoadingSpinner />
         </Box>
       ) : error ? (
         <Box sx={{ py: 4 }}>
-          <Typography color="error">{error}</Typography>
+          <Typography color="error">{String(error)}</Typography>
         </Box>
       ) : filteredRequests.length === 0 ? (
         <Empty
@@ -344,7 +408,7 @@ export default function Maintenance() {
           }
           icon={<BuildIcon sx={{ fontSize: 64 }} />}
           actionText="New Request"
-          onActionClick={handleCreateDialogOpen}
+          onActionClick={openCreateDialog}
         />
       ) : (
         <Grid container spacing={3}>
@@ -365,7 +429,7 @@ export default function Maintenance() {
         </Grid>
       )}
 
-      {/* Request menu */}
+      {/* Context menu per request */}
       <Menu
         anchorEl={menuAnchorEl}
         open={Boolean(menuAnchorEl)}
@@ -373,36 +437,36 @@ export default function Maintenance() {
         sx={{ mt: 0.5 }}
         PaperProps={{
           elevation: 0,
-          sx: {
-            boxShadow: '0px 2px 8px rgba(0,0,0,0.05)',
-            borderRadius: 3
-          }
+          sx: { boxShadow: "0px 2px 8px rgba(0,0,0,0.05)", borderRadius: 3 },
         }}
       >
         <MenuItem
           onClick={() => {
             handleMenuClose();
-            handleRequestClick(selectedRequestId);
+            if (selectedRequestId != null) handleRequestClick(selectedRequestId);
           }}
         >
           View Details
         </MenuItem>
-        <MenuItem onClick={handleMenuClose}>Edit</MenuItem>
-        <MenuItem onClick={handleMenuClose}>Delete</MenuItem>
+        <MenuItem
+          onClick={() => {
+            handleMenuClose();
+            if (selectedRequestId != null) navigate(`/maintenance/${selectedRequestId}/edit`);
+          }}
+        >
+          Edit
+        </MenuItem>
       </Menu>
 
       {/* New request dialog */}
       <Dialog
         open={createDialogOpen}
-        onClose={handleCreateDialogClose}
+        onClose={closeCreateDialog}
         maxWidth="sm"
         fullWidth
         PaperProps={{
           elevation: 0,
-          sx: {
-            boxShadow: '0px 2px 16px rgba(0,0,0,0.08)',
-            borderRadius: 3
-          }
+          sx: { boxShadow: "0px 2px 16px rgba(0,0,0,0.08)", borderRadius: 3 },
         }}
       >
         <DialogTitle sx={{ fontWeight: 600 }}>Create Maintenance Request</DialogTitle>
@@ -412,7 +476,7 @@ export default function Maintenance() {
               {formErrors.submit}
             </Typography>
           )}
-          
+
           <TextField
             label="Title"
             name="title"
@@ -440,11 +504,7 @@ export default function Maintenance() {
             inputProps={{ maxLength: 500 }}
           />
 
-          <FormControl 
-            fullWidth 
-            margin="normal" 
-            error={Boolean(formErrors.property_id)}
-          >
+          <FormControl fullWidth margin="normal" error={Boolean(formErrors.property_id)}>
             <InputLabel>Property</InputLabel>
             <Select
               name="property_id"
@@ -455,7 +515,7 @@ export default function Maintenance() {
               <MenuItem value="">
                 <em>Select a property</em>
               </MenuItem>
-              {properties.map((property) => (
+              {(properties || []).map((property) => (
                 <MenuItem key={property.id} value={property.id}>
                   {property.name}
                 </MenuItem>
@@ -473,19 +533,25 @@ export default function Maintenance() {
               value={newRequestData.unit_id}
               onChange={handleNewRequestChange}
               label="Unit (optional)"
+              disabled={!newRequestData.property_id || unitsForSelectedProperty.length === 0}
             >
               <MenuItem value="">
                 <em>None</em>
               </MenuItem>
-              {/* Map units here if available */}
+              {unitsForSelectedProperty.map((u) => {
+                // support both shapes: {id, name} or simple value
+                const uid = typeof u === "object" ? u.id : u;
+                const uname = typeof u === "object" ? (u.name || `Unit ${u.id}`) : String(u);
+                return (
+                  <MenuItem key={uid} value={uid}>
+                    {uname}
+                  </MenuItem>
+                );
+              })}
             </Select>
           </FormControl>
 
-          <FormControl 
-            fullWidth 
-            margin="normal"
-            error={Boolean(formErrors.maintenance_type)}
-          >
+          <FormControl fullWidth margin="normal" error={Boolean(formErrors.maintenance_type)}>
             <InputLabel>Type of Maintenance</InputLabel>
             <Select
               name="maintenance_type"
@@ -496,105 +562,31 @@ export default function Maintenance() {
               <MenuItem value="">
                 <em>Select maintenance type</em>
               </MenuItem>
-              
-              {/* Plumbing Category */}
-              <ListSubheader sx={{ bgcolor: 'background.paper', fontWeight: 'bold', color: 'primary.main' }}>
-                Plumbing
-              </ListSubheader>
-              <MenuItem value="plumbing_leaking">Leaking faucet or pipe</MenuItem>
-              <MenuItem value="plumbing_clogged">Clogged toilet or drain</MenuItem>
-              <MenuItem value="plumbing_no_hot_water">No hot water</MenuItem>
-              <MenuItem value="plumbing_running_toilet">Running toilet</MenuItem>
-              <MenuItem value="plumbing_low_pressure">Low water pressure</MenuItem>
-              <MenuItem value="plumbing_disposal">Broken garbage disposal</MenuItem>
-              <MenuItem value="plumbing_water_heater">Water heater issue</MenuItem>
-              
-              {/* Electrical Category */}
-              <ListSubheader sx={{ bgcolor: 'background.paper', fontWeight: 'bold', color: 'primary.main' }}>
-                Electrical
-              </ListSubheader>
-              <MenuItem value="electrical_no_power">No power in outlet or room</MenuItem>
-              <MenuItem value="electrical_light_fixture">Light fixture not working</MenuItem>
-              <MenuItem value="electrical_circuit_breaker">Circuit breaker tripping</MenuItem>
-              <MenuItem value="electrical_fan">Broken ceiling fan</MenuItem>
-              <MenuItem value="electrical_power_surge">Power surge or flickering lights</MenuItem>
-              <MenuItem value="electrical_smoke_detector">Smoke detector not working</MenuItem>
-              
-              {/* HVAC Category */}
-              <ListSubheader sx={{ bgcolor: 'background.paper', fontWeight: 'bold', color: 'primary.main' }}>
-                HVAC
-              </ListSubheader>
-              <MenuItem value="hvac_no_heat">No heat</MenuItem>
-              <MenuItem value="hvac_no_ac">No A/C</MenuItem>
-              <MenuItem value="hvac_noise">Strange HVAC noise</MenuItem>
-              <MenuItem value="hvac_thermostat">Thermostat not working</MenuItem>
-              <MenuItem value="hvac_filter">Air filter replacement</MenuItem>
-              
-              {/* Doors, Windows & Locks */}
-              <ListSubheader sx={{ bgcolor: 'background.paper', fontWeight: 'bold', color: 'primary.main' }}>
-                Doors, Windows & Locks
-              </ListSubheader>
-              <MenuItem value="door_broken">Broken or stuck door</MenuItem>
-              <MenuItem value="lock_not_working">Lock not working</MenuItem>
-              <MenuItem value="lock_lost_key">Lost key or lockout</MenuItem>
-              <MenuItem value="window_stuck">Window won't open/close</MenuItem>
-              <MenuItem value="window_broken">Broken screen or cracked window</MenuItem>
-              
-              {/* Interior & Structural */}
-              <ListSubheader sx={{ bgcolor: 'background.paper', fontWeight: 'bold', color: 'primary.main' }}>
-                Interior & Structural
-              </ListSubheader>
-              <MenuItem value="interior_wall_ceiling">Wall or ceiling damage</MenuItem>
-              <MenuItem value="interior_floor">Floor damage</MenuItem>
-              <MenuItem value="interior_cabinet">Cabinet/drawer broken</MenuItem>
-              <MenuItem value="interior_paint">Paint peeling</MenuItem>
-              <MenuItem value="interior_mold">Mold or mildew</MenuItem>
-              
-              {/* Appliances */}
-              <ListSubheader sx={{ bgcolor: 'background.paper', fontWeight: 'bold', color: 'primary.main' }}>
-                Appliances
-              </ListSubheader>
-              <MenuItem value="appliance_refrigerator">Refrigerator not cooling</MenuItem>
-              <MenuItem value="appliance_stove">Stove/oven not working</MenuItem>
-              <MenuItem value="appliance_washer_dryer">Washer/dryer issue</MenuItem>
-              <MenuItem value="appliance_dishwasher">Dishwasher not draining</MenuItem>
-              <MenuItem value="appliance_microwave">Microwave issue</MenuItem>
-              
-              {/* Pest & Infestation */}
-              <ListSubheader sx={{ bgcolor: 'background.paper', fontWeight: 'bold', color: 'primary.main' }}>
-                Pest & Infestation
-              </ListSubheader>
-              <MenuItem value="pest_insects_rodents">Roaches, ants, or rodents</MenuItem>
-              <MenuItem value="pest_termite">Termite concern</MenuItem>
-              <MenuItem value="pest_bees">Bees/wasps</MenuItem>
-              <MenuItem value="pest_bedbugs">Bed bugs</MenuItem>
-              <MenuItem value="pest_fleas">Fleas</MenuItem>
-              
-              {/* Exterior */}
-              <ListSubheader sx={{ bgcolor: 'background.paper', fontWeight: 'bold', color: 'primary.main' }}>
-                Exterior
-              </ListSubheader>
-              <MenuItem value="exterior_roof">Roof leak</MenuItem>
-              <MenuItem value="exterior_gutter">Broken gutter</MenuItem>
-              <MenuItem value="exterior_yard">Yard maintenance</MenuItem>
-              <MenuItem value="exterior_lighting">Exterior lighting issue</MenuItem>
-              <MenuItem value="exterior_flooding">Flooding</MenuItem>
-              
-              {/* Emergency / Safety */}
-              <ListSubheader sx={{ bgcolor: 'background.paper', fontWeight: 'bold', color: 'primary.main', bgcolor: 'error.light' }}>
-                Emergency / Safety
-              </ListSubheader>
-              <MenuItem value="emergency_gas">Gas leak</MenuItem>
-              <MenuItem value="emergency_fire_alarm">Fire alarm issue</MenuItem>
-              <MenuItem value="emergency_carbon_monoxide">Carbon monoxide detector issue</MenuItem>
-              <MenuItem value="emergency_lockout">Lockout</MenuItem>
-              <MenuItem value="emergency_security">Broken security feature</MenuItem>
+              {MAINTENANCE_CATALOG.map((group) => (
+                <React.Fragment key={group.header}>
+                  <ListSubheader
+                    disableSticky
+                    sx={{
+                      bgcolor: (group.headerProps?.sx?.bgcolor) || "background.paper",
+                      color: (group.headerProps?.sx?.color) || "primary.main",
+                      fontWeight: (group.headerProps?.sx?.fontWeight) || "bold",
+                    }}
+                  >
+                    {group.header}
+                  </ListSubheader>
+                  {group.items.map(([val, label]) => (
+                    <MenuItem key={val} value={val}>
+                      {label}
+                    </MenuItem>
+                  ))}
+                </React.Fragment>
+              ))}
             </Select>
             {formErrors.maintenance_type && (
               <FormHelperText>{formErrors.maintenance_type}</FormHelperText>
             )}
           </FormControl>
-          
+
           <FormControl fullWidth margin="normal">
             <InputLabel>Priority</InputLabel>
             <Select
@@ -610,10 +602,7 @@ export default function Maintenance() {
           </FormControl>
         </DialogContent>
         <DialogActions sx={{ px: 3, pb: 3 }}>
-          <Button 
-            onClick={handleCreateDialogClose} 
-            sx={{ borderRadius: 2, px: 3 }}
-          >
+          <Button onClick={closeCreateDialog} sx={{ borderRadius: 2, px: 3 }}>
             Cancel
           </Button>
           <Button

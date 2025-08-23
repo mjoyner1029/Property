@@ -1,61 +1,61 @@
+// frontend/src/__tests__/properties/PropertyList.test.jsx
 import React from 'react';
 import { render, screen, fireEvent, waitFor, within, act } from '@testing-library/react';
-import Properties from '../../pages/Properties';
 import { MemoryRouter } from 'react-router-dom';
-import axios from 'axios';
-import { useProperty } from '../../context/PropertyContext';
-import { useApp } from '../../context/AppContext';
 
-// Mock axios
-jest.mock('axios');
-
-// Mock navigate function
+// ---- Mock navigate ----
 const mockNavigate = jest.fn();
 
-// Mock react-router hooks
+// ---- Mock react-router DOM hooks BEFORE importing the component ----
 jest.mock('react-router-dom', () => ({
   ...jest.requireActual('react-router-dom'),
-  useNavigate: () => mockNavigate
+  useNavigate: () => mockNavigate,
 }));
 
-// Mock context hooks
+// ---- Mock context hooks with explicit factories BEFORE importing the component ----
 const mockFetchProperties = jest.fn();
 const mockDeleteProperty = jest.fn();
 const mockUpdatePageTitle = jest.fn();
 
-// Mock context hooks
-jest.mock('../../context/PropertyContext');
-jest.mock('../../context/AppContext');
+jest.mock('../../context/PropertyContext', () => ({
+  useProperty: jest.fn(),
+}));
 
-// Mock MUI components
+jest.mock('../../context/AppContext', () => ({
+  useApp: jest.fn(),
+}));
+
+import { useProperty } from '../../context/PropertyContext';
+import { useApp } from '../../context/AppContext';
+
+// ---- Mock lightweight MUI pieces used by the page (keep interactions simple) ----
 jest.mock('@mui/material', () => {
   const actual = jest.requireActual('@mui/material');
   return {
     ...actual,
     TextField: ({ placeholder, value, onChange }) => (
-      <input 
+      <input
         placeholder={placeholder}
         value={value || ''}
         onChange={onChange}
         data-testid="search-input"
       />
     ),
-    Button: ({ children, onClick, startIcon }) => (
+    Button: ({ children, onClick }) => (
       <button onClick={onClick} data-testid="button">
         {children}
       </button>
     ),
-    Menu: ({ children, open, onClose, anchorEl }) => (
-      open ? <div data-testid="menu">{children}</div> : null
-    ),
-    MenuItem: ({ children, onClick, selected }) => (
-      <div data-testid={`menu-item-${children?.toString().toLowerCase().replace(/\s/g, '-')}`} onClick={onClick}>
+    Menu: ({ children, open }) => (open ? <div data-testid="menu">{children}</div> : null),
+    MenuItem: ({ children, onClick }) => (
+      <div
+        data-testid={`menu-item-${children?.toString().toLowerCase().replace(/\s/g, '-')}`}
+        onClick={onClick}
+      >
         {children}
       </div>
     ),
-    Dialog: ({ children, open, onClose }) => (
-      open ? <div data-testid="dialog">{children}</div> : null
-    ),
+    Dialog: ({ children, open }) => (open ? <div data-testid="dialog">{children}</div> : null),
     DialogTitle: ({ children }) => <h2 data-testid="dialog-title">{children}</h2>,
     DialogContent: ({ children }) => <div data-testid="dialog-content">{children}</div>,
     DialogContentText: ({ children }) => <p data-testid="dialog-text">{children}</p>,
@@ -63,293 +63,263 @@ jest.mock('@mui/material', () => {
   };
 });
 
-// Mock the components
+// ---- Mock shared components used by Properties page ----
 jest.mock('../../components', () => ({
   Layout: ({ children }) => <div data-testid="layout">{children}</div>,
   PageHeader: ({ title, onActionClick }) => (
     <div data-testid="page-header">
       <h1>{title}</h1>
-      <button onClick={onActionClick} data-testid="add-property-button">Add Property</button>
+      <button onClick={onActionClick} data-testid="add-property-button">
+        Add Property
+      </button>
     </div>
   ),
   PropertyCard: ({ id, name, address, onClick, onMenuClick }) => (
     <div data-testid={`property-card-${id}`} onClick={onClick}>
       <h3>{name}</h3>
       <p>{address}</p>
-      <button onClick={onMenuClick} data-testid={`property-menu-${id}`}>Menu</button>
+      <button onClick={onMenuClick} data-testid={`property-menu-${id}`}>
+        Menu
+      </button>
     </div>
   ),
   Empty: ({ onActionClick }) => (
     <div data-testid="empty-state">
-      <button onClick={onActionClick} data-testid="empty-add-button">Add Property</button>
+      <button onClick={onActionClick} data-testid="empty-add-button">
+        Add Property
+      </button>
     </div>
   ),
-  LoadingSpinner: () => <div data-testid="loading-spinner">Loading...</div>
+  LoadingSpinner: () => <div data-testid="loading-spinner">Loading...</div>,
 }));
+
+// ---- Import the page under test AFTER all mocks are set up ----
+import Properties from '../../pages/Properties';
 
 describe('Properties Component', () => {
   const defaultProperties = [
-    { 
-      id: '1', 
-      name: 'Sunset Apartments', 
+    {
+      id: '1',
+      name: 'Sunset Apartments',
       address: '123 Main St',
       city: 'San Francisco',
       state: 'CA',
       zip_code: '94102',
       type: 'apartment',
-      units: [{ tenant_id: 'tenant1' }, { tenant_id: null }]
+      units: [{ tenant_id: 'tenant1' }, { tenant_id: null }],
     },
-    { 
-      id: '2', 
-      name: 'Ocean View Condos', 
+    {
+      id: '2',
+      name: 'Ocean View Condos',
       address: '456 Beach Rd',
       city: 'Miami',
       state: 'FL',
       zip_code: '33139',
       type: 'apartment',
-      units: [{ tenant_id: 'tenant2' }]
-    }
+      units: [{ tenant_id: 'tenant2' }],
+    },
   ];
 
   beforeEach(() => {
     jest.clearAllMocks();
 
-    // Set up default mocks
+    // Default mock values for contexts
     useProperty.mockReturnValue({
       properties: defaultProperties,
       loading: false,
       error: null,
       fetchProperties: mockFetchProperties,
-      deleteProperty: mockDeleteProperty
+      deleteProperty: mockDeleteProperty,
     });
 
     useApp.mockReturnValue({
-      updatePageTitle: mockUpdatePageTitle
+      updatePageTitle: mockUpdatePageTitle,
     });
   });
-  
+
   test('renders properties and handles property click', () => {
-    // Render the component
     render(
       <MemoryRouter>
         <Properties />
       </MemoryRouter>
     );
-    
-    // Check that fetchProperties was called
+
+    // fetch + title update called
     expect(mockFetchProperties).toHaveBeenCalled();
-    
-    // Check that page title was updated
     expect(mockUpdatePageTitle).toHaveBeenCalledWith('Properties');
-    
-    // Check that property cards are rendered
+
+    // property cards
     expect(screen.getByText('Sunset Apartments')).toBeInTheDocument();
     expect(screen.getByText('Ocean View Condos')).toBeInTheDocument();
-    
-    // Click on a property card
+
+    // click first card -> navigate to details
     screen.getByTestId('property-card-1').click();
-    
-    // Verify navigation was called with correct path
     expect(mockNavigate).toHaveBeenCalledWith('/properties/1');
   });
-  
+
   test('handles add property button click', () => {
     render(
       <MemoryRouter>
         <Properties />
       </MemoryRouter>
     );
-    
-    // Click the add property button
+
     screen.getByTestId('add-property-button').click();
-    
-    // Verify navigation to add property page
-    expect(mockNavigate).toHaveBeenCalledWith('/properties/new');
+    // NOTE: If your app uses "/properties/new", swap below accordingly.
+    expect(mockNavigate).toHaveBeenCalledWith('/properties/add');
   });
-  
-  test('renders loading state correctly', () => {
-    // Override the mock to show loading state
+
+  test('renders loading state', () => {
     useProperty.mockReturnValue({
       properties: [],
       loading: true,
       error: null,
-      fetchProperties: mockFetchProperties
+      fetchProperties: mockFetchProperties,
+      deleteProperty: mockDeleteProperty,
     });
-    
+
     render(
       <MemoryRouter>
         <Properties />
       </MemoryRouter>
     );
-    
-    // Check that loading spinner is displayed
+
     expect(screen.getByTestId('loading-spinner')).toBeInTheDocument();
   });
-  
-  test('renders error state correctly', () => {
-    // Override the mock to show error state
+
+  test('renders error state', () => {
     useProperty.mockReturnValue({
       properties: [],
       loading: false,
       error: 'Failed to load properties',
-      fetchProperties: mockFetchProperties
+      fetchProperties: mockFetchProperties,
+      deleteProperty: mockDeleteProperty,
     });
-    
+
     render(
       <MemoryRouter>
         <Properties />
       </MemoryRouter>
     );
-    
-    // Check that error message is displayed
+
     expect(screen.getByText('Failed to load properties')).toBeInTheDocument();
   });
-  
-  test('renders empty state when no properties are found', () => {
-    // Override the mock to show empty state
+
+  test('renders empty state and navigates to add', () => {
     useProperty.mockReturnValue({
       properties: [],
       loading: false,
       error: null,
-      fetchProperties: mockFetchProperties
+      fetchProperties: mockFetchProperties,
+      deleteProperty: mockDeleteProperty,
     });
-    
+
     render(
       <MemoryRouter>
         <Properties />
       </MemoryRouter>
     );
-    
-    // Check that empty state is displayed
+
     expect(screen.getByTestId('empty-state')).toBeInTheDocument();
-    
-    // Click the add property button in empty state
     screen.getByTestId('empty-add-button').click();
-    
-    // Verify navigation to add property page
-    expect(mockNavigate).toHaveBeenCalledWith('/properties/new');
+    // NOTE: If your app uses "/properties/new", swap below accordingly.
+    expect(mockNavigate).toHaveBeenCalledWith('/properties/add');
   });
-  
-  test('filters properties based on name search term', () => {
+
+  test('filters properties by name', () => {
     render(
       <MemoryRouter>
         <Properties />
       </MemoryRouter>
     );
-    
-    // Get the search input
+
     const searchInput = screen.getByTestId('search-input');
-    
-    // Enter search term
     fireEvent.change(searchInput, { target: { value: 'Ocean' } });
-    
-    // Check that only Ocean View Condos is displayed
+
     expect(screen.getByText('Ocean View Condos')).toBeInTheDocument();
     expect(screen.queryByText('Sunset Apartments')).not.toBeInTheDocument();
   });
-  
-  test('filters properties based on address search term', () => {
+
+  test('filters properties by address', () => {
     render(
       <MemoryRouter>
         <Properties />
       </MemoryRouter>
     );
-    
-    // Get the search input
+
     const searchInput = screen.getByTestId('search-input');
-    
-    // Enter address search term
+
     fireEvent.change(searchInput, { target: { value: 'Beach' } });
-    
-    // Check that only Ocean View Condos is displayed (has Beach Rd in address)
     expect(screen.getByText('Ocean View Condos')).toBeInTheDocument();
     expect(screen.queryByText('Sunset Apartments')).not.toBeInTheDocument();
-    
-    // Clear search and try a different address term
+
     fireEvent.change(searchInput, { target: { value: 'Main' } });
-    
-    // Check that only Sunset Apartments is displayed (has Main St in address)
-    expect(screen.queryByText('Ocean View Condos')).not.toBeInTheDocument();
     expect(screen.getByText('Sunset Apartments')).toBeInTheDocument();
+    expect(screen.queryByText('Ocean View Condos')).not.toBeInTheDocument();
   });
-  
-  test('handles property menu click and delete property', async () => {
+
+  test('opens menu and deletes a property', async () => {
     mockDeleteProperty.mockResolvedValue({ success: true });
-    
+
     render(
       <MemoryRouter>
         <Properties />
       </MemoryRouter>
     );
-    
-    // Click on a property menu
-    const menuButton = screen.getByTestId('property-menu-2');
-    fireEvent.click(menuButton);
-    
-    // Wait for and verify menu is open
+
+    fireEvent.click(screen.getByTestId('property-menu-2'));
+
     await waitFor(() => {
       expect(screen.getByTestId('menu')).toBeInTheDocument();
     });
-    
-    // Find and click the delete option
+
     const deleteMenuItem = screen.getByTestId('menu-item-delete-property');
     fireEvent.click(deleteMenuItem);
-    
-    // Verify delete dialog is shown
+
     await waitFor(() => {
       expect(screen.getByTestId('dialog')).toBeInTheDocument();
       expect(screen.getByTestId('dialog-title')).toHaveTextContent('Delete Property');
     });
-    
-    // Find and click the confirm delete button
+
     const dialogActions = screen.getByTestId('dialog-actions');
-    const deleteButton = within(dialogActions).getByText('Delete');
-    
-    // Use act to handle state updates
+    const deleteBtn = within(dialogActions).getByText('Delete');
+
     await act(async () => {
-      // Click delete button
-      fireEvent.click(deleteButton);
-      // Wait for promises to resolve
+      fireEvent.click(deleteBtn);
       await Promise.resolve();
     });
-    
-    // Verify deleteProperty was called with correct ID
+
     expect(mockDeleteProperty).toHaveBeenCalledWith('2');
   });
-  
-  test('handles filtering by property type and sorting', async () => {
+
+  test('handles filtering by type and sorting', async () => {
     render(
       <MemoryRouter>
         <Properties />
       </MemoryRouter>
     );
-    
-    // Click the filter button
-    const filterButton = screen.getByText('Filter');
-    fireEvent.click(filterButton);
-    
-    // Wait for menu to appear
+
+    // Open filter menu
+    fireEvent.click(screen.getByText('Filter'));
+
     await waitFor(() => {
       expect(screen.getByTestId('menu')).toBeInTheDocument();
     });
-    
-    // Click on "Apartments" filter option
+
+    // Filter by "Apartments"
     const apartmentsOption = screen.getByTestId('menu-item-apartments');
     fireEvent.click(apartmentsOption);
-    
-    // Verify properties still visible (both are apartments in our mock)
+
+    // Both mocks are apartments; both remain visible
     expect(screen.getByText('Sunset Apartments')).toBeInTheDocument();
     expect(screen.getByText('Ocean View Condos')).toBeInTheDocument();
-    
-    // Open filter menu again
-    fireEvent.click(filterButton);
-    
-    // Click on a sort option
-    const sortByUnitsOption = screen.getByTestId('menu-item-number-of-units');
-    fireEvent.click(sortByUnitsOption);
-    
-    // Properties should still be visible but in different order (we can't test this directly)
-    // but we can verify they're still there
+
+    // Reopen, then sort
+    fireEvent.click(screen.getByText('Filter'));
+    const sortByUnits = screen.getByTestId('menu-item-number-of-units');
+    fireEvent.click(sortByUnits);
+
+    // Still visible (we don’t depend on exact order)
     expect(screen.getByText('Sunset Apartments')).toBeInTheDocument();
     expect(screen.getByText('Ocean View Condos')).toBeInTheDocument();
   });

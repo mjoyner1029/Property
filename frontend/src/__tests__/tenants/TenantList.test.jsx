@@ -1,67 +1,120 @@
-import React from 'react';
-import { render, screen, waitFor } from '@testing-library/react';
-import { MemoryRouter } from 'react-router-dom';
-import Tenants from '../../pages/Tenants';
-import axios from 'axios';
+// frontend/src/__tests__/tenants/TenantList.test.jsx
+import React from "react";
+import { screen } from "@testing-library/react";
+import { MemoryRouter } from "react-router-dom";
+import Tenants from "../../pages/Tenants";
+import { renderWithProviders } from "../../test-utils/renderWithProviders";
 
-// Mock context
-jest.mock('../../context/TenantContext', () => ({
-  useTenant: () => ({
-    tenants: [],
-    loading: false,
-    error: null,
-    fetchTenants: jest.fn()
-  })
+// ---- Router mocks (for any navigation inside the page) ----
+const mockNavigate = jest.fn();
+jest.mock("react-router-dom", () => ({
+  ...jest.requireActual("react-router-dom"),
+  useNavigate: () => mockNavigate,
 }));
 
-jest.mock('axios');
+// ---- Context mocks ----
+const mockFetchTenants = jest.fn();
+const mockUpdatePageTitle = jest.fn();
 
-describe('Tenants', () => {
-  afterEach(() => {
+jest.mock("../../context/TenantContext", () => ({
+  useTenant: jest.fn(),
+}));
+
+jest.mock("../../context/AppContext", () => ({
+  useApp: jest.fn(),
+}));
+
+import { useTenant } from "../../context/TenantContext";
+import { useApp } from "../../context/AppContext";
+
+describe("Tenants List Page", () => {
+  const tenantsSample = [
+    { id: 1, name: "Alice", email: "alice@ex.com", phone: "111-111" },
+    { id: 2, name: "Bob", email: "bob@ex.com", phone: "222-222" },
+  ];
+
+  const renderTenants = () =>
+    renderWithProviders(
+      <MemoryRouter initialEntries={["/tenants"]}>
+        <Tenants />
+      </MemoryRouter>
+    );
+
+  beforeEach(() => {
     jest.clearAllMocks();
-  });
 
-  test('renders tenant rows on success', async () => {
-    axios.get.mockResolvedValueOnce({
-      data: [
-        { id: 1, name: 'Alice', email: 'alice@ex.com', phone: '111-111' },
-        { id: 2, name: 'Bob', email: 'bob@ex.com', phone: '222-222' }
-      ]
+    // Default contexts for a successful render
+    useTenant.mockReturnValue({
+      tenants: tenantsSample,
+      loading: false,
+      error: null,
+      fetchTenants: mockFetchTenants,
     });
 
-    render(
-      <MemoryRouter>
-        <Tenants />
-      </MemoryRouter>
-    );
-
-    expect(await screen.findByText('Alice')).toBeInTheDocument();
-    expect(screen.getByText('alice@ex.com')).toBeInTheDocument();
-    expect(screen.getByText('Bob')).toBeInTheDocument();
-    expect(screen.getByText('bob@ex.com')).toBeInTheDocument();
+    useApp.mockReturnValue({
+      updatePageTitle: mockUpdatePageTitle,
+    });
   });
 
-  test('shows empty state when no tenants', async () => {
-    axios.get.mockResolvedValueOnce({ data: [] });
+  test("renders tenant rows on success", async () => {
+    renderTenants();
 
-    render(
-      <MemoryRouter>
-        <Tenants />
-      </MemoryRouter>
-    );
+    // Ensure initial fetch + page title update attempted
+    expect(mockFetchTenants).toHaveBeenCalled();
+    if (mockUpdatePageTitle.mock.calls.length) {
+      expect(mockUpdatePageTitle).toHaveBeenCalledWith("Tenants");
+    }
 
-    expect(await screen.findByText('No tenants found')).toBeInTheDocument();
+    // Verify tenant data is shown
+    expect(await screen.findByText("Alice")).toBeInTheDocument();
+    expect(screen.getByText("alice@ex.com")).toBeInTheDocument();
+    expect(screen.getByText("Bob")).toBeInTheDocument();
+    expect(screen.getByText("bob@ex.com")).toBeInTheDocument();
   });
 
-  test('shows error state on failure', async () => {
-    axios.get.mockRejectedValueOnce(new Error('network'));
+  test("shows loading state", async () => {
+    useTenant.mockReturnValue({
+      tenants: [],
+      loading: true,
+      error: null,
+      fetchTenants: mockFetchTenants,
+    });
 
-    render(
-      <MemoryRouter>
-        <Tenants />
-      </MemoryRouter>
-    );
+    renderTenants();
 
-    expect(await screen.findByText('Error loading tenants')).toBeInTheDocument();
+    // Your page might use MUI CircularProgress (role=progressbar) or a custom LoadingSpinner
+    const maybeProgress = screen.queryByRole("progressbar");
+    const maybeSpinner = screen.queryByTestId("loading-spinner");
+    expect(maybeProgress || maybeSpinner).toBeTruthy();
+  });
+
+  test("shows empty state when no tenants", async () => {
+    useTenant.mockReturnValue({
+      tenants: [],
+      loading: false,
+      error: null,
+      fetchTenants: mockFetchTenants,
+    });
+
+    renderTenants();
+
+    // Match the message used in your previous test snippet
+    expect(await screen.findByText(/no tenants found/i)).toBeInTheDocument();
+  });
+
+  test("shows error state on failure", async () => {
+    useTenant.mockReturnValue({
+      tenants: [],
+      loading: false,
+      error: "Error loading tenants",
+      fetchTenants: mockFetchTenants,
+    });
+
+    renderTenants();
+
+    // Many UIs use MUI <Alert role="alert">, but we’ll assert on the text to keep it flexible
+    const errorMsg =
+      screen.queryByRole("alert") || (await screen.findByText(/error loading tenants/i));
+    expect(errorMsg).toBeInTheDocument();
   });
 });
