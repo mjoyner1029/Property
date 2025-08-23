@@ -119,44 +119,8 @@ export default function() {
   sleep(1);
 }
 
-// Scenario for higher load testing
-export function highLoad() {
-  options.vus = 30;
-  options.duration = '120s';
-  options.thresholds = {
-    'http_req_duration': ['p95<500'],
-    'failed_requests': ['rate<0.02'],
-    'properties_latency': ['p95<500'],
-    'tenants_latency': ['p95<500'],
-    'payments_history_latency': ['p95<500']
-  };
-  
-  export default();
-}
 
-// Scenario for moderate load testing (default for CI)
-export function moderateLoad() {
-  options.vus = 20;
-  options.duration = '60s';
-  options.thresholds = {
-    'http_req_duration': ['p95<300'],
-    'failed_requests': ['rate<0.01'],
-    'properties_latency': ['p95<300'],
-    'tenants_latency': ['p95<300'],
-    'payments_history_latency': ['p95<300']
-  };
-  
-  export default();
-}
-
-// Scenario for spike testing
-export function spikeTest() {
-  options.stages = [
-    { duration: '30s', target: 10 },
-    { duration: '30s', target: 50 },
-    { duration: '30s', target: 10 },
-    { duration: '30s', target: 0 },
-  ];
-  
-  export default();
-}
+// To run different scenarios, use the K6 CLI:
+// k6 run --vus 30 --duration 120s api_load_test.js   # High load
+// k6 run --vus 20 --duration 60s api_load_test.js    # Moderate load
+// k6 run --stages "30s:10,30s:50,30s:10,30s:0" api_load_test.js  # Spike test
