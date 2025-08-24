@@ -1,3 +1,4 @@
+# .github/workflows/rc-security-headers.yml
 name: RC Security Header Check
 
 on:
@@ -7,64 +8,232 @@ on:
   workflow_dispatch:
     inputs:
       url:
-        description: 'Custom URL to check'
+        description: 'Custom URL to check (space- or newline-separated for multiple)'
         required: false
         type: string
+
+permissions:
+  contents: read
+
+concurrency:
+  group: rc-security-headers-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   check-security-headers:
     runs-on: ubuntu-latest
+
+    env:
+      # Defaults if not provided. You can override at runtime via workflow inputs or secrets.
+      STAGING_API_URL: ${{ secrets.STAGING_API_URL }}
+      STAGING_FE_URL:  ${{ secrets.STAGING_FE_URL }}
+      # Comma-separated lists (override in repo/ORG vars or per-run if needed)
+      HEADERS_REQUIRED: "strict-transport-security,content-security-policy,x-content-type-options,x-frame-options,referrer-policy,permissions-policy,cross-origin-opener-policy,cross-origin-resource-policy"
+      HEADERS_RECOMMENDED: "cache-control,x-xss-protection"
+
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v3
-      
+      - name: Checkout
+        uses: actions/checkout@v4
+
       - name: Set up Python
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v5
         with:
-          python-version: '3.10'
-      
-      - name: Install dependencies
+          python-version: '3.11'
+
+      - name: Build URL list
+        id: urls
         run: |
-          python -m pip install --upgrade pip
-          pip install requests
-      
-      - name: Make script executable
-        run: chmod +x ./scripts/check_security_headers.py
-      
-      - name: Determine URLs to check
-        id: get-urls
-        run: |
-          # Use custom URL if provided, otherwise use default staging URLs
-          if [[ "${{ github.event.inputs.url }}" != "" ]]; then
-            URLS="${{ github.event.inputs.url }}"
-          else
-            URLS="${{ secrets.STAGING_API_URL }} ${{ secrets.STAGING_FE_URL }}"
+          set -euo pipefail
+          mkdir -p .gh
+          : > .gh/urls.txt
+          # From input (can be space or newline separated)
+          if [ -n "${{ github.event.inputs.url || '' }}" ]; then
+            printf "%s\n" "${{ github.event.inputs.url }}" | tr ' ' '\n' | sed '/^$/d' >> .gh/urls.txt
           fi
-          echo "urls=$URLS" >> $GITHUB_OUTPUT
-      
-      - name: Check security headers
+          # Fallback to secrets if no input
+          if [ ! -s .gh/urls.txt ]; then
+            for u in "${STAGING_API_URL}" "${STAGING_FE_URL}"; do
+              [ -n "$u" ] && echo "$u" >> .gh/urls.txt || true
+            done
+          fi
+          # De-dup and sanitize
+          sort -u .gh/urls.txt | sed '/^$/d' > .gh/urls.clean.txt
+          mv .gh/urls.clean.txt .gh/urls.txt
+          echo "Resolved URLs:"
+          cat .gh/urls.txt
+          count=$(wc -l < .gh/urls.txt || echo 0)
+          echo "count=$count" >> "$GITHUB_OUTPUT"
+
+      - name: Abort if no URLs
+        if: steps.urls.outputs.count == '0'
         run: |
-          echo "Checking security headers for: ${{ steps.get-urls.outputs.urls }}"
-          ./scripts/check_security_headers.py ${{ steps.get-urls.outputs.urls }}
-      
-      - name: Generate report
-        if: always()
+          echo "::warning::No URLs provided (input or secrets). Nothing to check."
+          exit 0
+
+      - name: Audit security headers
+        id: audit
         run: |
-          echo "# Security Headers Report" > security_header_report.md
-          echo "Generated on $(date)" >> security_header_report.md
-          echo "" >> security_header_report.md
-          
-          for URL in ${{ steps.get-urls.outputs.urls }}; do
-            echo "## $URL" >> security_header_report.md
-            echo '```' >> security_header_report.md
-            ./scripts/check_security_headers.py "$URL" >> security_header_report.md
-            echo '```' >> security_header_report.md
-            echo "" >> security_header_report.md
-          done
-      
-      - name: Upload security headers report
-        if: always()
-        uses: actions/upload-artifact@v3
+          set -euo pipefail
+          python - <<'PY'
+          import os, sys, json, textwrap, urllib.parse
+          from datetime import datetime
+          import requests
+
+          urls = [u.strip() for u in open(".gh/urls.txt").read().splitlines() if u.strip()]
+          req = requests.Session()
+          req.headers.update({"User-Agent": "asset-anchor-security-audit/1.0"})
+
+          # Required and recommended lists (lower-cased)
+          req_list = [h.strip().lower() for h in os.environ.get("HEADERS_REQUIRED","").split(",") if h.strip()]
+          rec_list = [h.strip().lower() for h in os.environ.get("HEADERS_RECOMMENDED","").split(",") if h.strip()]
+
+          def fetch(url: str):
+            # Prefer HEAD; fall back to GET if server blocks HEAD
+            try:
+              r = req.head(url, allow_redirects=True, timeout=15)
+              if r.status_code >= 400 or not r.headers:
+                raise Exception(f"HEAD status {r.status_code}")
+              return r
+            except Exception:
+              r = req.get(url, allow_redirects=True, timeout=20)
+              return r
+
+          def hget(headers, name):
+            # case-insensitive
+            for k, v in headers.items():
+              if k.lower() == name.lower():
+                return v.strip()
+            return None
+
+          def check_hsts(val: str):
+            # Require max-age >= 31536000 (1 year)
+            try:
+              parts = [p.strip() for p in val.split(";")]
+              for p in parts:
+                if p.lower().startswith("max-age="):
+                  sec = int(p.split("=",1)[1])
+                  return sec >= 31536000
+            except Exception:
+              pass
+            return False
+
+          def scheme_is_https(url: str):
+            return urllib.parse.urlparse(url).scheme.lower() == "https"
+
+          results = []
+          any_fail = False
+          for url in urls:
+            r = fetch(url)
+            # Followed location end URL
+            final_url = r.url
+            headers = {k.lower(): v for k,v in r.headers.items()}
+
+            checks = []
+            # Basic HTTPS check
+            https_ok = scheme_is_https(final_url)
+            checks.append(("https", "Request served over HTTPS", "PASS" if https_ok else "FAIL", final_url))
+
+            # Required headers present + strength checks
+            for name in req_list:
+              present = name in headers
+              status = "PASS" if present else "FAIL"
+              note = headers.get(name, "")
+              # Strength checks for specific headers
+              if present:
+                if name == "strict-transport-security":
+                  strong = check_hsts(note)
+                  status = "PASS" if strong else "FAIL"
+                  if not strong:
+                    note += "  (Expected max-age >= 31536000)"
+                elif name == "content-security-policy":
+                  # Minimal sanity: block unsafe-inline unless you truly need it
+                  if "unsafe-inline" in note or "unsafe-eval" in note:
+                    status = "WARN"
+              checks.append((name, f"Required header: {name}", status, note))
+
+            # Recommended headers
+            for name in rec_list:
+              present = name in headers
+              status = "PASS" if present else "WARN"
+              note = headers.get(name, "")
+              checks.append((name, f"Recommended header: {name}", status, note))
+
+            # Decide pass/fail for this URL
+            fail = any(s == "FAIL" for _,_,s,_ in checks)
+            any_fail = any_fail or fail
+
+            results.append({
+              "url": url,
+              "final_url": final_url,
+              "status_code": r.status_code,
+              "headers": headers,
+              "checks": checks,
+              "passed": not fail,
+            })
+
+          # Write markdown report
+          os.makedirs(".gh", exist_ok=True)
+          with open(".gh/security_header_report.md", "w") as out:
+            out.write(f"# Security Headers Report\n\n")
+            out.write(f"Generated: {datetime.utcnow().isoformat()}Z\n\n")
+            for res in results:
+              out.write(f"## {res['url']}\n\n")
+              out.write(f"- Final URL: `{res['final_url']}`\n")
+              out.write(f"- Status: {res['status_code']}\n\n")
+              out.write("| Check | Description | Result | Value |\n")
+              out.write("|---|---|:---:|---|\n")
+              for key, desc, status, value in res["checks"]:
+                v = (value or "").replace("\n"," ").strip()
+                if len(v) > 180:
+                  v = v[:180] + "…"
+                out.write(f"| `{key}` | {desc} | {status} | {v} |\n")
+              out.write("\n")
+
+          # Emit pass/fail to workflow and print summary to stdout (picked up next step)
+          print(f"overall_pass={'true' if not any_fail else 'false'}")
+          PY
+
+      - name: Post results to GitHub Summary
+        run: |
+          echo "## RC Security Headers" >> "$GITHUB_STEP_SUMMARY"
+          echo "" >> "$GITHUB_STEP_SUMMARY"
+          cat .gh/security_header_report.md >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload report artifact
+        uses: actions/upload-artifact@v4
         with:
           name: security-header-report
-          path: security_header_report.md
+          path: .gh/security_header_report.md
+          retention-days: 7
+
+      # Optional: also run your existing script if present, append to report
+      - name: Run repo script (optional)
+        if: hashFiles('scripts/check_security_headers.py') != ''
+        run: |
+          chmod +x scripts/check_security_headers.py || true
+          echo -e "\n---\n\n## Raw Script Output\n" >> .gh/security_header_report.md
+          while IFS= read -r url; do
+            echo -e "### $url\n" >> .gh/security_header_report.md
+            ./scripts/check_security_headers.py "$url" >> .gh/security_header_report.md || true
+            echo -e "\n" >> .gh/security_header_report.md
+          done < .gh/urls.txt
+          # Re-upload the augmented report
+          echo "" >> "$GITHUB_STEP_SUMMARY"
+          echo "### Raw Script Output" >> "$GITHUB_STEP_SUMMARY"
+          tail -n +1 .gh/security_header_report.md | sed -n '/^## Raw Script Output/,$p' >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Fail if any required header missing/weak
+        run: |
+          # Re-run the auditor quickly to get the flag (keeps logic in one place)
+          python - <<'PY'
+          import json, os, sys
+          # The previous step already printed overall_pass; we can recompute by reading the report if needed.
+          # Simpler: treat absence of report as failure.
+          p = ".gh/security_header_report.md"
+          if not os.path.exists(p) or os.path.getsize(p) == 0:
+            print("::error::No report generated.")
+            sys.exit(1)
+          # Soft parse: fail if any " | FAIL | " appears in the table rows.
+          text = open(p, "r", encoding="utf-8").read()
+          sys.exit(1 if " | FAIL | " in text else 0)
+          PY

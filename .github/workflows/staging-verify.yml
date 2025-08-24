@@ -1,40 +1,61 @@
+# .github/workflows/staging-verify.yml
+
 name: staging-verify
 
 on:
   workflow_run:
-    workflows: ["deploy"]           # must match the name of your deploy workflow
+    workflows: ["deploy"]        # must match the name of your deploy workflow
     types: [completed]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: staging-verify-${{ github.event.workflow_run.head_branch || github.ref }}
+  cancel-in-progress: true
 
 jobs:
   verify-staging:
-    if: ${{ github.event.workflow_run.conclusion == 'success' }}
     name: Day 2 - Staging Hardening & Verification
     runs-on: ubuntu-latest
     timeout-minutes: 30
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
 
     env:
-      # Required staging URLs (set these as GitHub Action secrets)
+      # Required staging URLs (set as repo/org secrets)
       STAGING_API_URL: ${{ secrets.STAGING_API_URL }}          # e.g. https://api-staging.assetanchor.io
       STAGING_FE_URL:  ${{ secrets.STAGING_FE_URL }}           # e.g. https://staging.assetanchor.io
 
-      # Auth / tokens for scripted checks
+      # Auth / tokens for scripted checks (optional, used by your scripts)
       ADMIN_BEARER_TOKEN: ${{ secrets.ADMIN_BEARER_TOKEN }}     # JWT or API key with admin permissions
 
-      # Stripe + Sentry (staging)
+      # Stripe + Sentry (staging, optional for your scripts)
       STRIPE_WEBHOOK_SECRET: ${{ secrets.STRIPE_WEBHOOK_SECRET_STAGING }}
       SENTRY_DSN: ${{ secrets.SENTRY_DSN_STAGING }}
 
-      # Optional Redis/limiter settings (if scripts need them)
+      # Optional Redis/limiter settings (for your scripts)
       REDIS_URL: ${{ secrets.REDIS_URL_STAGING }}
 
-      # Strict fail switches: set to "true" to enforce
+      # Strict fail switches passed to your script
       FAIL_ON_PAYMENTS: "true"
       FAIL_ON_MULTITENANCY: "true"
       FAIL_ON_RATELIMIT: "true"
 
     steps:
-      - name: Checkout repo
+      - name: Checkout repo at deployed commit
         uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.workflow_run.head_sha }}
+          fetch-depth: 0
+
+      - name: Preflight (required env)
+        id: preflight
+        run: |
+          ok=true
+          [ -z "${STAGING_API_URL}" ] && echo "::error::STAGING_API_URL secret is missing" && ok=false
+          [ -z "${STAGING_FE_URL}" ]  && echo "::error::STAGING_FE_URL secret is missing" && ok=false
+          echo "can_run=$ok" >> "$GITHUB_OUTPUT"
+          $ok || exit 1
 
       - name: Setup Python
         uses: actions/setup-python@v5
@@ -44,27 +65,73 @@ jobs:
       - name: Install Python deps for verification
         run: |
           python -m pip install --upgrade pip
-          # If we need extra libs for analyze_csp.py etc., install here:
-          pip install requests pytest rich
+          pip install requests rich
 
       - name: Prepare results folder
-        run: |
-          mkdir -p day2-results
+        run: mkdir -p day2-results
 
-      # Optional: print inputs (URL only, no secrets)
       - name: Echo target URLs
         run: |
           echo "STAGING_API_URL=${STAGING_API_URL}"
           echo "STAGING_FE_URL=${STAGING_FE_URL}"
 
-      - name: Run Day-2 verification suite
+      # Prefer your repo script if present
+      - name: Run Day-2 verification suite (repo script)
+        id: run_suite
+        if: hashFiles('scripts/run_day2_tests.sh') != ''
         run: |
           chmod +x ./scripts/run_day2_tests.sh
-          # The script should:
-          #  - use env vars above
-          #  - write outputs to ./day2-results/*.json|*.log|*.txt
-          #  - exit non-zero for critical failures (payments/multitenancy/ratelimit) when FAIL_ON_*="true"
           ./scripts/run_day2_tests.sh
+
+      # Built-in basic checks (runs only if your script is absent)
+      - name: Built-in verification (health + headers)
+        if: steps.run_suite.outcome == 'skipped'
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import os, sys, time, requests
+
+          api = os.environ["STAGING_API_URL"].rstrip("/")
+          fe  = os.environ["STAGING_FE_URL"].rstrip("/")
+
+          def wait_200(url, attempts=20, sleep_s=3):
+            for i in range(1, attempts+1):
+              try:
+                r = requests.get(url, timeout=10, allow_redirects=True)
+                print(f"[{i}] {url} -> {r.status_code}")
+                if r.status_code == 200:
+                  return True
+              except Exception as e:
+                print(f"[{i}] {url} -> error: {e}")
+              time.sleep(sleep_s)
+            return False
+
+          # API health
+          api_ok = wait_200(f"{api}/api/health")
+          # FE root
+          fe_ok  = wait_200(f"{fe}/")
+
+          # Minimal header checks on FE
+          hdr_ok = True
+          try:
+            r = requests.get(f"{fe}/", timeout=15, allow_redirects=True)
+            h = {k.lower(): v for k,v in r.headers.items()}
+            missing = []
+            for req in ["strict-transport-security", "content-security-policy", "x-content-type-options", "referrer-policy"]:
+              if req not in h:
+                missing.append(req)
+            if missing:
+              print("Missing headers:", ", ".join(missing))
+              hdr_ok = False
+          except Exception as e:
+            print("Header check error:", e)
+            hdr_ok = False
+
+          passed = api_ok and fe_ok and hdr_ok
+          print(f"RESULT api_ok={api_ok} fe_ok={fe_ok} headers_ok={hdr_ok}")
+          if not passed:
+            sys.exit(1)
+          PY
 
       - name: Upload Day-2 results
         if: always()
@@ -72,12 +139,16 @@ jobs:
         with:
           name: day2-staging-results
           path: day2-results
+          if-no-files-found: ignore
 
-      # Optional: post a short job summary
       - name: Job Summary
         if: always()
         run: |
           echo "## Day 2 Staging Verification" >> $GITHUB_STEP_SUMMARY
           echo "- API: ${STAGING_API_URL}" >> $GITHUB_STEP_SUMMARY
           echo "- FE: ${STAGING_FE_URL}" >> $GITHUB_STEP_SUMMARY
-          echo "- See artifacts: day2-staging-results" >> $GITHUB_STEP_SUMMARY
+          if [ -f day2-results/summary.md ]; then
+            echo "" >> $GITHUB_STEP_SUMMARY
+            cat day2-results/summary.md >> $GITHUB_STEP_SUMMARY
+          else
+            echo "- See artifacts: day2-staging-results" >> $GITHUB_STEP_SUMMARY

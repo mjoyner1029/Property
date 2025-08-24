@@ -1,19 +1,128 @@
+# .github/workflows/release-candidate.yml
+
 name: release-candidate
 
 on:
   push:
-    branches: [ "release/*" ]
-    tags:
-      - "v*.*.*-rc.*"
+    branches: [ "release/**" ]
+    tags: [ "v*.*.*-rc.*" ]
+  workflow_dispatch:
+    inputs:
+      auto_deploy:
+        description: "Deploy RC tag to staging after tests"
+        required: false
+        default: "true"
+        type: choice
+        options: ["true", "false"]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: rc-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   fe-tests:
+    name: Frontend tests (reusable)
     uses: ./.github/workflows/frontend-tests.yml
+    secrets: inherit
 
   be-tests:
+    name: Backend tests (reusable)
     uses: ./.github/workflows/backend-tests.yml
+    secrets: inherit
 
-  # Optional: run deploy to staging automatically for RC tags
-  deploy:
-    if: startsWith(github.ref, 'refs/tags/v') && contains(github.ref, '-rc.')
-    uses: ./.github/workflows/deploy.yml
+  deploy-staging:
+    name: Deploy RC to STAGING
+    needs: [ fe-tests, be-tests ]
+    runs-on: ubuntu-latest
+    if: >
+      (startsWith(github.ref, 'refs/tags/v') && contains(github.ref, '-rc.')) &&
+      (github.event.inputs.auto_deploy != 'false')
+    permissions:
+      contents: read
+    env:
+      # Render (staging)
+      RENDER_API_KEY: ${{ secrets.RENDER_API_KEY }}
+      RENDER_SERVICE_ID_API: ${{ secrets.RENDER_SERVICE_ID_API_STAGING }}
+      RENDER_DEPLOY_HOOK_API: ${{ secrets.RENDER_DEPLOY_HOOK_API_STAGING }}
+      # Vercel (staging/preview project)
+      VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN_STAGING }}
+      VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID_STAGING }}
+      VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID_STAGING }}
+      # Optional smoke URL for staging
+      SMOKE_API_BASE_URL: ${{ secrets.STAGING_API_URL }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      # Kick Render deploy via API (preferred; gives a deploy_id we can poll)
+      - name: Kick Render deploy (staging via API)
+        id: render_kick
+        if: ${{ env.RENDER_API_KEY != '' && env.RENDER_SERVICE_ID_API != '' }}
+        run: |
+          set -euo pipefail
+          resp=$(curl -fsS -X POST \
+            -H "Authorization: Bearer ${RENDER_API_KEY}" \
+            -H "Content-Type: application/json" \
+            -d '{"clearCache":"do_not_clear"}' \
+            "https://api.render.com/v1/services/${RENDER_SERVICE_ID_API}/deploys")
+          echo "API response: $resp"
+          did=$(printf '%s' "$resp" | jq -r '.id')
+          echo "deploy_id=$did" >> "$GITHUB_OUTPUT"
+
+      # Fallback to deploy hook if no API key/service id
+      - name: Kick Render deploy (staging via Deploy Hook)
+        if: ${{ (steps.render_kick.outputs.deploy_id == '' || steps.render_kick.outcome == 'skipped') && env.RENDER_DEPLOY_HOOK_API != '' }}
+        run: curl -fsS -X POST "${RENDER_DEPLOY_HOOK_API}"
+
+      # Wait until the Render deploy finishes (only possible if we used the API)
+      - name: Wait for Render deploy to complete
+        if: ${{ steps.render_kick.outputs.deploy_id != '' }}
+        env:
+          DEPLOY_ID: ${{ steps.render_kick.outputs.deploy_id }}
+        run: |
+          set -euo pipefail
+          sudo apt-get update -y && sudo apt-get install -y jq
+          for i in {1..60}; do
+            status_json=$(curl -fsS \
+              -H "Authorization: Bearer ${RENDER_API_KEY}" \
+              "https://api.render.com/v1/services/${RENDER_SERVICE_ID_API}/deploys/${DEPLOY_ID}")
+            status=$(echo "$status_json" | jq -r '.status')
+            echo "Render status: $status"
+            if [ "$status" = "live" ] || [ "$status" = "succeeded" ]; then
+              exit 0
+            fi
+            if [ "$status" = "failed" ]; then
+              echo "$status_json"
+              exit 1
+            fi
+            sleep 10
+          done
+          echo "Timeout waiting for Render deploy"
+          exit 1
+
+      # Deploy FE to Vercel as a preview/proxy for staging (prod: false)
+      - name: Deploy Frontend to Vercel (staging/preview)
+        if: ${{ env.VERCEL_TOKEN != '' && env.VERCEL_PROJECT_ID != '' && env.VERCEL_ORG_ID != '' }}
+        uses: vercel/actions/deploy@v3
+        with:
+          working-directory: frontend
+          token: ${{ env.VERCEL_TOKEN }}
+          project-id: ${{ env.VERCEL_PROJECT_ID }}
+          org-id: ${{ env.VERCEL_ORG_ID }}
+          prod: false
+
+      # Optional: quick smoke on staging API /health
+      - name: Smoke test staging API
+        if: ${{ env.SMOKE_API_BASE_URL != '' }}
+        run: |
+          python - <<'PY'
+          import os, sys, urllib.request
+          base = os.environ["SMOKE_API_BASE_URL"].rstrip("/")
+          url = f"{base}/api/health"
+          with urllib.request.urlopen(url, timeout=15) as r:
+            body = r.read().decode()
+            print("Health:", body)
+          PY

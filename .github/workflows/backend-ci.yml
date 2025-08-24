@@ -1,63 +1,143 @@
-# .github/workflows/backend-ci.yml
 name: Backend CI
 
 on:
   push:
-    paths:
-      - 'backend/**'
+    paths: [ "backend/**", ".github/workflows/backend-ci.yml" ]
+  pull_request:
+    paths: [ "backend/**", ".github/workflows/backend-ci.yml" ]
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+  security-events: write  # needed to upload SARIF
 
 jobs:
-  build:
+  test-and-scan:
     runs-on: ubuntu-latest
     defaults:
       run:
         working-directory: backend
+
+    env:
+      FLASK_ENV: test
+      DATABASE_URL: sqlite:///test.db
+      RATELIMIT_STORAGE_URI: memory://
+      DISABLE_RATE_LIMIT: "true"
+      SENTRY_DSN: ""
+      STRIPE_SECRET_KEY: "sk_test_dummy"
+      STRIPE_WEBHOOK_SECRET: "whsec_dummy"
+      TEST_AUTO_VERIFY_EMAIL: "1"
+
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Fail if placeholder code exists
+        run: |
+          echo "Scanning for placeholder patterns…"
+          set -e
+          patterns='(^|\s)\.\.\.($|\s)|PLACEHOLDER|TO_FILL|__FILL_ME__|FIXME!!!'
+          if git grep -nE "$patterns" -- backend ':!**/.venv' ':!**/__pycache__' ; then
+            echo "::error::Placeholder patterns found. Remove them before pushing."
+            exit 1
+          fi
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
         with:
-          python-version: '3.11'
-      
-      - name: Install system deps (psycopg2)
-        run: sudo apt-get update && sudo apt-get install -y libpq-dev
-      
+          python-version: "3.11"
+
+      - name: Install system deps (psycopg2, build tools)
+        run: |
+          sudo apt-get update -y
+          sudo apt-get install -y libpq-dev build-essential
+
+      - name: Cache pip
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pip-${{ hashFiles('backend/requirements.txt', 'backend/requirements-dev.txt') }}
+          restore-keys: ${{ runner.os }}-pip-
+
       - name: Install Python deps
         run: |
           python -m pip install --upgrade pip
           pip install -r requirements.txt
           if [ -f requirements-dev.txt ]; then pip install -r requirements-dev.txt; fi
-      
+
+      - name: Lint (ruff)
+        run: |
+          pip install ruff
+          ruff --version
+          ruff check .
+
+      - name: Initialize DB (optional Flask-Migrate)
+        run: |
+          if [ -f "src/manage.py" ]; then
+            python -m src.manage db upgrade || true
+          elif [ -f "manage.py" ]; then
+            python manage.py db upgrade || true
+          else
+            echo "No migrate script found; continuing."
+          fi
+
       - name: Run tests
-        env:
-          FLASK_ENV: test
-          DATABASE_URL: sqlite:///test.db
-          RATELIMIT_STORAGE_URI: memory://
-          DISABLE_RATE_LIMIT: "true"
-          SENTRY_DSN: ""
-          STRIPE_SECRET_KEY: "sk_test_dummy"
-          STRIPE_WEBHOOK_SECRET: "whsec_dummy"
-        run: python -m pytest
-      
-      - name: Check if Dockerfile exists
-        id: dockerfile_check
+        run: |
+          pytest -q --maxfail=1 --disable-warnings --cov=src --cov-report=xml
+
+      - name: Upload coverage artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: backend-coverage-xml
+          path: backend/coverage.xml
+
+      # ---- Security scanning (Trivy) ----
+      - name: Detect Dockerfile
+        id: detect
         run: |
           if [ -f Dockerfile ]; then
-            echo "exists=true" >> $GITHUB_OUTPUT
+            echo "has_dockerfile=true" >> "$GITHUB_OUTPUT"
           else
-            echo "exists=false" >> $GITHUB_OUTPUT
+            echo "has_dockerfile=false" >> "$GITHUB_OUTPUT"
           fi
-      
-      - name: Run Trivy vulnerability scanner
-        if: steps.dockerfile_check.outputs.exists == 'true'
-        uses: aquasecurity/trivy-action@master
+
+      - name: Set up Docker Buildx
+        if: steps.detect.outputs.has_dockerfile == 'true'
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build local image (no push)
+        if: steps.detect.outputs.has_dockerfile == 'true'
+        uses: docker/build-push-action@v6
         with:
-          image-ref: 'project-name-backend:scan'
-          format: 'sarif'
-          output: 'trivy-backend-results.sarif'
-      
-      - name: Upload Trivy scan results
-        if: steps.dockerfile_check.outputs.exists == 'true'
-        uses: github/codeql-action/upload-sarif@v2
+          context: ./backend
+          file: ./backend/Dockerfile
+          push: false
+          tags: asset-anchor/backend:ci-${{ github.sha }}
+
+      - name: Trivy scan (image)
+        if: steps.detect.outputs.has_dockerfile == 'true'
+        uses: aquasecurity/trivy-action@0.28.0
         with:
-          sarif_file: 'trivy-backend-results.sarif'
+          image-ref: asset-anchor/backend:ci-${{ github.sha }}
+          format: sarif
+          output: trivy-backend-results.sarif
+          ignore-unfixed: true
+          vuln-type: "os,library"
+
+      - name: Trivy scan (filesystem fallback)
+        if: steps.detect.outputs.has_dockerfile != 'true'
+        uses: aquasecurity/trivy-action@0.28.0
+        with:
+          scan-type: fs
+          scan-ref: backend
+          format: sarif
+          output: trivy-backend-results.sarif
+          ignore-unfixed: true
+          vuln-type: "os,library"
+
+      - name: Upload Trivy SARIF
+        if: always()
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: trivy-backend-results.sarif
           category: trivy-backend

@@ -1,32 +1,155 @@
+# .github/workflows/perf-smoke.yml
+
 name: Performance Smoke Tests
 
 on:
-  workflow_dispatch:  # Manual trigger
+  workflow_dispatch: {}
   schedule:
-    - cron: '0 3 * * 1'  # Run weekly on Mondays at 3am UTC
+    - cron: "0 3 * * 1"   # Mondays at 03:00 UTC
+
+permissions:
+  contents: read
+
+concurrency:
+  group: perf-smoke-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   perf-smoke:
     name: Run Performance Smoke Tests
     runs-on: ubuntu-latest
-    
+    timeout-minutes: 20
+
+    env:
+      # Optional secrets; we also provide safe defaults in the step below
+      STAGING_API_URL: ${{ secrets.STAGING_API_URL }}
+      PROD_API_URL: ${{ secrets.PROD_API_URL }}
+      # Soft thresholds for smokes (tune without editing code)
+      P95_SMOKE_MS: "800"
+      ERROR_RATE_PCT: "2.0"
+      # Default k6 params for smokes
+      SMOKE_VUS: "2"
+      SMOKE_DURATION: "20s"
+
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v3
-      
-...
-        run: |
-          k6 run -e API_URL=https://api-staging.assetanchor.io perf/k6/smoke.js
-      
-      - name: Run smoke test against production
-        run: |
-          k6 run -e API_URL=https://api.assetanchor.io perf/k6/smoke.js
-      
-      - name: Upload test results
-        if: always()
-        uses: actions/upload-artifact@v2
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup k6
+        uses: grafana/setup-k6@v1
         with:
-          name: k6-results
-          path: |
-            k6-summary-*.json
-            k6-*.html
+          version: v0.45.0
+
+      - name: Setup Python (for summary parsing)
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Run smoke against STAGING
+        id: smoke_staging
+        run: |
+          set -e
+          URL="${STAGING_API_URL:-https://api-staging.assetanchor.io}"
+          echo "Staging URL: $URL"
+          mkdir -p perf-results
+          k6 run \
+            --vus "${SMOKE_VUS}" \
+            --duration "${SMOKE_DURATION}" \
+            --summary-export perf-results/k6-summary-staging.json \
+            perf/k6/smoke.js \
+            -e API_URL="$URL"
+
+      - name: Run smoke against PROD
+        id: smoke_prod
+        run: |
+          set -e
+          URL="${PROD_API_URL:-https://api.assetanchor.io}"
+          echo "Prod URL: $URL"
+          mkdir -p perf-results
+          k6 run \
+            --vus "${SMOKE_VUS}" \
+            --duration "${SMOKE_DURATION}" \
+            --summary-export perf-results/k6-summary-prod.json \
+            perf/k6/smoke.js \
+            -e API_URL="$URL"
+
+      - name: Build GitHub Summary + pass/fail
+        id: summarize
+        run: |
+          set -e
+          : "${P95_SMOKE_MS:=800}"
+          : "${ERROR_RATE_PCT:=2.0}"
+
+          make_block () {
+            local name="$1"
+            local file="$2"
+
+            python - "$name" "$file" "$P95_SMOKE_MS" "$ERROR_RATE_PCT" <<'PY'
+import json, sys
+name, path, p95_target, err_target = sys.argv[1], sys.argv[2], float(sys.argv[3]), float(sys.argv[4])
+
+data = json.load(open(path))
+m = data.get("metrics", {})
+
+def p95(metric): return float(m.get(metric, {}).get("values", {}).get("p(95)", 0.0))
+def rate(metric): return float(m.get(metric, {}).get("values", {}).get("rate", 0.0))
+
+http_p95 = p95("http_req_duration")
+err_pct  = rate("failed_requests") * 100.0
+
+def badge(ok): return "✅ PASS" if ok else "❌ FAIL"
+
+ok_lat = http_p95 < p95_target
+ok_err = err_pct  < err_target
+ok_all = ok_lat and ok_err
+
+print(f"## {name}")
+print("")
+print("| Metric | Value | Threshold | Result |")
+print("|---|---:|---:|:---:|")
+print(f"| P95 http_req_duration (ms) | {http_p95:.2f} | < {p95_target:.0f} | {badge(ok_lat)} |")
+print(f"| Error Rate (%) | {err_pct:.2f} | < {err_target:.1f} | {badge(ok_err)} |")
+print("")
+print(f"overall_pass={ok_all}")
+PY
+          }
+
+          {
+            echo "# Performance Smoke Results"
+            echo ""
+            echo "**Date:** $(date -u)  "
+            echo "**VUs/Duration:** ${SMOKE_VUS} VUs / ${SMOKE_DURATION}  "
+            echo "**Thresholds:** P95 < ${P95_SMOKE_MS} ms, Error rate < ${ERROR_RATE_PCT}%"
+            echo ""
+          } > perf-results/summary.md
+
+          # Append staging block and capture pass flag
+          STAGING_BLOCK=$(make_block "Staging" perf-results/k6-summary-staging.json)
+          echo "$STAGING_BLOCK" >> perf-results/summary.md
+          STAGING_PASS=$(printf "%s\n" "$STAGING_BLOCK" | awk -F= '/overall_pass=/{print $2}')
+
+          # Append prod block and capture pass flag
+          PROD_BLOCK=$(make_block "Production" perf-results/k6-summary-prod.json)
+          echo "$PROD_BLOCK" >> perf-results/summary.md
+          PROD_PASS=$(printf "%s\n" "$PROD_BLOCK" | awk -F= '/overall_pass=/{print $2}')
+
+          echo "staging_pass=$STAGING_PASS" >> "$GITHUB_OUTPUT"
+          echo "prod_pass=$PROD_PASS" >> "$GITHUB_OUTPUT"
+
+      - name: Post results to GitHub summary
+        if: always()
+        run: cat perf-results/summary.md >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: k6-smoke-results
+          path: perf-results/
+          retention-days: 14
+
+      - name: Enforce thresholds
+        if: ${{ steps.summarize.outputs.staging_pass == 'false' || steps.summarize.outputs.prod_pass == 'false' }}
+        run: |
+          echo "::error::Smoke thresholds not met (see summary)."
+          exit 1

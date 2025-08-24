@@ -1,18 +1,28 @@
+# .github/workflows/migration-check.yml
+
 name: Migration Verification
 
 on:
   pull_request:
-    branches:
-      - main
-    paths:
-      - 'backend/migrations/**'
-  workflow_dispatch: # Allow manual triggering
+    branches: [ main ]
+    paths: [ "backend/migrations/**", ".github/workflows/migration-check.yml" ]
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+
+concurrency:
+  group: migration-check-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   verify-migrations:
     name: Verify Database Migrations
     runs-on: ubuntu-latest
-    
+
+    env:
+      DATABASE_URL: postgresql://testuser:testpassword@localhost:5432/testdb
+
     services:
       postgres:
         image: postgres:14
@@ -23,132 +33,123 @@ jobs:
         ports:
           - 5432:5432
         options: >-
-          --health-cmd pg_isready
+          --health-cmd "pg_isready -U testuser -d testdb"
           --health-interval 10s
           --health-timeout 5s
-          --health-retries 5
-    
+          --health-retries 10
+
     steps:
-      - name: Checkout code
+      - name: Checkout
         uses: actions/checkout@v4
-      
+
+      - name: Placeholder guard (migrations only)
+        run: |
+          set -e
+          patterns='(^|\s)\.\.\.($|\s)|PLACEHOLDER|TO_FILL|__FILL_ME__|FIXME!!!'
+          if git grep -nE "$patterns" -- backend/migrations ':!**/.venv' ; then
+            echo "::error::Placeholder patterns found in migrations."
+            exit 1
+          fi
+
       - name: Set up Python
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v5
         with:
-          python-version: '3.11'
-          cache: 'pip'
-      
-      - name: Install dependencies
+          python-version: "3.11"
+          cache: "pip"
+
+      - name: Install OS deps (pg client, build tools)
+        run: |
+          sudo apt-get update -y
+          sudo apt-get install -y postgresql-client libpq-dev build-essential
+
+      - name: Install backend deps
         working-directory: backend
         run: |
           python -m pip install --upgrade pip
-          pip install -r requirements.txt
-          pip install -e .
-      
-      - name: Install migration verification tools
-        run: |
+          pip install -r requirements.txt || true
+          if [ -f requirements-dev.txt ]; then pip install -r requirements-dev.txt; fi
+          # Ensure alembic + psycopg2 are available
           pip install alembic psycopg2-binary
-      
-      - name: Run migration dry-run (upgrade)
+
+      - name: Verify alembic.ini exists
         working-directory: backend
+        run: |
+          test -f alembic.ini || (echo "::error::backend/alembic.ini not found"; exit 1)
+
+      - name: Wait for Postgres
+        run: |
+          for i in {1..30}; do
+            pg_isready -h localhost -p 5432 -U testuser -d testdb && break
+            echo "Waiting for Postgres…"
+            sleep 2
+          done
+
+      - name: Offline SQL – upgrade
+        working-directory: backend
+        env:
+          DATABASE_URL: ${{ env.DATABASE_URL }}
         run: |
           mkdir -p migration-artifacts
-          
-          echo "Running migration dry-run (upgrade path)..."
-          export DATABASE_URL="postgresql://testuser:testpassword@localhost:5432/testdb"
-          
-          # Generate SQL without applying it
+          echo "Generating offline SQL for upgrade…"
           alembic upgrade head --sql > migration-artifacts/upgrade.sql
-          
-          echo "Validating SQL upgrade script..."
-          if [ -s migration-artifacts/upgrade.sql ]; then
-            echo "✅ Upgrade SQL script generated successfully."
-          else
-            echo "❌ Empty upgrade SQL script. Check for issues in migration files."
-            exit 1
-          fi
-      
-      - name: Run migration dry-run (downgrade)
+          test -s migration-artifacts/upgrade.sql || (echo "::error::Empty upgrade.sql"; exit 1)
+
+      - name: Offline SQL – downgrade to base
         working-directory: backend
+        env:
+          DATABASE_URL: ${{ env.DATABASE_URL }}
         run: |
-          echo "Running migration dry-run (downgrade path)..."
-          export DATABASE_URL="postgresql://testuser:testpassword@localhost:5432/testdb"
-          
-          # Find current head revision
-          HEAD_REVISION=$(alembic current)
-          
-          # Generate SQL for downgrade
+          echo "Generating offline SQL for downgrade…"
           alembic downgrade base --sql > migration-artifacts/downgrade.sql
-          
-          echo "Validating SQL downgrade script..."
-          if [ -s migration-artifacts/downgrade.sql ]; then
-            echo "✅ Downgrade SQL script generated successfully."
-          else
-            echo "❌ Empty downgrade SQL script. Ensure all migrations have proper downgrade paths."
-            exit 1
-          fi
-      
-      - name: Verify actual migration application
+          test -s migration-artifacts/downgrade.sql || (echo "::error::Empty downgrade.sql"; exit 1)
+
+      - name: Apply + rollback migrations (online)
         working-directory: backend
+        env:
+          DATABASE_URL: ${{ env.DATABASE_URL }}
         run: |
-          echo "Testing actual migration application..."
-          export DATABASE_URL="postgresql://testuser:testpassword@localhost:5432/testdb"
-          
-          # Apply migrations
+          set -e
+          echo "Applying migrations to head…"
           alembic upgrade head
-          
-          # Check if successful
-          if [ $? -eq 0 ]; then
-            echo "✅ Migrations applied successfully."
-          else
-            echo "❌ Failed to apply migrations."
-            exit 1
-          fi
-          
-          # Test downgrade
+          echo "Current revision after upgrade:"
+          alembic current
+
+          echo "Downgrading to base…"
           alembic downgrade base
-          
-          # Check if successful
-          if [ $? -eq 0 ]; then
-            echo "✅ Migrations rolled back successfully."
-          else
-            echo "❌ Failed to roll back migrations."
-            exit 1
-          fi
-          
-          # Go back to head for final check
+          echo "Current revision after downgrade:"
+          alembic current
+
+          echo "Re-upgrading to head…"
           alembic upgrade head
-      
-      - name: Check for idempotent migrations
+          alembic current
+
+      - name: Idempotency check (schema diff after reapply)
         working-directory: backend
-        run: |
-          echo "Checking for migration idempotency..."
-          export DATABASE_URL="postgresql://testuser:testpassword@localhost:5432/testdb"
-          
-          # Get initial schema checksum
-          pg_dump -h localhost -U testuser -d testdb -s > migration-artifacts/schema_initial.sql
-          
-          # Try to reapply migrations (should be idempotent)
-          alembic upgrade head
-          
-          # Get final schema checksum
-          pg_dump -h localhost -U testuser -d testdb -s > migration-artifacts/schema_after_reapply.sql
-          
-          # Compare checksums
-          diff migration-artifacts/schema_initial.sql migration-artifacts/schema_after_reapply.sql
-          
-          if [ $? -eq 0 ]; then
-            echo "✅ Migrations are idempotent."
-          else
-            echo "❌ Migrations are not idempotent. Reapplying them changes the schema."
-            exit 1
-          fi
         env:
           PGPASSWORD: testpassword
-      
+          DATABASE_URL: ${{ env.DATABASE_URL }}
+        run: |
+          set -e
+          echo "Dump schema (initial)…"
+          pg_dump -h localhost -U testuser -d testdb -s > migration-artifacts/schema_initial.sql
+
+          echo "Reapply upgrade head (should be no-op)…"
+          alembic upgrade head
+
+          echo "Dump schema (after reapply)…"
+          pg_dump -h localhost -U testuser -d testdb -s > migration-artifacts/schema_after_reapply.sql
+
+          echo "Comparing schema dumps…"
+          if diff -u migration-artifacts/schema_initial.sql migration-artifacts/schema_after_reapply.sql > migration-artifacts/schema.diff; then
+            echo "✅ Migrations are idempotent."
+          else
+            echo "::error::Schema changed when reapplying head. See schema.diff"
+            exit 1
+          fi
+
       - name: Upload migration artifacts
         if: always()
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: migration-artifacts
           path: backend/migration-artifacts/

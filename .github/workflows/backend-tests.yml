@@ -1,54 +1,87 @@
 name: backend-tests
+
 on:
   push:
     branches: [ main ]
+    paths: [ "backend/**", ".github/workflows/backend-tests.yml" ]
   pull_request:
     branches: [ main ]
+    paths: [ "backend/**", ".github/workflows/backend-tests.yml" ]
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+
+concurrency:
+  group: backend-tests-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   be-tests:
     runs-on: ubuntu-latest
-    defaults: { run: { working-directory: backend } }
+    defaults:
+      run:
+        working-directory: backend
+
+    env:
+      FLASK_ENV: test
+      DATABASE_URL: sqlite:///test.db
+      PYTHONPATH: ${{ github.workspace }}/backend/src
+      RATELIMIT_STORAGE_URI: memory://
+      DISABLE_RATE_LIMIT: "true"
+      SENTRY_DSN: ""
+      STRIPE_SECRET_KEY: "sk_test_dummy"
+      STRIPE_WEBHOOK_SECRET: "whsec_dummy"
+      TEST_AUTO_VERIFY_EMAIL: "1"
+
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
-        with: { python-version: '3.11' }
-      - name: Install dependencies
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Fail if placeholder code exists
+        run: |
+          echo "Scanning for placeholder patterns…"
+          set -e
+          patterns='(^|\s)\.\.\.($|\s)|PLACEHOLDER|TO_FILL|__FILL_ME__|FIXME!!!'
+          if git grep -nE "$patterns" -- backend ':!**/.venv' ':!**/__pycache__' ; then
+            echo "::error::Placeholder patterns found. Remove them before pushing."
+            exit 1
+          fi
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install system deps (psycopg2, build tools)
+        run: |
+          sudo apt-get update -y
+          sudo apt-get install -y libpq-dev build-essential
+
+      - name: Cache pip
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pip-${{ hashFiles('backend/requirements.txt', 'backend/requirements-dev.txt') }}
+          restore-keys: ${{ runner.os }}-pip-
+
+      - name: Install Python dependencies
         run: |
           python -m pip install --upgrade pip
           pip install -r requirements.txt || true
-          pip install -r requirements-dev.txt
-      - name: Run tests with pytest
-        env:
-          FLASK_ENV: test
-          DATABASE_URL: sqlite:///test.db
-          PYTHONPATH: backend/src
-          RATELIMIT_STORAGE_URI: memory://
-          DISABLE_RATE_LIMIT: "true"
-          SENTRY_DSN: ""
-          STRIPE_SECRET_KEY: "sk_test_dummy"
-          STRIPE_WEBHOOK_SECRET: "whsec_dummy"
-        run: python -m pytest src/tests -q
-      - name: Upload coverage report
-        uses: actions/upload-artifact@v4
-        with: { name: backend-coverage, path: backend/coverage.xml }
-          STRIPE_WEBHOOK_SECRET: "whsec_dummy"
-        run: python -m pytest
+          if [ -f requirements-dev.txt ]; then pip install -r requirements-dev.txt; fi
+
+      - name: Lint (ruff)
+        run: |
+          pip install ruff
+          ruff check .
+
+      - name: Run tests with coverage
+        run: |
+          pytest -q --maxfail=1 --disable-warnings --cov=src --cov-report=xml:coverage.xml
 
       - name: Upload coverage report
         uses: actions/upload-artifact@v4
         with:
           name: backend-coverage
           path: backend/coverage.xml
-...
-        if: hashFiles('backend/Dockerfile') != ''
-        uses: github/codeql-action/upload-sarif@v2
-        with:
-          sarif_file: 'trivy-backend-results.sarif'
-          category: trivy-backend
-
-      - name: Upload Trivy frontend scan results
-        if: hashFiles('frontend/Dockerfile') != ''
-        uses: github/codeql-action/upload-sarif@v2
-        with:
-          sarif_file: 'trivy-frontend-results.sarif'
-          category: trivy-frontend
