@@ -1,120 +1,146 @@
+"""
+Extensions module for Asset Anchor API.
+Initializes and configures all Flask extensions used in the application.
+"""
+
 from __future__ import annotations
 
 import os
+from typing import Any, Dict, Optional
+
+from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
-from flask_jwt_extended import JWTManager
 from flask_migrate import Migrate
-from flask_socketio import SocketIO
-from flask_mail import Mail
+from flask_jwt_extended import JWTManager
 from flask_cors import CORS
 from flask_talisman import Talisman
+from flask_socketio import SocketIO
+from flask_mail import Mail
 from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
 
-import sentry_sdk
-from sentry_sdk.integrations.flask import FlaskIntegration
-
-
-# -----------------------------
-# Env helpers
-# -----------------------------
-def _env(name: str, default: str = "") -> str:
-    val = os.getenv(name)
-    return val if val is not None else default
-
-
-def _env_bool(name: str, default: bool = False) -> bool:
-    v = os.getenv(name)
-    if v is None:
-        return default
-    return str(v).strip().lower() in {"1", "true", "yes", "on"}
-
-
-APP_ENV = _env("APP_ENV", _env("FLASK_ENV", "development")).strip().lower()
-IS_PROD = APP_ENV == "production"
-
-# -----------------------------
-# Sentry (enabled only if DSN)
-# -----------------------------
-SENTRY_DSN = _env("SENTRY_DSN", "").strip()
-SENTRY_ENABLED = _env_bool("SENTRY_ENABLED", default=IS_PROD)
-
-if SENTRY_DSN and SENTRY_ENABLED:
-    sentry_sdk.init(
-        dsn=SENTRY_DSN,
-        integrations=[FlaskIntegration()],
-        # Conservative defaults; override via env when investigating incidents
-        traces_sample_rate=float(_env("SENTRY_TRACES_SAMPLE_RATE", "0.2")),
-        profiles_sample_rate=float(_env("SENTRY_PROFILES_SAMPLE_RATE", "0.0")),
-        send_default_pii=False,
-        environment=APP_ENV,
-    )
-
-# -----------------------------
-# Core extensions (unbound)
-# -----------------------------
+# Initialize extensions without binding to an app
 db = SQLAlchemy()
-jwt = JWTManager()
 migrate = Migrate()
-mail = Mail()
-
-# -----------------------------
-# Socket.IO (threading by default; app binds it)
-# -----------------------------
-# CORS origins for Socket.IO: prefer SOCKETIO_CORS_ORIGINS, fall back to CORS_ORIGINS, else "*"
-_socketio_cors = _env("SOCKETIO_CORS_ORIGINS", _env("CORS_ORIGINS", "")).strip()
-_socketio_cors_list = (
-    [o.strip() for o in _socketio_cors.split(",") if o.strip()] if _socketio_cors else ["*"]
-)
-
-# Use a message queue (e.g., Redis) for multi-instance deployments
-# e.g. SOCKETIO_MESSAGE_QUEUE=redis://localhost:6379/0
-_socketio_message_queue = _env("SOCKETIO_MESSAGE_QUEUE", "").strip() or None
-
-# Async mode: default to "threading" (plays nicely on Python 3.13 without eventlet/gevent)
-_socketio_async_mode = (_env("SOCKETIO_ASYNC_MODE", "threading") or "threading").strip().lower()
-if _socketio_async_mode in {"none", "null"}:
-    _socketio_async_mode = "threading"
-
-socketio = SocketIO(
-    async_mode=_socketio_async_mode,
-    logger=False,
-    engineio_logger=False,
-    cors_allowed_origins=_socketio_cors_list or "*",
-    message_queue=_socketio_message_queue,
-)
-
-# -----------------------------
-# CORS / Talisman placeholders
-# -----------------------------
-# Policies are initialized in app.py to keep a single source of truth.
+jwt = JWTManager()
 cors = CORS()
 talisman = Talisman()
-
-# -----------------------------
-# Rate Limiting
-# -----------------------------
-# Prefer explicit RATELIMIT_STORAGE_URI; else Redis if provided; else in-memory
-ratelimit_storage_uri = _env("RATELIMIT_STORAGE_URI").strip()
-if not ratelimit_storage_uri:
-    redis_url = _env("REDIS_URL").strip()
-    ratelimit_storage_uri = redis_url if redis_url else "memory://"
-
-# Toggle globally via RATELIMIT_ENABLED (true by default)
-ratelimit_enabled = _env_bool("RATELIMIT_ENABLED", default=True)
-
-# Default limits can be overridden by RATELIMIT_DEFAULTS (comma-separated string)
-_default_limits_env = _env("RATELIMIT_DEFAULTS", "").strip()
-if _default_limits_env:
-    default_limits = [s.strip() for s in _default_limits_env.split(",") if s.strip()]
-else:
-    default_limits = ["200 per minute", "5000 per hour"]
-
+socketio = SocketIO()
+mail = Mail()
 limiter = Limiter(
-    key_func=get_remote_address,
-    storage_uri=ratelimit_storage_uri,
-    strategy="fixed-window",
-    headers_enabled=True,
-    default_limits=default_limits,
+    get_remote_address,
+    default_limits=["200 per day", "50 per hour"],
+    storage_uri="memory://",
 )
-limiter.enabled = bool(ratelimit_enabled)
+
+def init_extensions(app: Flask) -> None:
+    """
+    Initialize all Flask extensions with the application.
+
+    Args:
+        app: Flask application instance
+    """
+    # Initialize database
+    db.init_app(app)
+    
+    # Initialize migrations
+    migrate.init_app(app, db)
+    
+    # Initialize JWT
+    jwt.init_app(app)
+    
+    # Configure CORS
+    cors_config = _get_cors_config(app)
+    cors.init_app(app, **cors_config)
+    
+    # Configure Talisman (HTTPS/security headers)
+    talisman_config = _get_talisman_config(app)
+    talisman.init_app(app, **talisman_config)
+    
+    # Initialize Socket.IO
+    socketio_config = _get_socketio_config(app)
+    socketio.init_app(app, **socketio_config)
+    
+    # Initialize Mail
+    mail.init_app(app)
+    
+    # Initialize rate limiter
+    limiter_config = _get_limiter_config(app)
+    limiter.init_app(app, **limiter_config)
+    
+    # Register additional hooks
+    _register_jwt_hooks(app)
+
+
+def _get_cors_config(app: Flask) -> Dict[str, Any]:
+    """Get configuration for CORS extension."""
+    return {
+        "resources": r"/*",
+        "origins": app.config.get("CORS_ORIGINS", "*"),
+        "methods": ["GET", "HEAD", "POST", "OPTIONS", "PUT", "PATCH", "DELETE"],
+        "expose_headers": ["Content-Type", "Authorization"],
+        "allow_headers": ["Content-Type", "Authorization"],
+        "supports_credentials": True
+    }
+
+
+def _get_talisman_config(app: Flask) -> Dict[str, Any]:
+    """Get configuration for Talisman extension."""
+    # Default production CSP directives
+    csp_directives = {
+        'default-src': ["'self'"],
+        'script-src': ["'self'", "'unsafe-inline'", "https://js.stripe.com"],
+        'style-src': ["'self'", "'unsafe-inline'"],
+        'img-src': ["'self'", "data:", "https://stripe.com"],
+        'connect-src': ["'self'", "https://api.stripe.com"],
+        'frame-src': ["'self'", "https://js.stripe.com", "https://hooks.stripe.com"],
+    }
+    
+    # In development, use a more permissive CSP
+    if app.config.get("ENV") != "production":
+        csp_directives = None  # Disable CSP in development
+
+    return {
+        "force_https": app.config.get("FORCE_HTTPS", True),
+        "content_security_policy": csp_directives,
+        # Allow frames for development tools in dev/test
+        "frame_options": "DENY" if app.config.get("ENV") == "production" else None,
+        # Force HTTPS for 1 year including subdomains
+        "strict_transport_security": True,
+        "strict_transport_security_preload": True,
+        "session_cookie_secure": app.config.get("SESSION_COOKIE_SECURE", True),
+        "session_cookie_http_only": True
+    }
+
+
+def _get_socketio_config(app: Flask) -> Dict[str, Any]:
+    """Get configuration for SocketIO extension."""
+    return {
+        "cors_allowed_origins": app.config.get("CORS_ORIGINS", "*"),
+        "async_mode": "threading",  # Use threading for simpler deployment
+        "logger": app.config.get("SOCKETIO_LOGGER", False),
+        "engineio_logger": app.config.get("ENGINEIO_LOGGER", False),
+    }
+
+
+def _get_limiter_config(app: Flask) -> Dict[str, Any]:
+    """Get configuration for Limiter extension."""
+    # Limiter init_app doesn't accept all the parameters that constructor does
+    return {}
+
+
+def _register_jwt_hooks(app: Flask) -> None:
+    """Register JWT hooks for customizing behavior."""
+    
+    @jwt.user_identity_loader
+    def user_identity_lookup(user):
+        """Convert user object to a JWT identity value."""
+        return user.id if hasattr(user, "id") else user
+
+    @jwt.user_lookup_loader
+    def user_lookup_callback(_jwt_header, jwt_data):
+        """Convert JWT identity to a user object for @jwt_required()."""
+        identity = jwt_data["sub"]
+        # Import here to avoid circular imports
+        from .models import User
+        return User.query.filter_by(id=identity).first()

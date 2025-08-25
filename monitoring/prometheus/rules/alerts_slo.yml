@@ -1,0 +1,58 @@
+groups:
+- name: slo.app.availability
+  rules:
+  - alert: SLOErrorBudgetBurn_2h
+    expr: (sum(rate(http_server_requests_total{job="app",status=~"5..|4.."}[2h])) by (service))
+          / (sum(rate(http_server_requests_total{job="app"}[2h])) by (service))
+          > (1 - 0.999) * 14.4
+    for: 15m
+    labels:
+      severity: critical
+      team: app
+    annotations:
+      summary: "High error budget burn (2h) for {{ $labels.service }}"
+      description: "App is burning error budget fast over 2h. Check SLO dashboard. Runbook: https://runbooks.example.com/slo/app"
+
+  - alert: SLOErrorBudgetBurn_6h
+    expr: (sum(rate(http_server_requests_total{job="app",status=~"5..|4.."}[6h])) by (service))
+          / (sum(rate(http_server_requests_total{job="app"}[6h])) by (service))
+          > (1 - 0.999) * 6
+    for: 30m
+    labels:
+      severity: high
+      team: app
+    annotations:
+      summary: "Elevated error budget burn (6h) for {{ $labels.service }}"
+      description: "Investigate errors and recent deploys. Runbook: https://runbooks.example.com/slo/app"
+
+  - alert: SLOErrorBudgetBurn_1d
+    expr: (sum(rate(http_server_requests_total{job="app",status=~"5..|4.."}[1d])) by (service))
+          / (sum(rate(http_server_requests_total{job="app"}[1d])) by (service))
+          > (1 - 0.999) * 1
+    for: 2h
+    labels:
+      severity: medium
+      team: app
+    annotations:
+      summary: "Slow error budget burn (1d) for {{ $labels.service }}"
+      description: "Track trend; open a ticket if persistent. Runbook: https://runbooks.example.com/slo/app"
+
+- name: infra.uptime
+  rules:
+  - alert: TargetDown
+    expr: up == 0
+    for: 5m
+    labels:
+      severity: high
+    annotations:
+      summary: "Target down: {{ $labels.job }} / {{ $labels.instance }}"
+      description: "Instance has been down 5m. Check node and service health."
+
+  - alert: BlackboxHTTPProbeFailed
+    expr: probe_success{job="blackbox_http"} == 0
+    for: 3m
+    labels:
+      severity: high
+    annotations:
+      summary: "HTTP probe failed for {{ $labels.instance }}"
+      description: "Blackbox HTTP probe failing. Check endpoint, DNS, TLS."

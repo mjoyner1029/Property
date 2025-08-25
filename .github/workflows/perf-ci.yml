@@ -1,0 +1,88 @@
+name: perf-ci
+
+on:
+  pull_request:
+    paths:
+      - 'perf/**'
+      - '.github/workflows/perf-ci.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: perf-ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  k6-smoke:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Checkout
+        uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8
+
+      - name: Install k6
+        uses: grafana/setup-k6-action@f42d0f3d00abd0998a5f4a4a1da7e6cb44f1bddd
+        with:
+          version: v0.46.0
+
+      - name: Run smoke test (k6)
+        working-directory: perf/k6
+        env:
+          K6_BASE_URL: ${{ secrets.K6_BASE_URL || 'http://localhost:5050' }}
+          K6_USERNAME: ${{ secrets.K6_USERNAME }}
+          K6_PASSWORD: ${{ secrets.K6_PASSWORD }}
+          ALLOW_PROD: "0"
+        run: |
+          k6 run --quiet --tag env=ci smoke.js
+
+      - name: Compare with baseline (optional)
+        if: hashFiles('perf/baselines/smoke/k6-summary.json') != ''
+        run: |
+          node perf/scripts/compare-baseline.js perf/baselines/smoke/k6-summary.json perf/k6/k6-summary.json 100
+
+      - name: Archive k6 summaries
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: k6-smoke-summary
+          path: |
+            perf/k6/k6-summary.json
+            perf/k6/k6-summary.html
+
+  k6-load-staging:
+    if: github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - name: Checkout
+        uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8
+
+      - name: Install k6
+        uses: grafana/setup-k6-action@f42d0f3d00abd0998a5f4a4a1da7e6cb44f1bddd
+        with:
+          version: v0.46.0
+
+      - name: Run load test against staging
+        working-directory: perf/k6
+        env:
+          K6_BASE_URL: ${{ secrets.STAGING_API_URL }}
+          K6_USERNAME: ${{ secrets.STAGING_USERNAME }}
+          K6_PASSWORD: ${{ secrets.STAGING_PASSWORD }}
+          K6_TARGET_VUS: "50"
+          K6_RAMP_UP: "2m"
+          K6_PEAK: "10m"
+          K6_RAMP_DOWN: "2m"
+          ALLOW_PROD: "0"
+        run: |
+          k6 run --tag env=staging load.js
+
+      - name: Archive k6 load summaries
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: k6-load-summary
+          path: |
+            perf/k6/k6-summary.json
+            perf/k6/k6-summary.html

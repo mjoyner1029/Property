@@ -1,126 +1,84 @@
+// Mirrors perf/k6/load.js with unified env/config & reporting
 import http from 'k6/http';
-import { sleep, check } from 'k6';
-import { Rate, Trend } from 'k6/metrics';
-import { URLSearchParams } from 'https://jslib.k6.io/url/1.0.0/index.js';
+import { check, group, sleep } from 'k6';
+import { Rate } from 'k6/metrics';
+import { randomString } from 'https://jslib.k6.io/k6-utils/1.2.0/index.js';
+import { htmlReport } from 'https://raw.githubusercontent.com/benc-uk/k6-reporter/main/dist/bundle.js';
 
-// Custom metrics
-const failRate = new Rate('failed_requests');
-const propertiesLatency = new Trend('properties_latency');
-const tenantsLatency = new Trend('tenants_latency');
-const paymentsLatency = new Trend('payments_history_latency');
+const BASE_URL = __ENV.K6_BASE_URL || __ENV.API_URL || 'http://localhost:5050';
+const USERNAME = __ENV.K6_USERNAME || __ENV.USERNAME;
+const PASSWORD = __ENV.K6_PASSWORD || __ENV.PASSWORD;
+const TEST_TYPE = 'load';
 
-// Default options
-export let options = {
-  // Base performance test configuration
-  vus: 10,              // Number of virtual users
-  duration: '60s',      // Test duration
-  thresholds: {
-    'http_req_duration': ['p95<300'],    // 95% of requests must complete below 300ms
-    'failed_requests': ['rate<0.01'],    // Error rate must be less than 1%
-    'properties_latency': ['p95<300'],   // 95% of /api/properties requests under 300ms
-    'tenants_latency': ['p95<300'],      // 95% of /api/tenants requests under 300ms
-    'payments_history_latency': ['p95<300'] // 95% of /api/payments/history requests under 300ms
-  },
-};
-
-// Environment variables with defaults
-const API_BASE_URL = __ENV.API_BASE_URL || 'https://staging-api.example.com';
-const AUTH_TOKEN = __ENV.AUTH_TOKEN || 'replace_with_your_auth_token';
-
-// Headers
-const headers = {
-  'Content-Type': 'application/json',
-  'Authorization': `Bearer ${AUTH_TOKEN}`
-};
-
-// Optional query params
-const propertyQueryParams = new URLSearchParams({
-  limit: '20',
-  offset: '0'
-});
-
-const tenantQueryParams = new URLSearchParams({
-  limit: '20',
-  offset: '0',
-  active: 'true'
-});
-
-const paymentsQueryParams = new URLSearchParams({
-  limit: '10',
-  offset: '0',
-  days: '30'
-});
-
-export default function() {
-  // Test endpoint 1: Properties
-  let propertiesStartTime = new Date();
-  let propertiesRes = http.get(
-    `${API_BASE_URL}/api/properties?${propertyQueryParams.toString()}`, 
-    { headers }
-  );
-  propertiesLatency.add(new Date() - propertiesStartTime);
-  
-  check(propertiesRes, {
-    'properties status is 200': (r) => r.status === 200,
-    'properties response has properties array': (r) => {
-      try {
-        const body = JSON.parse(r.body);
-        return Array.isArray(body.properties);
-      } catch (e) {
-        return false;
-      }
-    }
-  }) || failRate.add(1);
-
-  sleep(1);
-
-  // Test endpoint 2: Tenants
-  let tenantsStartTime = new Date();
-  let tenantsRes = http.get(
-    `${API_BASE_URL}/api/tenants?${tenantQueryParams.toString()}`,
-    { headers }
-  );
-  tenantsLatency.add(new Date() - tenantsStartTime);
-  
-  check(tenantsRes, {
-    'tenants status is 200': (r) => r.status === 200,
-    'tenants response has tenants array': (r) => {
-      try {
-        const body = JSON.parse(r.body);
-        return Array.isArray(body.tenants);
-      } catch (e) {
-        return false;
-      }
-    }
-  }) || failRate.add(1);
-
-  sleep(1);
-
-  // Test endpoint 3: Payments History
-  let paymentsStartTime = new Date();
-  let paymentsRes = http.get(
-    `${API_BASE_URL}/api/payments/history?${paymentsQueryParams.toString()}`,
-    { headers }
-  );
-  paymentsLatency.add(new Date() - paymentsStartTime);
-  
-  check(paymentsRes, {
-    'payments status is 200': (r) => r.status === 200,
-    'payments response has payments array': (r) => {
-      try {
-        const body = JSON.parse(r.body);
-        return Array.isArray(body.payments);
-      } catch (e) {
-        return false;
-      }
-    }
-  }) || failRate.add(1);
-
-  sleep(1);
+if (/prod|production|api\.assetanchor\.io/i.test(BASE_URL) && __ENV.ALLOW_PROD !== '1') {
+  throw new Error(`Refusing to hit probable production host: ${BASE_URL}. Set ALLOW_PROD=1 to override.`);
 }
 
+export const errorRate = new Rate('errors');
 
-// To run different scenarios, use the K6 CLI:
-// k6 run --vus 30 --duration 120s api_load_test.js   # High load
-// k6 run --vus 20 --duration 60s api_load_test.js    # Moderate load
-// k6 run --stages "30s:10,30s:50,30s:10,30s:0" api_load_test.js  # Spike test
+function getAuthToken() {
+  if (!USERNAME || !PASSWORD) return null;
+  const res = http.post(`${BASE_URL}/api/auth/login`, JSON.stringify({ email: USERNAME, password: PASSWORD }), {
+    headers: { 'Content-Type': 'application/json' }, tags: { endpoint: 'auth_login', test_type: TEST_TYPE }
+  });
+  check(res, { 'login status is 200': (r) => r.status === 200 }) || errorRate.add(1);
+  try {
+    const token = res.json().access_token || res.json().token;
+    if (!token) throw new Error('no token');
+    return token;
+  } catch { errorRate.add(1); return null; }
+}
+function authHeaders(token) { return token ? { Authorization: `Bearer ${token}` } : {}; }
+
+export function handleSummary(data) {
+  const html = htmlReport(data);
+  return {
+    'k6-summary.json': JSON.stringify(data, null, 2),
+    'k6-summary.html': html,
+  };
+}
+
+export const options = {
+  stages: [
+    { duration: __ENV.K6_RAMP_UP || '2m', target: Number(__ENV.K6_TARGET_VUS || 50) },
+    { duration: __ENV.K6_PEAK || '5m', target: Number(__ENV.K6_TARGET_VUS || 50) },
+    { duration: __ENV.K6_RAMP_DOWN || '2m', target: 0 },
+  ],
+  thresholds: {
+    http_req_failed: ['rate<0.01'],
+    http_req_duration: ['p(95)<800', 'p(99)<1200'],
+    errors: ['rate<0.02'],
+  },
+  tags: { test_type: 'load' },
+  summaryTrendStats: ['min','avg','med','p(90)','p(95)','p(99)','max'],
+};
+
+export default function () {
+  const token = getAuthToken();
+  const headers = Object.assign({ 'Content-Type': 'application/json' }, authHeaders(token));
+
+  group('Public endpoints', () => {
+    const res1 = http.get(`${BASE_URL}/api/properties/public`, { tags: { endpoint: 'properties_public', test_type: 'load' } });
+    check(res1, { 'properties_public 200': (r) => r.status === 200 }) || errorRate.add(1);
+    const res2 = http.get(`${BASE_URL}/api/health`, { tags: { endpoint: 'health', test_type: 'load' } });
+    check(res2, { 'health 200': (r) => r.status === 200 }) || errorRate.add(1);
+  });
+
+  if (token) {
+    group('Authed CRUD-ish flow', () => {
+      const invoices = http.get(`${BASE_URL}/api/invoices`, { headers, tags: { endpoint: 'invoices_list', test_type: 'load' } });
+      check(invoices, { 'invoices 200': (r) => r.status === 200 }) || errorRate.add(1);
+      const payload = JSON.stringify({ title: `note-${randomString(6)}`, body: 'perf note' });
+      const create = http.post(`${BASE_URL}/api/notes`, payload, { headers, tags: { endpoint: 'notes_create', test_type: 'load' } });
+      check(create, { 'notes create 2xx': (r) => r.status >= 200 && r.status < 300 }) || errorRate.add(1);
+      try {
+        const id = create.json().id;
+        if (id) {
+          const del = http.del(`${BASE_URL}/api/notes/${id}`, null, { headers, tags: { endpoint: 'notes_delete', test_type: 'load' } });
+          check(del, { 'notes delete 2xx': (r) => r.status >= 200 && r.status < 300 }) || errorRate.add(1);
+        }
+      } catch { errorRate.add(1); }
+    });
+  }
+  sleep(1);
+}

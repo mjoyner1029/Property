@@ -1,10 +1,16 @@
 import logging
+import secrets
+import os
+from datetime import datetime, timedelta
+
 # Fix imports from absolute to relative paths
 from ..models.user import User
-from ..extensions import db
+from ..extensions import db, mail
 from werkzeug.security import generate_password_hash, check_password_hash
 from ..utils.jwt import create_access_token
 from ..utils.validators import validate_email_format, validate_password_strength
+from flask import current_app, url_for
+from flask_mail import Message
 
 logger = logging.getLogger(__name__)
 
@@ -62,3 +68,61 @@ def authenticate_user(email, password):
             "full_name": user.full_name
         }
     }, 200
+def verify_email(token):
+    """Verify a user's email using the token sent to their email"""
+    # Stub implementation to fix the import error
+    user = User.query.filter_by(verification_token=token).first()
+    if not user:
+        logger.warning(f"Invalid verification token used: {token}")
+        return {"error": "Invalid verification token"}, 400
+    
+    user.is_verified = True
+    user.verification_token = None
+    db.session.commit()
+    logger.info(f"User verified email successfully: {user.email}")
+    
+    return {"message": "Email verified successfully"}, 200
+
+
+def resend_verification(email):
+    """Resend verification email to user"""
+    # Stub implementation to fix the import error
+    user = User.query.filter_by(email=email).first()
+    if not user:
+        # Don't reveal that email doesn't exist (security)
+        return {"message": "If the email exists, a verification link has been sent"}, 200
+    
+    if user.is_verified:
+        return {"message": "Email is already verified"}, 200
+    
+    # Generate new verification token
+    user.verification_token = secrets.token_urlsafe(32)
+    db.session.commit()
+    
+    # Send email with token
+    try:
+        _send_verification_email(user)
+        return {"message": "Verification email sent"}, 200
+    except Exception as e:
+        logger.error(f"Failed to send verification email: {str(e)}")
+        return {"error": "Failed to send verification email"}, 500
+
+
+def _send_verification_email(user):
+    """Send verification email to user"""
+    # Use configuration-based frontend URL for verification link
+    frontend_url = current_app.config.get('FRONTEND_URL', 'http://localhost:3000')
+    verification_link = f"{frontend_url}/verify-email?token={user.verification_token}"
+    
+    msg = Message(
+        "Asset Anchor - Verify Your Email",
+        recipients=[user.email],
+        body=f"Hello {user.full_name},\n\n"
+             f"Please verify your email by clicking on this link: {verification_link}\n\n"
+             f"This link will expire in 24 hours.\n\n"
+             f"If you did not sign up for Asset Anchor, please ignore this email.\n\n"
+             f"Best regards,\n"
+             f"The Asset Anchor Team"
+    )
+    mail.send(msg)
+    logger.info(f"Verification email sent to: {user.email}")

@@ -44,7 +44,9 @@ export default class ErrorBoundary extends React.Component {
   }
 
   componentDidCatch(error, errorInfo) {
-    console.error("ErrorBoundary caught:", error, errorInfo);
+    // Import the logger directly here since we're in a class component
+    const { logger } = require('../utils/logger');
+    logger.error("ErrorBoundary caught:", error, errorInfo);
     
     this.setState({
       errorInfo: errorInfo
@@ -59,7 +61,7 @@ export default class ErrorBoundary extends React.Component {
       timestamp: new Date().toISOString(),
       userId: localStorage.getItem('userId') || 'anonymous'
     }).catch(err => {
-      console.warn("Failed to send error to backend", err);
+      logger.warn("Failed to send error to backend", err);
     });
   }
 

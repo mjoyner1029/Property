@@ -10,7 +10,8 @@ import {
   Alert,
   Grid
 } from '@mui/material';
-import axios from 'axios';
+import api from '../utils/api';
+import { logger } from '../utils/logger';
 import LockResetIcon from '@mui/icons-material/LockReset';
 import { motion } from 'framer-motion';
 
@@ -36,11 +37,11 @@ export default function ResetPassword() {
 
     async function validateToken() {
       try {
-        const response = await axios.get(`/api/auth/validate-reset-token/${token}`);
+        const response = await api.get(`/auth/validate-reset-token/${token}`);
         setTokenValid(true);
       } catch (err) {
         setError('This password reset link has expired or is invalid');
-        console.error('Token validation error:', err);
+        logger.error('Token validation error:', err);
       } finally {
         setTokenChecking(false);
       }
@@ -67,7 +68,7 @@ export default function ResetPassword() {
     setError('');
 
     try {
-      await axios.post('/api/auth/reset-password', { token, password });
+      await api.post('/auth/reset-password', { token, password });
       setIsSuccess(true);
       
       // Redirect to login after 3 seconds
@@ -76,7 +77,7 @@ export default function ResetPassword() {
       }, 3000);
     } catch (err) {
       setError(err.response?.data?.error || 'An error occurred. Please try again.');
-      console.error('Password reset error:', err);
+      logger.error('Password reset error:', err);
     } finally {
       setIsLoading(false);
     }

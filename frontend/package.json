@@ -1,6 +1,10 @@
 {
   "name": "asset-anchor-frontend",
   "version": "1.0.0",
+  "engines": {
+    "node": ">=20.0.0",
+    "npm": ">=9.0.0"
+  },
   "private": true,
   "dependencies": {
     "@emotion/react": "^11.11.1",
@@ -32,13 +36,17 @@
   "scripts": {
     "start": "react-scripts start",
     "build": "react-scripts build",
+    "build:ci": "CI=true react-scripts build",
     "test": "react-scripts test --env=jsdom",
     "test:ci": "react-scripts test --watchAll=false --coverage --coverageReporters=text-summary",
     "test:routes": "react-scripts test routes.spec.jsx guards.spec.jsx --watchAll=false",
     "list-routes": "node scripts/verifyRoutes.mjs",
     "verify-routes": "node scripts/verifyRoutes.mjs",
     "eject": "react-scripts eject",
-    "lh:ci": "node scripts/lh-check.mjs"
+    "lh:ci": "node scripts/lh-check.mjs",
+    "lint": "eslint --max-warnings=0 \"src/**/*.{js,jsx}\"",
+    "format": "prettier --write \"**/*.{js,jsx,css,md,json}\"",
+    "preview": "npx serve -s build -l 3000"
   },
   "jest": {
     "collectCoverageFrom": [

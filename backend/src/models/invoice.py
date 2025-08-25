@@ -2,7 +2,7 @@ from datetime import datetime
 from ..extensions import db
 
 class Invoice(db.Model):
-    __tablename__ = 'invoices'
+    __tablename__ = "invoices"
     
     id = db.Column(db.Integer, primary_key=True)
     tenant_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
@@ -10,11 +10,13 @@ class Invoice(db.Model):
     property_id = db.Column(db.Integer, db.ForeignKey('properties.id'), nullable=False)
     unit_id = db.Column(db.Integer, db.ForeignKey('units.id'))
     amount = db.Column(db.Float, nullable=False)
+    amount_cents = db.Column(db.Integer, nullable=True)  # new
+    currency = db.Column(db.String(3), nullable=True)    # new
     due_date = db.Column(db.DateTime, nullable=False)
     description = db.Column(db.Text, nullable=False)
     status = db.Column(db.String(20), default='pending')  # pending, paid, overdue, cancelled
-    created_at = db.Column(db.DateTime, default=datetime.now)
-    updated_at = db.Column(db.DateTime, default=datetime.now, onupdate=datetime.now)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow, index=True)
+    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
     paid_at = db.Column(db.DateTime)
     
     # Relationships
@@ -25,7 +27,7 @@ class Invoice(db.Model):
     payments = db.relationship('Payment', backref='invoice', lazy=True)
     
     def __repr__(self):
-        return f"<Invoice {self.id} for ${self.amount} due {self.due_date}>"
+        return f"<Invoice {self.id} cents={self.amount_cents} {self.currency} due {self.due_date}>"
     
     def to_dict(self):
         return {
@@ -34,7 +36,8 @@ class Invoice(db.Model):
             'landlord_id': self.landlord_id,
             'property_id': self.property_id,
             'unit_id': self.unit_id,
-            'amount': self.amount,
+            'amount_cents': self.amount_cents,
+            'currency': self.currency,
             'due_date': self.due_date.isoformat() if self.due_date else None,
             'description': self.description,
             'status': self.status,

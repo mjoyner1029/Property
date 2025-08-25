@@ -1,0 +1,105 @@
+{{ define "default.title" }}[{{ .Status | toUpper }}{{ if eq .Status "firing" }}:{{ .Alerts.Firing | len }}{{ end }}] {{ .CommonLabels.alertname }}{{ end }}
+
+{{ define "default.message" }}
+{{ if gt (len .Alerts.Firing) 0 }}
+*Alerts Firing:*
+{{ range .Alerts.Firing }}
+- {{ .Labels.severity | toUpper }}: {{ .Annotations.summary }}
+{{ if .Annotations.description }}  {{ .Annotations.description }}{{ end }}
+  *Labels:* {{ range .Labels.SortedPairs }}{{ .Name }}={{ .Value }} {{ end }}
+{{ end }}
+{{ end }}
+
+{{ if gt (len .Alerts.Resolved) 0 }}
+*Alerts Resolved:*
+{{ range .Alerts.Resolved }}
+- {{ .Labels.severity | toUpper }}: {{ .Annotations.summary }}
+{{ end }}
+{{ end }}
+
+{{ if .CommonAnnotations.runbook_url }}*Runbook:* {{ .CommonAnnotations.runbook_url }}{{ end }}
+{{ end }}
+
+{{ define "slack.default.title" }}{{ template "default.title" . }}{{ end }}
+{{ define "slack.default.text" }}{{ template "default.message" . }}{{ end }}
+{{ define "pagerduty.default.description" }}{{ template "default.title" . }}{{ end }}
+
+{{ define "email.default.subject" }}{{ template "default.title" . }}{{ end }}
+{{ define "email.default.html" }}
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>{{ template "default.title" . }}</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 20px;
+      color: #333;
+    }
+    h2 {
+      color: {{ if eq .Status "firing" }}#cc0000{{ else }}#009900{{ end }};
+      border-bottom: 1px solid #ddd;
+      padding-bottom: 5px;
+    }
+    .alert {
+      margin: 10px 0;
+      padding: 10px;
+      border-left: 5px solid {{ if eq .Status "firing" }}#cc0000{{ else }}#009900{{ end }};
+      background-color: #f9f9f9;
+    }
+    .labels {
+      font-family: monospace;
+      font-size: 0.9em;
+      color: #666;
+    }
+    .runbook {
+      margin-top: 20px;
+      padding: 10px;
+      background-color: #f0f0f0;
+    }
+    .critical {
+      color: #cc0000;
+    }
+    .warning {
+      color: #ff9900;
+    }
+    .info {
+      color: #0066cc;
+    }
+  </style>
+</head>
+<body>
+  <h2>{{ .Status | toUpper }}: {{ .CommonLabels.alertname }}</h2>
+  
+  {{ if gt (len .Alerts.Firing) 0 }}
+  <h3>Alerts Firing:</h3>
+  {{ range .Alerts.Firing }}
+  <div class="alert">
+    <strong class="{{ .Labels.severity }}">{{ .Labels.severity | toUpper }}:</strong> {{ .Annotations.summary }}
+    {{ if .Annotations.description }}<p>{{ .Annotations.description }}</p>{{ end }}
+    <div class="labels">
+      <strong>Labels:</strong> {{ range .Labels.SortedPairs }}{{ .Name }}={{ .Value }} {{ end }}
+    </div>
+  </div>
+  {{ end }}
+  {{ end }}
+
+  {{ if gt (len .Alerts.Resolved) 0 }}
+  <h3>Alerts Resolved:</h3>
+  {{ range .Alerts.Resolved }}
+  <div class="alert">
+    <strong class="{{ .Labels.severity }}">{{ .Labels.severity | toUpper }}:</strong> {{ .Annotations.summary }}
+  </div>
+  {{ end }}
+  {{ end }}
+
+  {{ if .CommonAnnotations.runbook_url }}
+  <div class="runbook">
+    <strong>Runbook:</strong> <a href="{{ .CommonAnnotations.runbook_url }}">{{ .CommonAnnotations.runbook_url }}</a>
+  </div>
+  {{ end }}
+</body>
+</html>
+{{ end }}

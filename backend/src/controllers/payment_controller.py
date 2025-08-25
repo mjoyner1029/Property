@@ -280,3 +280,113 @@ def delete_payment(payment_id: Any) -> Tuple[Dict[str, Any], int]:
         db.session.rollback()
         logger.exception("Unexpected error deleting payment")
         return {"error": "Failed to delete payment"}, 500
+def create_payment(payment_data):
+    """Create a new payment record"""
+    try:
+        # Validate payment data (stub implementation)
+        if 'amount_cents' not in payment_data or 'currency' not in payment_data:
+            return {"error": "Missing required fields"}, 400
+
+        new_payment = Payment(
+            amount_cents=payment_data['amount_cents'],
+            currency=payment_data['currency'],
+            status=payment_data.get('status', 'pending'),
+            payment_method=payment_data.get('payment_method', 'card'),
+            payer_id=payment_data.get('payer_id'),
+            receiver_id=payment_data.get('receiver_id'),
+            invoice_id=payment_data.get('invoice_id'),
+            description=payment_data.get('description', ''),
+            metadata=payment_data.get('metadata', {})
+        )
+        
+        db.session.add(new_payment)
+        db.session.commit()
+        
+        return {"message": "Payment created successfully", "payment_id": new_payment.id}, 201
+    
+    except SQLAlchemyError as e:
+        db.session.rollback()
+        logger.error(f"Database error creating payment: {str(e)}")
+        return {"error": "Failed to create payment"}, 500
+    except Exception as e:
+        logger.error(f"Unexpected error creating payment: {str(e)}")
+        return {"error": "An unexpected error occurred"}, 500
+
+
+def get_payments():
+    """Get all payments with pagination and filtering"""
+    try:
+        # Basic implementation without pagination for now
+        payments = Payment.query.all()
+        
+        result = []
+        for payment in payments:
+            result.append({
+                "id": payment.id,
+                "amount_cents": payment.amount_cents,
+                "currency": payment.currency,
+                "status": payment.status,
+                "created_at": payment.created_at.isoformat() if payment.created_at else None,
+                "payment_method": payment.payment_method,
+                "payer_id": payment.payer_id,
+                "receiver_id": payment.receiver_id,
+                "invoice_id": payment.invoice_id
+            })
+        
+        return {"payments": result}, 200
+    
+    except Exception as e:
+        logger.error(f"Error retrieving payments: {str(e)}")
+        return {"error": "Failed to retrieve payments"}, 500
+
+
+def get_payment(payment_id):
+    """Get a specific payment by ID"""
+    try:
+        payment = Payment.query.get(payment_id)
+        
+        if not payment:
+            return {"error": "Payment not found"}, 404
+        
+        return {
+            "id": payment.id,
+            "amount_cents": payment.amount_cents,
+            "currency": payment.currency,
+            "status": payment.status,
+            "created_at": payment.created_at.isoformat() if payment.created_at else None,
+            "updated_at": payment.updated_at.isoformat() if payment.updated_at else None,
+            "payment_method": payment.payment_method,
+            "payer_id": payment.payer_id,
+            "receiver_id": payment.receiver_id,
+            "invoice_id": payment.invoice_id,
+            "description": payment.description,
+            "metadata": payment.metadata
+        }, 200
+    
+    except Exception as e:
+        logger.error(f"Error retrieving payment {payment_id}: {str(e)}")
+        return {"error": "Failed to retrieve payment"}, 500
+
+
+def get_tenant_payments():
+    """Get payments for the current tenant"""
+    # Stub implementation
+    return {"error": "Not implemented yet"}, 501
+
+
+def get_landlord_payments():
+    """Get payments for the current landlord"""
+    # Stub implementation
+    return {"error": "Not implemented yet"}, 501
+
+
+def create_checkout_session(session_data):
+    """Create a Stripe checkout session"""
+    # Stub implementation
+    return {"error": "Not implemented yet"}, 501
+
+
+def get_payment_history():
+    """Get payment history for the current user"""
+    # Stub implementation
+    return {"error": "Not implemented yet"}, 501

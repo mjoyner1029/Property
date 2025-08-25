@@ -1,288 +1,158 @@
-# backend/src/app.py
+"""
+The application factory for the Asset Anchor API.
+Creates and configures Flask app with blueprints and extensions.
+"""
 from __future__ import annotations
 
-import logging
 import os
-from importlib import import_module
+import logging
+from typing import Optional
 
 from flask import Flask, jsonify, request
-from werkzeug.middleware.proxy_fix import ProxyFix
+import sentry_sdk
+from werkzeug.exceptions import HTTPException
 
+from .config import get_config, get_env_flag
 from .extensions import (
     db,
-    jwt,
     migrate,
-    mail,
-    socketio,
-    talisman,
+    jwt,
     cors,
+    talisman,
+    socketio,
+    mail,
     limiter,
+    init_extensions
 )
 
 
-def _load_config(app: Flask, config_name: str) -> None:
+def create_app(config_name: Optional[str] = None) -> Flask:
     """
-    Load config from .config.config_by_name with a safe fallback.
+    Application factory function that creates and configures a Flask app.
+
+    Args:
+        config_name (str, optional): The name of the configuration to use.
+            If None, will use APP_ENV environment variable. Defaults to None.
+
+    Returns:
+        Flask: The configured Flask application.
     """
-    try:
-        try:
-            from .config import config_by_name  # type: ignore
-        except ImportError:
-            from config import config_by_name  # type: ignore
-
-        if config_name not in config_by_name:
-            app.logger.warning(
-                "Unknown config '%s'; falling back to 'default'", config_name
-            )
-            config_name = "default"
-
-        # Flask accepts either a class or import string here
-        app.config.from_object(config_by_name[config_name])
-    except Exception as exc:
-        # Absolute last-resort sane defaults
-        app.logger.error("Failed to load config: %s", exc)
-        app.config.update(
-            SECRET_KEY=os.environ.get("SECRET_KEY", "change-me"),
-            SQLALCHEMY_DATABASE_URI=os.environ.get("DATABASE_URL", "sqlite:///app.db"),
-            SQLALCHEMY_TRACK_MODIFICATIONS=False,
-            ENV=os.environ.get("FLASK_ENV", "production"),
-            DEBUG=os.environ.get("FLASK_DEBUG", "0") == "1",
-            UPLOAD_FOLDER=os.environ.get("UPLOAD_FOLDER", "uploads"),
-            CORS_ALLOW_ORIGINS=os.environ.get("CORS_ALLOW_ORIGINS", "").strip(),
-            LOG_LEVEL=os.environ.get("LOG_LEVEL", "INFO"),
-            # Socket.IO: allow override, but default to threading
-            SOCKETIO_ASYNC_MODE=os.environ.get("SOCKETIO_ASYNC_MODE", "threading"),
-        )
-
-
-def _init_logging(app: Flask) -> None:
-    level_name = str(app.config.get("LOG_LEVEL", "INFO")).upper()
-    level = getattr(logging, level_name, logging.INFO)
-    logging.basicConfig(
-        level=level,
-        format="%(asctime)s %(levelname)s %(name)s: %(message)s",
-    )
-    app.logger.setLevel(level)
-
-
-def _init_security_and_middlewares(app: Flask) -> None:
-    # Ensure upload directory exists
-    os.makedirs(app.config.get("UPLOAD_FOLDER", "uploads"), exist_ok=True)
-
-    # Respect X-Forwarded-* headers behind proxies (Render/NGINX/etc.)
-    app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1, x_proto=1, x_host=1, x_port=1)
-
-    # ---- Security Headers (Talisman) ----
-    # Strong defaults; loosen via config if you embed external scripts.
-    csp = app.config.get(
-        "CONTENT_SECURITY_POLICY",
-        {
-            "default-src": "'self'",
-            "base-uri": "'self'",
-            "form-action": "'self'",
-            "img-src": "'self' data:",
-            "connect-src": "'self'",
-            "script-src": ["'self'"],
-            "style-src": ["'self'", "'unsafe-inline'"],
-            "frame-ancestors": "'none'",
-            "object-src": "'none'",
-        },
-    )
-    talisman.init_app(
-        app,
-        content_security_policy=csp,
-        content_security_policy_nonce_in=["script-src"],
-        force_https=(app.config.get("ENV") == "production"),
-        strict_transport_security=True,
-        session_cookie_secure=(app.config.get("ENV") == "production"),
-        frame_options="DENY",
-        referrer_policy="no-referrer",
-    )
-
-    # ---- CORS (REST endpoints) ----
-    # Accept comma-separated list or wildcard. Prefer explicit allowlist in prod.
-    raw = app.config.get("CORS_ALLOW_ORIGINS", "").strip()
-    if raw:
-        origins = [o.strip() for o in raw.split(",") if o.strip()]
-    else:
-        # Default to FRONTEND_URL env if present, else no wildcard here
-        fe = os.environ.get("FRONTEND_URL", "").strip()
-        origins = [fe] if fe else []
-
-    cors.init_app(
-        app,
-        resources={r"/api/*": {"origins": origins or []}},
-        supports_credentials=True,
-        expose_headers=[
-            "Content-Type",
-            "Authorization",
-            "Content-Disposition",  # expose filenames on downloads
-            "X-RateLimit-Limit",
-            "X-RateLimit-Remaining",
-            "X-RateLimit-Reset",
-        ],
-        max_age=86400,
-    )
-
-    # ---- Rate Limiter ----
-    limiter_enabled = app.config.get("RATELIMIT_ENABLED", True)
-    limiter.enabled = bool(limiter_enabled)
-    limiter.init_app(app)
-
-
-def _init_extensions(app: Flask) -> None:
-    db.init_app(app)
-    migrate.init_app(app, db)
-    jwt.init_app(app)
-    mail.init_app(app)
-
-    # ---- Socket.IO ----
-    # The SocketIO instance (with async_mode/cors/message_queue) is configured in extensions.py.
-    # Here we bind it to the app. No need to pass async_mode again.
-    socketio.init_app(app)
-
-
-def _register_blueprint(app: Flask, module_path: str, attr: str, prefix: str | None) -> None:
-    try:
-        module = import_module(module_path)
-        bp = getattr(module, attr)
-        if prefix:
-            app.register_blueprint(bp, url_prefix=prefix)
-        else:
-            app.register_blueprint(bp)
-        app.logger.debug("Registered blueprint: %s.%s -> %s", module_path, attr, prefix or "")
-    except Exception as exc:
-        # It's okay if optional modules aren't present in some deployments
-        app.logger.info("Skipping %s.%s: %s", module_path, attr, exc)
-
-
-def _register_blueprints(app: Flask) -> None:
-    with app.app_context():
-        # Auth (+ optional test helpers)
-        _register_blueprint(app, "src.routes.auth.auth_routes", "bp", "/api/auth")
-        _register_blueprint(app, "src.controllers.test.test_auth", "test_auth_bp", "/api/auth")
-
-        # Domain controllers / admin
-        _register_blueprint(app, "src.controllers.landlord_controller", "landlord_bp", "/api/landlords")
-        _register_blueprint(app, "src.routes.admin_routes", "admin_bp", "/api/admin")
-
-        # Logging / telemetry
-        _register_blueprint(app, "src.controllers.logs_controller", "logs_bp", "/api")
-
-        # Messaging
-        _register_blueprint(app, "src.routes.messages_routes", "messaging_bp", "/api/messages")
-
-        # Other domain routes (optional)
-        _register_blueprint(app, "src.routes.notification_routes", "notification_bp", "/api/notifications")
-        _register_blueprint(app, "src.routes.property_routes", "property_bp", "/api/properties")
-        _register_blueprint(app, "src.routes.tenant_routes", "tenant_bp", "/api/tenants")
-        _register_blueprint(app, "src.routes.maintenance_routes", "bp", "/api/maintenance")
-
-        # Billing: Invoices & Payments
-        _register_blueprint(app, "src.routes.invoice_routes", "invoice_bp", "/api/invoices")
-        _register_blueprint(app, "src.routes.payment_routes", "payment_bp", "/api/payments")
-
-        # Health / status / webhook (blueprints define their own rules)
-        _register_blueprint(app, "src.routes.status_routes", "bp", None)
-        _register_blueprint(app, "src.routes.health", "bp", None)
-        _register_blueprint(app, "src.routes.stripe_webhook", "bp", None)
-
-        # Metrics (prod only)
-        if app.config.get("ENV") == "production":
-            _register_blueprint(app, "src.routes.metrics_routes", "metrics_bp", "/metrics")
-
-
-def _register_error_handlers(app: Flask) -> None:
-    # Centralized app errors (optional helper)
-    try:
-        from .utils.error_handler import register_error_handlers
-        register_error_handlers(app)
-    except Exception as exc:
-        app.logger.warning("Custom error handlers not loaded: %s", exc)
-
-    @app.errorhandler(429)
-    def ratelimit_handler(e):
-        return jsonify({"error": "Rate limit exceeded"}), 429
-
-    @app.errorhandler(404)
-    def not_found(e):
-        return jsonify({"error": "Not found"}), 404
-
-    @app.errorhandler(500)
-    def server_error(e):
-        return jsonify({"error": "Internal server error"}), 500
-
-
-def _init_monitoring(app: Flask) -> None:
-    # Sentry/metrics integrations can be optional
-    try:
-        from .utils.monitoring import init_monitoring
-        init_monitoring(app)
-    except Exception as exc:
-        app.logger.info("Monitoring not initialized: %s", exc)
-
-
-def create_app(config_name: str | None = None) -> Flask:
-    """
-    Application factory.
-    - Loads config via config_by_name (with safe fallback)
-    - Disables strict slashes for more forgiving routing
-    - Initializes extensions and middlewares
-    - Registers all blueprints and error handlers
-    """
-    # Allow env override; default to 'default'
-    config_name = config_name or os.environ.get("FLASK_CONFIG", "default")
-
     app = Flask(__name__)
-    # More tolerant routes: /foo and /foo/ both valid
-    app.url_map.strict_slashes = False
 
-    _load_config(app, config_name)
-    _init_logging(app)
-    _init_security_and_middlewares(app)
-    _init_extensions(app)
-    _register_blueprints(app)
-    _register_error_handlers(app)
-    _init_monitoring(app)
+    # Load configuration
+    config_obj = get_config(config_name)
+    app.config.from_object(config_obj)
+    
+    # Initialize extensions with the app
+    init_extensions(app)
 
-    # CSP violation reports
-    @app.post("/api/csp-report")
-    def csp_report():
-        try:
-            data = request.get_data(as_text=True)
-            app.logger.warning("CSP violation: %s", data)
-            # 204: received, no content
-            return jsonify({"status": "received"}), 204
-        except Exception as exc:
-            app.logger.error("Error processing CSP report: %s", exc)
-            return jsonify({"status": "error"}), 500
-
-    # Minimal healthcheck (in case health blueprint is not present)
-    @app.get("/api/health")
-    def health():
-        return jsonify({"status": "ok"}), 200
+    # Register error handlers
+    register_error_handlers(app)
+    
+    # Register health check endpoint
+    register_health_check(app)
+    
+    # Configure Sentry if DSN is provided
+    configure_sentry(app)
+    
+    # Register blueprints
+    register_blueprints(app)
 
     return app
 
 
-def main() -> None:
-    """
-    CLI entry point for `assetanchor` (see setup.py console_scripts).
-    """
-    app = create_app(os.environ.get("FLASK_CONFIG"))
-    host = os.environ.get("HOST", "0.0.0.0")
-    port = int(os.environ.get("PORT", "5000"))
-    debug = bool(int(os.environ.get("FLASK_DEBUG", "0")))
+def register_blueprints(app: Flask) -> None:
+    """Register all Flask blueprints."""
+    # Feature flags for risk remediation - enable only completed modules
+    ENABLE_AUTH = True
+    ENABLE_API = True
+    ENABLE_WEBHOOKS = True
+    ENABLE_PAYMENTS = True
+    
+    # Import and register core blueprints
+    if ENABLE_AUTH:
+        try:
+            from .routes.auth_routes import bp as auth_bp
+            app.register_blueprint(auth_bp, url_prefix='/auth')
+            app.logger.info("Registered auth_bp blueprint")
+        except Exception as e:
+            app.logger.warning(f"Failed to register auth_bp: {str(e)}")
+    
+    if ENABLE_API:
+        try:
+            from .routes.api_routes import api_bp
+            app.register_blueprint(api_bp, url_prefix='/api')
+            app.logger.info("Registered api_bp blueprint")
+        except Exception as e:
+            app.logger.warning(f"Failed to register api_bp: {str(e)}")
+    
+    if ENABLE_WEBHOOKS:
+        try:
+            from .routes.webhook_routes import webhook_bp
+            app.register_blueprint(webhook_bp, url_prefix='/webhooks')
+            app.logger.info("Registered webhook_bp blueprint")
+        except Exception as e:
+            app.logger.warning(f"Failed to register webhook_bp: {str(e)}")
+    
+    # Register health blueprint - always enabled
+    from .routes.health_routes import health_bp
+    app.register_blueprint(health_bp, url_prefix='/health')
+    app.logger.info("Registered health_bp blueprint")
 
-    # If using gevent/eventlet, configure via extensions and env (SOCKETIO_ASYNC_MODE)
-    socketio.run(
-        app,
-        host=host,
-        port=port,
-        debug=debug,
-        allow_unsafe_werkzeug=debug,  # avoid warning in local dev
-    )
+
+def register_error_handlers(app: Flask) -> None:
+    """Register error handlers for various error types."""
+    
+    @app.errorhandler(HTTPException)
+    def handle_http_exception(error):
+        """Handle HTTPExceptions."""
+        response = jsonify({
+            'error': error.name,
+            'message': error.description,
+            'status_code': error.code
+        })
+        response.status_code = error.code
+        return response
+
+    @app.errorhandler(Exception)
+    def handle_generic_exception(error):
+        """Handle generic exceptions."""
+        app.logger.exception("Unhandled exception: %s", str(error))
+        response = jsonify({
+            'error': 'Internal Server Error',
+            'message': 'An unexpected error occurred',
+            'status_code': 500
+        })
+        response.status_code = 500
+        return response
 
 
-if __name__ == "__main__":
-    main()
+def register_health_check(app: Flask) -> None:
+    """Register a health check endpoint."""
+    
+    @app.route('/health')
+    def health():
+        git_sha = os.environ.get('GIT_SHA', 'unknown')
+        return jsonify({
+            'status': 'healthy',
+            'version': app.config.get('VERSION', '1.0.0'),
+            'git_sha': git_sha
+        })
+
+
+def configure_sentry(app: Flask) -> None:
+    """Configure Sentry if DSN is available in environment."""
+    sentry_dsn = app.config.get('SENTRY_DSN') or os.environ.get('SENTRY_DSN')
+    
+    if sentry_dsn:
+        environment = app.config.get('ENV', 'development')
+        git_sha = os.environ.get('GIT_SHA', 'unknown')
+        
+        sentry_sdk.init(
+            dsn=sentry_dsn,
+            environment=environment,
+            release=git_sha,
+            traces_sample_rate=0.1,
+            # Don't include sensitive data in reports
+            send_default_pii=False
+        )

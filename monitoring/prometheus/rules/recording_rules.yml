@@ -1,0 +1,22 @@
+groups:
+- name: sli.app.http
+  interval: 30s
+  rules:
+  - record: app:http_requests:rate5m
+    expr: sum by (service, instance) (rate(http_server_requests_total{job="app"}[5m]))
+  - record: app:http_errors:rate5m
+    expr: sum by (service, instance) (rate(http_server_requests_total{job="app",status=~"5..|4.."}[5m]))
+  - record: app:http_error_ratio:5m
+    expr: clamp_min(app:http_errors:rate5m / app:http_requests:rate5m, 0)
+  - record: app:http_request_duration_seconds:bucket_rate5m
+    expr: sum by (service, le) (rate(http_request_duration_seconds_bucket{job="app"}[5m]))
+  - record: app:http_latency_p95
+    expr: histogram_quantile(0.95, sum by (service, le) (rate(http_request_duration_seconds_bucket{job="app"}[5m])))
+  - record: app:http_latency_p99
+    expr: histogram_quantile(0.99, sum by (service, le) (rate(http_request_duration_seconds_bucket{job="app"}[5m])))
+
+- name: sli.uptime
+  interval: 30s
+  rules:
+  - record: target:up:ratio5m
+    expr: sum by (job) (up) / count by (job) (up)

@@ -1,5 +1,6 @@
 {
     "version": 2,
+    "cleanUrls": true,
     "builds": [
       {
         "src": "package.json",
@@ -9,16 +10,9 @@
         }
       }
     ],
-    "routes": [
-      {
-        "src": "/api/(.*)",
-        "dest": "https://api.assetanchor.com/api/$1",
-        "methods": ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"]
-      },
-      {
-        "src": "/(.*)",
-        "dest": "/index.html"
-      }
+    "rewrites": [
+      { "source": "/api/(.*)", "destination": "https://api.assetanchor.com/api/$1" },
+      { "source": "/(.*)", "destination": "/index.html" }
     ],
     "headers": [
       {

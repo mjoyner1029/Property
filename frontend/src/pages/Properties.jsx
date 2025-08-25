@@ -1,5 +1,6 @@
 // frontend/src/pages/Properties.jsx
 import React, { useState, useEffect } from "react";
+import { logger } from '../utils/logger';
 import {
   Box,
   Grid,
@@ -118,7 +119,7 @@ export default function Properties() {
       await deleteProperty(selectedPropertyId);
       setDeleteDialogOpen(false);
     } catch (error) {
-      console.error("Error deleting property:", error);
+      logger.error("Error deleting property:", error);
     } finally {
       setIsDeleting(false);
     }

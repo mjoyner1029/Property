@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { logger } from '../utils/logger';
 import {
   Box,
   Container,
@@ -43,7 +44,7 @@ const Settings = () => {
     }
     
     // Here you would call your API to change the password
-    console.log("Password change requested:", password);
+    logger.info("Password change requested");
     
     // Show success message
     setSuccessMessage("Password changed successfully");

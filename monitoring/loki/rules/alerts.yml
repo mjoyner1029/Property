@@ -1,0 +1,69 @@
+groups:
+  - name: log_errors
+    rules:
+      - alert: HighErrorRate
+        expr: |
+          sum(rate({app="frontend"} |= "error" [5m])) by (job)
+            > 0.1
+        for: 10m
+        labels:
+          severity: warning
+          team: frontend
+        annotations:
+          summary: "High error rate in frontend logs"
+          description: "Frontend is experiencing a high rate of errors: {{ $value }}"
+          runbook_url: "https://github.com/yourusername/property/wiki/frontend-errors"
+          
+      - alert: BackendErrors
+        expr: |
+          sum(rate({app="backend"} |= "ERROR" [5m])) by (job)
+            > 0.1
+        for: 10m
+        labels:
+          severity: warning
+          team: backend
+        annotations:
+          summary: "High error rate in backend logs"
+          description: "Backend is experiencing a high rate of errors: {{ $value }}"
+          runbook_url: "https://github.com/yourusername/property/wiki/backend-errors"
+          
+      - alert: CriticalErrors
+        expr: |
+          sum(rate({app=~"frontend|backend"} |~ "(?i)(fatal|critical|panic|exception)" [5m])) by (app)
+            > 0
+        for: 2m
+        labels:
+          severity: critical
+          team: sre
+        annotations:
+          summary: "Critical errors detected in {{ $labels.app }}"
+          description: "{{ $labels.app }} has critical errors that require immediate attention"
+          runbook_url: "https://github.com/yourusername/property/wiki/critical-errors"
+
+  - name: security_logs
+    rules:
+      - alert: AuthenticationFailures
+        expr: |
+          sum(rate({app=~"frontend|backend"} |~ "(?i)(failed login|authentication failed|auth.*failed|invalid credentials)" [5m])) by (app)
+            > 5
+        for: 15m
+        labels:
+          severity: warning
+          team: security
+        annotations:
+          summary: "High rate of authentication failures in {{ $labels.app }}"
+          description: "There are multiple failed authentication attempts"
+          runbook_url: "https://github.com/yourusername/property/wiki/auth-failures"
+
+      - alert: PossibleSecurityBreach
+        expr: |
+          sum(rate({app=~"frontend|backend"} |~ "(?i)(sql injection|xss|csrf|attack|exploit|vulnerability|CVE)" [5m])) by (app)
+            > 0
+        for: 1m
+        labels:
+          severity: critical
+          team: security
+        annotations:
+          summary: "Possible security breach in {{ $labels.app }}"
+          description: "Security related patterns detected in logs"
+          runbook_url: "https://github.com/yourusername/property/wiki/security-incidents"

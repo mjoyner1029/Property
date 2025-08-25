@@ -1,0 +1,5 @@
+# Require at least one owner per path (enforce via repo settings)
+backend/**        @mjoyner1029/backend-team
+frontend/**       @mjoyner1029/frontend-team
+.github/**        @mjoyner1029/devops-team
+*                 @mjoyner1029/repo-admins

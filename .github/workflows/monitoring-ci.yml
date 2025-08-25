@@ -1,0 +1,188 @@
+name: Monitoring CI
+
+on:
+  push:
+    branches: [ main ]
+    paths:
+      - 'monitoring/**'
+      - '.github/workflows/monitoring-ci.yml'
+  pull_request:
+    branches: [ main ]
+    paths:
+      - 'monitoring/**'
+      - '.github/workflows/monitoring-ci.yml'
+
+permissions:
+  contents: read
+  pull-requests: write
+  id-token: write
+
+jobs:
+  prometheus-config-check:
+    runs-on: ubuntu-latest
+    container: 
+      image: prom/prometheus:v2.42.0
+      options: --user root
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+      
+      - name: Check Prometheus config
+        run: |
+          promtool check config monitoring/prometheus/prometheus.yml
+      
+      - name: Check recording rules
+        run: |
+          promtool check rules monitoring/prometheus/rules/recording_rules.yml
+      
+      - name: Check alerting rules
+        run: |
+          promtool check rules monitoring/prometheus/rules/alerts_slo.yml
+
+  alertmanager-config-check:
+    runs-on: ubuntu-latest
+    container: 
+      image: prom/alertmanager:v0.25.0
+      options: --user root
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+      
+      - name: Check Alertmanager config
+        run: |
+          amtool check-config monitoring/alertmanager/alertmanager.yml
+
+  loki-config-check:
+    runs-on: ubuntu-latest
+    container: 
+      image: grafana/loki:2.8.0
+      options: --user root
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+      
+      - name: Check Loki config
+        run: |
+          loki -config.file=monitoring/loki/config.yml -config.expand-env=true -print-config-stderr 2>&1 | grep -q "err=null"
+      
+      - name: Check Loki rules
+        run: |
+          if [ -f monitoring/loki/rules/alerts.yml ]; then
+            loki-ruler-check monitoring/loki/rules/alerts.yml
+          fi
+
+  yaml-lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+          
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.10'
+          
+      - name: Install yamllint
+        run: |
+          python -m pip install --upgrade pip
+          pip install yamllint
+          
+      - name: Lint YAML files
+        run: |
+          yamllint -c .yamllint.yml monitoring/
+        continue-on-error: true
+
+  security-check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+          
+      - name: Check for sensitive information
+        run: |
+          set +e
+          grep -r --include="*.yml" --include="*.yaml" -E "(password|token|key|secret|credential):" monitoring/
+          if [ $? -eq 0 ]; then
+            echo "Warning: Potential sensitive information found. Please validate manually."
+            exit 0
+          else
+            echo "No sensitive information detected."
+          fi
+
+  grafana-dashboards-check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+          
+      - name: Check Dashboard JSON
+        run: |
+          for file in $(find monitoring/grafana/dashboards -name "*.json" -type f); do
+            cat $file | jq empty
+            if [ $? -ne 0 ]; then
+              echo "Error: Invalid JSON in $file"
+              exit 1
+            fi
+          done
+          echo "All dashboard JSON files are valid."
+
+  run-monitoring-stack:
+    needs: [prometheus-config-check, alertmanager-config-check, yaml-lint]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+
+      - name: Set up Docker Compose
+        run: |
+          docker-compose -f docker-compose.yml up -d prometheus alertmanager
+          sleep 10
+
+      - name: Check Prometheus readiness
+        run: |
+          PROMETHEUS_STATUS=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:9090/-/ready)
+          if [[ "$PROMETHEUS_STATUS" == "200" ]]; then
+            echo "Prometheus is ready!"
+          else
+            echo "Prometheus readiness check failed with status: $PROMETHEUS_STATUS"
+            docker-compose logs prometheus
+            exit 1
+          fi
+
+      - name: Check Alertmanager readiness
+        run: |
+          ALERTMANAGER_STATUS=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:9093/-/ready)
+          if [[ "$ALERTMANAGER_STATUS" == "200" ]]; then
+            echo "Alertmanager is ready!"
+          else
+            echo "Alertmanager readiness check failed with status: $ALERTMANAGER_STATUS"
+            docker-compose logs alertmanager
+            exit 1
+          fi
+
+      - name: Tear down Docker Compose
+        run: |
+          docker-compose -f docker-compose.yml down
+
+  notification:
+    needs: [run-monitoring-stack, grafana-dashboards-check, security-check]
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check build result
+        if: ${{ contains(needs.*.result, 'failure') }}
+        run: |
+          echo "One or more validation jobs failed!"
+          exit 1
+      
+      - name: Success notification
+        if: ${{ !contains(needs.*.result, 'failure') }}
+        run: |
+          echo "All monitoring validation jobs passed!"

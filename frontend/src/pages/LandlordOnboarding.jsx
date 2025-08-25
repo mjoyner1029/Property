@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { logger } from '../utils/logger';
 import {
   Box,
   TextField,
@@ -42,7 +43,7 @@ const LandlordOnboarding = () => {
       }, 2000);
     } catch (e) {
       setError(e.message || 'Submission error');
-      console.error('Submission error:', e);
+      logger.error('Submission error:', e);
     } finally {
       setLoading(false);
     }

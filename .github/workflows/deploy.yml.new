@@ -1,0 +1,97 @@
+name: deploy
+
+on:
+  push:
+    branches: [ main ]
+    paths:
+      - 'frontend/**'
+      - 'backend/**'
+      - '.github/workflows/deploy.yml'
+  workflow_dispatch:
+    inputs:
+      target:
+        description: 'staging or production'
+        required: true
+        default: 'staging'
+        type: choice
+        options: [ staging, production ]
+
+permissions:
+  contents: read
+  id-token: write   # for OIDC if you later adopt it
+  deployments: write
+
+concurrency:
+  group: ${{ github.workflow }}-${{ inputs.target || 'production' }}
+  cancel-in-progress: true
+
+jobs:
+  be-tests:
+    name: Backend pre-deploy tests
+    uses: ./.github/workflows/backend-ci.yml
+    secrets: inherit
+
+  fe-tests:
+    name: Frontend pre-deploy tests
+    uses: ./.github/workflows/frontend-ci.yml
+    secrets: inherit
+
+  deploy:
+    needs: [ be-tests, fe-tests ]
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    environment:
+      name: ${{ inputs.target || 'production' }}
+      url: ${{ steps.vercel.outputs.url }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8
+
+      # ---- FRONTEND (Vercel via CLI) ----
+      - name: Setup Node for Vercel
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: 20
+
+      - name: Deploy FE to Vercel (preview/prod)
+        id: vercel
+        working-directory: frontend
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+        run: |
+          npm i -g vercel
+          if [ "${{ inputs.target || 'production' }}" = "staging" ]; then
+            DEPLOY_URL=$(vercel --token "$VERCEL_TOKEN" --scope "$VERCEL_ORG_ID" --confirm)
+          else
+            DEPLOY_URL=$(vercel --prod --token "$VERCEL_TOKEN" --scope "$VERCEL_ORG_ID" --confirm)
+          fi
+          echo "url=$DEPLOY_URL" >> $GITHUB_OUTPUT
+
+      # ---- BACKEND (Render API example) ----
+      - name: Trigger Render deploy
+        if: ${{ secrets.RENDER_API_KEY != '' && secrets.RENDER_SERVICE_ID != '' }}
+        env:
+          RENDER_API_KEY: ${{ secrets.RENDER_API_KEY }}
+          RENDER_SERVICE_ID: ${{ secrets.RENDER_SERVICE_ID }}
+        run: |
+          DEPLOY_ID=$(curl -fsS -X POST \
+            -H "Authorization: Bearer $RENDER_API_KEY" \
+            -H "Content-Type: application/json" \
+            -d '{}' \
+            https://api.render.com/v1/services/$RENDER_SERVICE_ID/deploys | jq -r .id)
+          echo "Render deploy $DEPLOY_ID triggered"
+
+      - name: Health check
+        timeout-minutes: 3
+        env:
+          API_URL: ${{ secrets.PROD_API_URL }}
+        run: |
+          URL="${API_URL:-https://your.api/health}"
+          for i in {1..30}; do
+            code=$(curl -s -o /dev/null -w "%{http_code}" "$URL" || true)
+            if [ "$code" = "200" ]; then echo "Healthy"; exit 0; fi
+            sleep 5
+          done
+          echo "Health check failed" >&2; exit 1
