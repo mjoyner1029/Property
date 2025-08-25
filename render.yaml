@@ -8,6 +8,7 @@ services:
     branch: main
     rootDir: backend
     buildCommand: pip install -r requirements.txt
+    preDeployCommand: bash ../scripts/run_migrations.sh
     startCommand: >
       gunicorn wsgi:app
       --workers 2
@@ -21,7 +22,6 @@ services:
     dependsOn:
       - name: asset-anchor-redis
       - name: asset-anchor-db
-      - name: asset-anchor-migrations
     envVars:
       - key: APP_ENV
         value: production
@@ -31,69 +31,80 @@ services:
         value: wsgi.py
       - key: PYTHONUNBUFFERED
         value: "1"
+
+      # ==== REQUIRED SECRETS ====
       - key: SECRET_KEY
-        sync: false
+        value: "B9gnyxN7PBmS3cdOhX-uroVQeWqL6RX6VgEmpQ_ifIyqNczbXkE9SOcdUl9UTdIU"
       - key: JWT_SECRET_KEY
-        sync: false
+        value: "xDlY7V-NXV2hoGWGO5cLcuG80FvjGLdRh-IH6Bj30Wa0Ld2MscLjkxvGUTYW9oGCSCd9bdcZcc-4PcaIm1YeOA"
+
       - key: STRIPE_PUBLIC_KEY
-        sync: false
+        value: "pk_live_51RviuHRRzCooiyn90jiCw25KJRD4GXb4enFomJc2x0FKLWeChHCPoNwmXT7vaqjc2XcUuyB8Dl04ocoxo8XM0yPp00AJeM52vN"
       - key: STRIPE_SECRET_KEY
-        sync: false
+        value: "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"
       - key: STRIPE_WEBHOOK_SECRET
-        sync: false
+        value: "<PASTE_YOUR_STRIPE_WEBHOOK_SECRET>"
+
+      - key: EMAIL_API_KEY
+        value: "<PASTE_YOUR_POSTMARK_API_KEY>"
+
+      # ==== OPTIONAL (only if using S3 for uploads) ====
+      - key: S3_BUCKET
+        value: "<YOUR_S3_BUCKET_NAME>"
+      - key: S3_REGION
+        value: "<YOUR_S3_REGION>"
+      - key: AWS_ACCESS_KEY_ID
+        value: "<YOUR_AWS_ACCESS_KEY_ID>"
+      - key: AWS_SECRET_ACCESS_KEY
+        value: "<YOUR_AWS_SECRET_ACCESS_KEY>"
+
+      # ==== OPTIONAL (monitoring/logging) ====
+      - key: SENTRY_DSN
+        value: "<YOUR_SENTRY_DSN>"
+
+      # ==== CORS / Frontend ====
       - key: CORS_ORIGINS
-        value: https://assetanchor.io,https://www.assetanchor.io
+        value: https://assetanchor.io,https://www.assetanchor.io,https://assetanchor.vercel.app
+      - key: CORS_ALLOW_ORIGINS
+        value: https://assetanchor.io,https://www.assetanchor.io,https://assetanchor.vercel.app
+      - key: FRONTEND_URL
+        value: https://assetanchor.vercel.app
+
+      # ==== Misc ====
       - key: EMAIL_PROVIDER
         value: postmark
-      - key: EMAIL_API_KEY
-        sync: false
       - key: EMAIL_FROM
         value: no-reply@assetanchor.io
       - key: LOG_LEVEL
         value: INFO
-      - fromGroup: asset-anchor-db-env
-      - key: S3_BUCKET
-        sync: false
-      - key: S3_REGION
-        sync: false
-      - key: AWS_ACCESS_KEY_ID
-        sync: false
-      - key: AWS_SECRET_ACCESS_KEY
-        sync: false
-      - key: SENTRY_DSN
-        sync: false
+      - key: CSP_ENFORCE
+        value: "true"
+
+      # Redis (rate limiter + Socket.IO)
       - key: REDIS_URL
         fromService:
           type: keyvalue
           name: asset-anchor-redis
           property: connectionString
-      - key: CSP_ENFORCE
-        value: "true"
+      - key: RATELIMIT_STORAGE_URI
+        fromService:
+          type: keyvalue
+          name: asset-anchor-redis
+          property: connectionString
+      - key: SOCKETIO_MESSAGE_QUEUE
+        fromService:
+          type: keyvalue
+          name: asset-anchor-redis
+          property: connectionString
+
+      # Database URL via env group
+      - fromGroup: asset-anchor-db-env
 
   - type: keyvalue
     name: asset-anchor-redis
     plan: free
     region: oregon
     ipAllowList: []
-
-  - type: job
-    name: asset-anchor-migrations
-    runtime: python
-    region: oregon
-    repo: https://github.com/mjoyner1029/Property.git
-    branch: main
-    rootDir: backend
-    buildCommand: pip install -r requirements.txt
-    # scripts/run_migrations.sh is at the repo root, so hop up one level
-    startCommand: bash ../scripts/run_migrations.sh
-    envVars:
-      - key: FLASK_APP
-        value: wsgi.py
-      - key: FLASK_ENV
-        value: production
-      - key: APP_ENV
-        value: production
-      - fromGroup: asset-anchor-db-env
 
 databases:
   - name: asset-anchor-db
