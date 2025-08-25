@@ -1,3 +1,4 @@
+# backend/src/app.py
 from __future__ import annotations
 
 import logging
@@ -34,6 +35,8 @@ def _load_config(app: Flask, config_name: str) -> None:
                 "Unknown config '%s'; falling back to 'default'", config_name
             )
             config_name = "default"
+
+        # Flask accepts either a class or import string here
         app.config.from_object(config_by_name[config_name])
     except Exception as exc:
         # Absolute last-resort sane defaults
@@ -89,9 +92,9 @@ def _init_security_and_middlewares(app: Flask) -> None:
         app,
         content_security_policy=csp,
         content_security_policy_nonce_in=["script-src"],
-        force_https=app.config.get("ENV") == "production",
+        force_https=(app.config.get("ENV") == "production"),
         strict_transport_security=True,
-        session_cookie_secure=app.config.get("ENV") == "production",
+        session_cookie_secure=(app.config.get("ENV") == "production"),
         frame_options="DENY",
         referrer_policy="no-referrer",
     )
@@ -149,7 +152,8 @@ def _register_blueprint(app: Flask, module_path: str, attr: str, prefix: str | N
             app.register_blueprint(bp)
         app.logger.debug("Registered blueprint: %s.%s -> %s", module_path, attr, prefix or "")
     except Exception as exc:
-        app.logger.info("Skipping %s (%s): %s", module_path, attr, exc)
+        # It's okay if optional modules aren't present in some deployments
+        app.logger.info("Skipping %s.%s: %s", module_path, attr, exc)
 
 
 def _register_blueprints(app: Flask) -> None:
@@ -189,7 +193,7 @@ def _register_blueprints(app: Flask) -> None:
 
 
 def _register_error_handlers(app: Flask) -> None:
-    # Centralized app errors
+    # Centralized app errors (optional helper)
     try:
         from .utils.error_handler import register_error_handlers
         register_error_handlers(app)
@@ -210,6 +214,7 @@ def _register_error_handlers(app: Flask) -> None:
 
 
 def _init_monitoring(app: Flask) -> None:
+    # Sentry/metrics integrations can be optional
     try:
         from .utils.monitoring import init_monitoring
         init_monitoring(app)
@@ -218,10 +223,19 @@ def _init_monitoring(app: Flask) -> None:
 
 
 def create_app(config_name: str | None = None) -> Flask:
+    """
+    Application factory.
+    - Loads config via config_by_name (with safe fallback)
+    - Disables strict slashes for more forgiving routing
+    - Initializes extensions and middlewares
+    - Registers all blueprints and error handlers
+    """
     # Allow env override; default to 'default'
     config_name = config_name or os.environ.get("FLASK_CONFIG", "default")
 
     app = Flask(__name__)
+    # More tolerant routes: /foo and /foo/ both valid
+    app.url_map.strict_slashes = False
 
     _load_config(app, config_name)
     _init_logging(app)
@@ -232,7 +246,7 @@ def create_app(config_name: str | None = None) -> Flask:
     _init_monitoring(app)
 
     # CSP violation reports
-    @app.route("/api/csp-report", methods=["POST"])
+    @app.post("/api/csp-report")
     def csp_report():
         try:
             data = request.get_data(as_text=True)
@@ -243,6 +257,32 @@ def create_app(config_name: str | None = None) -> Flask:
             app.logger.error("Error processing CSP report: %s", exc)
             return jsonify({"status": "error"}), 500
 
+    # Minimal healthcheck (in case health blueprint is not present)
+    @app.get("/api/health")
+    def health():
+        return jsonify({"status": "ok"}), 200
+
     return app
 
-# App factory pattern only; do not instantiate at import-time.
+
+def main() -> None:
+    """
+    CLI entry point for `assetanchor` (see setup.py console_scripts).
+    """
+    app = create_app(os.environ.get("FLASK_CONFIG"))
+    host = os.environ.get("HOST", "0.0.0.0")
+    port = int(os.environ.get("PORT", "5000"))
+    debug = bool(int(os.environ.get("FLASK_DEBUG", "0")))
+
+    # If using gevent/eventlet, configure via extensions and env (SOCKETIO_ASYNC_MODE)
+    socketio.run(
+        app,
+        host=host,
+        port=port,
+        debug=debug,
+        allow_unsafe_werkzeug=debug,  # avoid warning in local dev
+    )
+
+
+if __name__ == "__main__":
+    main()

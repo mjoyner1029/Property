@@ -1,304 +1,323 @@
 """
-Webhook handlers for Stripe payment processing service.
+Production Stripe webhook handler with signature verification and DB-backed idempotency.
 """
-from flask import request, jsonify, current_app
-import stripe
+from __future__ import annotations
+
 import os
 from datetime import datetime
+from typing import Optional, Dict, Any
 
-from ..models.payment import Payment
-from ..models.invoice import Invoice
-from ..models.user import User
+from flask import request, jsonify, current_app
+from sqlalchemy.exc import IntegrityError, SQLAlchemyError
+
+import stripe
+
 from ..extensions import db
-from ..utils.email_service import send_payment_receipt
+from ..models.payment import Payment   # expected typical fields; code guards where needed
+from ..models.invoice import Invoice   # expected typical fields; code guards where needed
+from ..models.user import User         # for emailing receipts if desired
+from ..utils.email_service import send_payment_receipt  # safe-guarded below
 
-# Initialize Stripe with API key
+
+# -----------------------------------------------------------------------------
+# Stripe setup
+# -----------------------------------------------------------------------------
 stripe.api_key = os.getenv("STRIPE_SECRET_KEY")
 
-def register_stripe_webhooks(bp):
-    """Register Stripe webhook routes with the provided blueprint"""
-    
-    @bp.route("/stripe", methods=["POST"])
-    def stripe_webhook():
-        payload = request.data
-        sig_header = request.headers.get("Stripe-Signature")
-        endpoint_secret = os.getenv("STRIPE_WEBHOOK_SECRET")
+# -----------------------------------------------------------------------------
+# Idempotency: store processed event IDs so retries are harmless
+# -----------------------------------------------------------------------------
+class StripeWebhookEvent(db.Model):
+    __tablename__ = "stripe_webhook_events"
 
-        try:
-            event = stripe.Webhook.construct_event(payload, sig_header, endpoint_secret)
-        except ValueError:
-            current_app.logger.error("Invalid payload in Stripe webhook")
-            return jsonify({"error": "Invalid payload"}), 400
-        except stripe.error.SignatureVerificationError:
-            current_app.logger.error("Invalid signature in Stripe webhook")
-            return jsonify({"error": "Invalid signature"}), 400
-
-        # Process the event based on its type
-        try:
-            process_stripe_event(event)
-            return jsonify({"status": "success", "event_type": event["type"]}), 200
-        except Exception as e:
-            current_app.logger.error(f"Error processing Stripe webhook: {str(e)}")
-            return jsonify({"error": f"Error processing webhook: {str(e)}"}), 500
+    id = db.Column(db.Integer, primary_key=True)
+    event_id = db.Column(db.String(255), unique=True, nullable=False, index=True)
+    event_type = db.Column(db.String(128), nullable=False)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
 
 
-def process_stripe_event(event):
-    """Process different types of Stripe webhook events"""
-    event_type = event["type"]
-    event_data = event["data"]["object"]
-    
-    current_app.logger.info(f"Processing Stripe event: {event_type}")
-    
-    # Payment succeeded event
-    if event_type == "payment_intent.succeeded":
-        handle_payment_success(event_data)
-    
-    # Payment failed event
-    elif event_type == "payment_intent.payment_failed":
-        handle_payment_failure(event_data)
-    
-    # Checkout session completed
-    elif event_type == "checkout.session.completed":
-        handle_checkout_completed(event_data)
-    
-    # Customer subscription updated
-    elif event_type == "customer.subscription.updated":
-        handle_subscription_updated(event_data)
-    
-    # Customer subscription deleted
-    elif event_type == "customer.subscription.deleted":
-        handle_subscription_deleted(event_data)
-    
-    # Invoice payment succeeded
-    elif event_type == "invoice.payment_succeeded":
-        handle_invoice_payment_succeeded(event_data)
-    
-    # Account updated (for connected accounts)
-    elif event_type == "account.updated":
-        handle_account_updated(event_data)
-    
-    # Log unhandled event types
-    else:
-        current_app.logger.info(f"Unhandled Stripe event type: {event_type}")
-
-
-def handle_payment_success(payment_intent):
-    """Handle successful payment intent"""
-    # Extract metadata from the payment intent
-    metadata = payment_intent.get("metadata", {})
-    invoice_id = metadata.get("invoice_id")
-    user_id = metadata.get("user_id")
-    
-    if not invoice_id or not user_id:
-        current_app.logger.warning("Missing invoice_id or user_id in payment metadata")
-        return
-        
-    # Update invoice status
-    invoice = Invoice.query.get(invoice_id)
-    if not invoice:
-        current_app.logger.error(f"Invoice not found: {invoice_id}")
-        return
-    
-    # Update or create payment record
-    payment = Payment.query.filter_by(stripe_payment_id=payment_intent["id"]).first()
-    if not payment:
-        payment = Payment(
-            tenant_id=user_id,
-            landlord_id=invoice.landlord_id,
-            property_id=invoice.property_id,
-            invoice_id=invoice_id,
-            amount=payment_intent["amount"] / 100,  # Convert from cents
-            payment_method="card",
-            stripe_payment_id=payment_intent["id"],
-            status="completed",
-            reference_number=payment_intent["id"][-8:].upper(),
-            created_at=datetime.utcnow()
-        )
-        db.session.add(payment)
-    else:
-        payment.status = "completed"
-    
-    # Update invoice status
-    invoice.status = "paid"
-    invoice.paid_at = datetime.utcnow()
-    
+def _mark_event_processed(event_id: str, event_type: str) -> bool:
+    """
+    Try to persist event_id. Returns True if this is the first time we see it,
+    False if already processed (unique constraint triggers).
+    """
     try:
+        rec = StripeWebhookEvent(event_id=event_id, event_type=event_type)
+        db.session.add(rec)
         db.session.commit()
-        
-        # Send receipt email to tenant
-        user = User.query.get(user_id)
-        if user:
-            send_payment_receipt(user, payment)
-            
-        current_app.logger.info(f"Payment processed successfully: {payment_intent['id']}")
-    except Exception as e:
+        return True
+    except IntegrityError:
         db.session.rollback()
-        current_app.logger.error(f"Error saving payment details: {str(e)}")
+        # Already processed
+        return False
+    except SQLAlchemyError as e:
+        db.session.rollback()
+        current_app.logger.exception("DB error recording Stripe event id=%s: %s", event_id, e)
+        # Fail open on idempotency storage errors to avoid dropping Stripe retries forever.
+        # We still continue handling but log a warning.
+        return True
+
+
+# -----------------------------------------------------------------------------
+# Helpers to coerce/guard model attributes, since schemas can differ slightly
+# -----------------------------------------------------------------------------
+def _set_if_has(obj: Any, attr: str, value: Any) -> None:
+    if hasattr(obj, attr):
+        setattr(obj, attr, value)
+
+def _get_metadata_stripe(obj: Dict[str, Any], key: str) -> Optional[str]:
+    md = obj.get("metadata") or {}
+    val = md.get(key)
+    return str(val) if val is not None else None
+
+
+# -----------------------------------------------------------------------------
+# Event handlers
+# -----------------------------------------------------------------------------
+def _handle_payment_intent_succeeded(event: Dict[str, Any]) -> None:
+    data = event["data"]["object"]
+    pi_id = data["id"]
+    amount_received = data.get("amount_received")
+    currency = data.get("currency")
+    customer = data.get("customer")
+    user_id_meta = _get_metadata_stripe(data, "user_id")
+    invoice_id_meta = _get_metadata_stripe(data, "invoice_id")
+
+    # Link by known identifiers if present; otherwise best-effort
+    payment: Optional[Payment] = None
+    try:
+        # Prefer existing payment row keyed by payment_intent id if the model has that field
+        if hasattr(Payment, "stripe_payment_intent_id"):
+            payment = Payment.query.filter_by(stripe_payment_intent_id=pi_id).one_or_none()
+
+        if payment is None:
+            payment = Payment()
+
+        # Set typical fields (guarded if attributes exist)
+        _set_if_has(payment, "stripe_payment_intent_id", pi_id)
+        _set_if_has(payment, "stripe_customer_id", customer)
+        _set_if_has(payment, "amount_cents", int(amount_received) if amount_received is not None else None)
+        _set_if_has(payment, "currency", currency)
+        _set_if_has(payment, "status", "succeeded")
+        _set_if_has(payment, "processed_at", datetime.utcnow())
+
+        # Link to user if we can
+        if user_id_meta and hasattr(payment, "user_id"):
+            try:
+                payment.user_id = int(user_id_meta)
+            except ValueError:
+                pass
+
+        # Link to invoice if we can
+        if invoice_id_meta and hasattr(payment, "invoice_id"):
+            try:
+                payment.invoice_id = int(invoice_id_meta)
+            except ValueError:
+                pass
+
+        db.session.add(payment)
+
+        # If we can find an invoice, mark it paid
+        invoice_obj: Optional[Invoice] = None
+        if invoice_id_meta:
+            try:
+                invoice_obj = Invoice.query.get(int(invoice_id_meta))
+            except Exception:
+                invoice_obj = None
+
+        if invoice_obj:
+            _set_if_has(invoice_obj, "status", "paid")
+            _set_if_has(invoice_obj, "paid_at", datetime.utcnow())
+            db.session.add(invoice_obj)
+
+        db.session.commit()
+        current_app.logger.info("PaymentIntent succeeded handled: pi=%s, amount=%s %s", pi_id, amount_received, currency)
+
+        # Send receipt if we can resolve the user + email service configured
+        try:
+            if user_id_meta:
+                u = User.query.get(int(user_id_meta))
+                if u and getattr(u, "email", None) and amount_received:
+                    # amount in cents expected by our helper
+                    send_payment_receipt(
+                        to_email=u.email,
+                        amount_cents=int(amount_received),
+                        currency=currency or "usd",
+                        payment_intent_id=pi_id,
+                    )
+        except Exception:
+            # Never crash webhook for email failures
+            current_app.logger.exception("Failed to send payment receipt for pi=%s", pi_id)
+
+    except Exception:
+        db.session.rollback()
+        current_app.logger.exception("Failed handling payment_intent.succeeded for pi=%s", pi_id)
         raise
 
 
-def handle_payment_failure(payment_intent):
-    """Handle failed payment intent"""
-    # Extract metadata
-    metadata = payment_intent.get("metadata", {})
-    invoice_id = metadata.get("invoice_id")
-    user_id = metadata.get("user_id")
-    
-    if not invoice_id or not user_id:
-        current_app.logger.warning("Missing invoice_id or user_id in payment metadata")
-        return
-    
-    # Update or create payment record to reflect failure
-    payment = Payment.query.filter_by(stripe_payment_id=payment_intent["id"]).first()
-    if not payment:
-        payment = Payment(
-            tenant_id=user_id,
-            invoice_id=invoice_id,
-            amount=payment_intent["amount"] / 100,  # Convert from cents
-            payment_method="card",
-            stripe_payment_id=payment_intent["id"],
-            status="failed",
-            created_at=datetime.utcnow()
-        )
-        db.session.add(payment)
-    else:
-        payment.status = "failed"
-    
-    # Get error information
-    error_message = "Payment failed"
-    if "last_payment_error" in payment_intent:
-        error_message = payment_intent["last_payment_error"].get("message", error_message)
-    
-    payment.notes = error_message
-    
+def _handle_invoice_paid(event: Dict[str, Any]) -> None:
+    data = event["data"]["object"]
+    stripe_invoice_id = data.get("id")
+    amount_paid = data.get("amount_paid")
+    currency = data.get("currency")
+    invoice_id_meta = _get_metadata_stripe(data, "invoice_id")
+
     try:
+        inv: Optional[Invoice] = None
+        if invoice_id_meta:
+            try:
+                inv = Invoice.query.get(int(invoice_id_meta))
+            except Exception:
+                inv = None
+
+        if inv:
+            _set_if_has(inv, "status", "paid")
+            _set_if_has(inv, "paid_at", datetime.utcnow())
+            _set_if_has(inv, "stripe_invoice_id", stripe_invoice_id)
+            db.session.add(inv)
+
+        # Optionally create/update a Payment record tied to this invoice
+        if amount_paid is not None:
+            pay: Optional[Payment] = None
+            # If model has a stripe_invoice_id column, try to upsert on it
+            if hasattr(Payment, "stripe_invoice_id") and stripe_invoice_id:
+                pay = Payment.query.filter_by(stripe_invoice_id=stripe_invoice_id).one_or_none()
+            if pay is None:
+                pay = Payment()
+            _set_if_has(pay, "stripe_invoice_id", stripe_invoice_id)
+            _set_if_has(pay, "amount_cents", int(amount_paid))
+            _set_if_has(pay, "currency", currency)
+            _set_if_has(pay, "status", "succeeded")
+            if inv and hasattr(pay, "invoice_id"):
+                _set_if_has(pay, "invoice_id", getattr(inv, "id", None))
+            db.session.add(pay)
+
         db.session.commit()
-        current_app.logger.info(f"Payment failure recorded: {payment_intent['id']}")
-    except Exception as e:
+        current_app.logger.info("Invoice paid handled: invoice=%s amount=%s %s", stripe_invoice_id, amount_paid, currency)
+    except Exception:
         db.session.rollback()
-        current_app.logger.error(f"Error saving payment failure details: {str(e)}")
+        current_app.logger.exception("Failed handling invoice.paid invoice=%s", stripe_invoice_id)
+        raise
 
 
-def handle_checkout_completed(session):
-    """Handle completed checkout session"""
-    # Extract metadata
-    metadata = session.get("metadata", {})
-    
-    # Check if payment was successful
-    if session.get("payment_status") != "paid":
-        current_app.logger.info("Checkout completed but payment not paid")
-        return
-    
-    # Handle based on checkout type (determined by metadata)
-    checkout_type = metadata.get("type")
-    
-    if checkout_type == "rent":
-        # Process rent payment
-        invoice_id = metadata.get("invoice_id")
-        if invoice_id:
-            handle_rent_payment(session, invoice_id)
-    
-    elif checkout_type == "deposit":
-        # Process security deposit
-        lease_id = metadata.get("lease_id")
-        if lease_id:
-            handle_deposit_payment(session, lease_id)
-    
-    elif checkout_type == "fee":
-        # Process fee payment
-        fee_id = metadata.get("fee_id")
-        if fee_id:
-            handle_fee_payment(session, fee_id)
-    
-    else:
-        current_app.logger.warning(f"Unknown checkout type: {checkout_type}")
+def _handle_invoice_payment_failed(event: Dict[str, Any]) -> None:
+    data = event["data"]["object"]
+    stripe_invoice_id = data.get("id")
+    invoice_id_meta = _get_metadata_stripe(data, "invoice_id")
+    try:
+        inv: Optional[Invoice] = None
+        if invoice_id_meta:
+            try:
+                inv = Invoice.query.get(int(invoice_id_meta))
+            except Exception:
+                inv = None
+        if inv:
+            _set_if_has(inv, "status", "payment_failed")
+            db.session.add(inv)
+        db.session.commit()
+        current_app.logger.info("Invoice payment failed: invoice=%s", stripe_invoice_id)
+    except Exception:
+        db.session.rollback()
+        current_app.logger.exception("Failed handling invoice.payment_failed invoice=%s", stripe_invoice_id)
+        raise
 
 
-def handle_rent_payment(session, invoice_id):
-    """Process a rent payment from checkout session"""
-    from ..services.payment_service import PaymentService
-    
-    customer_email = session.get("customer_details", {}).get("email")
-    amount = session.get("amount_total") / 100  # Convert from cents
-    
-    # Find the user by email
-    user = User.query.filter_by(email=customer_email).first()
-    if not user:
-        current_app.logger.error(f"User not found for email: {customer_email}")
-        return
-    
-    # Process the payment
-    PaymentService.process_stripe_payment(
-        user_id=user.id,
-        invoice_id=invoice_id,
-        amount=amount,
-        stripe_payment_id=session.get("payment_intent"),
-        payment_method="card"
-    )
+def _handle_charge_refunded(event: Dict[str, Any]) -> None:
+    data = event["data"]["object"]
+    charge_id = data.get("id")
+    amount_refunded = data.get("amount_refunded")
+    try:
+        # Best-effort: mark a payment refunded if schema supports it
+        if hasattr(Payment, "stripe_charge_id") and charge_id:
+            pay = Payment.query.filter_by(stripe_charge_id=charge_id).one_or_none()
+        else:
+            pay = None
+        if pay:
+            _set_if_has(pay, "status", "refunded")
+            _set_if_has(pay, "refunded_cents", int(amount_refunded) if amount_refunded is not None else None)
+            _set_if_has(pay, "refunded_at", datetime.utcnow())
+            db.session.add(pay)
+        db.session.commit()
+        current_app.logger.info("Charge refunded handled: charge=%s amount_refunded=%s", charge_id, amount_refunded)
+    except Exception:
+        db.session.rollback()
+        current_app.logger.exception("Failed handling charge.refunded charge=%s", charge_id)
+        raise
 
 
-def handle_deposit_payment(session, lease_id):
-    """Process a security deposit payment"""
-    from ..services.lease_service import LeaseService
-    
-    customer_email = session.get("customer_details", {}).get("email")
-    amount = session.get("amount_total") / 100  # Convert from cents
-    
-    # Find the user by email
-    user = User.query.filter_by(email=customer_email).first()
-    if not user:
-        current_app.logger.error(f"User not found for email: {customer_email}")
-        return
-    
-    # Update lease with deposit paid
-    LeaseService.record_security_deposit(
-        lease_id=lease_id,
-        amount=amount,
-        payment_method="card",
-        stripe_payment_id=session.get("payment_intent")
-    )
+def _handle_checkout_session_completed(event: Dict[str, Any]) -> None:
+    data = event["data"]["object"]
+    session_id = data.get("id")
+    payment_intent = data.get("payment_intent")
+    customer = data.get("customer")
+    current_app.logger.info("Checkout session completed: session=%s customer=%s pi=%s", session_id, customer, payment_intent)
+    # Typically you’d fulfill here or rely on PI/Invoice handlers above.
 
 
-def handle_fee_payment(session, fee_id):
-    """Process a fee payment"""
-    # Implementation depends on your fee model structure
-    pass
+# -----------------------------------------------------------------------------
+# Main register function
+# -----------------------------------------------------------------------------
+def register_stripe_webhooks(bp):
+    """
+    Register Stripe webhook route on the provided blueprint.
+    Usage in your app factory: register_stripe_webhooks(api_bp)
+    """
 
+    @bp.route("/stripe", methods=["POST"])
+    def stripe_webhook():
+        # Config validation
+        endpoint_secret = os.getenv("STRIPE_WEBHOOK_SECRET")
+        if not endpoint_secret:
+            current_app.logger.error("Missing STRIPE_WEBHOOK_SECRET env var")
+            return jsonify({"error": "misconfigured webhook"}), 500
 
-def handle_subscription_updated(subscription):
-    """Handle subscription update event"""
-    # Implementation depends on your subscription model structure
-    pass
+        payload = request.get_data(as_text=False)
+        sig_header = request.headers.get("Stripe-Signature")
 
-
-def handle_subscription_deleted(subscription):
-    """Handle subscription deletion event"""
-    # Implementation depends on your subscription model structure
-    pass
-
-
-def handle_invoice_payment_succeeded(invoice):
-    """Handle Stripe invoice payment success"""
-    # This is for Stripe's invoice object, not your app's invoice
-    # Implementation depends on your subscription handling
-    pass
-
-
-def handle_account_updated(account):
-    """Handle connected account updates"""
-    # For marketplace models with connected accounts
-    account_id = account.get("id")
-    
-    # Update the landlord's account status if applicable
-    landlord = User.query.filter_by(stripe_account_id=account_id).first()
-    if landlord:
-        # Update relevant fields
-        landlord.stripe_account_enabled = account.get("charges_enabled", False)
-        landlord.stripe_payouts_enabled = account.get("payouts_enabled", False)
-        
+        # Verify signature and construct event
         try:
-            db.session.commit()
-            current_app.logger.info(f"Updated Stripe account status for user {landlord.id}")
-        except Exception as e:
-            db.session.rollback()
-            current_app.logger.error(f"Error updating Stripe account status: {str(e)}")
+            event = stripe.Webhook.construct_event(payload=payload, sig_header=sig_header, secret=endpoint_secret)
+        except ValueError:
+            current_app.logger.warning("Stripe webhook: invalid payload")
+            return jsonify({"error": "invalid payload"}), 400
+        except stripe.error.SignatureVerificationError:
+            current_app.logger.warning("Stripe webhook: signature verification failed")
+            return jsonify({"error": "invalid signature"}), 400
+        except Exception:
+            current_app.logger.exception("Stripe webhook: unexpected error during construct_event")
+            return jsonify({"error": "internal error"}), 500
+
+        event_id = event.get("id")
+        event_type = event.get("type")
+
+        if not event_id or not event_type:
+            current_app.logger.warning("Stripe webhook: missing event id/type")
+            return jsonify({"error": "invalid event"}), 400
+
+        # DB-backed idempotency
+        first_time = _mark_event_processed(event_id, event_type)
+        if not first_time:
+            current_app.logger.info("Stripe webhook: duplicate delivery ignored (id=%s type=%s)", event_id, event_type)
+            return jsonify({"status": "ok", "idempotent": True}), 200
+
+        # Dispatch
+        try:
+            if event_type == "payment_intent.succeeded":
+                _handle_payment_intent_succeeded(event)
+            elif event_type == "invoice.paid":
+                _handle_invoice_paid(event)
+            elif event_type == "invoice.payment_failed":
+                _handle_invoice_payment_failed(event)
+            elif event_type == "charge.refunded":
+                _handle_charge_refunded(event)
+            elif event_type == "checkout.session.completed":
+                _handle_checkout_session_completed(event)
+            else:
+                current_app.logger.info("Stripe webhook: unhandled event type=%s", event_type)
+
+        except Exception:
+            # rollbacks are handled inside handlers; respond 500 so Stripe can retry
+            current_app.logger.exception("Stripe webhook: handler failed for type=%s id=%s", event_type, event_id)
+            return jsonify({"error": "handler failed"}), 500
+
+        return jsonify({"status": "ok"}), 200

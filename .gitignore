@@ -1,9 +1,9 @@
-# macOS
+# --- macOS ---
 .DS_Store
 
-# Python
+# --- Python / Flask ---
 __pycache__/
-*.pyc
+*.py[cod]
 *.pyo
 *.pyd
 .venv/
@@ -11,22 +11,48 @@ venv/
 .env
 instance/
 *.db
+*.sqlite3
+*.egg-info/
+.eggs/
+.mypy_cache/
+.pytest_cache/
 .coverage
 coverage.xml
-.pytest_cache/
+htmlcov/
 
-# Node
+# --- Node / React ---
 node_modules/
 dist/
 build/
+.next/
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
-coverage/
+pnpm-debug.log*
+frontend/coverage/
+frontend/.env.local
+frontend/.env.development.local
+frontend/.env.test.local
+frontend/.env.production.local
 
-# Logs
+# --- Logs ---
 logs/
 *.log
 
-# Packaging
+# --- Packaging / Bundles ---
 *.egg-info/
+*.zip
+
+# --- CI / IDE ---
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# --- Docker / Deployment ---
+docker-compose.override.yml
+*.pid
+
+# --- Monitoring / Perf ---
+perf/results/
+monitoring/tmp/
