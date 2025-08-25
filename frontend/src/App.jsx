@@ -12,7 +12,10 @@ import MainLayout from './layouts/MainLayout';
 import { ProtectedRoute, PublicRoute, RoleRoute } from './routing/guards';
 
 // Loading Fallback
+
 import LoadingFallback from './components/LoadingFallback';
+import ErrorBoundary from './components/ErrorBoundary';
+import Toast from './components/Toast';
 
 // lazy pages
 const WelcomePage = React.lazy(() => import('./pages/WelcomePage'));
@@ -50,9 +53,6 @@ const ResetPassword = React.lazy(() => import('./pages/ResetPassword'));
 const VerifyEmail = React.lazy(() => import('./pages/VerifyEmail'));
 const RoutesIndex = React.lazy(() => import('./pages/RoutesIndex'));
 
-// Import the error boundary and toast components
-import ErrorBoundary from './components/ErrorBoundary';
-import Toast from './components/Toast';
 
 export default function App() {
   return (

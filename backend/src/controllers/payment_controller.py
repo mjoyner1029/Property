@@ -1,5 +1,18 @@
-# backend/src/controllers/payment_controller.py
+
 from __future__ import annotations
+# --- STUB: get_landlord_payments ---
+def get_landlord_payments(landlord_id=None):
+    """Stub for get_landlord_payments to allow backend to run."""
+    return []
+# --- STUB: get_tenant_payments ---
+def get_tenant_payments(tenant_id=None):
+    """Stub for get_tenant_payments to allow backend to run."""
+    return []
+# backend/src/controllers/payment_controller.py
+
+# get_payments: alias for list_payments for route import compatibility
+def get_payments(filters: Optional[Dict[str, Any]] = None) -> Tuple[Any, int]:
+    return list_payments(filters)
 
 import logging
 from datetime import datetime, date

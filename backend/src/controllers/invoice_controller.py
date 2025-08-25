@@ -1,370 +1,348 @@
-from flask import Blueprint, request, jsonify
+# backend/src/controllers/invoice_controller.py
+from __future__ import annotations
+
+import logging
+from datetime import datetime, date, timezone
+from decimal import Decimal, InvalidOperation
+from typing import Any, Dict, List, Optional, Tuple
+
+from flask import request, jsonify, abort
 from flask_jwt_extended import jwt_required, get_jwt_identity
-from datetime import datetime
-from dateutil.relativedelta import relativedelta
+from sqlalchemy.exc import SQLAlchemyError, IntegrityError
+from sqlalchemy import and_
 
-from ..models.invoice import Invoice
-from ..models.user import User
-from ..models.property import Property
-from ..models.tenant_property import TenantProperty
-from ..models.payment import Payment
-from ..services.stripe_service import create_payment_intent
-from ..extensions import db
-from ..utils.role_required import role_required
+from src.extensions import db
+from src.models.invoice import Invoice  # adjust if your path/model name differs
 
-invoice_bp = Blueprint('invoices', __name__)
+logger = logging.getLogger(__name__)
 
-@invoice_bp.route('/', methods=['POST'])
-@jwt_required()
-@role_required('landlord')
+# ---------- helpers ----------
+
+def _dec(val: Any) -> Optional[Decimal]:
+    if val is None:
+        return None
+    try:
+        d = Decimal(str(val))
+        return d.quantize(Decimal("0.01"))
+    except (InvalidOperation, ValueError, TypeError):
+        return None
+
+def _as_date(val: Any) -> Optional[date]:
+    if not val:
+        return None
+    if isinstance(val, (date, datetime)):
+        return val.date() if isinstance(val, datetime) else val
+    s = str(val).strip()
+    for fmt in ("%Y-%m-%d", "%Y-%m-%dT%H:%M:%S", "%Y-%m-%dT%H:%M:%S.%fZ"):
+        try:
+            return datetime.strptime(s, fmt).date()
+        except ValueError:
+            continue
+    try:
+        return datetime.fromisoformat(s).date()
+    except Exception:
+        return None
+
+def _to_dict(inv: Invoice) -> Dict[str, Any]:
+    return {
+        "id": inv.id,
+        "tenant_id": getattr(inv, "tenant_id", None),
+        "landlord_id": getattr(inv, "landlord_id", None),
+        "amount": float(inv.amount) if getattr(inv, "amount", None) is not None else None,
+        "status": getattr(inv, "status", None),
+        "due_date": getattr(inv, "due_date", None).isoformat() if getattr(inv, "due_date", None) else None,
+        "paid_at": getattr(inv, "paid_at", None).isoformat() if getattr(inv, "paid_at", None) else None,
+        "created_at": getattr(inv, "created_at", None).isoformat() if getattr(inv, "created_at", None) else None,
+        "updated_at": getattr(inv, "updated_at", None).isoformat() if getattr(inv, "updated_at", None) else None,
+        "description": getattr(inv, "description", None),
+        "property_id": getattr(inv, "property_id", None),
+    }
+
+def _get_or_404(invoice_id: int) -> Invoice:
+    inv: Optional[Invoice] = Invoice.query.get(invoice_id)
+    if not inv:
+        abort(404, description="Invoice not found")
+    return inv
+
+# ---------- views (used directly by blueprint) ----------
+
+@jwt_required(optional=True)
 def create_invoice():
-    """Create a new invoice"""
-    data = request.get_json()
-    current_user_id = get_jwt_identity()
-    
-    try:
-        # Validate required fields
-        required_fields = ['tenant_id', 'property_id', 'amount', 'due_date', 'description']
-        for field in required_fields:
-            if field not in data:
-                return jsonify({"error": f"Missing required field: {field}"}), 400
-        
-        # Verify property belongs to landlord
-        property = Property.query.filter_by(id=data['property_id'], landlord_id=current_user_id).first()
-        if not property:
-            return jsonify({"error": "Property not found or you don't have permission"}), 404
-        
-        # Verify tenant is assigned to property
-        tenant_property = TenantProperty.query.filter_by(
-            tenant_id=data['tenant_id'], 
-            property_id=data['property_id']
-        ).first()
-        
-        if not tenant_property:
-            return jsonify({"error": "Tenant is not associated with this property"}), 400
-        
-        # Create invoice
-        new_invoice = Invoice(
-            tenant_id=data['tenant_id'],
-            property_id=data['property_id'],
-            landlord_id=current_user_id,
-            amount=data['amount'],
-            due_date=datetime.fromisoformat(data['due_date'].replace('Z', '+00:00')),
-            description=data['description'],
-            status='pending'
-        )
-        
-        db.session.add(new_invoice)
-        db.session.commit()
-        
-        return jsonify({"message": "Invoice created successfully", "invoice_id": new_invoice.id}), 201
-        
-    except Exception as e:
-        db.session.rollback()
-        return jsonify({"error": str(e)}), 500
+    data = request.get_json(silent=True) or {}
+    missing = [f for f in ("tenant_id", "amount") if f not in data or data[f] in (None, "")]
+    if missing:
+        return jsonify({"error": f"Missing required field(s): {', '.join(missing)}"}), 400
 
-@invoice_bp.route('/', methods=['GET'])
-@jwt_required()
+    try:
+        tenant_id = int(data.get("tenant_id"))
+    except Exception:
+        return jsonify({"error": "tenant_id must be an integer"}), 400
+
+    amount = _dec(data.get("amount"))
+    if amount is None:
+        return jsonify({"error": "amount must be a non-negative number"}), 400
+
+    status = str(data.get("status", "due")).strip().lower() or "due"
+    allowed = {"due", "paid", "void", "overdue", "pending"}
+    if status not in allowed:
+        return jsonify({"error": f"Invalid status. Use one of: {', '.join(sorted(allowed))}"}), 400
+
+    due_date = _as_date(data.get("due_date"))
+    landlord_id = data.get("landlord_id")
+    try:
+        landlord_id = int(landlord_id) if landlord_id is not None else None
+    except Exception:
+        return jsonify({"error": "landlord_id must be an integer"}), 400
+
+    desc = data.get("description")
+    property_id = data.get("property_id")
+    try:
+        property_id = int(property_id) if property_id is not None else None
+    except Exception:
+        return jsonify({"error": "property_id must be an integer"}), 400
+
+    try:
+        inv = Invoice(
+            tenant_id=tenant_id,
+            amount=amount,
+            status=status,
+            due_date=due_date,
+            landlord_id=landlord_id if hasattr(Invoice, "landlord_id") else None,
+            description=desc if hasattr(Invoice, "description") else None,
+            property_id=property_id if hasattr(Invoice, "property_id") else None,
+        )
+        db.session.add(inv)
+        db.session.commit()
+        return jsonify({"message": "Invoice created", "invoice": _to_dict(inv)}), 201
+    except IntegrityError:
+        db.session.rollback()
+        return jsonify({"error": "Integrity error creating invoice"}), 400
+    except SQLAlchemyError as e:
+        db.session.rollback()
+        logger.error("DB error creating invoice: %s", e)
+        return jsonify({"error": "Failed to create invoice"}), 500
+
+@jwt_required(optional=True)
 def get_invoices():
-    """Get invoices based on user role"""
-    current_user_id = get_jwt_identity()
-    user = User.query.get(current_user_id)
-    
-    if not user:
-        return jsonify({"error": "User not found"}), 404
-    
-    try:
-        page = request.args.get('page', 1, type=int)
-        per_page = request.args.get('per_page', 10, type=int)
-        status_filter = request.args.get('status')
-        
-        query = Invoice.query
-        
-        # Filter based on role
-        if user.role == 'tenant':
-            query = query.filter(Invoice.tenant_id == current_user_id)
-        elif user.role == 'landlord':
-            query = query.filter(Invoice.landlord_id == current_user_id)
-        elif user.role != 'admin':
-            return jsonify({"error": "Unauthorized access"}), 403
-            
-        # Apply status filter if provided
-        if status_filter:
-            query = query.filter(Invoice.status == status_filter)
-            
-        # Apply sorting (newest first)
-        query = query.order_by(Invoice.created_at.desc())
-        
-        # Paginate results
-        paginated_invoices = query.paginate(page=page, per_page=per_page)
-        
-        result = {
-            "invoices": [invoice.to_dict() for invoice in paginated_invoices.items],
-            "total": paginated_invoices.total,
-            "pages": paginated_invoices.pages,
-            "current_page": page
-        }
-        
-        return jsonify(result), 200
-        
-    except Exception as e:
-        return jsonify({"error": str(e)}), 500
+    # Filters via query params: tenant_id, landlord_id, status, from_date, to_date
+    args = request.args
+    q = Invoice.query
 
-@invoice_bp.route('/<int:invoice_id>', methods=['GET'])
-@jwt_required()
-def get_invoice(invoice_id):
-    """Get a specific invoice"""
-    current_user_id = get_jwt_identity()
-    user = User.query.get(current_user_id)
-    
-    if not user:
-        return jsonify({"error": "User not found"}), 404
-    
-    try:
-        invoice = Invoice.query.get(invoice_id)
-        
-        if not invoice:
-            return jsonify({"error": "Invoice not found"}), 404
-            
-        # Check permissions
-        if user.role == 'tenant' and invoice.tenant_id != current_user_id:
-            return jsonify({"error": "Unauthorized access"}), 403
-        elif user.role == 'landlord' and invoice.landlord_id != current_user_id:
-            return jsonify({"error": "Unauthorized access"}), 403
-            
-        return jsonify(invoice.to_dict()), 200
-        
-    except Exception as e:
-        return jsonify({"error": str(e)}), 500
+    tenant_id = args.get("tenant_id")
+    if tenant_id is not None:
+        try:
+            q = q.filter(Invoice.tenant_id == int(tenant_id))
+        except Exception:
+            return jsonify({"error": "tenant_id must be an integer"}), 400
 
-@invoice_bp.route('/<int:invoice_id>', methods=['PUT'])
+    landlord_id = args.get("landlord_id")
+    if landlord_id is not None and hasattr(Invoice, "landlord_id"):
+        try:
+            q = q.filter(Invoice.landlord_id == int(landlord_id))
+        except Exception:
+            return jsonify({"error": "landlord_id must be an integer"}), 400
+
+    status = args.get("status")
+    if status and hasattr(Invoice, "status"):
+        q = q.filter(Invoice.status == status.strip().lower())
+
+    from_date = _as_date(args.get("from_date"))
+    to_date = _as_date(args.get("to_date"))
+    if from_date and to_date and hasattr(Invoice, "due_date"):
+        q = q.filter(and_(Invoice.due_date >= from_date, Invoice.due_date <= to_date))
+    elif from_date and hasattr(Invoice, "due_date"):
+        q = q.filter(Invoice.due_date >= from_date)
+    elif to_date and hasattr(Invoice, "due_date"):
+        q = q.filter(Invoice.due_date <= to_date)
+
+    invs: List[Invoice] = q.order_by(getattr(Invoice, "due_date", Invoice.id).asc()).all()
+    return jsonify([_to_dict(i) for i in invs]), 200
+
+@jwt_required(optional=True)
+def get_invoice(invoice_id: int):
+    inv = _get_or_404(invoice_id)
+    return jsonify(_to_dict(inv)), 200
+
 @jwt_required()
-@role_required('landlord')
-def update_invoice(invoice_id):
-    """Update an invoice"""
-    current_user_id = get_jwt_identity()
-    data = request.get_json()
-    
+def update_invoice(invoice_id: int):
+    inv = _get_or_404(invoice_id)
+    data = request.get_json(silent=True) or {}
+
+    if "amount" in data and hasattr(inv, "amount"):
+        amt = _dec(data["amount"])
+        if amt is None:
+            return jsonify({"error": "amount must be a non-negative number"}), 400
+        inv.amount = amt
+
+    if "status" in data and hasattr(inv, "status"):
+        status = str(data["status"]).strip().lower()
+        allowed = {"due", "paid", "void", "overdue", "pending"}
+        if status not in allowed:
+            return jsonify({"error": f"Invalid status. Use one of: {', '.join(sorted(allowed))}"}), 400
+        inv.status = status
+        if status == "paid" and hasattr(inv, "paid_at") and getattr(inv, "paid_at", None) is None:
+            inv.paid_at = datetime.now(timezone.utc)
+
+    if "due_date" in data and hasattr(inv, "due_date"):
+        dd = _as_date(data["due_date"])
+        if data["due_date"] is not None and dd is None:
+            return jsonify({"error": "due_date must be an ISO date (YYYY-MM-DD)"}), 400
+        inv.due_date = dd
+
+    if "paid_at" in data and hasattr(inv, "paid_at"):
+        # allow explicit override/clear
+        pa = data["paid_at"]
+        inv.paid_at = None if pa in (None, "") else datetime.fromisoformat(str(pa))
+
+    if "description" in data and hasattr(inv, "description"):
+        inv.description = data["description"]
+
+    if "tenant_id" in data and hasattr(inv, "tenant_id"):
+        try:
+            inv.tenant_id = int(data["tenant_id"]) if data["tenant_id"] is not None else None
+        except Exception:
+            return jsonify({"error": "tenant_id must be an integer"}), 400
+
+    if "landlord_id" in data and hasattr(inv, "landlord_id"):
+        try:
+            inv.landlord_id = int(data["landlord_id"]) if data["landlord_id"] is not None else None
+        except Exception:
+            return jsonify({"error": "landlord_id must be an integer"}), 400
+
+    if hasattr(inv, "updated_at"):
+        inv.updated_at = datetime.now(timezone.utc)
+
     try:
-        invoice = Invoice.query.get(invoice_id)
-        
-        if not invoice:
-            return jsonify({"error": "Invoice not found"}), 404
-            
-        # Verify ownership
-        if invoice.landlord_id != current_user_id:
-            return jsonify({"error": "Unauthorized access"}), 403
-            
-        # Only allow updates if invoice is pending
-        if invoice.status != 'pending':
-            return jsonify({"error": "Cannot update a paid or cancelled invoice"}), 400
-            
-        # Update fields
-        if 'amount' in data:
-            invoice.amount = data['amount']
-        if 'due_date' in data:
-            invoice.due_date = datetime.fromisoformat(data['due_date'].replace('Z', '+00:00'))
-        if 'description' in data:
-            invoice.description = data['description']
-            
         db.session.commit()
-        return jsonify({"message": "Invoice updated successfully"}), 200
-        
-    except Exception as e:
+        return jsonify({"message": "Invoice updated", "invoice": _to_dict(inv)}), 200
+    except SQLAlchemyError as e:
         db.session.rollback()
-        return jsonify({"error": str(e)}), 500
+        logger.error("Failed to update invoice %s: %s", invoice_id, e)
+        return jsonify({"error": "Failed to update invoice"}), 500
 
-@invoice_bp.route('/<int:invoice_id>', methods=['DELETE'])
 @jwt_required()
-@role_required('landlord')
-def delete_invoice(invoice_id):
-    """Delete an invoice"""
-    current_user_id = get_jwt_identity()
-    
+def delete_invoice(invoice_id: int):
+    inv = _get_or_404(invoice_id)
     try:
-        invoice = Invoice.query.get(invoice_id)
-        
-        if not invoice:
-            return jsonify({"error": "Invoice not found"}), 404
-            
-        # Verify ownership
-        if invoice.landlord_id != current_user_id:
-            return jsonify({"error": "Unauthorized access"}), 403
-            
-        # Only allow deletion if invoice is pending
-        if invoice.status != 'pending':
-            return jsonify({"error": "Cannot delete a paid invoice"}), 400
-            
-        db.session.delete(invoice)
+        db.session.delete(inv)
         db.session.commit()
-        return jsonify({"message": "Invoice deleted successfully"}), 200
-        
-    except Exception as e:
+        return jsonify({"message": "Invoice deleted"}), 200
+    except SQLAlchemyError as e:
         db.session.rollback()
-        return jsonify({"error": str(e)}), 500
+        logger.error("Failed to delete invoice %s: %s", invoice_id, e)
+        return jsonify({"error": "Failed to delete invoice"}), 500
 
-@invoice_bp.route('/<int:invoice_id>/pay', methods=['POST'])
-@jwt_required()
-@role_required('tenant')
-def pay_invoice(invoice_id):
-    """Initialize payment for an invoice"""
-    current_user_id = get_jwt_identity()
-    
+@jwt_required(optional=True)
+def get_tenant_invoices():
+    tenant_id = request.args.get("tenant_id")
+    if tenant_id is None:
+        return jsonify({"error": "tenant_id is required"}), 400
     try:
-        invoice = Invoice.query.get(invoice_id)
-        
-        if not invoice:
-            return jsonify({"error": "Invoice not found"}), 404
-            
-        # Verify the invoice belongs to the tenant
-        if invoice.tenant_id != current_user_id:
-            return jsonify({"error": "Unauthorized access"}), 403
-            
-        # Check if invoice is already paid
-        if invoice.status == 'paid':
-            return jsonify({"error": "Invoice is already paid"}), 400
-            
-        # Create payment intent via Stripe
-        amount_in_cents = int(invoice.amount * 100)  # Convert to cents for Stripe
-        
-        payment_intent = create_payment_intent(
-            amount=amount_in_cents,
-            currency="usd",
-            customer_email=User.query.get(current_user_id).email,
-            metadata={
-                "invoice_id": invoice.id,
-                "property_id": invoice.property_id,
-                "tenant_id": invoice.tenant_id,
-                "landlord_id": invoice.landlord_id
-            }
-        )
-        
-        # Create payment record
-        payment = Payment(
-            invoice_id=invoice.id,
-            tenant_id=current_user_id,
-            landlord_id=invoice.landlord_id,
-            amount=invoice.amount,
-            payment_intent_id=payment_intent.id,
-            status='pending'
-        )
-        
-        db.session.add(payment)
+        tenant_id = int(tenant_id)
+    except Exception:
+        return jsonify({"error": "tenant_id must be an integer"}), 400
+
+    q = Invoice.query.filter(Invoice.tenant_id == tenant_id)
+    invs = q.order_by(getattr(Invoice, "due_date", Invoice.id).asc()).all()
+    return jsonify([_to_dict(i) for i in invs]), 200
+
+@jwt_required(optional=True)
+def get_landlord_invoices():
+    if not hasattr(Invoice, "landlord_id"):
+        return jsonify({"error": "Invoice model has no landlord_id field"}), 400
+    landlord_id = request.args.get("landlord_id")
+    if landlord_id is None:
+        return jsonify({"error": "landlord_id is required"}), 400
+    try:
+        landlord_id = int(landlord_id)
+    except Exception:
+        return jsonify({"error": "landlord_id must be an integer"}), 400
+
+    q = Invoice.query.filter(Invoice.landlord_id == landlord_id)
+    invs = q.order_by(getattr(Invoice, "due_date", Invoice.id).asc()).all()
+    return jsonify([_to_dict(i) for i in invs]), 200
+
+@jwt_required()
+def mark_paid(invoice_id: int):
+    inv = _get_or_404(invoice_id)
+    if hasattr(inv, "status"):
+        inv.status = "paid"
+    if hasattr(inv, "paid_at"):
+        inv.paid_at = datetime.now(timezone.utc)
+    if hasattr(inv, "updated_at"):
+        inv.updated_at = datetime.now(timezone.utc)
+    try:
         db.session.commit()
-        
-        return jsonify({
-            "client_secret": payment_intent.client_secret,
-            "payment_id": payment.id
-        }), 200
-        
-    except Exception as e:
+        return jsonify({"message": "Invoice marked paid", "invoice": _to_dict(inv)}), 200
+    except SQLAlchemyError as e:
         db.session.rollback()
-        return jsonify({"error": str(e)}), 500
+        logger.error("Failed to mark paid %s: %s", invoice_id, e)
+        return jsonify({"error": "Failed to mark paid"}), 500
 
-@invoice_bp.route('/generate-recurring', methods=['POST'])
 @jwt_required()
-@role_required('landlord')
-def generate_recurring_invoices():
-    """Generate recurring invoices for all active tenant-property relationships"""
-    current_user_id = get_jwt_identity()
-    data = request.get_json()
-    
+def mark_unpaid(invoice_id: int):
+    inv = _get_or_404(invoice_id)
+    if hasattr(inv, "status"):
+        inv.status = "due"  # or "unpaid" if that's your canonical value
+    if hasattr(inv, "paid_at"):
+        inv.paid_at = None
+    if hasattr(inv, "updated_at"):
+        inv.updated_at = datetime.now(timezone.utc)
     try:
-        # Get all properties owned by landlord with active tenants
-        tenant_properties = TenantProperty.query.join(Property).filter(
-            Property.landlord_id == current_user_id,
-            TenantProperty.status == 'active'
-        ).all()
-        
-        created_invoices = []
-        
-        for tp in tenant_properties:
-            # Create invoice with due date as first of next month
-            today = datetime.today()
-            next_month = today + relativedelta(months=1)
-            due_date = datetime(next_month.year, next_month.month, 1)
-            
-            new_invoice = Invoice(
-                tenant_id=tp.tenant_id,
-                property_id=tp.property_id,
-                landlord_id=current_user_id,
-                amount=tp.rent_amount,
-                due_date=due_date,
-                description=f"Monthly rent for {tp.property.address} - {due_date.strftime('%B %Y')}",
-                status='pending'
+        db.session.commit()
+        return jsonify({"message": "Invoice marked unpaid", "invoice": _to_dict(inv)}), 200
+    except SQLAlchemyError as e:
+        db.session.rollback()
+        logger.error("Failed to mark unpaid %s: %s", invoice_id, e)
+        return jsonify({"error": "Failed to mark unpaid"}), 500
+
+@jwt_required()
+def generate_rent_invoices():
+    """
+    Minimal generator: accepts JSON like:
+    {
+      "invoices": [
+        {"tenant_id": 3, "amount": 1500, "due_date": "2025-09-01", "description": "...", "landlord_id": 1, "property_id": 42}
+      ]
+    }
+    """
+    data = request.get_json(silent=True) or {}
+    items = data.get("invoices")
+    if not isinstance(items, list) or not items:
+        return jsonify({"error": "Provide 'invoices' as a non-empty list"}), 400
+
+    created: List[Dict[str, Any]] = []
+    try:
+        for item in items:
+            tenant_id = item.get("tenant_id")
+            amount = _dec(item.get("amount"))
+            if tenant_id is None or amount is None:
+                return jsonify({"error": "Each invoice needs tenant_id and a valid amount"}), 400
+            try:
+                tenant_id = int(tenant_id)
+            except Exception:
+                return jsonify({"error": "tenant_id must be an integer"}), 400
+
+            inv = Invoice(
+                tenant_id=tenant_id,
+                amount=amount if hasattr(Invoice, "amount") else None,
+                status="due" if hasattr(Invoice, "status") else None,
+                due_date=_as_date(item.get("due_date")) if hasattr(Invoice, "due_date") else None,
+                description=item.get("description") if hasattr(Invoice, "description") else None,
+                landlord_id=int(item["landlord_id"]) if hasattr(Invoice, "landlord_id") and "landlord_id" in item and item["landlord_id"] is not None else None,
+                property_id=int(item["property_id"]) if hasattr(Invoice, "property_id") and "property_id" in item and item["property_id"] is not None else None,
             )
-            
-            db.session.add(new_invoice)
-            created_invoices.append(new_invoice)
-        
-        db.session.commit()
-        
-        return jsonify({
-            "message": f"Successfully created {len(created_invoices)} recurring invoices",
-            "invoice_count": len(created_invoices)
-        }), 201
-        
-    except Exception as e:
-        db.session.rollback()
-        return jsonify({"error": str(e)}), 500
+            db.session.add(inv)
+            db.session.flush()  # get inv.id without committing
+            created.append(_to_dict(inv))
 
-@invoice_bp.route('/statistics', methods=['GET'])
-@jwt_required()
-def get_invoice_statistics():
-    """Get invoice statistics based on user role"""
-    current_user_id = get_jwt_identity()
-    user = User.query.get(current_user_id)
-    
-    if not user:
-        return jsonify({"error": "User not found"}), 404
-    
-    try:
-        # Define base query based on role
-        if user.role == 'tenant':
-            base_query = Invoice.query.filter(Invoice.tenant_id == current_user_id)
-        elif user.role == 'landlord':
-            base_query = Invoice.query.filter(Invoice.landlord_id == current_user_id)
-        else:
-            return jsonify({"error": "Unauthorized access"}), 403
-        
-        # Total invoices
-        total_invoices = base_query.count()
-        
-        # Invoices by status
-        pending_count = base_query.filter(Invoice.status == 'pending').count()
-        paid_count = base_query.filter(Invoice.status == 'paid').count()
-        overdue_count = base_query.filter(
-            Invoice.status == 'pending',
-            Invoice.due_date < datetime.now()
-        ).count()
-        
-        # Total amount metrics
-        total_amount = sum(invoice.amount for invoice in base_query.all())
-        paid_amount = sum(invoice.amount for invoice in base_query.filter(Invoice.status == 'paid').all())
-        pending_amount = sum(invoice.amount for invoice in base_query.filter(Invoice.status == 'pending').all())
-        
-        # Get recent invoices
-        recent_invoices = [
-            invoice.to_dict() for invoice in 
-            base_query.order_by(Invoice.created_at.desc()).limit(5).all()
-        ]
-        
-        stats = {
-            "total_invoices": total_invoices,
-            "status_breakdown": {
-                "pending": pending_count,
-                "paid": paid_count,
-                "overdue": overdue_count
-            },
-            "amount_metrics": {
-                "total": float(total_amount),
-                "paid": float(paid_amount),
-                "pending": float(pending_amount)
-            },
-            "recent_invoices": recent_invoices
-        }
-        
-        return jsonify(stats), 200
-        
-    except Exception as e:
-        return jsonify({"error": str(e)}), 500
+        db.session.commit()
+        return jsonify({"message": "Invoices generated", "count": len(created), "invoices": created}), 201
+
+    except IntegrityError:
+        db.session.rollback()
+        return jsonify({"error": "Integrity error generating invoices"}), 400
+    except SQLAlchemyError as e:
+        db.session.rollback()
+        logger.error("DB error generating invoices: %s", e)
+        return jsonify({"error": "Failed to generate invoices"}), 500

@@ -1,3 +1,29 @@
+# Simple create_payment_intent wrapper for Stripe
+def create_payment_intent(amount, currency="usd", customer_email=None, metadata=None):
+    """
+    Create a Stripe PaymentIntent.
+    Args:
+        amount (int): Amount in cents
+        currency (str): Currency code (default: usd)
+        customer_email (str): Optional customer email
+        metadata (dict): Optional metadata
+    Returns:
+        stripe.PaymentIntent: The created PaymentIntent object
+    """
+    try:
+        params = {
+            "amount": amount,
+            "currency": currency,
+            "payment_method_types": ["card"],
+            "metadata": metadata or {},
+        }
+        if customer_email:
+            params["receipt_email"] = customer_email
+        intent = stripe.PaymentIntent.create(**params)
+        return intent
+    except stripe.error.StripeError as e:
+        logger.error(f"Stripe error creating payment intent: {str(e)}")
+        raise e
 import stripe
 import os
 import json
