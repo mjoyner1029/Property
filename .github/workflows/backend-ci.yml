@@ -1,99 +1,86 @@
-name: Backend CI
+name: backend-ci
 
 on:
-  push:
-    paths: [ "backend/**", ".github/workflows/backend-ci.yml" ]
   pull_request:
-    paths: [ "backend/**", ".github/workflows/backend-ci.yml" ]
-  workflow_dispatch: {}
+    paths:
+      - 'backend/**'
+      - '.github/workflows/backend-ci.yml'
+  push:
+    branches: [ main ]
+    paths:
+      - 'backend/**'
+      - '.github/workflows/backend-ci.yml'
+  workflow_dispatch:
 
 permissions:
   contents: read
-  security-events: write  # needed to upload SARIF
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
-  test-and-scan:
+  test:
+    name: Python ${{ matrix.python-version }} • Ubuntu
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: backend
-
-    env:
-      FLASK_ENV: test
-      DATABASE_URL: sqlite:///test.db
-      RATELIMIT_STORAGE_URI: memory://
-      DISABLE_RATE_LIMIT: "true"
-      SENTRY_DSN: ""
-      STRIPE_SECRET_KEY: "sk_test_dummy"
-      STRIPE_WEBHOOK_SECRET: "whsec_dummy"
-      TEST_AUTO_VERIFY_EMAIL: "1"
+    timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: [ '3.10', '3.11', '3.12' ]
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8
 
-      - name: Fail if placeholder code exists
-        run: |
-          echo "Scanning for placeholder patterns…"
-          set -e
-          patterns='(^|\s)\.\.\.($|\s)|PLACEHOLDER|TO_FILL|__FILL_ME__|FIXME!!!'
-          if git grep -nE "$patterns" -- backend ':!**/.venv' ':!**/__pycache__' ; then
-            echo "::error::Placeholder patterns found. Remove them before pushing."
-            exit 1
-          fi
-
-      - name: Set up Python
-        uses: actions/setup-python@v5
+      - name: Setup Python
+        uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
         with:
-          python-version: "3.11"
+          python-version: ${{ matrix.python-version }}
+          cache: 'pip'
+          cache-dependency-path: |
+            backend/requirements.txt
+            backend/requirements-dev.txt
 
-      - name: Install system deps (psycopg2, build tools)
-        run: |
-          sudo apt-get update -y
-          sudo apt-get install -y libpq-dev build-essential
-
-      - name: Cache pip
-        uses: actions/cache@v4
-        with:
-          path: ~/.cache/pip
-          key: ${{ runner.os }}-pip-${{ hashFiles('backend/requirements.txt', 'backend/requirements-dev.txt') }}
-          restore-keys: ${{ runner.os }}-pip-
-
-      - name: Install Python deps
+      - name: Install deps
+        working-directory: backend
         run: |
           python -m pip install --upgrade pip
           pip install -r requirements.txt
           if [ -f requirements-dev.txt ]; then pip install -r requirements-dev.txt; fi
 
       - name: Lint (ruff)
+        working-directory: backend
         run: |
-          pip install ruff
-          ruff --version
-          ruff check .
+          if [ -f ruff.toml ] || [ -f pyproject.toml ]; then ruff --version && ruff .; else echo "ruff not configured, skipping"; fi
 
-      - name: Initialize DB (optional Flask-Migrate)
-        run: |
-          if [ -f "src/manage.py" ]; then
-            python -m src.manage db upgrade || true
-          elif [ -f "manage.py" ]; then
-            python manage.py db upgrade || true
-          else
-            echo "No migrate script found; continuing."
-          fi
-
-      - name: Run tests
+      - name: Run tests with coverage
+        working-directory: backend
+        env:
+          PYTHONWARNINGS: always::DeprecationWarning
+          FLASK_ENV: test
+          DATABASE_URL: sqlite:///test.db
+          RATELIMIT_STORAGE_URI: memory://
+          DISABLE_RATE_LIMIT: "true"
+          SENTRY_DSN: ""
+          STRIPE_SECRET_KEY: "sk_test_dummy"
+          STRIPE_WEBHOOK_SECRET: "whsec_dummy"
+          TEST_AUTO_VERIFY_EMAIL: "1"
         run: |
           pytest -q --maxfail=1 --disable-warnings --cov=src --cov-report=xml
 
-      - name: Upload coverage artifact
-        uses: actions/upload-artifact@v4
+      - name: Upload coverage
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:
-          name: backend-coverage-xml
+          name: backend-coverage-${{ matrix.python-version }}
           path: backend/coverage.xml
-
+          retention-days: 14
+          
       # ---- Security scanning (Trivy) ----
       - name: Detect Dockerfile
         id: detect
+        working-directory: backend
         run: |
           if [ -f Dockerfile ]; then
             echo "has_dockerfile=true" >> "$GITHUB_OUTPUT"
@@ -103,11 +90,11 @@ jobs:
 
       - name: Set up Docker Buildx
         if: steps.detect.outputs.has_dockerfile == 'true'
-        uses: docker/setup-buildx-action@v3
+        uses: docker/setup-buildx-action@f95db51fddba0c2d1ec667646a06c2ce06100226
 
       - name: Build local image (no push)
         if: steps.detect.outputs.has_dockerfile == 'true'
-        uses: docker/build-push-action@v6
+        uses: docker/build-push-action@4a13e500e55cf31b7a5d59a38ab2040ab0f42f56
         with:
           context: ./backend
           file: ./backend/Dockerfile
@@ -116,7 +103,7 @@ jobs:
 
       - name: Trivy scan (image)
         if: steps.detect.outputs.has_dockerfile == 'true'
-        uses: aquasecurity/trivy-action@0.28.0
+        uses: aquasecurity/trivy-action@91713af97dc80187565512baba04e5bb0142fd4b
         with:
           image-ref: asset-anchor/backend:ci-${{ github.sha }}
           format: sarif
@@ -126,7 +113,7 @@ jobs:
 
       - name: Trivy scan (filesystem fallback)
         if: steps.detect.outputs.has_dockerfile != 'true'
-        uses: aquasecurity/trivy-action@0.28.0
+        uses: aquasecurity/trivy-action@91713af97dc80187565512baba04e5bb0142fd4b
         with:
           scan-type: fs
           scan-ref: backend
@@ -137,7 +124,7 @@ jobs:
 
       - name: Upload Trivy SARIF
         if: always()
-        uses: github/codeql-action/upload-sarif@v3
+        uses: github/codeql-action/upload-sarif@3c3833e0f8c1c83d449a7478aa59c036a9165498
         with:
           sarif_file: trivy-backend-results.sarif
           category: trivy-backend

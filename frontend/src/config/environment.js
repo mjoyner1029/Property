@@ -18,11 +18,6 @@ const getEnv = (key, defaultValue) => {
     return window.__ENV[key];
   }
   
-  // Check for Vite environment variables
-  if (import.meta?.env?.[`VITE_${key}`] !== undefined) {
-    return import.meta.env[`VITE_${key}`];
-  }
-  
   // Check for CRA environment variables
   if (process.env[`REACT_APP_${key}`] !== undefined) {
     return process.env[`REACT_APP_${key}`];
@@ -101,18 +96,6 @@ export const getEnvVarsByPrefix = (prefix) => {
       .filter(key => key.startsWith(prefix))
       .forEach(key => {
         result[key] = window.__ENV[key];
-      });
-  }
-  
-  // Get environment variables from Vite (build time)
-  if (import.meta?.env) {
-    Object.keys(import.meta.env)
-      .filter(key => key.startsWith(`VITE_${prefix}`))
-      .forEach(key => {
-        const cleanKey = key.replace(/^VITE_/, '');
-        if (!result[cleanKey]) {
-          result[cleanKey] = import.meta.env[key];
-        }
       });
   }
   

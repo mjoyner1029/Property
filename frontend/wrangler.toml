@@ -1,0 +1,35 @@
+name = "assetanchor-cdn"
+type = "dist"
+account_id = "your-cloudflare-account-id" # Replace with your Cloudflare account ID
+
+# The site section defines parameters unique to the site. These will take precedence over
+# top-level parameters of the same name.
+[site]
+  bucket = "./build"
+  entry-point = "workers-site"
+
+# The route section defines parameters for the routes your site uses.
+[site.routes]
+  pattern = "*assetanchor.io/*"
+  zone_name = "assetanchor.io"
+
+# Rules for a specific zone
+[site.routes.rules]
+  [site.routes.rules.cache]
+    browser_ttl = 86400 # Cache in browser for 1 day
+    edge_ttl = 604800   # Cache on edge for 1 week
+    serve_stale = true  # Serve stale content while revalidating
+
+# Custom headers for security and caching
+[site.headers]
+  [site.headers.default]
+    X-Frame-Options = "DENY"
+    X-XSS-Protection = "1; mode=block"
+    X-Content-Type-Options = "nosniff"
+    Referrer-Policy = "strict-origin-when-cross-origin"
+    Content-Security-Policy = "default-src 'self'; img-src 'self' data: https://api.assetanchor.io; style-src 'self' 'unsafe-inline'; script-src 'self'; connect-src 'self' https://api.assetanchor.io wss://api.assetanchor.io;"
+  
+  # Cache static assets longer
+  [site.headers.static]
+    pattern = "**/*.{js,css,png,jpg,jpeg,gif,webp,svg,woff,woff2,ttf,eot,ico}"
+    Cache-Control = "public, max-age=31536000" # Cache for 1 year

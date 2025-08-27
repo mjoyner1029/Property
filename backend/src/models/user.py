@@ -22,6 +22,13 @@ class User(db.Model):
     updated_at = db.Column(db.DateTime, default=datetime.now, onupdate=datetime.now)
     last_login = db.Column(db.DateTime)
     
+    # Account security fields
+    failed_login_attempts = db.Column(db.Integer, default=0)
+    locked_until = db.Column(db.DateTime, nullable=True)
+    mfa_enabled = db.Column(db.Boolean, default=False)
+    mfa_secret = db.Column(db.String(100), nullable=True)
+    mfa_backup_codes = db.Column(db.String(500), nullable=True)  # JSON encoded list of backup codes
+    
     def set_password(self, password):
         self.password = generate_password_hash(password)  # Changed from password_hash to password
         

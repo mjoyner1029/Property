@@ -9,7 +9,8 @@ from ..extensions import db, mail
 from werkzeug.security import generate_password_hash, check_password_hash
 from ..utils.jwt import create_access_token
 from ..utils.validators import validate_email_format, validate_password_strength
-from flask import current_app, url_for
+from ..utils.account_security import track_failed_login, check_account_lockout, reset_login_attempts
+from flask import current_app, url_for, request
 from flask_mail import Message
 
 logger = logging.getLogger(__name__)
@@ -42,11 +43,39 @@ def register_user(email, password, role, full_name):
 
 def authenticate_user(email, password):
     """Authenticate a user and return an access token."""
+    # Check for account lockout
+    lockout_status = check_account_lockout(email)
+    if lockout_status['locked']:
+        unlock_time = lockout_status.get('unlock_time')
+        minutes_left = round((unlock_time - datetime.utcnow()).total_seconds() / 60)
+        logger.warning(f"Login attempt for locked account: {email}")
+        return {
+            "error": f"Account is temporarily locked. Please try again in {minutes_left} minutes.",
+            "locked": True,
+            "unlock_time": unlock_time.isoformat() if unlock_time else None
+        }, 403
+    
+    # Check credentials
     user = User.query.filter_by(email=email).first()
     
     if not user or not user.check_password(password):
-        logger.warning(f"Failed login attempt for email: {email}")
+        # Track failed attempt
+        ip_address = request.remote_addr
+        track_status = track_failed_login(email, ip_address)
+        
+        # Return different message if this attempt triggered a lockout
+        if track_status.get('locked', False):
+            minutes = current_app.config.get('ACCOUNT_LOCKOUT_MINUTES', 15)
+            return {
+                "error": f"Too many failed attempts. Account locked for {minutes} minutes.",
+                "locked": True
+            }, 403
+            
+        logger.warning(f"Failed login attempt for email: {email}, attempts: {track_status.get('attempts', 1)}")
         return {"error": "Invalid credentials"}, 401
+        
+    # Reset failed login attempts on successful login
+    reset_login_attempts(email)
 
     if not user.is_verified:
         logger.warning(f"Login attempt with unverified email: {email}")

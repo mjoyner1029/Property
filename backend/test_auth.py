@@ -16,7 +16,7 @@ def app():
 def test_jwt_token_roundtrip(app):
     """Ensure JWT tokens can be created and decoded correctly."""
     # Create a token for a fake admin user
-    payload = {"user_id": 1, "role": "admin"}
+    payload = "user1"  # Using string for subject to avoid InvalidSubjectError
     token = create_access_token(identity=payload)
 
     assert isinstance(token, str)

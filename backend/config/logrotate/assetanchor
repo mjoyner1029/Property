@@ -1,0 +1,46 @@
+# Log rotation configuration for Asset Anchor
+# Place this file in /etc/logrotate.d/assetanchor
+
+/var/log/assetanchor/*.log {
+    daily
+    rotate 14
+    compress
+    delaycompress
+    missingok
+    notifempty
+    create 0640 www-data www-data
+    sharedscripts
+    postrotate
+        [ -s /var/run/assetanchor/assetanchor.pid ] && kill -USR1 $(cat /var/run/assetanchor/assetanchor.pid)
+    endscript
+}
+
+# Gunicorn specific log rotation
+/var/log/assetanchor/gunicorn/*.log {
+    daily
+    rotate 14
+    compress
+    delaycompress
+    missingok
+    notifempty
+    create 0640 www-data www-data
+    sharedscripts
+    postrotate
+        [ -s /var/run/gunicorn.pid ] && kill -USR1 $(cat /var/run/gunicorn.pid)
+    endscript
+}
+
+# Nginx access and error logs
+/var/log/nginx/assetanchor*.log {
+    daily
+    rotate 14
+    compress
+    delaycompress
+    missingok
+    notifempty
+    create 0640 www-data adm
+    sharedscripts
+    postrotate
+        [ -s /var/run/nginx.pid ] && kill -USR1 $(cat /var/run/nginx.pid)
+    endscript
+}

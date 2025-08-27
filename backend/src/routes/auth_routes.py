@@ -66,23 +66,80 @@ def login():
     email = (data.get("email") or "").lower().strip()
     password = data.get("password") or ""
     portal = data.get("portal")  # optional
+    mfa_code = data.get("mfa_code")  # Optional MFA code
 
     if not email or not password:
         return jsonify({"error": "Email and password are required"}), 400
 
+    # Check for account lockout status
+    from ..utils.account_security import check_account_lockout
+    lockout_status = check_account_lockout(email)
+    if lockout_status.get('locked', False):
+        unlock_time = lockout_status.get('unlock_time')
+        minutes_left = round((unlock_time - datetime.now(timezone.utc)).total_seconds() / 60)
+        return jsonify({
+            "error": f"Account is temporarily locked. Please try again in {minutes_left} minutes.",
+            "locked": True,
+            "unlock_time": unlock_time.isoformat() if unlock_time else None
+        }), 403
+
     user = User.query.filter_by(email=email).first()
     if not user or not user.check_password(password):
+        # Track failed attempt
+        from ..utils.account_security import track_failed_login
+        track_status = track_failed_login(email, request.remote_addr)
+        
+        # Return different message if this attempt triggered a lockout
+        if track_status.get('locked', False):
+            minutes = current_app.config.get('ACCOUNT_LOCKOUT_MINUTES', 15)
+            return jsonify({
+                "error": f"Too many failed attempts. Account locked for {minutes} minutes.",
+                "locked": True
+            }), 403
+            
         return jsonify({"error": "Invalid email or password"}), 401
 
     if not user.is_active:
         return jsonify({"error": "Account is inactive. Please contact support."}), 403
-
+        
+    # Check if MFA is enabled and handle verification
+    if user.mfa_enabled:
+        # If no MFA code provided, return a challenge response
+        if not mfa_code:
+            return jsonify({
+                "mfa_required": True,
+                "email": user.email,
+                "message": "MFA verification required"
+            }), 200
+        
+        # If MFA code is provided, verify it
+        from ..utils.mfa import MFAManager
+        mfa_manager = MFAManager(current_app)
+        
+        if not mfa_manager.verify_totp(user.mfa_secret, mfa_code):
+            # Check if it's a backup code
+            if user.mfa_backup_codes:
+                success, updated_codes = mfa_manager.verify_backup_code(user.mfa_backup_codes, mfa_code)
+                if success:
+                    user.mfa_backup_codes = updated_codes
+                    db.session.commit()
+                else:
+                    return jsonify({"error": "Invalid MFA code"}), 401
+            else:
+                return jsonify({"error": "Invalid MFA code"}), 401
+    
+    # Reset any failed login attempts
+    from ..utils.account_security import reset_login_attempts
+    reset_login_attempts(email)
+    
+    # Generate tokens
     access_token = create_access_token(
         identity=str(user.id),
         additional_claims={"role": user.role, "portal": portal or user.role},
     )
     refresh_token = create_refresh_token(identity=str(user.id))
 
+    # Update last login timestamp
     user.last_login = datetime.now(timezone.utc)
     db.session.commit()
 

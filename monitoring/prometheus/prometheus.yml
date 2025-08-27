@@ -1,36 +1,80 @@
 global:
-  scrape_interval: 15s
-  evaluation_interval: 15s
+  scrape_interval: 30s
+  evaluation_interval: 30s
+  scrape_timeout: 10s
+  external_labels:
+    cluster: ${CLUSTER_NAME}
+    environment: ${ENVIRONMENT}
 
 alerting:
   alertmanagers:
     - static_configs:
-        - targets:
-          # - alertmanager:9093
+        - targets: ["alertmanager:9093"]
 
 rule_files:
-  # - "first_rules.yml"
-  # - "second_rules.yml"
+  - "/etc/prometheus/rules/*.yml"
 
 scrape_configs:
   - job_name: "prometheus"
+    scrape_interval: 30s
     static_configs:
-      - targets: ["localhost:9090"]
+      - targets: ["prometheus:9090"]
 
-  - job_name: "backend"
-    metrics_path: /api/metrics
-    scrape_interval: 10s
+  - job_name: "node"
+    scrape_interval: 30s
     static_configs:
-      - targets: ["backend:5050"]
+      - targets: ["node-exporter:9100"]
+    relabel_configs:
+      - source_labels: [__address__]
+        target_label: instance
+
+  - job_name: "blackbox_http"
+    metrics_path: /probe
+    scrape_interval: 30s
+    params:
+      module: [http_2xx]
+    static_configs:
+      - targets:
+        - https://staging.assetanchor.io
+        - https://api-staging.assetanchor.io/health
+    relabel_configs:
+      - source_labels: [__address__]
+        target_label: __param_target
+      - source_labels: [__param_target]
+        target_label: instance
+      - target_label: __address__
+        replacement: blackbox-exporter:9115
 
   - job_name: "postgres"
+    scrape_interval: 30s
     static_configs:
-      - targets: ["db:9187"]
+      - targets: ["postgres-exporter:9187"]
+    metric_relabel_configs:
+      - source_labels: [datname]
+        regex: "template.*"
+        action: drop
 
   - job_name: "redis"
+    scrape_interval: 30s
     static_configs:
       - targets: ["redis:9121"]
 
-  - job_name: "node-exporter"
+  - job_name: "nginx"
+    scrape_interval: 30s
     static_configs:
-      - targets: ["node-exporter:9100"]
+      - targets: ["nginx-exporter:9113"]
+
+  - job_name: "app"
+    scrape_interval: 15s
+    honor_labels: true
+    scheme: http
+    metrics_path: "/api/metrics"
+    static_configs:
+      - targets: ["backend:5050"]
+    relabel_configs:
+      - source_labels: [__address__]
+        target_label: instance
+    metric_relabel_configs:
+      - source_labels: [path]
+        regex: ".+"
+        action: labeldrop

@@ -1,3 +1,11 @@
+"""
+DEPRECATED: This file is no longer used. 
+Use backend/src/utils/role_required.py instead, which has enhanced functionality 
+including proper logging, admin_required, landlord_required, and tenant_required decorators.
+
+This file is kept as a backup reference only and should be removed in future releases.
+"""
+
 from functools import wraps
 from flask_jwt_extended import verify_jwt_in_request, get_jwt
 from flask import jsonify

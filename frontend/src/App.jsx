@@ -9,7 +9,7 @@ import theme from './theme';
 import MainLayout from './layouts/MainLayout';
 
 // Route Guards
-import { ProtectedRoute, PublicRoute, RoleRoute } from './routing/guards';
+import { ProtectedRoute, PublicOnlyRoute as PublicRoute, RoleRoute } from './routing/guards';
 
 // Loading Fallback
 

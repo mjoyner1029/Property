@@ -6,7 +6,6 @@ const ENV = {
     // Runtime environment injection
     (typeof window !== 'undefined' && window.__ENV?.LOG_LEVEL) ||
     // Build-time environment
-    import.meta?.env?.VITE_LOG_LEVEL ||
     process.env.REACT_APP_LOG_LEVEL ||
     // Default based on environment
     (process.env.NODE_ENV === 'production' ? 'error' : 'debug')

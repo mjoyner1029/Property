@@ -28,9 +28,11 @@ talisman = Talisman()
 socketio = SocketIO()
 mail = Mail()
 limiter = Limiter(
-    get_remote_address,
+    key_func=get_remote_address,
     default_limits=["200 per day", "50 per hour"],
     storage_uri="memory://",
+    strategy="fixed-window",
+    headers_enabled=True
 )
 
 def init_extensions(app: Flask) -> None:
@@ -89,12 +91,26 @@ def _get_talisman_config(app: Flask) -> Dict[str, Any]:
     # Default production CSP directives
     csp_directives = {
         'default-src': ["'self'"],
-        'script-src': ["'self'", "'unsafe-inline'", "https://js.stripe.com"],
+        'script-src': ["'self'", "'unsafe-inline'", "https://js.stripe.com", "https://*.sentry.io"],
         'style-src': ["'self'", "'unsafe-inline'"],
-        'img-src': ["'self'", "data:", "https://stripe.com"],
-        'connect-src': ["'self'", "https://api.stripe.com"],
-        'frame-src': ["'self'", "https://js.stripe.com", "https://hooks.stripe.com"],
+        'img-src': ["'self'", "data:", "https://stripe.com", "https://*.stripe.com", "https://*.sentry.io"],
+        'connect-src': ["'self'", "https://api.stripe.com", "https://*.sentry.io"],
+        'frame-src': ["'self'", "https://js.stripe.com", "https://hooks.stripe.com", "https://*.stripe.com"],
+        'font-src': ["'self'", "data:"],
+        'object-src': ["'none'"],
+        'base-uri': ["'self'"],
+        'form-action': ["'self'", "https://api.stripe.com"],
+        'frame-ancestors': ["'none'"],
+        'upgrade-insecure-requests': "",
+        'block-all-mixed-content': "",
     }
+    
+    # Add extra domains from environment if configured
+    extra_csp_domains = app.config.get("EXTRA_CSP_DOMAINS")
+    if extra_csp_domains and isinstance(extra_csp_domains, dict):
+        for directive, domains in extra_csp_domains.items():
+            if directive in csp_directives and isinstance(domains, list):
+                csp_directives[directive].extend(domains)
     
     # In development, use a more permissive CSP
     if app.config.get("ENV") != "production":
@@ -103,13 +119,27 @@ def _get_talisman_config(app: Flask) -> Dict[str, Any]:
     return {
         "force_https": app.config.get("FORCE_HTTPS", True),
         "content_security_policy": csp_directives,
+        "content_security_policy_report_only": not app.config.get("CSP_ENFORCE", True),
+        "content_security_policy_report_uri": app.config.get("CSP_REPORT_URI"),
         # Allow frames for development tools in dev/test
         "frame_options": "DENY" if app.config.get("ENV") == "production" else None,
         # Force HTTPS for 1 year including subdomains
-        "strict_transport_security": True,
+        "strict_transport_security": "max-age=31536000; includeSubDomains; preload",
         "strict_transport_security_preload": True,
         "session_cookie_secure": app.config.get("SESSION_COOKIE_SECURE", True),
-        "session_cookie_http_only": True
+        "session_cookie_http_only": True,
+        "session_cookie_samesite": "Lax",
+        "referrer_policy": "strict-origin-when-cross-origin",
+        "feature_policy": {
+            "geolocation": "'none'",
+            "microphone": "'none'",
+            "camera": "'none'",
+            "payment": "'self'",
+        },
+        # X-Content-Type-Options to prevent MIME type sniffing
+        "x_content_type_options": True,
+        # X-XSS-Protection as an additional layer of protection
+        "x_xss_protection": True
     }
 
 
@@ -125,8 +155,20 @@ def _get_socketio_config(app: Flask) -> Dict[str, Any]:
 
 def _get_limiter_config(app: Flask) -> Dict[str, Any]:
     """Get configuration for Limiter extension."""
-    # Limiter init_app doesn't accept all the parameters that constructor does
-    return {}
+    return {
+        "default_limits": app.config.get("RATELIMIT_DEFAULT", ["200 per day", "50 per hour"]),
+        "storage_uri": app.config.get("RATELIMIT_STORAGE_URL", "memory://"),
+        "strategy": "fixed-window",  # Use fixed window strategy for better performance
+        "key_prefix": app.config.get("RATELIMIT_KEY_PREFIX", "assetanchor-limiter"),
+        "headers_enabled": True,  # Add rate limit headers to responses
+        "header_name_mapping": {
+            "X-RateLimit-Limit": "X-RateLimit-Limit",
+            "X-RateLimit-Remaining": "X-RateLimit-Remaining",
+            "X-RateLimit-Reset": "X-RateLimit-Reset",
+            "Retry-After": "Retry-After"
+        },
+        "swallow_errors": app.config.get("ENV") == "production",  # Don't let rate limit issues break the app in production
+    }
 
 
 def _register_jwt_hooks(app: Flask) -> None:

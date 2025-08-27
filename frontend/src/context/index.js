@@ -1,4 +1,4 @@
-import { AuthProvider, useAuth, withAuth } from './AuthContext.jsx';
+import { AuthProvider, useAuth } from './AuthContext.jsx';
 import { ThemeProvider, useTheme } from './ThemeContext.jsx';
 import { NotificationProvider, useNotifications } from './NotificationContext.jsx';
 import { MaintenanceProvider, useMaintenance } from './MaintenanceContext.jsx';
@@ -32,7 +32,6 @@ export {
   CombinedProviders,
   AuthProvider,
   useAuth,
-  withAuth,
   ThemeProvider,
   useTheme,
   NotificationProvider,

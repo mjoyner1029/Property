@@ -161,7 +161,7 @@ const NavBar = () => {
             color="inherit"
             onClick={handleMenuOpen}
             sx={{ ml: 1 }}
-            aria-label="Account of current user"
+            aria-label="account of current user"
             aria-controls="menu-appbar"
             aria-haspopup="true"
           >

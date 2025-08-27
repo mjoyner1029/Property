@@ -10,7 +10,7 @@ import React, {
 import axios from "axios";
 import { useAuth } from "./AuthContext";
 
-const NotificationContext = createContext();
+export const NotificationContext = createContext();
 
 function getAuthHeaders() {
   const token = localStorage.getItem("token");

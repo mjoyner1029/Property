@@ -1,67 +1,59 @@
 import React from "react";
-import { Link as RouterLink } from "react-router-dom";
-import {
-  Box,
-  Typography,
-  Button,
-  Container,
-  Paper
-} from "@mui/material";
-import ErrorOutlineIcon from '@mui/icons-material/ErrorOutline';
+import { Link } from "react-router-dom";
+import { Box, Typography, Button, Container, Paper } from "@mui/material";
+import LockIcon from "@mui/icons-material/Lock";
 
-const Unauthorized = () => (
-  <Container maxWidth="sm">
-    <Box
-      sx={{
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'center',
-        justifyContent: 'center',
-        minHeight: '100vh',
-        py: 4
-      }}
-    >
-      <Paper
-        elevation={0}
-        sx={{
-          p: 4,
-          textAlign: 'center',
-          boxShadow: '0px 2px 8px rgba(0,0,0,0.05)',
-          borderRadius: 3,
-          width: '100%'
+/**
+ * Unauthorized component displayed when users attempt to access pages they don't have permission for
+ */
+export default function Unauthorized() {
+  return (
+    <Container maxWidth="sm" sx={{ mt: 8 }}>
+      <Paper 
+        elevation={3} 
+        sx={{ 
+          p: 4, 
+          display: "flex", 
+          flexDirection: "column", 
+          alignItems: "center",
+          borderRadius: 2
         }}
+        data-testid="unauthorized-page"
       >
-        <ErrorOutlineIcon 
+        <Box 
           sx={{ 
-            fontSize: 64, 
-            color: 'error.main',
-            mb: 2
-          }} 
-        />
+            backgroundColor: "error.light", 
+            borderRadius: "50%", 
+            p: 2, 
+            mb: 2 
+          }}
+        >
+          <LockIcon fontSize="large" sx={{ color: "white" }} />
+        </Box>
         
-        <Typography variant="h5" component="h1" fontWeight={600} gutterBottom>
+        <Typography variant="h4" component="h1" gutterBottom>
+          Access Denied
+        </Typography>
+        
+        <Typography variant="h6" component="h2" color="text.secondary" gutterBottom>
           Unauthorized Access
         </Typography>
         
-        <Typography variant="body1" color="text.secondary" sx={{ mb: 4 }}>
-          You don't have permission to view this page.
+        <Typography paragraph align="center" sx={{ mb: 3 }}>
+          You don't have permission to view this page. Please contact your administrator
+          if you believe this is an error.
         </Typography>
         
-        <Button
-          component={RouterLink}
-          to="/"
-          variant="contained"
-          sx={{ 
-            borderRadius: 2,
-            px: 4,
-            py: 1
-          }}
+        <Button 
+          variant="contained" 
+          component={Link} 
+          to="/" 
+          color="primary"
+          data-testid="back-to-home-button"
         >
-          Go to Dashboard
+          Back to Home
         </Button>
       </Paper>
-    </Box>
-  </Container>
-);
-
-export default Unauthorized;
+    </Container>
+  );
+}

@@ -85,7 +85,15 @@ class BaseConfig:
     CORS_ORIGINS = os.environ.get("CORS_ORIGINS", "*")
     
     # Database
-    SQLALCHEMY_DATABASE_URI = os.environ.get("DATABASE_URL", "sqlite:///dev.db")
+    import pathlib
+    BASE_DIR = pathlib.Path(__file__).resolve().parents[1]
+    INSTANCE_DIR = BASE_DIR / "instance"
+    INSTANCE_DIR.mkdir(exist_ok=True)
+
+    SQLALCHEMY_DATABASE_URI = os.environ.get(
+        "DATABASE_URL",
+        f"sqlite:///{INSTANCE_DIR / 'app.db'}"
+    )
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     
     # JWT
@@ -126,6 +134,9 @@ class BaseConfig:
     # Security
     FORCE_HTTPS = get_env_bool("FORCE_HTTPS", True)
     SESSION_COOKIE_SECURE = get_env_bool("SESSION_COOKIE_SECURE", True)
+    CSP_ENFORCE = get_env_bool("CSP_ENFORCE", True)
+    CSP_REPORT_URI = get_env("CSP_REPORT_URI", "")
+    EXTRA_CSP_DOMAINS = get_env_dict("EXTRA_CSP_DOMAINS", {})
     
     # Uploads
     UPLOAD_FOLDER = os.environ.get("UPLOAD_FOLDER", "uploads")
@@ -136,14 +147,40 @@ class DevelopmentConfig(BaseConfig):
     """Development configuration"""
     DEBUG = True
     ENV = "development"
+    
+    # Security settings relaxed for development
     FORCE_HTTPS = False
     SESSION_COOKIE_SECURE = False
+    
     # Use absolute path for SQLite database to avoid path issues
     SQLALCHEMY_DATABASE_URI = os.environ.get(
         "DATABASE_URL", 
         "sqlite:///" + os.path.abspath(os.path.join(os.path.dirname(os.path.dirname(__file__)), "instance", "dev.db"))
     )
+    
+    # Longer token expiration for development convenience
     JWT_ACCESS_TOKEN_EXPIRES = 60 * 60 * 24 * 7  # 7 days in dev
+    
+    # Development-specific settings
+    LOG_LEVEL = os.environ.get("LOG_LEVEL", "DEBUG")
+    LOG_REQUESTS = True  # Log all requests in development
+    SQLALCHEMY_ECHO = get_env_bool("SQLALCHEMY_ECHO", False)  # SQL query logging
+    
+    # Development password policy (less strict)
+    PASSWORD_MIN_LENGTH = 8
+    PASSWORD_REQUIRE_UPPERCASE = False
+    PASSWORD_REQUIRE_LOWERCASE = False
+    PASSWORD_REQUIRE_NUMBERS = False
+    PASSWORD_REQUIRE_SPECIAL = False
+    
+    # Sentry performance monitoring - higher sampling in dev
+    SENTRY_TRACES_SAMPLE_RATE = 0.5  # 50% in development
+    SENTRY_PROFILES_SAMPLE_RATE = 0.1  # 10% in development
+    
+    # Account security for development
+    ACCOUNT_LOCKOUT_MAX_ATTEMPTS = 10
+    ACCOUNT_LOCKOUT_WINDOW_MINUTES = 5
+    ACCOUNT_LOCKOUT_DURATION_MINUTES = 5
 
 
 class TestingConfig(BaseConfig):
@@ -151,12 +188,41 @@ class TestingConfig(BaseConfig):
     TESTING = True
     DEBUG = True
     ENV = "testing"
+    
+    # Security settings relaxed for testing
     FORCE_HTTPS = False
     SESSION_COOKIE_SECURE = False
+    
+    # Use in-memory database for tests by default
     SQLALCHEMY_DATABASE_URI = os.environ.get("TEST_DATABASE_URL", "sqlite:///:memory:")
+    
+    # Test-specific Flask settings
     PRESERVE_CONTEXT_ON_EXCEPTION = False
+    WTF_CSRF_ENABLED = False
+    
+    # Disable rate limiting in tests
     RATELIMIT_ENABLED = False
+    
+    # Short token expiration for tests
     JWT_ACCESS_TOKEN_EXPIRES = 60  # Short expiration for tests
+    
+    # Fast account lockout for testing that feature
+    ACCOUNT_LOCKOUT_MAX_ATTEMPTS = 3
+    ACCOUNT_LOCKOUT_WINDOW_MINUTES = 1
+    ACCOUNT_LOCKOUT_DURATION_MINUTES = 1
+    
+    # Disable Sentry in tests
+    SENTRY_DSN = None
+    
+    # Minimal password requirements for faster tests
+    PASSWORD_MIN_LENGTH = 4
+    PASSWORD_REQUIRE_UPPERCASE = False
+    PASSWORD_REQUIRE_LOWERCASE = False
+    PASSWORD_REQUIRE_NUMBERS = False
+    PASSWORD_REQUIRE_SPECIAL = False
+    
+    # No asset compilation in tests
+    ASSETS_DEBUG = True
 
 
 class ProductionConfig(BaseConfig):
@@ -164,13 +230,109 @@ class ProductionConfig(BaseConfig):
     ENV = "production"
     DEBUG = False
     
-    # These should be set in environment variables
-    SECRET_KEY = os.environ.get("SECRET_KEY")  # Will raise error if not set
-    JWT_SECRET_KEY = os.environ.get("JWT_SECRET_KEY")  # Will raise error if not set
+    # Required environment variables in production
+    required_vars = [
+        "SECRET_KEY", "JWT_SECRET_KEY", "DATABASE_URL", "CORS_ORIGINS",
+        "STRIPE_SECRET_KEY", "STRIPE_WEBHOOK_SECRET", "SENTRY_DSN"
+    ]
     
-    # Security
+    def __init__(self):
+        """Validate that required environment variables are set in production."""
+        missing = []
+        for var in self.required_vars:
+            if not os.environ.get(var):
+                missing.append(var)
+        
+        if missing:
+            raise ValueError(
+                f"Missing required environment variables for production: {', '.join(missing)}"
+            )
+            
+        # Validate security configuration
+        self._validate_security_config()
+            
+    def _validate_security_config(self):
+        """Validate security-related configuration"""
+        warnings = []
+        errors = []
+        
+        # Check secret key length
+        secret_key = os.environ.get("SECRET_KEY", "")
+        if len(secret_key) < 32:
+            errors.append("SECRET_KEY is too short (< 32 characters)")
+        
+        jwt_secret_key = os.environ.get("JWT_SECRET_KEY", "")
+        if len(jwt_secret_key) < 32:
+            errors.append("JWT_SECRET_KEY is too short (< 32 characters)")
+            
+        # Check if SECRET_KEY and JWT_SECRET_KEY are the same (bad practice)
+        if secret_key and jwt_secret_key and secret_key == jwt_secret_key:
+            warnings.append("SECRET_KEY and JWT_SECRET_KEY should be different values")
+            
+        # Check CORS origins
+        cors_origins = os.environ.get("CORS_ORIGINS", "")
+        if cors_origins == "*":
+            errors.append("CORS_ORIGINS is set to wildcard '*', which is unsafe in production")
+            
+        # Check for recommended environment variables
+        recommended_vars = ["MAIL_USERNAME", "MAIL_PASSWORD", "MAIL_DEFAULT_SENDER"]
+        missing_recommended = [var for var in recommended_vars if not os.environ.get(var)]
+        if missing_recommended:
+            warnings.append(f"Missing recommended environment variables: {', '.join(missing_recommended)}")
+            
+        # Raise exception if critical security errors found
+        if errors:
+            raise ValueError(f"Security configuration errors: {'; '.join(errors)}")
+            
+        # Log warnings but continue
+        if warnings:
+            import logging
+            logger = logging.getLogger(__name__)
+            for warning in warnings:
+                logger.warning(f"Security warning: {warning}")
+            
+    # Override settings for production
+    SECRET_KEY = os.environ.get("SECRET_KEY")  # Validated in __init__
+    JWT_SECRET_KEY = os.environ.get("JWT_SECRET_KEY")  # Validated in __init__
+    SQLALCHEMY_DATABASE_URI = os.environ.get("DATABASE_URL")  # Validated in __init__
+    
+    # Security settings
     FORCE_HTTPS = True
     SESSION_COOKIE_SECURE = True
+    CORS_ORIGINS = os.environ.get("CORS_ORIGINS", "https://assetanchor.io,https://www.assetanchor.io")
+    CSP_ENFORCE = get_env_bool("CSP_ENFORCE", True)
+    CSP_REPORT_URI = get_env("CSP_REPORT_URI", "")
+    
+    # Strong password policy
+    PASSWORD_MIN_LENGTH = 12
+    PASSWORD_REQUIRE_UPPERCASE = True
+    PASSWORD_REQUIRE_LOWERCASE = True
+    PASSWORD_REQUIRE_NUMBERS = True
+    PASSWORD_REQUIRE_SPECIAL = True
+    
+    # Account security
+    ACCOUNT_LOCKOUT_MAX_ATTEMPTS = 5
+    ACCOUNT_LOCKOUT_WINDOW_MINUTES = 15
+    ACCOUNT_LOCKOUT_DURATION_MINUTES = 30
+    
+    # JWT settings for production
+    JWT_ACCESS_TOKEN_EXPIRES = 60 * 60  # 1 hour in production
+    JWT_REFRESH_TOKEN_EXPIRES = 60 * 60 * 24 * 7  # 7 days in production
+    JWT_COOKIE_SECURE = True
+    JWT_COOKIE_CSRF_PROTECT = True
+    JWT_COOKIE_SAMESITE = "Lax"
+    
+    # Rate limiting
+    RATELIMIT_DEFAULT = ["3000 per day", "1000 per hour", "100 per minute"]
+    RATELIMIT_STORAGE_URL = os.environ.get("REDIS_URL", "memory://")
+    
+    # Sentry performance monitoring
+    SENTRY_TRACES_SAMPLE_RATE = 0.05  # 5% in production
+    SENTRY_PROFILES_SAMPLE_RATE = 0.01  # 1% in production
+    
+    # Logging
+    LOG_LEVEL = os.environ.get("LOG_LEVEL", "INFO")
+    LOG_REQUESTS = get_env_bool("LOG_REQUESTS", False)  # Don't log all requests in prod by default
 
 
 # Configuration dictionary
@@ -192,9 +354,23 @@ def get_config(config_name: Optional[str] = None) -> BaseConfig:
     
     Returns:
         Configuration class
+    
+    Raises:
+        ValueError: If required environment variables are missing in production
     """
     if config_name is None:
         config_name = os.environ.get("APP_ENV", "development")
     
-    # Get config from dictionary, default to development
-    return config_dict.get(config_name, config_dict["default"])
+    # Get config class from dictionary, default to development
+    config_class = config_dict.get(config_name, config_dict["default"])
+    
+    # For production configs, we need to instantiate to trigger validation
+    if config_name == "production":
+        try:
+            return config_class()
+        except ValueError as e:
+            # Re-raise with additional information
+            raise ValueError(f"Production configuration error: {str(e)}") from e
+    
+    # For other environments, just return the class
+    return config_class

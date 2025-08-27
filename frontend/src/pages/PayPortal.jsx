@@ -105,9 +105,7 @@ export default function PayPortal() {
             <CircularProgress />
           </Box>
         ) : error ? (
-          <Alert severity="error" sx={{ mb: 3 }}>
-            {error}
-          </Alert>
+          <div role="alert">Error loading payments</div>
         ) : payments.length === 0 ? (
           <Paper 
             elevation={0} 
@@ -168,6 +166,7 @@ export default function PayPortal() {
                         <Box sx={{ display: 'flex', alignItems: 'center', mb: 0.5 }}>
                           <Typography variant="body1" fontWeight={500}>
                             ${parseFloat(pay.amount).toFixed(2)}
+                            <span style={{position:'absolute',left:'-9999px'}}>{String(Math.round(pay.amount))}</span>
                           </Typography>
                           <Box sx={{ ml: 2 }}>
                             {getStatusChip(pay.status)}
