@@ -36,14 +36,19 @@ def app() -> Flask:
     app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///:memory:"
     app.config["TESTING"] = True
     
-    # Disable rate limiting for tests
+    # Comprehensively disable rate limiting for tests
     app.config["RATELIMIT_ENABLED"] = False
     app.config["LIMITER_ENABLED"] = False
+    app.config["FLASK_LIMITER_ENABLED"] = False
     app.config["TESTING"] = True
     
     # Set extreme limits to avoid test failures
     app.config["RATELIMIT_DEFAULT"] = "10000 per second"
     app.config["RATELIMIT_STORAGE_URI"] = "memory://"
+    app.config["RATELIMIT_STORAGE_URL"] = "memory://"
+    app.config["RATELIMIT_IN_MEMORY_FALLBACK_ENABLED"] = True
+    app.config["RATELIMIT_APPLICATION"] = "10000 per second"
+    app.config["RATELIMIT_HEADERS_ENABLED"] = False
     
     # Force disable rate limiting in environment variables
     import os

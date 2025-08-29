@@ -69,6 +69,17 @@ def create_app(config_name: Optional[str] = None) -> Flask:
     # Configure ProxyFix for proper IP handling behind proxies
     configure_proxy_fix(app)
     
+    # For testing, completely disable rate limiting
+    if app.config.get("TESTING", False):
+        app.config["RATELIMIT_ENABLED"] = False
+        app.config["LIMITER_ENABLED"] = False
+        app.config["FLASK_LIMITER_ENABLED"] = False
+        app.config["RATELIMIT_STORAGE_URI"] = "memory://"
+        app.config["RATELIMIT_STORAGE_URL"] = "memory://"
+        app.config["RATELIMIT_DEFAULT"] = "10000 per second"
+        # Also disable potential environment vars that might affect rate limiting
+        os.environ["FLASK_LIMITER_ENABLED"] = "False"
+    
     # Initialize extensions with the app
     init_extensions(app)
 

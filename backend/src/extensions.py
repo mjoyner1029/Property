@@ -18,7 +18,7 @@ from __future__ import annotations
 import os
 from typing import Any, Dict, Optional
 
-from flask import Flask
+from flask import Flask, request
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
 from flask_jwt_extended import JWTManager
@@ -90,6 +90,7 @@ def init_extensions(app: Flask) -> None:
         app.config["RATELIMIT_APPLICATION"] = "1000000 per second"
         app.config["RATELIMIT_APPLICATION_EXPIRES"] = 300
         app.config["RATELIMIT_HEADERS_ENABLED"] = False
+        app.config["FLASK_LIMITER_ENABLED"] = False
         
         # Force limiter to recognize disabled state
         class MockLimiter:
@@ -104,26 +105,73 @@ def init_extensions(app: Flask) -> None:
                 
             def clear(self, *args, **kwargs):
                 pass
+                
+            def get_window_stats(self, *args, **kwargs):
+                return None
+                
+            def hit(self, *args, **kwargs):
+                return True
+                
+            def test(self, *args, **kwargs):
+                return True
+                
+            def get_view_rate_limit(self, *args, **kwargs):
+                return None
         
-        # Initialize limiter but with disabled functionality
-        limiter.init_app(app)
+        # Create a completely disabled limiter
+        class NoOpLimiter:
+            """A completely disabled limiter that does nothing"""
+            def __init__(self):
+                self.enabled = False
+
+            def init_app(self, *args, **kwargs):
+                pass
+
+            def limit(self, *args, **kwargs):
+                return lambda fn: fn
+                
+            def shared_limit(self, *args, **kwargs):
+                return lambda fn: fn
+
+            def exempt(self, *args, **kwargs):
+                return lambda fn: fn if callable(args[0]) else args[0]
+
+            def request_filter(self, *args, **kwargs):
+                return lambda fn: fn
+                
+            def reset(self):
+                pass
+                
+            def check(self, *args, **kwargs):
+                return True
+                
+            def get_application_limits(self, *args, **kwargs):
+                return []
+                
+            def get_window_stats(self, *args, **kwargs):
+                return None
+
+        # Replace the limiter with our no-op version
+        global limiter
+        limiter = NoOpLimiter()
         
-        # Replace the limiter's internal limiter with our mock
-        if hasattr(limiter, '_limiter'):
-            limiter._limiter = MockLimiter()
-        
-        # Ensure all decorators on views do nothing
-        limiter.limit = lambda *args, **kwargs: lambda fn: fn
-        limiter.exempt = lambda *args, **kwargs: lambda fn: fn if callable(args[0]) else args[0]
-        limiter.request_filter = lambda *args, **kwargs: lambda fn: fn
-        
-        # Apply to app context
+        # Set the limiter in the app extensions
         app.extensions['limiter'] = limiter
         
-        # Patch the key auth routes directly
-        for rule in app.url_map.iter_rules():
-            if "/api/auth/" in rule.rule:
-                limiter.exempt(rule.endpoint)
+        # Also add before_request handlers to ensure rate limiting is bypassed
+        @app.before_request
+        def _disable_rate_limiting():
+            request.environ.pop('flask_limiter.limits', None)
+            
+        # Override any potential limiter middleware in WSGI stack
+        def _no_op_limiter_middleware(app):
+            def middleware(environ, start_response):
+                return app(environ, start_response)
+            return middleware
+            
+        if hasattr(app, 'wsgi_app') and hasattr(app.wsgi_app, '__wrapped__'):
+            # Unwrap any limiter middleware
+            app.wsgi_app = app.wsgi_app.__wrapped__
         
         return  # Skip the rest of the setup for tests
     
@@ -231,10 +279,15 @@ def _get_limiter_config(app: Flask) -> Dict[str, Any]:
     # Flask-Limiter 3.x accepts different parameters in init_app than earlier versions
     # Most configuration is done at Limiter creation time or via app.config
     
-    # For tests, use a minimal configuration that doesn't do actual rate limiting
+    # For tests, use a configuration that completely disables rate limiting
     if app.config.get("TESTING", False):
         return {
-            "enabled": False  # Disable rate limiting in tests
+            "enabled": False,  # Disable rate limiting in tests
+            "storage_uri": "memory://",
+            "default_limits": ["10000 per second"],
+            "application_limits": ["10000 per second"],
+            "headers_enabled": False,
+            "swallow_errors": True
         }
     
     # For production, use Redis if configured, otherwise use memory storage
