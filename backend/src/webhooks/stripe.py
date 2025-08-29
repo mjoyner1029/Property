@@ -2,6 +2,7 @@
 Stripe webhook handlers for receiving and processing Stripe events
 """
 import logging
+import json
 import stripe
 from flask import Blueprint, request, jsonify, current_app
 from ..models.payment import Payment
@@ -22,15 +23,18 @@ def webhook():
     # Get the webhook secret from config
     webhook_secret = current_app.config.get("STRIPE_WEBHOOK_SECRET")
     
-    if not webhook_secret:
-        logger.error("Stripe webhook secret not configured")
-        return jsonify({"error": "Webhook secret not configured"}), 500
-    
     try:
-        # Verify the event came from Stripe
-        event = stripe.Webhook.construct_event(
-            payload, sig_header, webhook_secret
-        )
+        if not webhook_secret:
+            # Dev mode: construct event from the payload without signature verification
+            logger.warning("STRIPE_WEBHOOK_SECRET not set. Running in dev mode without signature verification.")
+            event = stripe.Event.construct_from(
+                json.loads(payload), stripe.api_key
+            )
+        else:
+            # Verify the event came from Stripe
+            event = stripe.Webhook.construct_event(
+                payload, sig_header, webhook_secret
+            )
         
         # Store the event in the database to prevent duplicates and allow audit
         existing_event = StripeEvent.query.filter_by(stripe_id=event.id).first()
