@@ -33,6 +33,14 @@ class Property(db.Model):
     def __repr__(self):
         return f"<Property id={self.id} landlord_id={self.landlord_id} name={self.name}>"
     
+    @property
+    def square_feet(self):
+        return getattr(self, "square_footage", None)
+        
+    @square_feet.setter
+    def square_feet(self, v):
+        setattr(self, "square_footage", v)
+    
     def to_dict(self):
         return {
             'id': self.id,
@@ -46,6 +54,7 @@ class Property(db.Model):
             'bedrooms': self.bedrooms,
             'bathrooms': self.bathrooms,
             'square_footage': self.square_footage,
+            'square_feet': self.square_footage,  # Add alias for API compatibility
             'year_built': self.year_built,
             'description': self.description,
             'amenities': self.amenities,

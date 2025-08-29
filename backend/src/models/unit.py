@@ -23,6 +23,14 @@ class Unit(db.Model):
     
     def __repr__(self):
         return f"<Unit {self.unit_number} at Property {self.property_id}>"
+        
+    @property
+    def square_feet(self):
+        return getattr(self, "size", None)
+        
+    @square_feet.setter
+    def square_feet(self, v):
+        setattr(self, "size", v)
     
     def to_dict(self):
         return {
@@ -30,6 +38,7 @@ class Unit(db.Model):
             'property_id': self.property_id,
             'unit_number': self.unit_number,
             'size': self.size,
+            'square_feet': self.size,  # Add alias for API compatibility
             'bedrooms': self.bedrooms,
             'bathrooms': self.bathrooms,
             'floor': self.floor,
