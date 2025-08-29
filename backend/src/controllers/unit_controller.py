@@ -18,7 +18,9 @@ unit_bp = Blueprint('units', __name__)
 def create_unit():
     """Create a new unit in a property"""
     data = request.get_json()
-    current_user_id = get_jwt_identity()
+    identity = get_jwt_identity()
+    # Normalize JWT identity to integer ID
+    current_user_id = int(identity) if not isinstance(identity, dict) else int(identity.get('id'))
     
     try:
         # Validate required fields

@@ -135,7 +135,9 @@ def login():
 @jwt_required(refresh=True)
 def refresh():
     """Refresh access token"""
-    current_user_id = get_jwt_identity()
+    identity = get_jwt_identity()
+    # Normalize JWT identity to integer ID
+    current_user_id = int(identity) if not isinstance(identity, dict) else int(identity.get('id'))
     access_token = create_access_token(identity=current_user_id)
     
     return jsonify({
@@ -160,7 +162,9 @@ def logout():
 @jwt_required()
 def get_current_user():
     """Get current user profile"""
-    current_user_id = get_jwt_identity()
+    identity = get_jwt_identity()
+    # Normalize JWT identity to integer ID
+    current_user_id = int(identity) if not isinstance(identity, dict) else int(identity.get('id'))
     
     try:
         user = User.query.get(current_user_id)

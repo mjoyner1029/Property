@@ -48,6 +48,9 @@ def create_app(config_name: Optional[str] = None) -> Flask:
         ValueError: If required configuration is missing in production
     """
     app = Flask(__name__)
+    
+    # Disable strict slashes to avoid 308 redirects when URLs differ only by trailing slash
+    app.url_map.strict_slashes = False
 
     # Load configuration
     try:

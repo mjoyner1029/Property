@@ -52,6 +52,11 @@ def app() -> Flask:
     # Disable account lockout for tests
     app.config["ACCOUNT_LOCKOUT_MAX_ATTEMPTS"] = 1000
     app.config["ACCOUNT_LOCKOUT_DURATION_MINUTES"] = 1
+    
+    # Enforce header-only JWT for consistent testing
+    app.config["JWT_TOKEN_LOCATION"] = ["headers"]
+    app.config["JWT_COOKIE_SECURE"] = False
+    app.config["JWT_COOKIE_CSRF_PROTECT"] = False
 
     with app.app_context():
         _db.create_all()

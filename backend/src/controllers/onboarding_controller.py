@@ -38,8 +38,11 @@ class OnboardingProgress:
 def start_onboarding():
     """Initialize the onboarding process for a user"""
     identity = get_jwt_identity()
-    # Handle both old and new JWT formats (dict and direct ID)
-    current_user_id = identity.get('id') if isinstance(identity, dict) else identity
+    # Normalize JWT identity to integer ID
+    if isinstance(identity, dict):
+        current_user_id = int(identity.get('id'))
+    else:
+        current_user_id = int(identity)
     
     # Print debugging info
     print(f"JWT identity: {identity}, type: {type(identity)}")
@@ -93,8 +96,11 @@ def start_onboarding():
 def complete_step(step_name):
     """Mark an onboarding step as completed"""
     identity = get_jwt_identity()
-    # Handle both old and new JWT formats (dict and direct ID)
-    current_user_id = identity.get('id') if isinstance(identity, dict) else identity
+    # Normalize JWT identity to integer ID
+    if isinstance(identity, dict):
+        current_user_id = int(identity.get('id'))
+    else:
+        current_user_id = int(identity)
     data = request.get_json()
     
     try:
@@ -294,8 +300,11 @@ def complete_step(step_name):
 def get_onboarding_status():
     """Get the current onboarding status for the user"""
     identity = get_jwt_identity()
-    # Handle both old and new JWT formats (dict and direct ID)
-    current_user_id = identity.get('id') if isinstance(identity, dict) else identity
+    # Normalize JWT identity to integer ID
+    if isinstance(identity, dict):
+        current_user_id = int(identity.get('id'))
+    else:
+        current_user_id = int(identity)
     
     try:
         # Get the user's role
@@ -368,7 +377,9 @@ def get_onboarding_status():
 @jwt_required()
 def skip_step(step_name):
     """Skip an onboarding step"""
-    current_user_id = get_jwt_identity()
+    identity = get_jwt_identity()
+    # Normalize JWT identity to integer ID
+    current_user_id = int(identity) if not isinstance(identity, dict) else int(identity.get('id'))
     
     try:
         # Get the user's role and current onboarding progress
@@ -435,7 +446,9 @@ def skip_step(step_name):
 @jwt_required()
 def reset_onboarding():
     """Reset the onboarding process for a user"""
-    current_user_id = get_jwt_identity()
+    identity = get_jwt_identity()
+    # Normalize JWT identity to integer ID
+    current_user_id = int(identity) if not isinstance(identity, dict) else int(identity.get('id'))
     
     try:
         # Get the user's role
@@ -485,7 +498,9 @@ def reset_onboarding():
 @jwt_required()
 def onboard_landlord():
     """Complete landlord onboarding in one step"""
-    current_user_id = get_jwt_identity()
+    identity = get_jwt_identity()
+    # Normalize JWT identity to integer ID
+    current_user_id = int(identity) if not isinstance(identity, dict) else int(identity.get('id'))
     data = request.get_json()
     
     try:
@@ -536,7 +551,9 @@ def onboard_landlord():
 @jwt_required()
 def onboard_tenant():
     """Complete tenant onboarding in one step"""
-    current_user_id = get_jwt_identity()
+    identity = get_jwt_identity()
+    # Normalize JWT identity to integer ID
+    current_user_id = int(identity) if not isinstance(identity, dict) else int(identity.get('id'))
     data = request.get_json()
     
     try:
