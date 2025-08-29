@@ -1,15 +1,14 @@
-from flask import Blueprint
+from flask import Blueprint, request
+from ..webhooks.stripe import bp as stripe_webhook_bp
+from ..webhooks.twilio import register_twilio_webhooks
 
-webhook_bp = Blueprint("webhook_bp", __name__, url_prefix="/api/webhooks")
+webhook_bp = Blueprint("webhook_bp", __name__, url_prefix="/webhooks")
 
-def register_stripe_webhooks(bp):
-    """Register stripe webhook routes"""
-    pass
+# Register the stripe webhook at /webhooks/stripe
+webhook_bp.register_blueprint(stripe_webhook_bp, url_prefix="/stripe")
 
-def register_twilio_webhooks(bp):
-    """Register twilio webhook routes"""
-    pass
-
-# Register routes
-register_stripe_webhooks(webhook_bp)
-register_twilio_webhooks(webhook_bp)
+# Register Twilio webhooks
+@webhook_bp.route('/twilio', methods=['POST'])
+def twilio_handler():
+    """Handle Twilio webhooks"""
+    return {'message': 'Twilio webhook received'}, 200

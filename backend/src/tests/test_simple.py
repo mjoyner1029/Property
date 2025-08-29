@@ -27,7 +27,7 @@ def test_app_creation(app):
 
 def test_health_endpoint(client):
     """Health endpoint should return 200 with expected structure."""
-    resp = client.get("/api/health")
+    resp = client.get("/api/health/")
     assert resp.status_code == 200
     data = resp.get_json()
     assert isinstance(data, dict)

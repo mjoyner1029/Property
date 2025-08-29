@@ -4,6 +4,8 @@ from src.extensions import db
 from src.models.landlord_profile import LandlordProfile
 from src.models.tenant_profile import TenantProfile
 from src.models.property import Property
+from src.models.property_code import PropertyCode
+from src.models.user import User
 from src.models.lease import Lease
 from ..controllers.onboarding_controller import (
     start_onboarding, complete_step, get_onboarding_status,
@@ -47,10 +49,74 @@ def onboard_landlord():
     return jsonify({"msg": "Landlord onboarding completed"}), 201
 
 @bp.route("/tenant", methods=["POST"])
-@jwt_required()
 def onboard_tenant():
-    user_id = get_jwt_identity()["id"]
     data = request.get_json()
+    property_code = data.get("property_code")
+    
+    # Handle property code onboarding (no JWT required)
+    if property_code:
+        # Validate the user data
+        name = data.get("name")
+        email = data.get("email")
+        password = data.get("password")
+        phone = data.get("phone")
+        
+        if not all([name, email, password, phone]):
+            return jsonify({"error": "Missing required fields"}), 400
+        
+        # Check if the property code exists and is valid
+        code_entry = PropertyCode.query.filter_by(code=property_code, active=True).first()
+        if not code_entry:
+            return jsonify({"error": "Invalid property code"}), 400
+            
+        # Check if email already exists
+        if User.query.filter_by(email=email).first():
+            return jsonify({"error": "Email already registered"}), 400
+            
+        # Create the user with tenant role
+        user = User(
+            name=name,
+            email=email,
+            password=password,  # Will be hashed by the model
+            role="tenant"
+        )
+        db.session.add(user)
+        db.session.flush()  # Get the user ID
+        
+        # Create tenant profile
+        profile = TenantProfile(
+            user_id=user.id,
+            phone=phone,
+            property_id=code_entry.property_id
+        )
+        db.session.add(profile)
+        
+        # Get the property for response
+        property = Property.query.get(code_entry.property_id)
+        
+        db.session.commit()
+        
+        return jsonify({
+            "message": "Tenant onboarded successfully",
+            "user": {
+                "id": user.id,
+                "name": user.name,
+                "email": user.email,
+                "role": user.role
+            },
+            "property": {
+                "id": property.id,
+                "name": property.name,
+                "address": property.address
+            }
+        }), 201
+    
+    # Regular tenant onboarding (JWT required)
+    try:
+        jwt_required()(lambda: None)()
+        user_id = get_jwt_identity()["id"]
+    except Exception:
+        return jsonify({"error": "Authentication required"}), 401
 
     phone = data.get("phone")
     property_id = data.get("property_id")
@@ -100,7 +166,7 @@ bp = Blueprint("onboard", __name__, url_prefix="/api/onboard")
 bp.route("/landlord", methods=["POST"])(onboard_landlord)
 bp.route("/tenant", methods=["POST"])(onboard_tenant)
 bp.route('/start', methods=['POST'])(start_onboarding)
-bp.route('/step/<step_name>', methods=['POST'])(complete_step)
+bp.route('/step/<step_name>', methods=['POST', 'PUT'])(complete_step)
 bp.route('/status', methods=['GET'])(get_onboarding_status)
 bp.route('/skip/<step_name>', methods=['POST'])(skip_step)
 bp.route('/reset', methods=['POST'])(reset_onboarding)

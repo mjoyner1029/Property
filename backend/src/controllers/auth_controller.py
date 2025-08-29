@@ -8,7 +8,7 @@ from ..models.user import User
 from ..extensions import db, mail
 from werkzeug.security import generate_password_hash, check_password_hash
 from ..utils.jwt import create_access_token
-from ..utils.validators import validate_email_format, validate_password_strength
+from ..utils.validators import validate_email, validate_password_strength
 from ..utils.account_security import track_failed_login, check_account_lockout, reset_login_attempts
 from flask import current_app, url_for, request
 from flask_mail import Message
@@ -18,7 +18,7 @@ logger = logging.getLogger(__name__)
 def register_user(email, password, role, full_name):
     """Register a new user in the Asset Anchor system."""
     # Input validation
-    if not validate_email_format(email):
+    if not validate_email(email):
         return {"error": "Invalid email format"}, 400
         
     if not validate_password_strength(password):
@@ -28,7 +28,7 @@ def register_user(email, password, role, full_name):
         logger.warning(f"Registration attempt with existing email: {email}")
         return {"error": "Email already exists"}, 400
 
-    user = User(email=email, role=role, full_name=full_name, is_verified=False, is_active=True)
+    user = User(email=email, role=role, name=full_name, is_verified=False)
     user.set_password(password)
     db.session.add(user)
     
@@ -94,12 +94,11 @@ def authenticate_user(email, password):
             "id": user.id,
             "email": user.email,
             "role": user.role,
-            "full_name": user.full_name
+            "full_name": user.name
         }
     }, 200
 def verify_email(token):
     """Verify a user's email using the token sent to their email"""
-    # Stub implementation to fix the import error
     user = User.query.filter_by(verification_token=token).first()
     if not user:
         logger.warning(f"Invalid verification token used: {token}")
@@ -107,6 +106,7 @@ def verify_email(token):
     
     user.is_verified = True
     user.verification_token = None
+    user.email_verified_at = datetime.utcnow()
     db.session.commit()
     logger.info(f"User verified email successfully: {user.email}")
     
@@ -115,7 +115,6 @@ def verify_email(token):
 
 def resend_verification(email):
     """Resend verification email to user"""
-    # Stub implementation to fix the import error
     user = User.query.filter_by(email=email).first()
     if not user:
         # Don't reveal that email doesn't exist (security)

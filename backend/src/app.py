@@ -81,6 +81,10 @@ def create_app(config_name: Optional[str] = None) -> Flask:
     # Log application startup
     app.logger.info(f"Application started with {app.config.get('ENV')} configuration")
 
+    # Force HTTPS in production
+    if app.config.get("ENV") == "production":
+        app.config['PREFERRED_URL_SCHEME'] = 'https'
+
     return app
 
 
@@ -127,12 +131,47 @@ def register_blueprints(app: Flask) -> None:
             blueprints.append((api_bp, f'{API_PREFIX}'))
         except Exception as e:
             app.logger.warning(f"Failed to load api_bp: {str(e)}")
+        
+        # User routes
+        try:
+            from .routes.user_routes import user_bp
+            blueprints.append((user_bp, f'{API_PREFIX}/users'))
+        except Exception as e:
+            app.logger.warning(f"Failed to load user_bp: {str(e)}")
+            
+        # Logs routes
+        try:
+            from .routes.logs_routes import logs_bp
+            blueprints.append((logs_bp, f'{API_PREFIX}/logs'))
+        except Exception as e:
+            app.logger.warning(f"Failed to load logs_bp: {str(e)}")
+            
+        # Document routes
+        try:
+            from .routes.document_routes import document_bp
+            blueprints.append((document_bp, f'{API_PREFIX}/documents'))
+        except Exception as e:
+            app.logger.warning(f"Failed to load document_bp: {str(e)}")
+            
+        # Onboarding routes
+        try:
+            from .routes.onboard_routes import bp as onboarding_bp
+            blueprints.append((onboarding_bp, f'{API_PREFIX}/onboard'))
+        except Exception as e:
+            app.logger.warning(f"Failed to load onboarding_bp: {str(e)}")
     
     # Property management
     if ENABLE_PROPERTIES:
         try:
             from .routes.property_routes import property_bp
             blueprints.append((property_bp, f'{API_PREFIX}/properties'))
+            
+            # Unit routes
+            try:
+                from .routes.unit_routes import unit_bp
+                blueprints.append((unit_bp, f'{API_PREFIX}/units'))
+            except Exception as e:
+                app.logger.warning(f"Failed to load unit_bp: {str(e)}")
         except Exception as e:
             app.logger.warning(f"Failed to load property_bp: {str(e)}")
     
@@ -144,17 +183,20 @@ def register_blueprints(app: Flask) -> None:
         except Exception as e:
             app.logger.warning(f"Failed to load tenant_bp: {str(e)}")
     
-    # Payment routes
+        # Payment routes
     if ENABLE_PAYMENTS:
         try:
             from .routes.payment_routes import payment_bp
             blueprints.append((payment_bp, f'{API_PREFIX}/payments'))
-            
-            # Stripe routes
-            from .routes.stripe_routes import stripe_bp
-            blueprints.append((stripe_bp, f'{API_PREFIX}/stripe'))
         except Exception as e:
             app.logger.warning(f"Failed to load payment routes: {str(e)}")
+        
+        # Stripe-specific routes - separated to avoid failing all payment routes if stripe fails
+        try:
+            from .routes.stripe_routes import bp
+            blueprints.append((bp, f'{API_PREFIX}/stripe'))
+        except Exception as e:
+            app.logger.warning(f"Failed to load stripe routes: {str(e)}")
     
     # Message routes
     if ENABLE_MESSAGES:
@@ -199,7 +241,7 @@ def register_blueprints(app: Flask) -> None:
     # Health check routes - Always enabled and at root level for monitoring
     try:
         from .routes.health_routes import health_bp
-        blueprints.append((health_bp, '/health'))
+        blueprints.append((health_bp, f'{API_PREFIX}/health'))
     except Exception as e:
         app.logger.error(f"Failed to load health_bp: {str(e)}")
     
@@ -210,13 +252,18 @@ def register_blueprints(app: Flask) -> None:
         
     # Log registration summary
     app.logger.info(f"Registered {len(blueprints)} blueprints")
+    
+    # Root route is defined in register_health_checks
 
 
 def register_error_handlers(app: Flask) -> None:
     """Register error handlers for various error types."""
     
-    # Import tracing utilities
+    # Import tracing utilities and required modules
     from .utils.tracing import initialize_request_context, clear_trace_context, log_with_context
+    from sqlalchemy.exc import SQLAlchemyError, DatabaseError
+    from werkzeug.exceptions import TooManyRequests, Unauthorized, Forbidden
+    import traceback
     
     # Generate a trace ID for request tracking
     @app.before_request
@@ -226,16 +273,16 @@ def register_error_handlers(app: Flask) -> None:
         trace_id = initialize_request_context()
         request.trace_id = trace_id
         
-        # Add trace ID to response headers for frontend correlation
-        @app.after_request
-        def add_trace_header(response):
-            response.headers['X-Trace-ID'] = trace_id
-            return response
-        
+        # Add Production Security Check
+        if app.config.get('ENV') == 'production':
+            # Force HTTPS in production
+            if not request.is_secure and not request.headers.get('X-Forwarded-Proto') == 'https':
+                app.logger.warning(f"Non-HTTPS request received in production: {request.url}")
+                
         # Log request details for debugging and audit trail
         if app.config.get('LOG_REQUESTS', False):
             # Don't log health check endpoints to reduce noise
-            if not request.path.startswith('/health'):
+            if not request.path.startswith('/health') and not request.path.startswith('/api/health'):
                 log_with_context(
                     f"Request: {request.method} {request.path}",
                     level='debug',
@@ -248,6 +295,27 @@ def register_error_handlers(app: Flask) -> None:
     @app.teardown_request
     def teardown_request(exception=None):
         clear_trace_context()
+    
+    # Add trace ID and security headers to response
+    @app.after_request
+    def add_response_headers(response):
+        """Add security and trace headers to responses."""
+        if hasattr(request, 'trace_id'):
+            response.headers['X-Trace-ID'] = request.trace_id
+        
+        # Add security headers if in production and not already set by Talisman
+        if app.config.get('ENV') == 'production':
+            if 'X-Content-Type-Options' not in response.headers:
+                response.headers['X-Content-Type-Options'] = 'nosniff'
+            if 'X-Frame-Options' not in response.headers:
+                response.headers['X-Frame-Options'] = 'DENY'
+            if 'X-XSS-Protection' not in response.headers:
+                response.headers['X-XSS-Protection'] = '1; mode=block'
+            if 'Cache-Control' not in response.headers and request.path != '/':
+                # Add Cache-Control header for API endpoints, excluding static assets
+                response.headers['Cache-Control'] = 'no-store, max-age=0'
+            
+        return response
     
     @app.errorhandler(HTTPException)
     def handle_http_exception(error):
@@ -264,9 +332,19 @@ def register_error_handlers(app: Flask) -> None:
             'error_name': error.name
         }
         
+        # Rate limiting errors are expected, so log at lower level
+        level = 'info' if isinstance(error, TooManyRequests) else 'warning'
+        
+        # Handle authentication/authorization errors with appropriate logging
+        if isinstance(error, (Unauthorized, Forbidden)):
+            # Add auth-specific context if available
+            if hasattr(request, 'jwt_claims'):
+                context_data['user_id'] = request.jwt_claims.get('sub')
+                context_data['scopes'] = request.jwt_claims.get('scopes', [])
+        
         log_with_context(
             f"HTTP Exception: {error.code} {error.name}",
-            level='warning',
+            level=level,
             **context_data
         )
         
@@ -278,6 +356,45 @@ def register_error_handlers(app: Flask) -> None:
             'trace_id': trace_id
         })
         response.status_code = error.code
+        return response
+    
+    @app.errorhandler(SQLAlchemyError)
+    def handle_database_error(error):
+        """Handle database errors with appropriate logging."""
+        trace_id = getattr(request, 'trace_id', str(uuid.uuid4()))
+        
+        # Log detailed error info but return generic message to user
+        context_data = {
+            'trace_id': trace_id,
+            'path': request.path,
+            'method': request.method,
+            'error_type': error.__class__.__name__
+        }
+        
+        # Get user ID from JWT if available
+        if hasattr(request, 'jwt_claims'):
+            context_data['user_id'] = request.jwt_claims.get('sub')
+        
+        # Log full error with stack trace for troubleshooting
+        app.logger.error(
+            f"Database error: {str(error)}",
+            extra=context_data,
+            exc_info=True  # Include stack trace
+        )
+        
+        # Don't leak sensitive information in production
+        if app.config.get('ENV') != 'production':
+            message = f"Database error: {str(error)}"
+        else:
+            message = "A database error occurred. Please try again later."
+        
+        response = jsonify({
+            'error': 'Database Error',
+            'message': message,
+            'status_code': 500,
+            'trace_id': trace_id
+        })
+        response.status_code = 500
         return response
 
     @app.errorhandler(Exception)
@@ -294,17 +411,24 @@ def register_error_handlers(app: Flask) -> None:
             'error_type': error.__class__.__name__
         }
         
-        # Use app.logger.exception to include stack trace
-        app.logger.exception(
+        # Get user ID from JWT if available
+        if hasattr(request, 'jwt_claims'):
+            context_data['user_id'] = request.jwt_claims.get('sub')
+        
+        # Get stack trace for better logging
+        stack_trace = traceback.format_exc()
+        
+        # Use app.logger.error with explicit stack trace in context
+        app.logger.error(
             f"Unhandled exception: {str(error)}",
-            extra=context_data
+            extra={**context_data, 'stack_trace': stack_trace}
         )
         
         # In development, include the error details
         if app.config.get('ENV') != 'production':
             message = str(error)
         else:
-            message = 'An unexpected error occurred'
+            message = 'An unexpected error occurred. Our team has been notified.'
         
         response = jsonify({
             'error': 'Internal Server Error',
@@ -381,6 +505,22 @@ def configure_proxy_fix(app: Flask) -> None:
 
 def register_health_checks(app: Flask) -> None:
     """Register health check endpoints."""
+    
+    @app.route('/')
+    def index():
+        """Root endpoint for the API."""
+        # Get dynamic feature flag statuses
+        ENABLE_DOCS = app.config.get('ENABLE_DOCS', False)
+        
+        return jsonify({
+            'name': 'Asset Anchor API',
+            'version': app.config.get('VERSION', 'unknown'),
+            'status': 'online',
+            'environment': app.config.get('ENV', 'unknown'),
+            'api_base_url': '/api',
+            'documentation': '/api/docs' if ENABLE_DOCS else None,
+            'health_check': '/api/health'
+        })
     
     @app.route('/health')
     def health():

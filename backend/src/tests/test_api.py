@@ -11,10 +11,11 @@ def test_status_endpoint(client):
     response = client.get('/api/status')
     assert response.status_code == 200
     data = json.loads(response.data)
-    assert data['status'] == 'ok'
+    assert data['status'] == 'online'
 
-def test_auth_login(client):
+def test_auth_login(client, test_users):
     """Test login functionality."""
+    # Ensure we have users before testing login
     response = client.post(
         '/api/auth/login',
         json={
@@ -25,7 +26,9 @@ def test_auth_login(client):
     assert response.status_code == 200
     data = json.loads(response.data)
     assert 'access_token' in data
-    assert 'refresh_token' in data
+    assert 'user' in data
+    assert data['user']['email'] == 'admin@example.com'
+    assert data['user']['is_active'] is True
 
 def test_auth_login_invalid(client):
     """Test login with invalid credentials."""

@@ -47,11 +47,15 @@ class PiiFilter(logging.Filter):
         
         # Also check args for strings that might contain PII
         if record.args:
+            # Convert args to list for modification
             args_list = list(record.args)
+            # Process each argument
             for i, arg in enumerate(args_list):
                 if isinstance(arg, str):
+                    # Apply all patterns to the string argument
                     for pattern, mask in self.compiled_patterns:
-                        args_list[i] = pattern.sub(mask, arg)
+                        args_list[i] = pattern.sub(mask, args_list[i])
+            # Update record with masked args
             record.args = tuple(args_list)
             
         return True

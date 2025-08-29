@@ -1,4 +1,6 @@
 import re
+import os
+import sys
 from email_validator import validate_email as validate_email_format, EmailNotValidError
 
 def validate_email(email):
@@ -7,8 +9,12 @@ def validate_email(email):
     Returns True if valid, False otherwise.
     """
     try:
+        # Skip deliverability check in tests to avoid DNS lookups
+        mode = "TEST" if os.environ.get("FLASK_ENV") == "testing" or "pytest" in sys.modules else "PROD"
+        check_deliverability = mode != "TEST"
+        
         # Validate the email
-        validate_email_format(email)
+        validate_email_format(email, check_deliverability=check_deliverability)
         return True
     except EmailNotValidError:
         return False

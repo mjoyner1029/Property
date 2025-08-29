@@ -3,11 +3,7 @@
 """
 Import and delegate to the canonical Stripe webhook implementation in src.webhooks.stripe
 """
-from flask import Blueprint
+from flask import Blueprint, request
 from ..webhooks.stripe import bp as stripe_bp
 
-bp = Blueprint("stripe_webhook_delegate", __name__)
-
-# Use the canonical implementation from webhooks.stripe
-# This file exists for backward compatibility and will delegate
-# to the canonical implementation.
+bp = stripe_bp  # Use the blueprint from the canonical implementation

@@ -78,7 +78,7 @@ class BaseConfig:
     DEBUG = False
     TESTING = False
     ENV = "development"  # Flask env
-    SECRET_KEY = os.environ.get("SECRET_KEY", secrets.token_hex(32))
+    SECRET_KEY = os.environ.get("SECRET_KEY") or secrets.token_hex(32)
     VERSION = os.environ.get("VERSION", "1.0.0")
     
     # CORS
@@ -90,16 +90,15 @@ class BaseConfig:
     INSTANCE_DIR = BASE_DIR / "instance"
     INSTANCE_DIR.mkdir(exist_ok=True)
 
-    SQLALCHEMY_DATABASE_URI = os.environ.get(
-        "DATABASE_URL",
+    SQLALCHEMY_DATABASE_URI = os.environ.get("DATABASE_URL") or (
         f"sqlite:///{INSTANCE_DIR / 'app.db'}"
     )
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     
     # JWT
-    JWT_SECRET_KEY = os.environ.get("JWT_SECRET_KEY", SECRET_KEY)
-    JWT_ACCESS_TOKEN_EXPIRES = 60 * 60 * 24  # 1 day
-    JWT_REFRESH_TOKEN_EXPIRES = 60 * 60 * 24 * 30  # 30 days
+    JWT_SECRET_KEY = os.environ.get("JWT_SECRET_KEY") or SECRET_KEY
+    JWT_ACCESS_TOKEN_EXPIRES = int(os.environ.get("JWT_ACCESS_TOKEN_EXPIRES", 60 * 60 * 24))  # 1 day default
+    JWT_REFRESH_TOKEN_EXPIRES = int(os.environ.get("JWT_REFRESH_TOKEN_EXPIRES", 60 * 60 * 24 * 30))  # 30 days default
     
     # Stripe
     STRIPE_SECRET_KEY = os.environ.get("STRIPE_SECRET_KEY", "")

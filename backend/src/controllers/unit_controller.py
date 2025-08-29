@@ -89,19 +89,29 @@ def get_units_by_property(property_id):
         if not property:
             return jsonify({"error": "Property not found"}), 404
             
-        # Check permissions
-        # Landlords can only view their own properties
-        if user.role == 'landlord' and property.landlord_id != current_user_id:
-            return jsonify({"error": "Unauthorized access"}), 403
+        print(f"DEBUG: user_id={current_user_id}, role={user.role}, property.landlord_id={property.landlord_id}")
         
+        # Check permissions
+        # Admin can view all properties
+        if user.role == 'admin':
+            pass  # Admin can view all properties
+        # Landlords can only view their own properties
+        elif user.role == 'landlord':
+            # Convert IDs to strings for safer comparison (handles integer/string mismatches)
+            if str(property.landlord_id) != str(current_user_id):
+                print(f"DEBUG: Landlord access denied: property.landlord_id={property.landlord_id}, user_id={current_user_id}")
+                return jsonify({"error": "Unauthorized access - landlord can only view own properties"}), 403
         # Tenants can only view properties they're associated with
-        if user.role == 'tenant':
+        elif user.role == 'tenant':
             tenant_property = TenantProperty.query.filter_by(
                 tenant_id=current_user_id,
                 property_id=property_id
             ).first()
             if not tenant_property:
-                return jsonify({"error": "Unauthorized access"}), 403
+                return jsonify({"error": "Unauthorized access - tenant not associated with property"}), 403
+        else:
+            # Unknown role
+            return jsonify({"error": "Unauthorized role"}), 403
         
         # Query units
         units = Unit.query.filter_by(property_id=property_id).all()
@@ -111,6 +121,9 @@ def get_units_by_property(property_id):
         return jsonify({"units": result}), 200
         
     except Exception as e:
+        import traceback
+        print(f"DEBUG ERROR: {str(e)}")
+        print(traceback.format_exc())
         return jsonify({"error": str(e)}), 500
 
 @unit_bp.route('/<int:unit_id>', methods=['GET'])
@@ -201,7 +214,8 @@ def update_unit(unit_id):
             
         db.session.commit()
         
-        return jsonify({"message": "Unit updated successfully"}), 200
+        # Return the updated unit as expected by the test
+        return jsonify({"unit": unit.to_dict()}), 200
         
     except SQLAlchemyError as e:
         db.session.rollback()

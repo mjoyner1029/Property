@@ -279,9 +279,6 @@ def get_pending_landlords():
 def create_stripe_account():
     """
     Create or initialize a Stripe Connect account for the landlord.
-
-    NOTE: This is a stubbed integration point. Replace placeholder logic with actual
-    Stripe Connect account creation and onboarding link generation. Keep the response shape.
     """
     current_user_id = get_jwt_identity()
 
@@ -294,29 +291,53 @@ def create_stripe_account():
         if acct and acct.account_id:
             return _error("Stripe account already exists", 400)
 
-        # TODO: Integrate with real Stripe Connect here:
-        #   - Create Account: stripe.Account.create(type="express", ...)
-        #   - Save account_id
-        #   - Create an AccountLink for onboarding and return the URL
-        placeholder_id = "acct_placeholder_connect_id"
+        # Get user information for creating the account
+        user = User.query.get(current_user_id)
+        if not user:
+            return _error("User not found", 404)
+            
+        # Create a Stripe Connect account
+        import stripe
+        stripe.api_key = current_app.config.get('STRIPE_SECRET_KEY')
+        
+        stripe_account = stripe.Account.create(
+            type="express",
+            country="US",
+            email=user.email,
+            capabilities={
+                "card_payments": {"requested": True},
+                "transfers": {"requested": True},
+            },
+            business_type="individual",
+        )
+        
+        account_id = stripe_account.id
 
         if not acct:
             acct = StripeAccount(
                 user_id=current_user_id,
-                account_id=placeholder_id,
+                account_id=account_id,
                 is_verified=False,
             )
             db.session.add(acct)
         else:
-            acct.account_id = placeholder_id
+            acct.account_id = account_id
 
         db.session.commit()
 
+        # Create an account link for onboarding
+        account_link = stripe.AccountLink.create(
+            account=account_id,
+            refresh_url=f"{request.host_url.rstrip('/')}/api/landlord/stripe/onboarding/refresh",
+            return_url=f"{request.host_url.rstrip('/')}/api/landlord/stripe/onboarding/complete",
+            type="account_onboarding",
+        )
+        
         return _ok(
             {
                 "message": "Stripe Connect account creation initiated",
-                "account_id": placeholder_id,
-                # "onboarding_url": account_link.url,  # when implemented
+                "account_id": account_id,
+                "onboarding_url": account_link.url
             }
         )
 

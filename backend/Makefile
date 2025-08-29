@@ -1,5 +1,11 @@
 test:
-	pytest -q
+	pytest
+
+test-verbose:
+	pytest -v
+
+test-coverage:
+	pytest --cov=src --cov-report=term --cov-report=xml --cov-report=html
 
 perf-smoke:
 	k6 run perf/k6/smoke.js

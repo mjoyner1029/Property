@@ -6,6 +6,29 @@ A secure, production-ready API for the Asset Anchor property management platform
 
 Asset Anchor API is a Flask-based RESTful API that provides the backend services for the Asset Anchor property management platform. It enables property managers, landlords, and tenants to manage properties, leases, payments, communications, and more.
 
+## Environment Variables
+
+### Required in Production
+- `SECRET_KEY` - Flask secret key for sessions and CSRF protection
+- `JWT_SECRET_KEY` - Secret key for JWT token signing
+- `DATABASE_URL` - Database connection string
+- `CORS_ORIGINS` - Comma-separated list of allowed origins for CORS
+- `STRIPE_SECRET_KEY` - Stripe API secret key
+- `STRIPE_WEBHOOK_SECRET` - Stripe webhook signing secret
+- `SENTRY_DSN` - Sentry error tracking DSN
+
+### Optional
+- `STRIPE_PUBLISHABLE_KEY` - Stripe publishable key
+- `REDIS_URL` - Redis connection URL for caching and rate limiting
+- `MAIL_SERVER` - SMTP server for email (default: smtp.gmail.com)
+- `MAIL_PORT` - SMTP port (default: 587)
+- `MAIL_USERNAME` - SMTP username
+- `MAIL_PASSWORD` - SMTP password
+- `MAIL_DEFAULT_SENDER` - Default sender email address
+- `TWILIO_ACCOUNT_SID` - Twilio account SID
+- `TWILIO_AUTH_TOKEN` - Twilio auth token
+- `TWILIO_FROM_NUMBER` - Twilio phone number to send from
+
 ## Features
 
 - **Complete Authentication System**

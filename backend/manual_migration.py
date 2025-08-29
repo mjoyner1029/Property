@@ -10,9 +10,11 @@ backend_dir = Path(__file__).resolve().parent
 sys.path.insert(0, str(backend_dir))
 sys.path.insert(0, str(backend_dir.parent))
 
-# Set development environment
-os.environ['APP_ENV'] = 'development'
+# Set Flask app environment variable
 os.environ['FLASK_APP'] = 'wsgi.py'
+
+# Use existing environment or default to development
+os.environ.setdefault('APP_ENV', 'development')
 
 # Import required modules
 from src import create_app

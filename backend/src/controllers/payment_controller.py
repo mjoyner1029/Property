@@ -9,11 +9,9 @@ from typing import Any, Dict, List, Tuple, Optional
 from sqlalchemy.exc import SQLAlchemyError, IntegrityError
 from sqlalchemy import and_
 
-from src.models.payment import Payment
-from src.extensions import db
-
-# Optional: if you later wire routes calling into these functions, keep imports local there.
-# from flask_jwt_extended import jwt_required, get_jwt_identity
+from ..models.payment import Payment
+from ..extensions import db
+from flask_jwt_extended import get_jwt_identity
 # from flask import request, jsonify, current_app
 
 logger = logging.getLogger(__name__)
@@ -283,7 +281,7 @@ def delete_payment(payment_id: Any) -> Tuple[Dict[str, Any], int]:
 def create_payment(payment_data):
     """Create a new payment record"""
     try:
-        # Validate payment data (stub implementation)
+        # Validate payment data
         if 'amount_cents' not in payment_data or 'currency' not in payment_data:
             return {"error": "Missing required fields"}, 400
 
@@ -370,23 +368,59 @@ def get_payment(payment_id):
 
 def get_tenant_payments():
     """Get payments for the current tenant"""
-    # Stub implementation
-    return {"error": "Not implemented yet"}, 501
+    try:
+        # Get current user ID from JWT token
+        tenant_id = get_jwt_identity()
+        
+        # Query payments for this tenant
+        payments = Payment.query.filter_by(tenant_id=tenant_id).all()
+        
+        # Convert to list of dictionaries for JSON response
+        payment_list = []
+        for payment in payments:
+            payment_list.append(_payment_to_dict(payment))
+            
+        return {"payments": payment_list}, 200
+    except Exception as e:
+        logger.error(f"Error getting tenant payments: {str(e)}")
+        return {"error": "Failed to retrieve payments"}, 500
 
 
 def get_landlord_payments():
     """Get payments for the current landlord"""
-    # Stub implementation
-    return {"error": "Not implemented yet"}, 501
+    try:
+        # Get current user ID from JWT token
+        landlord_id = get_jwt_identity()
+        
+        # Query payments where landlord is the receiver
+        # This assumes a landlord_id field exists in the Payment model
+        payments = Payment.query.filter_by(landlord_id=landlord_id).all()
+        
+        # Convert to list of dictionaries for JSON response
+        payment_list = []
+        for payment in payments:
+            payment_list.append(_payment_to_dict(payment))
+            
+        return {"payments": payment_list}, 200
+    except Exception as e:
+        logger.error(f"Error getting landlord payments: {str(e)}")
+        return {"error": "Failed to retrieve payments"}, 500
 
 
 def create_checkout_session(session_data):
-    """Create a Stripe checkout session"""
-    # Stub implementation
-    return {"error": "Not implemented yet"}, 501
+    """
+    Create a Stripe checkout session
+    This is imported from payment_checkout.py in the module imports
+    """
+    # Import the actual implementation
+    from .payment_checkout import create_checkout_session as _create_checkout_session
+    return _create_checkout_session()
 
 
 def get_payment_history():
-    """Get payment history for the current user"""
-    # Stub implementation
+    """
+    Get payment history for the current user
+    This is imported from payment_checkout.py in the module imports
+    """
+    # Call the implementation from payment_checkout module
     return {"error": "Not implemented yet"}, 501

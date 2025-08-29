@@ -5,7 +5,7 @@ Implements account lockout after multiple failed login attempts.
 from __future__ import annotations
 
 import logging
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from typing import Dict, Set, Any, Optional
 from flask import current_app, request
 from ..extensions import db
@@ -36,7 +36,7 @@ def track_failed_login(email: str, ip_address: Optional[str] = None) -> Dict[str
     lockout_minutes = current_app.config.get('ACCOUNT_LOCKOUT_DURATION_MINUTES', 30)
     attempt_window = current_app.config.get('ACCOUNT_LOCKOUT_WINDOW_MINUTES', 15)
     
-    now = datetime.utcnow()
+    now = datetime.now(timezone.utc)
     attempt_window_delta = timedelta(minutes=attempt_window)
     
     # Initialize if not exists
@@ -150,8 +150,15 @@ def check_account_lockout(email: str) -> Dict[str, Any]:
     # Check persistent storage first
     try:
         user = User.query.filter_by(email=email).first()
-        if user and user.locked_until and user.locked_until > datetime.utcnow():
-            remaining_seconds = (user.locked_until - datetime.utcnow()).total_seconds()
+        if user and user.locked_until:
+            # Make sure we're comparing timezone-aware datetimes
+            now_utc = datetime.now(timezone.utc)
+            locked_until = user.locked_until
+            if locked_until.tzinfo is None:
+                locked_until = locked_until.replace(tzinfo=timezone.utc)
+                
+            if locked_until > now_utc:
+                remaining_seconds = (locked_until - now_utc).total_seconds()
             log_with_context(
                 f"Account still locked: {email}",
                 level='info',
@@ -179,9 +186,15 @@ def check_account_lockout(email: str) -> Dict[str, Any]:
         # Get lockout duration
         lockout_minutes = current_app.config.get('ACCOUNT_LOCKOUT_DURATION_MINUTES', 30)
         # Check if still in lockout period
+        now = datetime.now(timezone.utc)
         lockout_time = failed_attempts[email]['last_attempt'] + timedelta(minutes=lockout_minutes)
-        if datetime.utcnow() < lockout_time:
-            remaining_seconds = (lockout_time - datetime.utcnow()).total_seconds()
+        
+        # Ensure lockout_time is timezone-aware
+        if lockout_time.tzinfo is None:
+            lockout_time = lockout_time.replace(tzinfo=timezone.utc)
+            
+        if now < lockout_time:
+            remaining_seconds = (lockout_time - now).total_seconds()
             log_with_context(
                 f"Account locked in memory cache: {email}",
                 level='info',
@@ -196,7 +209,7 @@ def check_account_lockout(email: str) -> Dict[str, Any]:
             }
         else:
             # Reset if lockout period has passed
-            failed_attempts[email] = {'attempts': 0, 'last_attempt': datetime.utcnow()}
+            failed_attempts[email] = {'attempts': 0, 'last_attempt': datetime.now(timezone.utc)}
             log_with_context(
                 f"Lockout period expired for {email}, resetting attempts",
                 level='info',

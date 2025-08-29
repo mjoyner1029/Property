@@ -45,8 +45,11 @@ def test_allowed_file_size():
         assert large_file.tell() == 0  # should also rewind
 
 
-def test_validate_file_upload_success():
+def test_validate_file_upload_success(monkeypatch):
     """Happy path: valid filename and content returns (filename, sha256hex)."""
+    # Set testing environment variable
+    monkeypatch.setenv('TESTING', 'true')
+    
     valid_file = io.BytesIO(b"valid file content")
     # Some frameworks attach .filename; our validator accepts (stream, provided_name)
     # Ensure stream is at position 0
@@ -58,6 +61,8 @@ def test_validate_file_upload_success():
         pytest.fail(f"validate_file_upload raised unexpectedly: {e}")
 
     assert filename == "test.pdf"
+    assert isinstance(file_hash, str)
+    assert len(file_hash) == 64  # SHA-256 is 64 hex chars
     assert isinstance(file_hash, str) and len(file_hash) == 64 and all(c in "0123456789abcdef" for c in file_hash)
 
 

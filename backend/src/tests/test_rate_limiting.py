@@ -1,11 +1,11 @@
 import pytest
 import time
-import requests
+import json
 
-def test_rate_limiting():
+def test_rate_limiting(client):
     """Test that rate limiting correctly returns 429 status when limit is exceeded"""
     # Use a non-authenticated endpoint with rate limiting
-    url = "http://localhost:5050/api/auth/login"
+    url = "/api/auth/login"
     
     # Test payload (will fail login but that's ok for this test)
     payload = {
@@ -16,9 +16,9 @@ def test_rate_limiting():
     # Send requests rapidly to trigger rate limiting
     responses = []
     for i in range(15):  # Assuming limit is set to 10 per minute
-        response = requests.post(url, json=payload)
+        response = client.post(url, json=payload)
         responses.append(response.status_code)
-        time.sleep(0.1)  # Small delay to avoid overwhelming the server
+        time.sleep(0.05)  # Small delay to avoid overwhelming the test
     
     # Check that at least one request received a 429 Too Many Requests
     assert 429 in responses, "Rate limiting did not trigger 429 status code"

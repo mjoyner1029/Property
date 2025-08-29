@@ -76,12 +76,24 @@ def login():
     lockout_status = check_account_lockout(email)
     if lockout_status.get('locked', False):
         unlock_time = lockout_status.get('unlock_time')
-        minutes_left = round((unlock_time - datetime.now(timezone.utc)).total_seconds() / 60)
-        return jsonify({
-            "error": f"Account is temporarily locked. Please try again in {minutes_left} minutes.",
-            "locked": True,
-            "unlock_time": unlock_time.isoformat() if unlock_time else None
-        }), 403
+        # Make sure we're comparing UTC datetime objects
+        if unlock_time:
+            # If unlock_time is naive, make it timezone-aware
+            if unlock_time.tzinfo is None:
+                unlock_time = unlock_time.replace(tzinfo=timezone.utc)
+            now_utc = datetime.now(timezone.utc)
+            minutes_left = round((unlock_time - now_utc).total_seconds() / 60)
+            return jsonify({
+                "error": f"Account is temporarily locked. Please try again in {minutes_left} minutes.",
+                "locked": True,
+                "unlock_time": unlock_time.isoformat()
+            }), 403
+        else:
+            # Fallback if no unlock time is provided
+            return jsonify({
+                "error": "Account is temporarily locked. Please try again later.",
+                "locked": True
+            }), 403
 
     user = User.query.filter_by(email=email).first()
     if not user or not user.check_password(password):
@@ -143,10 +155,15 @@ def login():
     user.last_login = datetime.now(timezone.utc)
     db.session.commit()
 
+    # Get token expiry
+    jwt_config = current_app.config.get('JWT_ACCESS_TOKEN_EXPIRES', 3600)
+    expires_in = jwt_config.total_seconds() if hasattr(jwt_config, 'total_seconds') else int(jwt_config)
+
     response = jsonify({
         "access_token": access_token,
         "refresh_token": refresh_token,
         "user": user.to_dict(),
+        "expires_in": expires_in,
     })
 
     # Optionally set HttpOnly cookies if configured
@@ -164,28 +181,36 @@ def register():
 
     email = (data.get("email") or "").lower().strip()
     password = data.get("password") or ""
-    full_name = (data.get("full_name") or "").strip()
+    # Handle both name and full_name for backward compatibility
+    name = data.get("name") or data.get("full_name") or ""
+    if isinstance(name, str):
+        name = name.strip()
     role = (data.get("role") or "tenant").strip()
 
-    if not email or not password or not full_name:
-        return jsonify({"error": "Email, password, and full name are required"}), 400
+    if not email or not password or not name:
+        return jsonify({"error": "Email, password, and name are required"}), 400
 
     if not validate_email(email):
         return jsonify({"error": "Invalid email format"}), 400
 
-    pwd_check = validate_password(password)
-    if not pwd_check.get("valid", False):
-        return jsonify({"error": f"Password is not strong enough: {pwd_check.get('message','')}" }), 400
+    # The password validation function returns a tuple (is_valid, message)
+    is_valid, pwd_message = validate_password(password)
+    if not is_valid:
+        return jsonify({"error": f"Password is not strong enough: {pwd_message}" }), 400
+
+    # Validate role
+    allowed_roles = ["tenant", "landlord"]
+    if role not in allowed_roles:
+        return jsonify({"error": f"Invalid role. Must be one of: {', '.join(allowed_roles)}"}), 400
 
     if User.query.filter_by(email=email).first():
         return jsonify({"error": "Email already registered"}), 409
 
     user = User(
         email=email,
-        full_name=full_name,
+        name=name,
         role=role,
-        is_active=True,
-        email_verified=False,
+        is_verified=False,  # Using is_verified based on the User model
         verification_token=str(uuid.uuid4()),
     )
     user.set_password(password)

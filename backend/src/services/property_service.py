@@ -10,6 +10,9 @@ class PropertyService:
     def create_property(landlord_id, data):
         """Create a new property"""
         try:
+            # Extract square_feet or size, but only add the correct field name
+            square_feet = data.get('square_feet', data.get('size', 0))
+            
             new_property = Property(
                 landlord_id=landlord_id,
                 name=data.get('name'),
@@ -19,7 +22,7 @@ class PropertyService:
                 zip_code=data.get('zip_code'),
                 property_type=data.get('property_type'),
                 year_built=data.get('year_built'),
-                square_feet=data.get('square_feet'),
+                square_feet=square_feet,  # Use the correct field name
                 description=data.get('description'),
                 amenities=data.get('amenities'),
                 status=data.get('status', 'active'),

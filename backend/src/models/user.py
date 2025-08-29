@@ -28,6 +28,14 @@ class User(db.Model):
     mfa_enabled = db.Column(db.Boolean, default=False)
     mfa_secret = db.Column(db.String(100), nullable=True)
     mfa_backup_codes = db.Column(db.String(500), nullable=True)  # JSON encoded list of backup codes
+    token_expiry = db.Column(db.DateTime, nullable=True)  # Expiry time for verification token
+    
+    # Password reset fields
+    reset_token = db.Column(db.String(100), nullable=True)
+    reset_token_expiry = db.Column(db.DateTime, nullable=True)
+    
+    # Account status
+    is_active = db.Column(db.Boolean, default=True)
     
     def set_password(self, password):
         self.password = generate_password_hash(password)  # Changed from password_hash to password
@@ -37,6 +45,16 @@ class User(db.Model):
     
     def __repr__(self):
         return f"<User {self.id}: {self.name} ({self.role})>"
+    
+    @property
+    def is_active(self):
+        """Return whether user account is active."""
+        # Consider a user active if they're verified and not locked
+        if not self.is_verified:
+            return False
+        if self.locked_until and self.locked_until > datetime.now():
+            return False
+        return True
         
     def to_dict(self):
         return {
@@ -47,6 +65,7 @@ class User(db.Model):
             'phone': self.phone,
             'profile_picture': self.profile_picture,
             'is_verified': self.is_verified,
+            'is_active': self.is_active,
             'created_at': self.created_at.isoformat() if self.created_at else None,
             'last_login': self.last_login.isoformat() if self.last_login else None
         }

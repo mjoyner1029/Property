@@ -5,7 +5,7 @@ from ..models.onboarding_progress import OnboardingProgress
 
 def test_start_landlord_onboarding(client, test_users, auth_headers):
     """Test starting landlord onboarding"""
-    response = client.post('/api/onboarding/start',
+    response = client.post('/api/onboard/start',
                           headers=auth_headers['landlord'])
     
     assert response.status_code == 200
@@ -23,7 +23,7 @@ def test_start_landlord_onboarding(client, test_users, auth_headers):
 
 def test_start_tenant_onboarding(client, test_users, auth_headers):
     """Test starting tenant onboarding"""
-    response = client.post('/api/onboarding/start',
+    response = client.post('/api/onboard/start',
                           headers=auth_headers['tenant'])
     
     assert response.status_code == 200
@@ -56,7 +56,7 @@ def test_update_onboarding_step(client, test_users, auth_headers, session):
     session.commit()
     
     # Update step
-    response = client.put('/api/onboarding/step/profile',
+    response = client.put('/api/onboard/step/profile',
                          headers=auth_headers['landlord'],
                          json={
                              'completed': True,
@@ -93,7 +93,7 @@ def test_complete_onboarding(client, test_users, auth_headers, session):
     session.commit()
     
     # Complete final step
-    response = client.put('/api/onboarding/step/payment',
+    response = client.put('/api/onboard/step/payment',
                          headers=auth_headers['tenant'],
                          json={
                              'completed': True,
