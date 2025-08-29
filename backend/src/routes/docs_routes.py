@@ -2,25 +2,23 @@
 Routes for API documentation using Swagger UI.
 """
 import os
-from flask import Blueprint, jsonify, render_template, send_from_directory, current_app
+from flask import Blueprint, jsonify, send_from_directory, current_app
 
-bp = Blueprint("docs", __name__, url_prefix="/api/docs")
+# Rename from bp to docs_bp for consistency
+docs_bp = Blueprint("docs", __name__, url_prefix="/api/docs")
 
-@bp.route("", methods=["GET"])
+@docs_bp.route("", methods=["GET"])
 def api_docs():
     """
     Serve API documentation using Swagger UI.
     """
-    # In production, redirect to hosted docs
-    if current_app.config.get("FLASK_ENV") == "production":
-        return jsonify({
-            "message": "API documentation available at: https://docs.yourdomain.com"
-        })
-    
-    # In development, serve Swagger UI
-    return render_template("swagger.html")
+    # Simple JSON response as requested
+    return jsonify({
+        "message": "See API documentation",
+        "info": "Documentation available at /api/docs/openapi.json"
+    })
 
-@bp.route("/openapi.json", methods=["GET"])
+@docs_bp.route("/openapi.json", methods=["GET"])
 def openapi_spec():
     """
     Serve OpenAPI specification file.

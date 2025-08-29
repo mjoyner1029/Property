@@ -19,7 +19,7 @@ from ..controllers.messaging_controller import (
 from ..extensions import limiter
 
 # app.py should register this at url_prefix="/api/messages"
-messaging_bp = Blueprint("messages", __name__)
+messages_bp = Blueprint("messages", __name__)
 
 # --- helpers -----------------------------------------------------------------
 
@@ -49,7 +49,7 @@ def _normalize_response(result: Any):
 
 # --- routes ------------------------------------------------------------------
 
-@messaging_bp.route("/threads", methods=["GET"])
+@messages_bp.route("/threads", methods=["GET"])
 @jwt_required()
 @limiter.limit("240/hour")
 def list_threads():
@@ -70,7 +70,7 @@ def list_threads():
         return _err("Internal server error", 500)
 
 
-@messaging_bp.route("/threads/<int:other_user_id>", methods=["POST"])
+@messages_bp.route("/threads/<int:other_user_id>", methods=["POST"])
 @jwt_required()
 @limiter.limit("60/hour")
 def create_thread_route(other_user_id: int):
@@ -88,7 +88,7 @@ def create_thread_route(other_user_id: int):
         return _err("Internal server error", 500)
 
 
-@messaging_bp.route("/threads/<int:thread_id>/messages", methods=["GET"])
+@messages_bp.route("/threads/<int:thread_id>/messages", methods=["GET"])
 @jwt_required()
 @limiter.limit("480/hour")
 def list_messages(thread_id: int):
@@ -109,7 +109,7 @@ def list_messages(thread_id: int):
         return _err("Internal server error", 500)
 
 
-@messaging_bp.route("/threads/<int:thread_id>/messages", methods=["POST"])
+@messages_bp.route("/threads/<int:thread_id>/messages", methods=["POST"])
 @jwt_required()
 @limiter.limit("120/hour")
 def send_message_route(thread_id: int):
@@ -131,7 +131,7 @@ def send_message_route(thread_id: int):
         return _err("Internal server error", 500)
 
 
-@messaging_bp.route("/messages/<int:message_id>/read", methods=["PUT"])
+@messages_bp.route("/messages/<int:message_id>/read", methods=["PUT"])
 @jwt_required()
 @limiter.limit("240/hour")
 def mark_message_read(message_id: int):
@@ -147,7 +147,7 @@ def mark_message_read(message_id: int):
         return _err("Internal server error", 500)
 
 
-@messaging_bp.route("/threads/<int:thread_id>/read", methods=["PUT"])
+@messages_bp.route("/threads/<int:thread_id>/read", methods=["PUT"])
 @jwt_required()
 @limiter.limit("120/hour")
 def mark_thread_read(thread_id: int):
@@ -163,7 +163,7 @@ def mark_thread_read(thread_id: int):
         return _err("Internal server error", 500)
 
 
-@messaging_bp.route("/unread-count", methods=["GET"])
+@messages_bp.route("/unread-count", methods=["GET"])
 @jwt_required()
 @limiter.limit("960/hour")
 def unread_count():
@@ -179,7 +179,7 @@ def unread_count():
         return _err("Internal server error", 500)
 
 
-@messaging_bp.route("/contacts", methods=["GET"])
+@messages_bp.route("/contacts", methods=["GET"])
 @jwt_required()
 @limiter.limit("480/hour")
 def contacts():

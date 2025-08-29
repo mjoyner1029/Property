@@ -570,3 +570,65 @@ def get_user_stats():
         
     except Exception as e:
         return jsonify({"error": str(e)}), 500
+        
+@user_bp.route('/profile', methods=['GET'])
+@jwt_required()
+def get_user_profile():
+    """Get the current user's profile"""
+    try:
+        # Get the user ID from JWT token and cast to int
+        identity = get_jwt_identity()
+        user_id = int(identity) if not isinstance(identity, dict) else int(identity.get('id'))
+        
+        # Fetch the user from database
+        user = User.query.get(user_id)
+        if not user:
+            return jsonify({"error": "User not found"}), 404
+            
+        # Return user profile data
+        profile = {
+            "id": user.id,
+            "email": user.email,
+            "name": user.name,
+            "role": user.role,
+            "is_verified": user.is_verified,
+            "is_active": user.is_active,
+            "created_at": user.created_at.isoformat() if user.created_at else None,
+        }
+        
+        return jsonify(profile), 200
+        
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+@user_bp.route('/profile', methods=['PUT'])
+@jwt_required()
+def update_user_profile():
+    """Update the current user's profile"""
+    try:
+        # Get the user ID from JWT token and cast to int
+        identity = get_jwt_identity()
+        user_id = int(identity) if not isinstance(identity, dict) else int(identity.get('id'))
+        
+        # Fetch the user from database
+        user = User.query.get(user_id)
+        if not user:
+            return jsonify({"error": "User not found"}), 404
+            
+        # Get update data from request
+        data = request.get_json()
+        
+        # Update allowed fields
+        if 'name' in data:
+            user.name = data['name']
+            
+        # Add more updatable fields as needed
+            
+        # Save changes
+        db.session.commit()
+        
+        return jsonify({"message": "Profile updated successfully"}), 200
+        
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({"error": str(e)}), 500

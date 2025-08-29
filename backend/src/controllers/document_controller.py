@@ -4,9 +4,14 @@ import uuid
 from datetime import datetime
 from werkzeug.utils import secure_filename
 from sqlalchemy.exc import SQLAlchemyError
+from flask import current_app, send_from_directory, jsonify, Blueprint, request
+from flask_jwt_extended import jwt_required, get_jwt_identity
+
 from src.extensions import db
 from src.models.document import Document
-from flask import current_app, send_from_directory
+
+# Create blueprint for documents
+document_bp = Blueprint("documents", __name__)
 
 logger = logging.getLogger(__name__)
 
@@ -293,6 +298,41 @@ def share_document(document_id, share_data):
             "message": "Document shared successfully",
             "shared_with": share_data["user_ids"]
         }, 200
+        
+# Add the new get_documents route
+@document_bp.route('/', methods=['GET'])
+@jwt_required()
+def get_documents():
+    """
+    Get all documents belonging to the current user
+    
+    Returns:
+        List of document objects for the current user
+    """
+    try:
+        # Get the user ID from JWT token and cast to int
+        identity = get_jwt_identity()
+        user_id = int(identity) if not isinstance(identity, dict) else int(identity.get('id'))
+        
+        # Query documents for this user
+        documents = Document.query.filter_by(user_id=user_id).all()
+        
+        # Convert to JSON-serializable list
+        documents_list = [{
+            "id": doc.id,
+            "filename": doc.filename,
+            "original_filename": doc.original_filename,
+            "file_type": doc.file_type,
+            "file_size": doc.file_size,
+            "upload_date": doc.upload_date.isoformat() if doc.upload_date else None,
+            "description": doc.description
+        } for doc in documents]
+        
+        return jsonify(documents_list), 200
+        
+    except Exception as e:
+        logger.error(f"Error retrieving documents: {str(e)}")
+        return jsonify({"error": str(e)}), 500
     except SQLAlchemyError as e:
         db.session.rollback()
         logger.error(f"Database error when sharing document {document_id}: {str(e)}")
