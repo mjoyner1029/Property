@@ -22,7 +22,8 @@ Flask-Mail==0.9.1
 
 # ---- Realtime (threading backend by default; no eventlet needed) ----
 Flask-SocketIO==5.3.6
-# If you later switch to eventlet/gevent, add the appropriate worker here.
+# Gevent for production Gunicorn worker
+gevent==23.9.1
 
 # ---- Payments ----
 stripe==6.5.0

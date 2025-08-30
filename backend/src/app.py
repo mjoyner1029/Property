@@ -639,19 +639,36 @@ def configure_logging(app: Flask) -> None:
 
 
 def configure_proxy_fix(app: Flask) -> None:
-    """Configure ProxyFix middleware for proper handling of proxy headers."""
-    # Only apply in production to avoid security issues in development
+    """
+    Configure ProxyFix middleware for proper handling of proxy headers.
+    
+    This ensures the application correctly handles X-Forwarded-* headers from proxies,
+    which is critical for security features like HTTPS detection and client IP tracking.
+    """
+    # Apply in all environments to ensure consistent behavior
+    # But with stricter settings in development to avoid security issues
     if app.config.get('ENV') == 'production':
-        # Trust X-Forwarded-* headers from the proxy (adjust counts based on your setup)
+        # Trust X-Forwarded-* headers from the proxy
         app.wsgi_app = ProxyFix(
             app.wsgi_app, 
             x_for=1,      # X-Forwarded-For
             x_proto=1,    # X-Forwarded-Proto
             x_host=1,     # X-Forwarded-Host
-            x_port=0,     # X-Forwarded-Port
-            x_prefix=0    # X-Forwarded-Prefix
+            x_port=1,     # X-Forwarded-Port (now enabled)
+            x_prefix=1    # X-Forwarded-Prefix (now enabled)
         )
-        app.logger.info("ProxyFix middleware configured for production")
+        app.logger.info("ProxyFix middleware configured with full proxy header support")
+    else:
+        # In development, still use ProxyFix but with limited trust
+        app.wsgi_app = ProxyFix(
+            app.wsgi_app,
+            x_for=1, 
+            x_proto=1,
+            x_host=0,
+            x_port=0, 
+            x_prefix=0
+        )
+        app.logger.info("ProxyFix middleware configured with limited proxy header support for development")
 
 
 def register_health_checks(app: Flask) -> None:

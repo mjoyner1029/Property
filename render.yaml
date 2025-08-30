@@ -9,15 +9,7 @@ services:
     rootDir: backend
     buildCommand: pip install -r requirements.txt
     preDeployCommand: bash ../scripts/run_migrations.sh
-    startCommand: >
-      gunicorn wsgi:app
-      --workers 2
-      --threads 4
-      --worker-class gthread
-      --timeout 120
-      --bind 0.0.0.0:${PORT}
-      --max-requests 1000
-      --max-requests-jitter 100
+    startCommand: gunicorn "src.app:create_app()" -w 3 -k gevent -b 0.0.0.0:10000 --timeout 120 --max-requests 2000 --max-requests-jitter 200
     healthCheckPath: /healthz
     healthCheckTimeout: 10
     healthCheckInterval: 30
@@ -33,6 +25,8 @@ services:
         value: wsgi.py
       - key: PYTHONUNBUFFERED
         value: "1"
+      - key: PORT
+        value: "10000"
 
       # ==== REQUIRED SECRETS ====
       - key: SECRET_KEY
