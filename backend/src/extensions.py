@@ -86,9 +86,19 @@ def init_extensions(app: Flask) -> None:
     cors_config = _get_cors_config(app)
     cors.init_app(app, **cors_config)
     
-    # Configure Talisman (HTTPS/security headers)
+    # Configure Talisman (HTTPS/security headers) - only fully enabled in production
+    env = app.config.get("ENV", "development")
     talisman_config = _get_talisman_config(app)
+    
+    # For production, apply full Talisman configuration
+    # For development/testing, use minimal config for better DX
     talisman.init_app(app, **talisman_config)
+    
+    # Log security settings
+    if env == "production":
+        app.logger.info("Production security settings enabled with HSTS and CSP")
+    else:
+        app.logger.info("Development security settings - strict security headers disabled for better DX")
     
     # Initialize Socket.IO
     socketio_config = _get_socketio_config(app)
@@ -135,18 +145,79 @@ def init_extensions(app: Flask) -> None:
 
 def _get_cors_config(app: Flask) -> Dict[str, Any]:
     """Get configuration for CORS extension."""
+    
+    # Parse CORS origins from config
+    origins = app.config.get("CORS_ORIGINS", "*")
+    if isinstance(origins, str) and origins != "*":
+        # Split by comma and strip whitespace
+        origins = [origin.strip() for origin in origins.split(",")]
+    
+    # Ensure localhost origins are included for development
+    env = app.config.get("ENV", "development")
+    if env != "production":
+        localhost_origins = [
+            "http://localhost:3000",
+            "http://localhost:3001",
+            "http://localhost:3002",
+            "http://localhost:5000",
+            "http://127.0.0.1:3000",
+            "http://127.0.0.1:5000"
+        ]
+        
+        # If origins is a list, extend it; if it's "*", replace it with the localhost list
+        if isinstance(origins, list):
+            # Add localhost origins only if they're not already in the list
+            for origin in localhost_origins:
+                if origin not in origins:
+                    origins.append(origin)
+        elif origins == "*" and env != "testing":
+            # In development, replace "*" with explicit localhost origins
+            origins = localhost_origins
+    
+    # Expose additional headers for auth and rate limiting
+    expose_headers = [
+        "Content-Type", 
+        "Authorization", 
+        "X-RateLimit-Limit", 
+        "X-RateLimit-Remaining", 
+        "X-RateLimit-Reset",
+        "Retry-After"
+    ]
+    
     return {
         "resources": r"/*",
-        "origins": app.config.get("CORS_ORIGINS", "*"),
+        "origins": origins,
         "methods": ["GET", "HEAD", "POST", "OPTIONS", "PUT", "PATCH", "DELETE"],
-        "expose_headers": ["Content-Type", "Authorization"],
-        "allow_headers": ["Content-Type", "Authorization"],
-        "supports_credentials": True
+        "expose_headers": expose_headers,
+        "allow_headers": ["Content-Type", "Authorization", "X-Requested-With", "Accept"],
+        "supports_credentials": True,
+        "vary_header": True
     }
 
 
 def _get_talisman_config(app: Flask) -> Dict[str, Any]:
     """Get configuration for Talisman extension."""
+    env = app.config.get("ENV", "development")
+    testing = app.config.get("TESTING", False)
+    
+    # Disable Talisman completely in test environment
+    if testing:
+        return {"force_https": False, "content_security_policy": None}
+    
+    # Only apply strict security settings in production
+    if env != "production":
+        # In development, use minimal Talisman config for better DX
+        return {
+            "force_https": False,
+            "content_security_policy": None,
+            "force_file_save": False,
+            "strict_transport_security": None,
+            "session_cookie_secure": False,
+            "frame_options": None
+        }
+    
+    # Production configuration with strict security settings
+    
     # Default production CSP directives
     csp_directives = {
         'default-src': ["'self'"],
@@ -171,31 +242,24 @@ def _get_talisman_config(app: Flask) -> Dict[str, Any]:
             if directive in csp_directives and isinstance(domains, list):
                 csp_directives[directive].extend(domains)
     
-    # In development, use a more permissive CSP
-    if app.config.get("ENV") != "production":
-        csp_directives = None  # Disable CSP in development
+    # Parse CORS origins to add to connect-src
+    origins = app.config.get("CORS_ORIGINS", "")
+    if isinstance(origins, str) and origins and origins != "*":
+        for origin in origins.split(","):
+            origin = origin.strip()
+            if origin and origin not in csp_directives["connect-src"]:
+                csp_directives["connect-src"].append(origin)
     
-    # Ensure CSP is always applied in production
-    if app.config.get("ENV") == "production" and csp_directives is None:
-        csp_directives = {
-            "default-src": ["'self'"],
-            "script-src": ["'self'"],
-            "style-src": ["'self'", "'unsafe-inline'"],
-            "img-src": ["'self'", "data:"],
-            "connect-src": ["'self'", "https://api.stripe.com"]
-        }
-
     return {
-        "force_https": True if app.config.get("ENV") == "production" else app.config.get("FORCE_HTTPS", False),
+        "force_https": True,
         "content_security_policy": csp_directives,
-        "content_security_policy_report_only": False if app.config.get("ENV") == "production" else not app.config.get("CSP_ENFORCE", True),
+        "content_security_policy_report_only": False,
         "content_security_policy_report_uri": app.config.get("CSP_REPORT_URI"),
-        # Allow frames for development tools in dev/test
-        "frame_options": "DENY" if app.config.get("ENV") == "production" else None,
+        "frame_options": "DENY",
         # Force HTTPS for 1 year including subdomains
         "strict_transport_security": "max-age=31536000; includeSubDomains; preload",
         "strict_transport_security_preload": True,
-        "session_cookie_secure": app.config.get("SESSION_COOKIE_SECURE", True),
+        "session_cookie_secure": True,
         "session_cookie_http_only": True,
         "session_cookie_samesite": "Lax",
         "referrer_policy": "strict-origin-when-cross-origin",

@@ -683,6 +683,11 @@ def register_health_checks(app: Flask) -> None:
 
 def configure_sentry(app: Flask) -> None:
     """Configure Sentry if DSN is available in environment."""
+    # Check if Sentry is explicitly disabled
+    if os.environ.get('DISABLE_SENTRY') == 'True' or app.config.get('TESTING', False):
+        app.logger.warning("Sentry DSN not configured. Error tracking disabled.")
+        return
+        
     sentry_dsn = app.config.get('SENTRY_DSN') or os.environ.get('SENTRY_DSN')
     
     if sentry_dsn:
