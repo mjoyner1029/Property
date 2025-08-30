@@ -505,29 +505,48 @@ def register_error_handlers(app: Flask) -> None:
 
     @app.errorhandler(Exception)
     def handle_generic_exception(error):
-        """Handle generic exceptions."""
+        """
+        Handle generic exceptions and ensure proper logging.
+        Logs structured error information with stack traces.
+        """
         trace_id = getattr(request, 'trace_id', str(uuid.uuid4()))
         
-        # Log the exception with trace ID and stack trace
+        # Collect detailed context for logging
         context_data = {
             'trace_id': trace_id,
             'path': request.path,
             'method': request.method,
             'remote_addr': request.remote_addr,
-            'error_type': error.__class__.__name__
+            'error_type': error.__class__.__name__,
+            'endpoint': request.endpoint
         }
         
         # Get user ID from JWT if available
         if hasattr(request, 'jwt_claims'):
             context_data['user_id'] = request.jwt_claims.get('sub')
         
-        # Get stack trace for better logging
+        # Add request headers (excluding sensitive data)
+        headers = dict(request.headers)
+        sensitive_headers = ['authorization', 'cookie', 'set-cookie', 'x-auth-token']
+        for header in sensitive_headers:
+            if header.lower() in headers:
+                headers[header.lower()] = "[REDACTED]"
+        context_data['headers'] = headers
+        
+        # Get full stack trace for comprehensive logging
         stack_trace = traceback.format_exc()
         
-        # Use app.logger.error with explicit stack trace in context
+        # Use structured logging with stack trace in context
         app.logger.error(
             f"Unhandled exception: {str(error)}",
-            extra={**context_data, 'stack_trace': stack_trace}
+            extra={
+                'extra': context_data,
+                'stack_trace': stack_trace,
+                'exception_name': error.__class__.__name__,
+                'exception_args': [str(arg) for arg in getattr(error, 'args', [])],
+                'exception_module': error.__class__.__module__
+            },
+            exc_info=True  # Include exception info for Sentry and other integrations
         )
         
         # In development, include the error details
@@ -547,7 +566,10 @@ def register_error_handlers(app: Flask) -> None:
 
 
 def configure_logging(app: Flask) -> None:
-    """Configure application logging based on environment."""
+    """
+    Configure application logging with structured JSON format to stdout.
+    Always outputs JSON format for better parsing and consistent logs across environments.
+    """
     log_level_name = app.config.get('LOG_LEVEL', 'INFO')
     log_level = getattr(logging, log_level_name.upper(), logging.INFO)
     
@@ -555,42 +577,65 @@ def configure_logging(app: Flask) -> None:
     for handler in app.logger.handlers:
         app.logger.removeHandler(handler)
     
-    # Set log level
+    # Set log level (default to INFO)
     app.logger.setLevel(log_level)
     
-    # In production, use JSON logging for better parsing
-    if app.config.get('ENV') == 'production':
-        # Create a custom JSON formatter
-        class JsonFormatter(logging.Formatter):
-            def format(self, record):
-                log_record = {
-                    "timestamp": datetime.utcnow().isoformat(),
-                    "level": record.levelname,
-                    "message": record.getMessage(),
-                    "module": record.module,
-                    "function": record.funcName,
-                    "line": record.lineno,
-                    "trace_id": getattr(request, 'trace_id', None) or str(uuid.uuid4())
-                }
+    # Create a custom JSON formatter for structured logging
+    class JsonFormatter(logging.Formatter):
+        def format(self, record):
+            # Get trace ID from request context if available
+            trace_id = None
+            try:
+                from flask import has_request_context, request
+                if has_request_context() and hasattr(request, 'trace_id'):
+                    trace_id = request.trace_id
+            except Exception:
+                pass
+            
+            # Create structured log record
+            log_record = {
+                "timestamp": datetime.utcnow().isoformat(),
+                "level": record.levelname,
+                "message": record.getMessage(),
+                "module": record.module,
+                "function": record.funcName,
+                "line": record.lineno,
+                "trace_id": trace_id or str(uuid.uuid4()),
+                "environment": app.config.get('ENV', 'development')
+            }
+            
+            # Add any extra attributes from the record
+            if hasattr(record, 'extra') and isinstance(record.extra, dict):
+                for key, value in record.extra.items():
+                    log_record[key] = value
+                    
+            # Add exception info with full stack trace if present
+            if record.exc_info:
+                log_record['exception'] = self.formatException(record.exc_info)
+                log_record['exception_type'] = record.exc_info[0].__name__
                 
-                # Add exception info if present
-                if record.exc_info:
-                    log_record['exception'] = self.formatException(record.exc_info)
-                
-                return json.dumps(log_record)
-        
-        # Create a handler that outputs to stderr
-        handler = logging.StreamHandler()
-        handler.setFormatter(JsonFormatter())
-        app.logger.addHandler(handler)
-    else:
-        # In development, use a simpler formatter
-        formatter = logging.Formatter(
-            '[%(asctime)s] %(levelname)s in %(module)s: %(message)s'
-        )
-        handler = logging.StreamHandler()
-        handler.setFormatter(formatter)
-        app.logger.addHandler(handler)
+            # Add any additional context from record
+            if hasattr(record, '__dict__'):
+                for key, value in record.__dict__.items():
+                    if key not in ('args', 'asctime', 'created', 'exc_info', 'exc_text', 
+                                  'filename', 'funcName', 'id', 'levelname', 'levelno', 
+                                  'lineno', 'module', 'msecs', 'message', 'msg', 'name', 
+                                  'pathname', 'process', 'processName', 'relativeCreated', 
+                                  'stack_info', 'thread', 'threadName', 'extra') and not key.startswith('_'):
+                        log_record[key] = value
+            
+            return json.dumps(log_record)
+    
+    # Create a handler that outputs to stdout (not stderr)
+    handler = logging.StreamHandler()
+    handler.setFormatter(JsonFormatter())
+    app.logger.addHandler(handler)
+    
+    # Set the root logger to use our configuration
+    root_logger = logging.getLogger()
+    root_logger.handlers = []
+    root_logger.addHandler(handler)
+    root_logger.setLevel(log_level)
 
 
 def configure_proxy_fix(app: Flask) -> None:
@@ -682,10 +727,13 @@ def register_health_checks(app: Flask) -> None:
 
 
 def configure_sentry(app: Flask) -> None:
-    """Configure Sentry if DSN is available in environment."""
+    """
+    Configure Sentry for error tracking and performance monitoring.
+    Initializes when SENTRY_DSN is available in environment.
+    """
     # Check if Sentry is explicitly disabled
     if os.environ.get('DISABLE_SENTRY') == 'True' or app.config.get('TESTING', False):
-        app.logger.warning("Sentry DSN not configured. Error tracking disabled.")
+        app.logger.warning("Sentry integration disabled. Error tracking not available.")
         return
         
     sentry_dsn = app.config.get('SENTRY_DSN') or os.environ.get('SENTRY_DSN')
@@ -718,14 +766,8 @@ def configure_sentry(app: Flask) -> None:
         except ImportError:
             app.logger.info("Sentry Redis integration not available")
         
-        # Performance settings based on environment
-        traces_sample_rate = 0.1  # Default 10% sampling
-        if environment == 'production':
-            traces_sample_rate = app.config.get('SENTRY_TRACES_SAMPLE_RATE', 0.05)  # Lower in prod by default
-        elif environment == 'staging':
-            traces_sample_rate = app.config.get('SENTRY_TRACES_SAMPLE_RATE', 0.1)  # 10% in staging
-        else:
-            traces_sample_rate = app.config.get('SENTRY_TRACES_SAMPLE_RATE', 0.5)  # Higher in dev
+        # Set consistent traces_sample_rate of 0.1 (10%) as specified in requirements
+        traces_sample_rate = app.config.get('SENTRY_TRACES_SAMPLE_RATE', 0.1)
         
         # Initialize Sentry SDK
         sentry_sdk.init(
