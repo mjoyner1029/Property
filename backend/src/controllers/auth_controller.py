@@ -1,156 +1,108 @@
-import logging
+# backend/src/controllers/auth_controller.py
+
 import secrets
-import os
 from datetime import datetime, timedelta
-
-# Fix imports from absolute to relative paths
+from flask import current_app
+from ..extensions import db
 from ..models.user import User
-from ..extensions import db, mail
-from werkzeug.security import generate_password_hash, check_password_hash
-from ..utils.jwt import create_access_token
-from ..utils.validators import validate_email, validate_password_strength
-from ..utils.account_security import track_failed_login, check_account_lockout, reset_login_attempts
-from flask import current_app, url_for, request
-from flask_mail import Message
+from ..utils.validators import validate_password
+from ..utils.email_service import send_email
 
-logger = logging.getLogger(__name__)
-
-def register_user(email, password, role, full_name):
-    """Register a new user in the Asset Anchor system."""
-    # Input validation
-    if not validate_email(email):
-        return {"error": "Invalid email format"}, 400
+def request_password_reset(email):
+    """
+    Handle password reset request.
+    
+    Args:
+        email (str): User email address
         
-    if not validate_password_strength(password):
-        return {"error": "Password does not meet requirements"}, 400
-
-    if User.query.filter_by(email=email).first():
-        logger.warning(f"Registration attempt with existing email: {email}")
-        return {"error": "Email already exists"}, 400
-
-    user = User(email=email, role=role, name=full_name, is_verified=False)
-    user.set_password(password)
-    db.session.add(user)
+    Returns:
+        tuple: (response_dict, status_code)
+    """
+    if not email:
+        return {"error": "Email is required"}, 400
+    
+    user = User.query.filter_by(email=email).first()
+    
+    # Don't reveal whether the user exists or not
+    if not user:
+        current_app.logger.info(f"Password reset requested for non-existent email: {email}")
+        return {
+            "message": "If your email is registered, you will receive a password reset link."
+        }, 200
+    
+    # Generate a secure token
+    reset_token = secrets.token_urlsafe(24)
+    user.reset_token = reset_token
+    user.reset_token_expiry = datetime.utcnow() + timedelta(hours=1)
     
     try:
         db.session.commit()
-        logger.info(f"New user registered: {email}, role: {role}")
-        return {"message": "User registered successfully"}, 201
+        
+        # Send email with the reset link
+        try:
+            from ..utils.email_service import send_password_reset_email
+            send_password_reset_email(user, reset_token)
+            current_app.logger.info(f"Password reset email sent to {email}")
+        except Exception as e:
+            current_app.logger.exception(f"Failed to send password reset email: {e}")
+            # Don't return error to client to prevent user enumeration
+    
     except Exception as e:
         db.session.rollback()
-        logger.error(f"Failed to register user: {str(e)}")
-        return {"error": "Registration failed"}, 500
-
-def authenticate_user(email, password):
-    """Authenticate a user and return an access token."""
-    # Check for account lockout
-    lockout_status = check_account_lockout(email)
-    if lockout_status['locked']:
-        unlock_time = lockout_status.get('unlock_time')
-        minutes_left = round((unlock_time - datetime.utcnow()).total_seconds() / 60)
-        logger.warning(f"Login attempt for locked account: {email}")
-        return {
-            "error": f"Account is temporarily locked. Please try again in {minutes_left} minutes.",
-            "locked": True,
-            "unlock_time": unlock_time.isoformat() if unlock_time else None
-        }, 403
-    
-    # Check credentials
-    user = User.query.filter_by(email=email).first()
-    
-    if not user or not user.check_password(password):
-        # Track failed attempt
-        ip_address = request.remote_addr
-        track_status = track_failed_login(email, ip_address)
-        
-        # Return different message if this attempt triggered a lockout
-        if track_status.get('locked', False):
-            minutes = current_app.config.get('ACCOUNT_LOCKOUT_MINUTES', 15)
-            return {
-                "error": f"Too many failed attempts. Account locked for {minutes} minutes.",
-                "locked": True
-            }, 403
-            
-        logger.warning(f"Failed login attempt for email: {email}, attempts: {track_status.get('attempts', 1)}")
-        return {"error": "Invalid credentials"}, 401
-        
-    # Reset failed login attempts on successful login
-    reset_login_attempts(email)
-
-    if not user.is_verified:
-        logger.warning(f"Login attempt with unverified email: {email}")
-        return {"error": "Email not verified"}, 403
-
-    if not user.is_active:
-        logger.warning(f"Login attempt with deactivated account: {email}")
-        return {"error": "Account deactivated"}, 403
-
-    token = create_access_token(identity={"id": user.id, "role": user.role})
-    logger.info(f"User authenticated successfully: {email}")
+        current_app.logger.exception(f"Password reset DB error: {e}")
+        return {"error": "Unable to process request. Please try again later."}, 500
     
     return {
-        "access_token": token,
-        "user": {
-            "id": user.id,
-            "email": user.email,
-            "role": user.role,
-            "full_name": user.name
-        }
+        "message": "If your email is registered, you will receive a password reset link."
     }, 200
-def verify_email(token):
-    """Verify a user's email using the token sent to their email"""
-    user = User.query.filter_by(verification_token=token).first()
-    if not user:
-        logger.warning(f"Invalid verification token used: {token}")
-        return {"error": "Invalid verification token"}, 400
-    
-    user.is_verified = True
-    user.verification_token = None
-    user.email_verified_at = datetime.utcnow()
-    db.session.commit()
-    logger.info(f"User verified email successfully: {user.email}")
-    
-    return {"message": "Email verified successfully"}, 200
 
-
-def resend_verification(email):
-    """Resend verification email to user"""
-    user = User.query.filter_by(email=email).first()
+def confirm_password_reset(token, new_password):
+    """
+    Confirm password reset with token and set new password.
+    
+    Args:
+        token (str): Reset token from email
+        new_password (str): New password to set
+        
+    Returns:
+        tuple: (response_dict, status_code)
+    """
+    if not token or not new_password:
+        return {"error": "Token and new password are required"}, 400
+    
+    # Validate the new password
+    is_valid, pwd_message = validate_password(new_password)
+    if not is_valid:
+        return {"error": f"Password does not meet strength requirements: {pwd_message}"}, 400
+    
+    # Find the user by token
+    user = User.query.filter_by(reset_token=token).first()
     if not user:
-        # Don't reveal that email doesn't exist (security)
-        return {"message": "If the email exists, a verification link has been sent"}, 200
+        return {"error": "Invalid or expired reset token"}, 404
     
-    if user.is_verified:
-        return {"message": "Email is already verified"}, 200
+    # Check if token is expired
+    if not user.reset_token_expiry or user.reset_token_expiry < datetime.utcnow():
+        # Clear the expired token
+        user.reset_token = None
+        user.reset_token_expiry = None
+        db.session.commit()
+        return {"error": "Reset token has expired. Please request a new password reset."}, 400
     
-    # Generate new verification token
-    user.verification_token = secrets.token_urlsafe(32)
-    db.session.commit()
+    # Set the new password and clear the token
+    user.set_password(new_password)
+    user.reset_token = None
+    user.reset_token_expiry = None
     
-    # Send email with token
+    # If the user was inactive, activate them
+    if not user.is_active:
+        user.is_active = True
+    
     try:
-        _send_verification_email(user)
-        return {"message": "Verification email sent"}, 200
+        db.session.commit()
+        current_app.logger.info(f"Password successfully reset for user {user.id}")
     except Exception as e:
-        logger.error(f"Failed to send verification email: {str(e)}")
-        return {"error": "Failed to send verification email"}, 500
-
-
-def _send_verification_email(user):
-    """Send verification email to user"""
-    # Use configuration-based frontend URL for verification link
-    frontend_url = current_app.config.get('FRONTEND_URL', 'http://localhost:3000')
-    verification_link = f"{frontend_url}/verify-email?token={user.verification_token}"
+        db.session.rollback()
+        current_app.logger.exception(f"Password reset confirmation error: {e}")
+        return {"error": "Unable to reset password. Please try again."}, 500
     
-    msg = Message(
-        "Asset Anchor - Verify Your Email",
-        recipients=[user.email],
-        body=f"Hello {user.full_name},\n\n"
-             f"Please verify your email by clicking on this link: {verification_link}\n\n"
-             f"This link will expire in 24 hours.\n\n"
-             f"If you did not sign up for Asset Anchor, please ignore this email.\n\n"
-             f"Best regards,\n"
-             f"The Asset Anchor Team"
-    )
-    mail.send(msg)
-    logger.info(f"Verification email sent to: {user.email}")
+    return {"message": "Password has been reset successfully. You can now log in."}, 200
