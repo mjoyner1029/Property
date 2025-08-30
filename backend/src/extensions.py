@@ -311,12 +311,58 @@ def _register_jwt_hooks(app: Flask) -> None:
     @jwt.user_identity_loader
     def user_identity_lookup(user):
         """Convert user object to a JWT identity value."""
-        return user.id if hasattr(user, "id") else user
+        # If user is a dict with id, just use the ID
+        if isinstance(user, dict) and 'id' in user:
+            return str(user['id'])
+        elif hasattr(user, "id"):
+            return str(user.id)
+        else:
+            # Ensure we always return a string for compatibility
+            return str(user)
 
     @jwt.user_lookup_loader
     def user_lookup_callback(_jwt_header, jwt_data):
         """Convert JWT identity to a user object for @jwt_required()."""
         identity = jwt_data["sub"]
+        print(f"DEBUG - JWT lookup identity: {identity}, type: {type(identity)}")
+        
+        # Identity will be a string, but we need an int for the database lookup
+        try:
+            user_id = int(identity)
+        except (ValueError, TypeError):
+            print(f"WARNING: Could not convert JWT identity to int: {identity}")
+            # If we can't convert to int, try to use as is (although this should not happen)
+            user_id = identity
+            
         # Import here to avoid circular imports
         from .models import User
-        return User.query.filter_by(id=identity).first()
+        
+        # Log what we're looking up
+        print(f"DEBUG - Looking up user with ID: {user_id}, type: {type(user_id)}")
+        
+        user = User.query.filter_by(id=user_id).first()
+        print(f"DEBUG - Found user: {user}")
+        return user
+        
+    # Register JWT error handlers
+    @jwt.invalid_token_loader
+    def invalid_token_callback(error_string):
+        return {
+            'message': f'Invalid token: {error_string}',
+            'error': 'invalid_token'
+        }, 401
+    
+    @jwt.expired_token_loader
+    def expired_token_callback(_jwt_header, jwt_data):
+        return {
+            'message': 'Token has expired',
+            'error': 'token_expired'
+        }, 401
+        
+    @jwt.unauthorized_loader
+    def unauthorized_callback(error_string):
+        print(f"DEBUG - JWT unauthorized: {error_string}")
+        return {
+            'message': f'Missing or invalid Authorization header: {error_string}',
+            'error': 'authorization_required'
+        }, 401

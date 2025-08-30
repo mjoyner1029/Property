@@ -3,9 +3,12 @@ import json
 
 def test_get_profile(client, test_users, auth_headers):
     """Test retrieving user profile"""
+    print(f"TEST DEBUG - Auth headers for landlord: {auth_headers['landlord']}")
     response = client.get('/api/users/profile', 
                          headers=auth_headers['landlord'])
     
+    print(f"TEST DEBUG - Response status: {response.status_code}")
+    print(f"TEST DEBUG - Response data: {response.data}")
     assert response.status_code == 200
     data = json.loads(response.data)
     assert data['user']['email'] == 'landlord@example.com'
@@ -55,7 +58,9 @@ def test_unauthorized_access(client):
     
     assert response.status_code == 401
     data = json.loads(response.data)
-    assert 'msg' in data
+    # Our custom JWT error handler uses 'message' and 'error' keys
+    assert 'message' in data
+    assert 'error' in data
 
 
 def test_admin_get_users(client, test_users, auth_headers):

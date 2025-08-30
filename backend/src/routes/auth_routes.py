@@ -24,6 +24,7 @@ from ..models.user import User
 from ..models.token_blocklist import TokenBlocklist
 from ..utils.validators import validate_email, validate_password
 from ..utils.email_service import send_welcome_email
+from ..controllers.auth_controller import request_password_reset, confirm_password_reset
 
 bp = Blueprint("auth", __name__)  # prefix applied in app.register_blueprint(...)
 
@@ -296,8 +297,33 @@ def get_current_user():
 
 @bp.post("/password/reset-request")
 @limiter.limit("5 per hour")
-def request_password_reset():
+def password_reset_request():
     data = request.get_json(silent=True) or {}
+    email = data.get("email", "").lower().strip()
+    
+    if not email:
+        return jsonify({"error": "Email is required"}), 400
+    
+    # Call the controller method
+    response, status_code = request_password_reset(email)
+    
+    return jsonify(response), status_code
+    
+    
+@bp.post("/password/reset-confirm")
+@limiter.limit("10 per hour")
+def password_reset_confirm():
+    data = request.get_json(silent=True) or {}
+    token = data.get("token")
+    new_password = data.get("new_password")
+    
+    if not token or not new_password:
+        return jsonify({"error": "Token and new password are required"}), 400
+    
+    # Call the controller method
+    response, status_code = confirm_password_reset(token, new_password)
+    
+    return jsonify(response), status_code
     email = (data.get("email") or "").lower().strip()
     
     if not email:

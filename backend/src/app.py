@@ -14,10 +14,13 @@ from datetime import datetime
 from flask import Flask, jsonify, request, current_app
 from werkzeug.exceptions import HTTPException
 from werkzeug.middleware.proxy_fix import ProxyFix
+import traceback
 import sentry_sdk
 from sentry_sdk.integrations.flask import FlaskIntegration
 from sentry_sdk.integrations.sqlalchemy import SqlalchemyIntegration
 from sentry_sdk.integrations.logging import LoggingIntegration
+from jinja2 import TemplateNotFound
+from sqlalchemy.exc import SQLAlchemyError
 
 from .config import get_config, get_env_flag
 from .extensions import (
@@ -409,6 +412,44 @@ def register_error_handlers(app: Flask) -> None:
             'trace_id': trace_id
         })
         response.status_code = 500
+        return response
+
+    @app.errorhandler(TemplateNotFound)
+    def handle_template_not_found(error):
+        """Handle Jinja2 template not found errors with JSON response."""
+        trace_id = getattr(request, 'trace_id', str(uuid.uuid4()))
+        
+        # Log the exception with useful debugging information
+        context_data = {
+            'trace_id': trace_id,
+            'path': request.path,
+            'method': request.method,
+            'template_name': str(error),
+            'error_type': 'TemplateNotFound'
+        }
+        
+        # Get user ID from JWT if available
+        if hasattr(request, 'jwt_claims'):
+            context_data['user_id'] = request.jwt_claims.get('sub')
+        
+        app.logger.error(
+            f"Template not found: {str(error)}",
+            extra=context_data
+        )
+        
+        # Return JSON response instead of HTML error
+        if app.config.get('ENV') != 'production':
+            message = f"Template not found: {str(error)}"
+        else:
+            message = "Resource not available"
+            
+        response = jsonify({
+            'error': 'Template Not Found',
+            'message': message,
+            'status_code': 404,
+            'trace_id': trace_id
+        })
+        response.status_code = 404
         return response
 
     @app.errorhandler(Exception)

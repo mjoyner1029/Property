@@ -168,13 +168,13 @@ def admin_token(app, test_users):
     with app.app_context():
         from flask_jwt_extended import create_access_token
         admin = test_users['admin']
-        identity = {
-            'id': admin.id,
-            'email': admin.email,
-            'role': admin.role,
-            'portal': 'admin'
-        }
-        return create_access_token(identity=identity)
+        # Set explicit expiration to ensure we have plenty of time for the test
+        import datetime
+        expiry = datetime.timedelta(hours=1)  # 1 hour expiry for test tokens
+        # Use just the ID instead of a dictionary, ensure it's an integer
+        token = create_access_token(identity=int(admin.id), expires_delta=expiry)
+        print(f"DEBUG - Created admin token with ID: {admin.id}, type: {type(admin.id)}")
+        return token
 
 
 @pytest.fixture
@@ -183,13 +183,13 @@ def landlord_token(app, test_users):
     with app.app_context():
         from flask_jwt_extended import create_access_token
         landlord = test_users['landlord']
-        identity = {
-            'id': landlord.id,
-            'email': landlord.email,
-            'role': landlord.role,
-            'portal': 'landlord'
-        }
-        return create_access_token(identity=identity)
+        # Set explicit expiration to ensure we have plenty of time for the test
+        import datetime
+        expiry = datetime.timedelta(hours=1)  # 1 hour expiry for test tokens
+        # Use just the ID instead of a dictionary, ensure it's an integer
+        token = create_access_token(identity=int(landlord.id), expires_delta=expiry)
+        print(f"DEBUG - Created landlord token with ID: {landlord.id}, type: {type(landlord.id)}")
+        return token
 
 
 @pytest.fixture
@@ -198,23 +198,33 @@ def tenant_token(app, test_users):
     with app.app_context():
         from flask_jwt_extended import create_access_token
         tenant = test_users['tenant']
-        identity = {
-            'id': tenant.id,
-            'email': tenant.email,
-            'role': tenant.role,
-            'portal': 'tenant'
-        }
-        return create_access_token(identity=identity)
+        # Set explicit expiration to ensure we have plenty of time for the test
+        import datetime
+        expiry = datetime.timedelta(hours=1)  # 1 hour expiry for test tokens
+        # Use just the ID instead of a dictionary, ensure it's an integer
+        token = create_access_token(identity=int(tenant.id), expires_delta=expiry)
+        print(f"DEBUG - Created tenant token with ID: {tenant.id}, type: {type(tenant.id)}")
+        return token
 
 
 @pytest.fixture
 def auth_headers(client, test_users, admin_token, landlord_token, tenant_token):
     """Return headers with authentication for different roles."""
-    return {
+    headers = {
         "admin": {"Authorization": f"Bearer {admin_token}"},
         "landlord": {"Authorization": f"Bearer {landlord_token}"},
         "tenant": {"Authorization": f"Bearer {tenant_token}"}
     }
+    
+    # Print debug information about tokens
+    print(f"DEBUG - admin_token: {admin_token[:20]}...")
+    print(f"DEBUG - landlord_token: {landlord_token[:20]}...")
+    print(f"DEBUG - tenant_token: {tenant_token[:20]}...")
+    print(f"DEBUG - admin_headers: {headers['admin']}")
+    print(f"DEBUG - landlord_headers: {headers['landlord']}")
+    print(f"DEBUG - tenant_headers: {headers['tenant']}")
+    
+    return headers
 
 
 @pytest.fixture
