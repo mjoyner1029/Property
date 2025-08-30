@@ -36,11 +36,16 @@ def app() -> Flask:
     app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///:memory:"
     app.config["TESTING"] = True
     
+    # Set environment variables for test mode
+    import os
+    os.environ["FLASK_ENV"] = "testing"
+    os.environ["TESTING"] = "True"
+    os.environ["FLASK_LIMITER_ENABLED"] = "False"
+    
     # Comprehensively disable rate limiting for tests
     app.config["RATELIMIT_ENABLED"] = False
     app.config["LIMITER_ENABLED"] = False
     app.config["FLASK_LIMITER_ENABLED"] = False
-    app.config["TESTING"] = True
     
     # Set extreme limits to avoid test failures
     app.config["RATELIMIT_DEFAULT"] = "10000 per second"
@@ -49,10 +54,6 @@ def app() -> Flask:
     app.config["RATELIMIT_IN_MEMORY_FALLBACK_ENABLED"] = True
     app.config["RATELIMIT_APPLICATION"] = "10000 per second"
     app.config["RATELIMIT_HEADERS_ENABLED"] = False
-    
-    # Force disable rate limiting in environment variables
-    import os
-    os.environ["FLASK_LIMITER_ENABLED"] = "False"
     
     # Disable account lockout for tests
     app.config["ACCOUNT_LOCKOUT_MAX_ATTEMPTS"] = 1000
@@ -261,49 +262,58 @@ def session(app):
 @pytest.fixture
 def test_property(app, db, session, test_users):
     """Create a test property for testing.
-    Returns a dictionary with 'property' and 'units' keys."""
-    # Get the landlord user
-    landlord = User.query.filter_by(email="landlord@example.com").first()
-    
-    # Always create a fresh property for tests to avoid DetachedInstanceError
-    import uuid
-    unique_name = f"Test Property {uuid.uuid4()}"
-    
-    # Create a test property
-    test_property = Property(
-        name=unique_name,
-        address="123 Test St",
-        city="Testville",
-        state="TS",
-        zip_code="12345",
-        landlord_id=landlord.id,
-        status="active"
-    )
-    
-    session.add(test_property)
-    session.flush()  # Flush to get the ID but keep the transaction open
-    
-    # Create multiple test units for this property
-    units = []
-    for i in range(3):
-        test_unit = Unit(
-            property_id=test_property.id,
-            unit_number=f"{101+i}",
-            bedrooms=2,
-            bathrooms=1,
-            size=1000,  # Use size, not square_feet
-            status="available"
+    Returns a dictionary with 'property_id', 'property_name' and 'unit_ids' keys."""
+    with app.app_context():
+        # Get the landlord user
+        landlord = User.query.filter_by(email="landlord@example.com").first()
+        
+        # Always create a fresh property for tests to avoid DetachedInstanceError
+        import uuid
+        unique_name = f"Test Property {uuid.uuid4()}"
+        
+        # Create a test property
+        test_property = Property(
+            name=unique_name,
+            address="123 Test St",
+            city="Testville",
+            state="TS",
+            zip_code="12345",
+            landlord_id=landlord.id,
+            status="active",
+            bedrooms=3,  # Add default values for these fields
+            bathrooms=2,
+            square_feet=1500,
+            year_built=2020,
+            property_type="residential",
+            description="Test property description"
         )
-        session.add(test_unit)
-        session.flush()  # Flush to get IDs but keep the transaction open
-        units.append(test_unit)
-    
-    # Important: Don't commit here, let the test manage the transaction
-    # This way property and units stay attached to the session provided to the test
-    
-    # Return a dictionary with property and units
-    result = {
-        'property': test_property,
-        'units': units
-    }
-    return result
+        
+        db.session.add(test_property)
+        db.session.commit()  # Commit to ensure property is persisted and has an ID
+        property_id = test_property.id
+        property_name = test_property.name
+        
+        # Create multiple test units for this property
+        unit_ids = []
+        for i in range(3):
+            test_unit = Unit(
+                property_id=property_id,
+                unit_number=f"{101+i}",
+                bedrooms=2,
+                bathrooms=1,
+                size=1000,  # Use size, not square_feet
+                status="available"
+            )
+            db.session.add(test_unit)
+            db.session.flush()  # Flush to generate IDs without committing
+            unit_ids.append(test_unit.id)
+        
+        db.session.commit()  # Commit to ensure units are persisted
+        
+        # Return a dictionary with property and unit IDs
+        result = {
+            'property_id': property_id,
+            'property_name': property_name,
+            'unit_ids': unit_ids
+        }
+        return result

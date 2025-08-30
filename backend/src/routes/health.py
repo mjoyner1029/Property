@@ -31,3 +31,20 @@ def health():
         ok = False
     status = 200 if ok else 500
     return jsonify({"db": "ok" if ok else "fail", "git_sha": _git_sha()}), status
+
+@bp.get("/healthz")
+@limiter.exempt
+def healthz():
+    """Simple health check endpoint for Render"""
+    return jsonify({"status": "ok"}), 200
+
+@bp.get("/readyz")
+@limiter.exempt
+def readyz():
+    """Readiness probe that checks database connectivity"""
+    try:
+        # Check the database connection
+        db.session.execute(text("SELECT 1"))
+        return jsonify({"status": "ok", "db": "connected"}), 200
+    except Exception as e:
+        return jsonify({"status": "error", "message": str(e)}), 500

@@ -72,6 +72,7 @@ def create_app(config_name: Optional[str] = None) -> Flask:
     # Configure ProxyFix for proper IP handling behind proxies
     configure_proxy_fix(app)
     
+    # Configure rate limiting settings from environment
     # For testing, completely disable rate limiting
     if app.config.get("TESTING", False):
         app.config["RATELIMIT_ENABLED"] = False
@@ -82,6 +83,30 @@ def create_app(config_name: Optional[str] = None) -> Flask:
         app.config["RATELIMIT_DEFAULT"] = "10000 per second"
         # Also disable potential environment vars that might affect rate limiting
         os.environ["FLASK_LIMITER_ENABLED"] = "False"
+        app.logger.info("Rate limiting is DISABLED for testing environment")
+    else:
+        # For production/development, configure from environment
+        default_limits = os.environ.get(
+            "RATELIMIT_DEFAULT", 
+            app.config.get("RATELIMIT_DEFAULT", "3000 per day, 1000 per hour, 100 per minute")
+        )
+        app.config["RATELIMIT_DEFAULT"] = default_limits
+        
+        # Use Redis for storage if available, otherwise memory
+        storage_uri = os.environ.get(
+            "RATELIMIT_STORAGE_URL", 
+            app.config.get("REDIS_URL", "memory://")
+        )
+        app.config["RATELIMIT_STORAGE_URI"] = storage_uri
+        app.config["RATELIMIT_STORAGE_URL"] = storage_uri
+        
+        # Other rate limiting config
+        app.config["RATELIMIT_HEADERS_ENABLED"] = True
+        app.config["RATELIMIT_SWALLOW_ERRORS"] = app.config.get("RATELIMIT_SWALLOW_ERRORS", True)
+        app.config["RATELIMIT_KEY_PREFIX"] = app.config.get("RATELIMIT_KEY_PREFIX", "assetanchor")
+        app.config["RATELIMIT_ENABLED"] = True
+        
+        app.logger.info(f"Rate limiting configured with default limits: {default_limits}")
     
     # Initialize extensions with the app
     init_extensions(app)
@@ -258,7 +283,33 @@ def register_blueprints(app: Flask) -> None:
     # Health check routes - Always enabled and at root level for monitoring
     try:
         from .routes.health_routes import health_bp
+        # Register both at API prefix and root level for flexibility
         blueprints.append((health_bp, f'{API_PREFIX}/health'))
+        
+        # Register a separate instance at root level for Render health checks
+        from flask import Blueprint, jsonify
+        from sqlalchemy import text
+        
+        health_root_bp = Blueprint('health_root', __name__)
+        
+        @health_root_bp.route('/healthz')
+        @limiter.exempt
+        def healthz():
+            """Simple health check endpoint for Render"""
+            return jsonify({"status": "ok"}), 200
+            
+        @health_root_bp.route('/readyz')
+        @limiter.exempt
+        def readyz():
+            """Readiness probe that checks database connectivity"""
+            try:
+                # Check the database connection
+                db.session.execute(text("SELECT 1"))
+                return jsonify({"status": "ok", "db": "connected"}), 200
+            except Exception as e:
+                return jsonify({"status": "error", "message": str(e)}), 500
+                
+        blueprints.append((health_root_bp, ''))
     except Exception as e:
         app.logger.error(f"Failed to load health_bp: {str(e)}")
     

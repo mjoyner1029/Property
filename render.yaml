@@ -18,7 +18,9 @@ services:
       --bind 0.0.0.0:${PORT}
       --max-requests 1000
       --max-requests-jitter 100
-    healthCheckPath: /api/health
+    healthCheckPath: /healthz
+    healthCheckTimeout: 10
+    healthCheckInterval: 30
     dependsOn:
       - name: asset-anchor-redis
       - name: asset-anchor-db

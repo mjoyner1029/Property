@@ -17,7 +17,12 @@ from ..extensions import limiter
 property_bp = Blueprint("property", __name__)
 
 def _ok(payload, code=200):
-    return jsonify(payload), code
+    # If payload is already a Response object (e.g. from jsonify), return it directly
+    if hasattr(payload, 'status_code'):
+        return payload
+    else:
+        # Otherwise, jsonify it
+        return jsonify(payload), code
 
 def _err(msg, code=400):
     return jsonify({"error": msg}), code
@@ -93,10 +98,29 @@ def update_property_route(property_id: int):
         data = request.get_json(silent=True) or {}
         if data is None:
             return _err("Request body must be JSON", 400)
-        payload, status = update_property(property_id, data)
+        
+        # Extract fields from data
+        name = data.get('name')
+        address = data.get('address')
+        city = data.get('city')
+        state = data.get('state')
+        zip_code = data.get('zip_code')
+        property_type = data.get('property_type')
+        bedrooms = data.get('bedrooms')
+        bathrooms = data.get('bathrooms')
+        square_feet = data.get('square_feet')
+        year_built = data.get('year_built')
+        description = data.get('description')
+        amenities = data.get('amenities')
+        
+        payload, status = update_property(
+            property_id, name, address, city, state, zip_code, 
+            property_type, bedrooms, bathrooms, square_feet, 
+            year_built, description, amenities
+        )
         return _ok(payload, status)
-    except Exception:
-        current_app.logger.exception("Failed to update property %s", property_id)
+    except Exception as e:
+        current_app.logger.exception("Failed to update property %s: %s", property_id, str(e))
         return _err("Internal server error", 500)
 
 

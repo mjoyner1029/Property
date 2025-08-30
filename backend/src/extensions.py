@@ -1,15 +1,5 @@
 """
-Extensions module for Ass# Ini# Initialize limiter with memory storage by default, will be updated in init_app if Redis is available
-limiter = Limiter(
-    key_func=get_remote_address,
-    default_limits=["200 per day", "50 per hour"],
-    default_limits_deferred=True  # Defer limits to init_app
-)ze limiter with memory storage by default, will be updated in init_app if Redis is available
-limiter = Limiter(
-    key_func=get_remote_address,
-    default_limits=["200 per day", "50 per hour"],
-    default_limits_deferred=True  # Defer limits to init_app
-)chor API.
+Extensions module for Asset Anchor API.
 Initializes and configures all Flask extensions used in the application.
 """
 
@@ -37,13 +27,44 @@ cors = CORS()
 talisman = Talisman()
 socketio = SocketIO()
 mail = Mail()
-# Initialize with memory storage by default, will be updated in init_app if Redis is available
-limiter = Limiter(
-    key_func=get_remote_address,
-    default_limits=["200 per day", "50 per hour"],
-    storage_uri=None,
-    strategy="fixed-window"
-)
+# Initialize limiter with memory storage by default, will be updated in init_app if Redis is available
+# We don't set default_limits here as they'll be loaded from the environment in init_app
+if os.environ.get("FLASK_ENV") == "testing" or os.environ.get("TESTING") == "True":
+    # For testing, use a no-op limiter
+    class NoOpDecorator:
+        def __init__(self, *args, **kwargs):
+            pass
+        
+        def __call__(self, *args, **kwargs):
+            if len(args) == 1 and callable(args[0]):
+                return args[0]
+            return self
+    
+    class NoOpLimiter:
+        def __init__(self, *args, **kwargs):
+            self.enabled = False
+            
+        def init_app(self, app, **kwargs):
+            app.extensions['limiter'] = self
+            
+        def limit(self, *args, **kwargs):
+            return NoOpDecorator()
+            
+        def shared_limit(self, *args, **kwargs):
+            return NoOpDecorator()
+            
+        def exempt(self, *args, **kwargs):
+            return NoOpDecorator()
+            
+    limiter = NoOpLimiter()
+else:
+    # For production/development, use actual limiter
+    limiter = Limiter(
+        key_func=get_remote_address,
+        default_limits=None,  # We'll set these in init_app from environment
+        storage_uri=None,
+        strategy="fixed-window"
+    )
 
 def init_extensions(app: Flask) -> None:
     """
@@ -77,111 +98,38 @@ def init_extensions(app: Flask) -> None:
     mail.init_app(app)
     
     # Initialize rate limiter with appropriate configuration
-    
+
     # For testing, ensure limiter is completely disabled
     if app.config.get("TESTING", False):
+        # Set environment variable to ensure NoOpLimiter is used
+        os.environ["FLASK_ENV"] = "testing"
+        os.environ["TESTING"] = "True"
+        
         # The most important part - disable rate limiting completely for tests
         app.config["RATELIMIT_ENABLED"] = False
         app.config["RATELIMIT_STORAGE_URI"] = "memory://"
         app.config["RATELIMIT_STORAGE_URL"] = "memory://"
-        app.config["RATELIMIT_STRATEGY"] = "fixed-window"
-        app.config["RATELIMIT_IN_MEMORY_FALLBACK_ENABLED"] = True
         app.config["RATELIMIT_DEFAULT"] = "1000000 per second"
         app.config["RATELIMIT_APPLICATION"] = "1000000 per second"
-        app.config["RATELIMIT_APPLICATION_EXPIRES"] = 300
         app.config["RATELIMIT_HEADERS_ENABLED"] = False
         app.config["FLASK_LIMITER_ENABLED"] = False
-        
-        # Force limiter to recognize disabled state
-        class MockLimiter:
-            def __init__(self, *args, **kwargs):
-                self.enabled = False
-                
-            def check(self, *args, **kwargs):
-                return True
-                
-            def reset(self, *args, **kwargs):
-                pass
-                
-            def clear(self, *args, **kwargs):
-                pass
-                
-            def get_window_stats(self, *args, **kwargs):
-                return None
-                
-            def hit(self, *args, **kwargs):
-                return True
-                
-            def test(self, *args, **kwargs):
-                return True
-                
-            def get_view_rate_limit(self, *args, **kwargs):
-                return None
-        
-        # Create a completely disabled limiter
-        class NoOpLimiter:
-            """A completely disabled limiter that does nothing"""
-            def __init__(self):
-                self.enabled = False
 
-            def init_app(self, *args, **kwargs):
-                pass
-
-            def limit(self, *args, **kwargs):
-                return lambda fn: fn
-                
-            def shared_limit(self, *args, **kwargs):
-                return lambda fn: fn
-
-            def exempt(self, *args, **kwargs):
-                return lambda fn: fn if callable(args[0]) else args[0]
-
-            def request_filter(self, *args, **kwargs):
-                return lambda fn: fn
-                
-            def reset(self):
-                pass
-                
-            def check(self, *args, **kwargs):
-                return True
-                
-            def get_application_limits(self, *args, **kwargs):
-                return []
-                
-            def get_window_stats(self, *args, **kwargs):
-                return None
-
-        # Replace the limiter with our no-op version
-        global limiter
-        limiter = NoOpLimiter()
-        
-        # Set the limiter in the app extensions
-        app.extensions['limiter'] = limiter
-        
         # Also add before_request handlers to ensure rate limiting is bypassed
         @app.before_request
         def _disable_rate_limiting():
-            request.environ.pop('flask_limiter.limits', None)
-            
-        # Override any potential limiter middleware in WSGI stack
-        def _no_op_limiter_middleware(app):
-            def middleware(environ, start_response):
-                return app(environ, start_response)
-            return middleware
-            
-        if hasattr(app, 'wsgi_app') and hasattr(app.wsgi_app, '__wrapped__'):
-            # Unwrap any limiter middleware
-            app.wsgi_app = app.wsgi_app.__wrapped__
+            if 'flask_limiter.limits' in request.environ:
+                request.environ.pop('flask_limiter.limits', None)
+        
+        # Set the NoOpLimiter in the app extensions
+        app.extensions['limiter'] = limiter
         
         return  # Skip the rest of the setup for tests
-    
+
     # Get limiter configuration and apply to app.config
     limiter_config = _get_limiter_config(app)
-    
+
     # Initialize limiter with app
-    limiter.init_app(app, **limiter_config)
-    
-    # Register additional hooks
+    limiter.init_app(app)    # Register additional hooks
     _register_jwt_hooks(app)
 
 
@@ -281,27 +229,43 @@ def _get_limiter_config(app: Flask) -> Dict[str, Any]:
     
     # For tests, use a configuration that completely disables rate limiting
     if app.config.get("TESTING", False):
-        return {
-            "enabled": False,  # Disable rate limiting in tests
-            "storage_uri": "memory://",
-            "default_limits": ["10000 per second"],
-            "application_limits": ["10000 per second"],
-            "headers_enabled": False,
-            "swallow_errors": True
-        }
+        app.config["RATELIMIT_ENABLED"] = False
+        app.config["RATELIMIT_STORAGE_URI"] = "memory://"
+        app.config["RATELIMIT_STRATEGY"] = "fixed-window"
+        app.config["RATELIMIT_DEFAULT"] = "10000 per second"
+        app.config["RATELIMIT_APPLICATION"] = "10000 per second"
+        app.config["RATELIMIT_HEADERS_ENABLED"] = False
+        app.config["FLASK_LIMITER_ENABLED"] = False
+        
+        return {}  # Return empty dict as we're configuring via app.config
     
     # For production, use Redis if configured, otherwise use memory storage
     storage_uri = app.config.get("REDIS_URL", None)
     if storage_uri:
         app.config["RATELIMIT_STORAGE_URI"] = storage_uri
+        
+    # Set environment-aware default limits
+    default_limits = os.environ.get(
+        "RATELIMIT_DEFAULT", 
+        app.config.get("RATELIMIT_DEFAULT", "3000 per day, 1000 per hour, 100 per minute")
+    )
     
     # Set other rate limiting configuration through app.config
+    app.config["RATELIMIT_DEFAULT"] = default_limits
     app.config["RATELIMIT_STRATEGY"] = "fixed-window"
     app.config["RATELIMIT_HEADERS_ENABLED"] = True
     app.config["RATELIMIT_SWALLOW_ERRORS"] = app.config.get("RATELIMIT_SWALLOW_ERRORS", True)
     app.config["RATELIMIT_KEY_PREFIX"] = app.config.get("RATELIMIT_KEY_PREFIX", "assetanchor")
+    app.config["RATELIMIT_ENABLED"] = True
     
-    # Return minimal configuration for init_app - most config is set via app.config
+    app.logger.info(f"Rate limiting configured with default limits: {default_limits}")
+    if storage_uri:
+        app.logger.info(f"Using Redis for rate limiting storage: {storage_uri}")
+    else:
+        app.logger.warning("Using in-memory storage for rate limiting - not recommended for production")
+    
+    # Return an empty dict as we're configuring via app.config
+    # This avoids compatibility issues with Flask-Limiter versions
     return {}
 
 

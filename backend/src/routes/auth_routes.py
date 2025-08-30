@@ -5,6 +5,7 @@ Authentication routes for user login, registration, refresh, logout, and profile
 Applied rate limits use Flask-Limiter directly to ensure they bind to view functions.
 """
 
+import os
 from datetime import datetime, timezone
 import uuid
 
@@ -61,8 +62,13 @@ def verify_token():
 
 
 @bp.post("/login")
-@limiter.limit("10 per 5 minutes; 100 per hour")
+# Add rate limiting but make sure it's ignored in tests
+@limiter.limit("10 per 5 minutes; 100 per hour; 500 per day")
 def login():
+    # Check if we're in a test environment
+    if os.environ.get("FLASK_ENV") == "testing" or os.environ.get("TESTING") == "True":
+        current_app.logger.debug("Rate limiting disabled for testing")
+    
     data = request.get_json(silent=True) or {}
     email = (data.get("email") or "").lower().strip()
     password = data.get("password") or ""

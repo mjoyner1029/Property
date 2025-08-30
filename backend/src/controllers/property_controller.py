@@ -1,4 +1,4 @@
-from flask import jsonify, request
+from flask import jsonify
 from flask_jwt_extended import get_jwt_identity
 from ..models.property import Property
 from ..models.unit import Unit
@@ -11,16 +11,20 @@ import logging
 logger = logging.getLogger(__name__)
 
 
-def get_properties():
+def get_properties(filters=None):
     """Get all properties for the current user"""
     current_user_id = get_jwt_identity()
+    
+    # Process any filters (not implemented yet, but handle the parameter)
+    if filters is None:
+        filters = {}
 
     try:
         # Check if user is landlord or tenant
         user = User.query.get(current_user_id)
 
         if not user:
-            return jsonify({"error": "User not found"}), 404
+            return {"error": "User not found"}, 404
 
         if user.role == "landlord":
             properties = Property.query.filter_by(landlord_id=current_user_id).all()
@@ -35,28 +39,34 @@ def get_properties():
             # For admins, get all properties
             properties = Property.query.all()
 
-        return (
-            jsonify({"properties": [property.to_dict() for property in properties]}),
-            200,
-        )
+        return {"properties": [property.to_dict() for property in properties]}, 200
     except Exception as e:
         logger.error(f"Error getting properties: {str(e)}")
-        return jsonify({"error": str(e)}), 500
+        return {"error": str(e)}, 500
 
 
 # Add other property controller functions here
 def get_property(property_id):
     """Get a specific property"""
     current_user_id = get_jwt_identity()
+    # Convert JWT identity to int for comparison with database IDs
+    if isinstance(current_user_id, str):
+        current_user_id = int(current_user_id)
+        
+    print(f"DEBUG - get_property - current_user_id: {current_user_id}, type: {type(current_user_id)}")
 
     try:
         property = Property.query.get(property_id)
+        
+        print(f"DEBUG - property.landlord_id: {property.landlord_id}, type: {type(property.landlord_id)}")
 
         if not property:
-            return jsonify({"error": "Property not found"}), 404
+            return {"error": "Property not found"}, 404
 
         # Check permissions
         user = User.query.get(current_user_id)
+        print(f"DEBUG - user: {user}, role: {user.role}")
+        
         if user.role == "tenant":
             # Check if tenant is associated with this property
             tenant_property = TenantProperty.query.filter_by(
@@ -64,32 +74,34 @@ def get_property(property_id):
             ).first()
 
             if not tenant_property:
-                return jsonify({"error": "Unauthorized access to property"}), 403
-        elif user.role == "landlord" and property.landlord_id != current_user_id:
-            return jsonify({"error": "Unauthorized access to property"}), 403
+                return {"error": "Unauthorized access to property"}, 403
+        elif user.role == "landlord":
+            print(f"DEBUG - Comparing landlord_id {property.landlord_id} ({type(property.landlord_id)}) with current_user_id {current_user_id} ({type(current_user_id)})")
+            print(f"DEBUG - Equal? {property.landlord_id == current_user_id}")
+            if property.landlord_id != current_user_id:
+                return {"error": "Unauthorized access to property"}, 403
 
-        return jsonify({"property": property.to_dict()}), 200
+        return {"property": property.to_dict()}, 200
     except Exception as e:
         logger.error(f"Error getting property: {str(e)}")
-        return jsonify({"error": str(e)}), 500
+        return {"error": str(e)}, 500
 
 
-def create_property():
+def create_property(data):
     """Create a new property"""
     current_user_id = get_jwt_identity()
-    data = request.get_json()
 
     try:
         # Check if user is a landlord
         user = User.query.get(current_user_id)
         if not user or user.role != "landlord":
-            return jsonify({"error": "Only landlords can create properties"}), 403
+            return {"error": "Only landlords can create properties"}, 403
 
         # Validate required fields
         required_fields = ["name", "address", "city", "state", "zip_code"]
         for field in required_fields:
             if field not in data:
-                return jsonify({"error": f"Missing required field: {field}"}), 400
+                return {"error": f"Missing required field: {field}"}, 400
 
         # Create new property
         new_property = Property(
@@ -108,100 +120,87 @@ def create_property():
         db.session.add(new_property)
         db.session.commit()
 
-        return (
-            jsonify(
-                {
-                    "message": "Property created successfully",
-                    "property": new_property.to_dict(),
-                }
-            ),
-            201,
-        )
+        return {
+            "message": "Property created successfully",
+            "property": new_property.to_dict(),
+        }, 201
     except Exception as e:
         db.session.rollback()
         logger.error(f"Error creating property: {str(e)}")
-        return jsonify({"error": str(e)}), 500
+        return {"error": str(e)}, 500
 
 
-def update_property(property_id):
+def update_property(property_id, name, address, city, state, zip_code, property_type, bedrooms, bathrooms, square_feet, year_built, description, amenities=None):
     """Update a property"""
-    current_user_id = get_jwt_identity()
-    data = request.get_json()
-
     try:
-        # Check if property exists
+        current_user_id = get_jwt_identity()
+        # Convert JWT identity to int for comparison with database IDs
+        if isinstance(current_user_id, str):
+            current_user_id = int(current_user_id)
+        
+        print(f"DEBUG - update_property - current_user_id: {current_user_id}, type: {type(current_user_id)}")
+
+        # Get the property
         property = Property.query.get(property_id)
+        
         if not property:
-            return jsonify({"error": "Property not found"}), 404
-
-        # Check if user is authorized to update this property
+            return {"error": "Property not found"}, 404
+        
+        print(f"DEBUG - property.landlord_id: {property.landlord_id}, type: {type(property.landlord_id)}")
+        print(f"DEBUG - Comparing landlord_id {property.landlord_id} ({type(property.landlord_id)}) with current_user_id {current_user_id} ({type(current_user_id)})")
+        print(f"DEBUG - Equal? {property.landlord_id == current_user_id}")
+        
+        # Check if current user is the landlord of the property
         if property.landlord_id != current_user_id:
-            return jsonify({"error": "Unauthorized to update this property"}), 403
-
+            return {"error": "Unauthorized to update this property"}, 403
+        
         # Update property fields
-        if "name" in data:
-            property.name = data["name"]
-        if "address" in data:
-            property.address = data["address"]
-        if "city" in data:
-            property.city = data["city"]
-        if "state" in data:
-            property.state = data["state"]
-        if "zip_code" in data:
-            property.zip_code = data["zip_code"]
-        if "property_type" in data:
-            property.property_type = data["property_type"]
-        if "description" in data:
-            property.description = data["description"]
-
-        property.updated_at = datetime.utcnow()
-
+        property.name = name
+        property.address = address
+        property.city = city
+        property.state = state
+        property.zip_code = zip_code
+        property.property_type = property_type
+        property.bedrooms = bedrooms
+        property.bathrooms = bathrooms
+        property.square_feet = square_feet
+        property.year_built = year_built
+        property.description = description
+        
+        # Handle amenities
+        if amenities:
+            property.amenities = amenities
+        
         db.session.commit()
-
-        return (
-            jsonify(
-                {
-                    "message": "Property updated successfully",
-                    "property": property.to_dict(),
-                }
-            ),
-            200,
-        )
+        
+        return {"message": "Property updated successfully", "property": property.to_dict()}, 200
+    
     except Exception as e:
         db.session.rollback()
-        logger.error(f"Error updating property: {str(e)}")
-        return jsonify({"error": str(e)}), 500
+        return {"error": str(e)}, 500
 
 
 def delete_property(property_id):
     """Delete a property"""
-    current_user_id = get_jwt_identity()
-
     try:
-        # Check if property exists
+        current_user_id = get_jwt_identity()
+        
+        # Get the property
         property = Property.query.get(property_id)
+        
         if not property:
-            return jsonify({"error": "Property not found"}), 404
-
-        # Check if user is authorized to delete this property
+            return {"error": "Property not found"}, 404
+        
+        # Check if current user is the landlord of the property
         if property.landlord_id != current_user_id:
-            return jsonify({"error": "Unauthorized to delete this property"}), 403
-
-        # Check if property has units
-        units = Unit.query.filter_by(property_id=property_id).all()
-        if units:
-            return jsonify(
-                {
-                    "error": "Cannot delete property with existing units. Delete units first."
-                }
-            ), 400
-
-        # Delete property
+            return {"error": "Unauthorized to delete this property"}, 403
+        
+        # Delete the property
         db.session.delete(property)
         db.session.commit()
-
-        return jsonify({"message": "Property deleted successfully"}), 200
+        
+        return {"message": "Property deleted successfully"}, 200
+    
     except Exception as e:
         db.session.rollback()
-        logger.error(f"Error deleting property: {str(e)}")
-        return jsonify({"error": str(e)}), 500
+        return {"error": str(e)}, 500

@@ -5,7 +5,7 @@ from flask import Blueprint, request, jsonify, current_app
 from flask_jwt_extended import jwt_required, get_jwt_identity
 
 from ..models.user import User
-from ..extensions import db
+from ..extensions import db, limiter
 from ..utils.mfa import MFAManager
 import json
 
@@ -14,6 +14,7 @@ mfa_manager = MFAManager()
 
 @mfa_bp.route('/setup', methods=['POST'])
 @jwt_required()
+@limiter.limit("5 per minute; 20 per hour")
 def setup_mfa():
     """
     Start MFA setup process by generating and returning a secret
@@ -48,6 +49,7 @@ def setup_mfa():
 
 @mfa_bp.route('/verify', methods=['POST'])
 @jwt_required()
+@limiter.limit("10 per 5 minutes; 30 per hour")
 def verify_mfa_setup():
     """
     Verify MFA setup by validating a TOTP code
