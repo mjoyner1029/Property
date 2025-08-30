@@ -292,3 +292,215 @@ def get_current_user():
     if not user:
         return jsonify({"error": "User not found"}), 404
     return jsonify({"user": user.to_dict()}), 200
+
+
+@bp.post("/password/reset-request")
+@limiter.limit("5 per hour")
+def request_password_reset():
+    data = request.get_json(silent=True) or {}
+    email = (data.get("email") or "").lower().strip()
+    
+    if not email:
+        return jsonify({"error": "Email is required"}), 400
+    
+    user = User.query.filter_by(email=email).first()
+    if not user:
+        # Don't reveal whether the user exists or not
+        return jsonify({
+            "message": "If your email is registered, you will receive a password reset link."
+        }), 200
+    
+    # Import the password reset model
+    from ..models.password_reset import PasswordReset
+    
+    # Generate a unique token
+    import secrets
+    import uuid
+    from datetime import datetime, timedelta, timezone
+    
+    token = secrets.token_urlsafe(32)
+    reset_token = str(uuid.uuid4())
+    
+    # Save the token in the database
+    # First delete any existing reset tokens for this user
+    PasswordReset.query.filter_by(user_id=user.id).delete()
+    
+    # Create new token that expires in 1 hour
+    expires_at = datetime.now(timezone.utc) + timedelta(hours=1)
+    reset = PasswordReset(
+        user_id=user.id,
+        token=reset_token,
+        expires_at=expires_at
+    )
+    
+    try:
+        db.session.add(reset)
+        db.session.commit()
+        
+        # Send email with the reset link
+        from ..utils.email_service import send_password_reset_email
+        send_password_reset_email(user, reset_token)
+        
+    except Exception as e:
+        db.session.rollback()
+        current_app.logger.exception("Password reset request error")
+        return jsonify({"error": "Unable to process request. Please try again later."}), 500
+    
+    return jsonify({
+        "message": "If your email is registered, you will receive a password reset link."
+    }), 200
+        
+        
+# Legacy format support for password reset route
+@bp.post("/password/reset_request")
+@limiter.limit("5 per hour")
+def request_password_reset_legacy():
+    """Legacy route support for backward compatibility"""
+    data = request.get_json(silent=True) or {}
+    email = (data.get("email") or "").lower().strip()
+    
+    if not email:
+        return jsonify({"error": "Email is required"}), 400
+    
+    user = User.query.filter_by(email=email).first()
+    if not user:
+        # Don't reveal whether the user exists or not
+        return jsonify({
+            "message": "If your email is registered, you will receive a password reset link."
+        }), 200
+    
+    # Import the password reset model
+    from ..models.password_reset import PasswordReset
+    
+    # Generate a unique token
+    import secrets
+    import uuid
+    from datetime import datetime, timedelta, timezone
+    
+    token = secrets.token_urlsafe(32)
+    reset_token = str(uuid.uuid4())
+    
+    # Save the token in the database
+    # First delete any existing reset tokens for this user
+    PasswordReset.query.filter_by(user_id=user.id).delete()
+    
+    # Create new token that expires in 1 hour
+    expires_at = datetime.now(timezone.utc) + timedelta(hours=1)
+    reset = PasswordReset(
+        user_id=user.id,
+        token=reset_token,
+        expires_at=expires_at
+    )
+    
+    try:
+        db.session.add(reset)
+        db.session.commit()
+        
+        # Send email with the reset link
+        from ..utils.email_service import send_password_reset_email
+        send_password_reset_email(user, reset_token)
+        
+    except Exception as e:
+        db.session.rollback()
+        current_app.logger.exception("Password reset request error")
+        return jsonify({"error": "Unable to process request. Please try again later."}), 500
+    
+    return jsonify({
+        "message": "If your email is registered, you will receive a password reset link."
+    }), 200
+    
+    # Import the password reset model
+    from ..models.password_reset import PasswordReset
+    
+    # Generate a unique token
+    import secrets
+    import uuid
+    from datetime import datetime, timedelta, timezone
+    
+    token = secrets.token_urlsafe(32)
+    reset_token = str(uuid.uuid4())
+    
+    # Save the token in the database
+    # First delete any existing reset tokens for this user
+    PasswordReset.query.filter_by(user_id=user.id).delete()
+    
+    # Create new token that expires in 1 hour
+    expires_at = datetime.now(timezone.utc) + timedelta(hours=1)
+    reset = PasswordReset(
+        user_id=user.id,
+        token=reset_token,
+        expires_at=expires_at
+    )
+    
+    try:
+        db.session.add(reset)
+        db.session.commit()
+        
+        # Send email with the reset link
+        from ..utils.email_service import send_password_reset_email
+        send_password_reset_email(user, reset_token)
+        
+    except Exception as e:
+        db.session.rollback()
+        current_app.logger.exception("Password reset request error")
+        return jsonify({"error": "Unable to process request. Please try again later."}), 500
+    
+    return jsonify({
+        "message": "If your email is registered, you will receive a password reset link."
+    }), 200
+
+
+@bp.post("/password/reset")
+@limiter.limit("5 per hour")
+def reset_password():
+    data = request.get_json(silent=True) or {}
+    token = data.get("token")
+    password = data.get("password")
+    
+    if not token or not password:
+        return jsonify({"error": "Token and new password are required"}), 400
+    
+    # Import the password reset model
+    from ..models.password_reset import PasswordReset
+    from ..utils.validators import validate_password
+    from datetime import datetime, timezone
+    
+    # Validate the new password
+    is_valid, pwd_message = validate_password(password)
+    if not is_valid:
+        return jsonify({"error": f"Password is not strong enough: {pwd_message}"}), 400
+    
+    # Find the reset record
+    reset = PasswordReset.query.filter_by(token=token).first()
+    if not reset:
+        return jsonify({"error": "Invalid or expired token"}), 400
+    
+    # Check if token is expired
+    now = datetime.now(timezone.utc)
+    if reset.expires_at < now:
+        db.session.delete(reset)
+        db.session.commit()
+        return jsonify({"error": "Token has expired. Please request a new password reset."}), 400
+    
+    # Get the user and update password
+    user = User.query.get(reset.user_id)
+    if not user:
+        return jsonify({"error": "User not found"}), 404
+    
+    user.set_password(password)
+    
+    # Delete the used token
+    db.session.delete(reset)
+    
+    # If the user was inactive, activate them
+    if not user.is_active:
+        user.is_active = True
+    
+    try:
+        db.session.commit()
+    except Exception as e:
+        db.session.rollback()
+        current_app.logger.exception("Password reset error")
+        return jsonify({"error": "Unable to reset password. Please try again."}), 500
+    
+    return jsonify({"message": "Password has been reset successfully. You can now log in."}), 200
