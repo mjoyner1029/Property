@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, date
 from ..extensions import db
 
 class Payment(db.Model):
@@ -17,6 +17,7 @@ class Payment(db.Model):
     notes = db.Column(db.Text)
     created_at = db.Column(db.DateTime, default=datetime.utcnow, index=True)
     completed_at = db.Column(db.DateTime)
+    paid_date = db.Column(db.Date, nullable=True)  # Add this field
     
     # Relationships
     tenant = db.relationship('User', foreign_keys=[tenant_id])
@@ -37,5 +38,6 @@ class Payment(db.Model):
             'status': self.status,
             'notes': self.notes,
             'created_at': self.created_at.isoformat() if self.created_at else None,
-            'completed_at': self.completed_at.isoformat() if self.completed_at else None
+            'completed_at': self.completed_at.isoformat() if self.completed_at else None,
+            'paid_date': self.paid_date.isoformat() if self.paid_date else None
         }

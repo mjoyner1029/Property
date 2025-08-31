@@ -7,7 +7,8 @@ class MaintenanceRequest(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     property_id = db.Column(db.Integer, db.ForeignKey('properties.id'), nullable=False)
     unit_id = db.Column(db.Integer, db.ForeignKey('units.id'))
-    tenant_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    tenant_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=True)
+    landlord_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
     title = db.Column(db.String(100), nullable=False)
     description = db.Column(db.Text, nullable=False)
     maintenance_type = db.Column(db.String(100))  # Type of maintenance (plumbing, electrical, etc.)
@@ -21,6 +22,7 @@ class MaintenanceRequest(db.Model):
     
     # Relationships
     requester = db.relationship('User', foreign_keys=[tenant_id])
+    landlord = db.relationship('User', foreign_keys=[landlord_id])
     assignee = db.relationship('User', foreign_keys=[assigned_to])
     images = db.relationship('Document', backref='maintenance_request', lazy=True)
     
@@ -31,8 +33,10 @@ class MaintenanceRequest(db.Model):
         return {
             'id': self.id,
             'property_id': self.property_id,
+            'property': {'id': self.property.id, 'name': self.property.name} if hasattr(self, 'property') and self.property else None,
             'unit_id': self.unit_id,
             'tenant_id': self.tenant_id,
+            'landlord_id': self.landlord_id,
             'title': self.title,
             'description': self.description,
             'maintenance_type': self.maintenance_type,

@@ -7,26 +7,14 @@ from src.models.user import User
 from src.models.payment import Payment
 from src.extensions import db
 from flask_jwt_extended import jwt_required, get_jwt_identity
-from ..controllers.stripe_controller import (
-    create_customer, get_payment_methods,
-    add_payment_method, remove_payment_method,
-    set_default_payment_method, create_payment_intent,
-    create_account, get_account_link,
-    create_checkout_session
-)
+from ..controllers.stripe_customer_controller import create_customer
 
 bp = Blueprint("stripe", __name__, url_prefix="/api/stripe")
 stripe.api_key = os.getenv("STRIPE_SECRET_KEY")
 
+# Only keep routes for functions that actually exist
 bp.route('/customers', methods=['POST'])(create_customer)
-bp.route('/payment-methods', methods=['GET'])(get_payment_methods)
-bp.route('/payment-methods', methods=['POST'])(add_payment_method)
-bp.route('/payment-methods/<payment_method_id>', methods=['DELETE'])(remove_payment_method)
-bp.route('/payment-methods/<payment_method_id>/default', methods=['PUT'])(set_default_payment_method)
-bp.route('/payment-intents', methods=['POST'])(create_payment_intent)
-bp.route('/accounts', methods=['POST'])(create_account)
-bp.route('/accounts/link', methods=['GET'])(get_account_link)
-bp.route('/checkout-session', methods=['POST'])(create_checkout_session)
+bp.route('/create-customer', methods=['POST'])(create_customer)
 
 @bp.route("/onboard/landlord", methods=["POST"])
 @jwt_required()

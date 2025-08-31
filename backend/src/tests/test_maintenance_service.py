@@ -10,8 +10,9 @@ def setup_tenant_property_relation(session, test_users, test_property):
     """Setup tenant-property relationship for maintenance tests"""
     tenant_property = TenantProperty(
         tenant_id=test_users['tenant'].id,
-        property_id=test_property['property'].id,
-        unit_id=test_property['units'][0].id,
+        property_id=test_property['property_id'],  # Use property_id instead of property.id
+        unit_id=test_property['unit_ids'][0],  # Use unit_ids instead of units
+        rent_amount=1000.0,  # Add required rent_amount field
         status='active',
         start_date=datetime.utcnow().date(),
         end_date=datetime.utcnow().replace(year=datetime.utcnow().year + 1).date()
@@ -26,7 +27,7 @@ def test_maintenance_service_create_request(session, test_users, test_property, 
     tenant_id = test_users['tenant'].id
     
     data = {
-        'property_id': test_property['property'].id,
+        'property_id': test_property['property_id'],  # Use property_id instead of property.id
         'title': 'Service Test Request',
         'description': 'This is a test maintenance request from service',
         'priority': 'high'
@@ -37,7 +38,7 @@ def test_maintenance_service_create_request(session, test_users, test_property, 
     assert error is None
     assert request is not None
     assert request.tenant_id == tenant_id
-    assert request.property_id == test_property['property'].id
+    assert request.property_id == test_property['property_id']  # Use property_id instead of property.id
     assert request.title == 'Service Test Request'
     assert request.priority == 'high'
     assert request.status == 'open'
@@ -49,8 +50,8 @@ def test_maintenance_service_update_request(session, test_users, test_property, 
     request = MaintenanceRequest(
         tenant_id=test_users['tenant'].id,
         landlord_id=test_users['landlord'].id,
-        property_id=test_property['property'].id,
-        unit_id=test_property['units'][0].id,
+        property_id=test_property['property_id'],  # Use property_id instead of property.id
+        unit_id=test_property['unit_ids'][0],  # Use unit_ids instead of units
         title='Update Test',
         description='Request to be updated',
         priority='medium',
@@ -85,8 +86,8 @@ def test_maintenance_service_tenant_update(session, test_users, test_property, s
     request = MaintenanceRequest(
         tenant_id=test_users['tenant'].id,
         landlord_id=test_users['landlord'].id,
-        property_id=test_property['property'].id,
-        unit_id=test_property['units'][0].id,
+        property_id=test_property['property_id'],  # Use property_id instead of property.id
+        unit_id=test_property['unit_ids'][0],  # Use unit_ids instead of units
         title='Tenant Update Test',
         description='Initial description',
         priority='low',

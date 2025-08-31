@@ -89,21 +89,53 @@ def _payment_to_dict(p: Payment) -> Dict[str, Any]:
 def create_payment(data: Dict[str, Any]) -> Tuple[Dict[str, Any], int]:
     """Create a new payment record."""
     # Validate required fields
-    missing = [f for f in ("tenant_id", "amount") if f not in data or data[f] in (None, "")]
-    if missing:
-        logger.warning("Payment creation failed: missing %s", ", ".join(missing))
-        return {"error": f"Missing required field(s): {', '.join(missing)}"}, 400
-
-    tenant_id = data.get("tenant_id")
+    from flask_jwt_extended import get_jwt_identity
+    from flask import request
+    
+    logger.info(f"create_payment called with data: {data}")
+    
+    current_user_id = get_jwt_identity()
+    logger.info(f"Current user ID: {current_user_id}")
+    
+    # Check for invoice_id and amount (minimally required)
+    if data is None:
+        logger.warning("Payment creation failed: data is None")
+        return {"error": "No data provided"}, 400
+        
+    if "invoice_id" not in data:
+        logger.warning(f"Payment creation failed: missing invoice_id in {data}")
+        return {"error": "Missing required field: invoice_id"}, 400
+    
+    if "amount" not in data:
+        logger.warning(f"Payment creation failed: missing amount in {data}")
+        return {"error": "Missing required field: amount"}, 400
+        
+    # We'll use current user as tenant_id if not provided
+    tenant_id = data.get("tenant_id", current_user_id)
     amount = _as_decimal(data.get("amount"))
+    invoice_id = data.get("invoice_id")
+    
+    logger.info(f"Processing payment: tenant_id={tenant_id}, amount={amount}, invoice_id={invoice_id}")
+    
     if not isinstance(tenant_id, int):
         try:
             tenant_id = int(tenant_id)
-        except Exception:
+            logger.info(f"Converted tenant_id to int: {tenant_id}")
+        except Exception as e:
+            logger.error(f"Error converting tenant_id: {e}")
             return {"error": "tenant_id must be an integer"}, 400
 
     if amount is None:
+        logger.warning("Amount conversion failed")
         return {"error": "amount must be a non-negative number"}, 400
+        
+    if not isinstance(invoice_id, int):
+        try:
+            invoice_id = int(invoice_id)
+            logger.info(f"Converted invoice_id to int: {invoice_id}")
+        except Exception as e:
+            logger.error(f"Error converting invoice_id: {e}")
+            return {"error": "invoice_id must be an integer"}, 400
 
     status = str(data.get("status", "pending")).strip().lower() or "pending"
     if status not in {"pending", "due", "paid", "failed", "void"}:
@@ -113,18 +145,37 @@ def create_payment(data: Dict[str, Any]) -> Tuple[Dict[str, Any], int]:
     paid_date = _as_date(data.get("paid_date"))
 
     try:
+        # Get the landlord_id from the invoice
+        from ..models.invoice import Invoice
+        invoice = Invoice.query.get(invoice_id)
+        if not invoice:
+            logger.warning(f"Invoice not found: {invoice_id}")
+            return {"error": f"Invoice {invoice_id} not found"}, 404
+            
+        landlord_id = data.get('landlord_id', invoice.landlord_id)
+        logger.info(f"Using landlord_id: {landlord_id}")
+            
         payment = Payment(
             tenant_id=tenant_id,
-            amount=amount,
+            landlord_id=landlord_id,
+            invoice_id=invoice_id,
+            amount=float(amount),
             status=status,
-            due_date=due_date,
-            paid_date=paid_date,
+            payment_method=data.get('payment_method', 'bank_transfer'),
+            notes=data.get('notes', '')
         )
         db.session.add(payment)
         db.session.commit()
 
         logger.info("Payment created (id=%s) for tenant %s amount=%s", payment.id, tenant_id, amount)
-        return {"message": "Payment created", "id": payment.id, "payment": _payment_to_dict(payment)}, 201
+        return {
+            "payment": {
+                "id": payment.id,
+                "invoice_id": payment.invoice_id,
+                "amount": float(amount),
+                "status": payment.status
+            }
+        }, 201
 
     except IntegrityError as e:
         db.session.rollback()
@@ -217,9 +268,16 @@ def update_payment(payment_id: Any, data: Dict[str, Any]) -> Tuple[Dict[str, Any
             if status not in {"pending", "due", "paid", "failed", "void"}:
                 return {"error": "Invalid status. Use one of: pending, due, paid, failed, void"}, 400
             payment.status = status
-            # If marking as paid, update the paid_date
+            # If marking as paid, update the paid_date and invoice status
             if status == "paid" and not payment.paid_date:
                 payment.paid_date = datetime.utcnow().date()
+                # Update the associated invoice status
+                if payment.invoice_id:
+                    from ..models.invoice import Invoice
+                    invoice = Invoice.query.get(payment.invoice_id)
+                    if invoice:
+                        invoice.status = 'paid'
+                        invoice.paid_at = datetime.utcnow()
 
         if "amount" in data:
             amt = _as_decimal(data["amount"])
@@ -278,35 +336,16 @@ def delete_payment(payment_id: Any) -> Tuple[Dict[str, Any], int]:
         db.session.rollback()
         logger.exception("Unexpected error deleting payment")
         return {"error": "Failed to delete payment"}, 500
-def create_payment(payment_data):
-    """Create a new payment record"""
+def create_payment_legacy(payment_data):
+    """Legacy function - replaced by the newer create_payment above.
+    This is kept for backward compatibility but should eventually be removed."""
+    logger.warning("Called deprecated create_payment_legacy function")
     try:
-        # Validate payment data
-        if 'amount_cents' not in payment_data or 'currency' not in payment_data:
-            return {"error": "Missing required fields"}, 400
-
-        new_payment = Payment(
-            amount_cents=payment_data['amount_cents'],
-            currency=payment_data['currency'],
-            status=payment_data.get('status', 'pending'),
-            payment_method=payment_data.get('payment_method', 'card'),
-            payer_id=payment_data.get('payer_id'),
-            receiver_id=payment_data.get('receiver_id'),
-            invoice_id=payment_data.get('invoice_id'),
-            description=payment_data.get('description', ''),
-            metadata=payment_data.get('metadata', {})
-        )
-        
-        db.session.add(new_payment)
-        db.session.commit()
-        
-        return {"message": "Payment created successfully", "payment_id": new_payment.id}, 201
-    
-    except SQLAlchemyError as e:
-        db.session.rollback()
-        logger.error(f"Database error creating payment: {str(e)}")
-        return {"error": "Failed to create payment"}, 500
+        # Use the newer implementation
+        return create_payment(payment_data)
     except Exception as e:
+        logger.error(f"Error in legacy create_payment: {str(e)}")
+        return {"error": "Failed to create payment"}, 500
         logger.error(f"Unexpected error creating payment: {str(e)}")
         return {"error": "An unexpected error occurred"}, 500
 

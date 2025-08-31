@@ -13,6 +13,8 @@ class Lease(db.Model):
     end_date = db.Column(db.Date, nullable=False)
     rent_amount = db.Column(db.Float, nullable=False)
     security_deposit = db.Column(db.Float, nullable=False)
+    payment_day = db.Column(db.Integer, default=1)  # Day of month when rent is due
+    rent_cycle = db.Column(db.String(20), default='monthly')  # monthly, weekly, etc.
     terms = db.Column(db.Text, nullable=False)
     status = db.Column(db.String(20), default='pending')  # pending, active, terminated, expired, rejected
     rejection_reason = db.Column(db.Text)

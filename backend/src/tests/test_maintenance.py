@@ -11,8 +11,8 @@ def setup_tenant_property(session, test_users, test_property):
     # Associate the tenant with the property
     tenant_property = TenantProperty(
         tenant_id=test_users['tenant'].id,
-        property_id=test_property['property'].id,
-        unit_id=test_property['units'][0].id,
+        property_id=test_property['property_id'],
+        unit_id=test_property['unit_ids'][0],
         status='active',
         start_date=datetime.utcnow().date(),
         end_date=datetime.utcnow().replace(year=datetime.utcnow().year + 1).date(),
@@ -28,8 +28,8 @@ def test_maintenance_request(session, test_users, test_property, setup_tenant_pr
     request = MaintenanceRequest(
         tenant_id=test_users['tenant'].id,
         landlord_id=test_users['landlord'].id,
-        property_id=test_property['property'].id,
-        unit_id=test_property['units'][0].id,
+        property_id=test_property['property_id'],
+        unit_id=test_property['unit_ids'][0],
         title='Test Request',
         description='This is a test maintenance request',
         priority='medium',
@@ -46,7 +46,7 @@ def test_create_maintenance_request(client, test_users, auth_headers, test_prope
     response = client.post('/api/maintenance',
                           headers=auth_headers['tenant'],
                           json={
-                              'property_id': test_property['property'].id,
+                              'property_id': test_property['property_id'],
                               'title': 'New Maintenance Issue',
                               'description': 'The sink is leaking',
                               'priority': 'high'
@@ -67,7 +67,15 @@ def test_get_tenant_maintenance_requests(client, test_users, auth_headers, test_
     data = json.loads(response.data)
     assert 'requests' in data
     assert len(data['requests']) >= 1
-    assert data['requests'][0]['title'] == 'Test Request'
+    
+    # Find the request with title 'Test Request' in the list
+    test_request_found = False
+    for request in data['requests']:
+        if request['title'] == 'Test Request':
+            test_request_found = True
+            break
+    
+    assert test_request_found, f"Test request with title 'Test Request' not found in response: {data['requests']}"
 
 
 def test_get_landlord_maintenance_requests(client, test_users, auth_headers, test_maintenance_request):

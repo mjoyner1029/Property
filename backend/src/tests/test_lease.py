@@ -14,8 +14,8 @@ def test_create_lease(client, test_users, auth_headers, test_property):
                           headers=auth_headers['landlord'],
                           json={
                               'tenant_id': test_users['tenant'].id,
-                              'property_id': test_property['property'].id,
-                              'unit_id': test_property['units'][0].id,
+                              'property_id': test_property['property_id'],
+                              'unit_id': test_property['unit_ids'][0],
                               'start_date': start_date.strftime('%Y-%m-%d'),
                               'end_date': end_date.strftime('%Y-%m-%d'),
                               'rent_amount': 1200.00,
@@ -27,11 +27,11 @@ def test_create_lease(client, test_users, auth_headers, test_property):
     assert response.status_code == 201
     data = json.loads(response.data)
     assert data['lease']['tenant_id'] == test_users['tenant'].id
-    assert data['lease']['property_id'] == test_property['property'].id
+    assert data['lease']['property_id'] == test_property['property_id']
     assert data['lease']['status'] == 'pending'
 
 
-def test_accept_lease(client, test_users, auth_headers, session, test_property):
+def test_accept_lease(client, test_users, tenant_auth_headers, session, test_property):
     """Test tenant accepting a lease agreement"""
     # Create a lease for testing
     start_date = datetime.utcnow().date()
@@ -40,8 +40,8 @@ def test_accept_lease(client, test_users, auth_headers, session, test_property):
     lease = Lease(
         tenant_id=test_users['tenant'].id,
         landlord_id=test_users['landlord'].id,
-        property_id=test_property['property'].id,
-        unit_id=test_property['units'][0].id,
+        property_id=test_property['property_id'],
+        unit_id=test_property['unit_ids'][0],
         start_date=start_date,
         end_date=end_date,
         rent_amount=1200.00,
@@ -49,6 +49,7 @@ def test_accept_lease(client, test_users, auth_headers, session, test_property):
         status='pending',
         payment_day=1,
         rent_cycle='monthly',
+        terms='Standard lease agreement terms',
         created_at=datetime.utcnow()
     )
     session.add(lease)
@@ -56,7 +57,7 @@ def test_accept_lease(client, test_users, auth_headers, session, test_property):
     
     # Accept the lease
     response = client.put(f'/api/leases/{lease.id}/accept',
-                         headers=auth_headers['tenant'])
+                         headers=tenant_auth_headers)
     
     assert response.status_code == 200
     data = json.loads(response.data)
@@ -65,9 +66,8 @@ def test_accept_lease(client, test_users, auth_headers, session, test_property):
     # Verify tenant-property relationship was created
     tenant_property = TenantProperty.query.filter_by(
         tenant_id=test_users['tenant'].id,
-        property_id=test_property['property'].id
+        property_id=test_property['property_id']
     ).first()
-    
     assert tenant_property is not None
     assert tenant_property.status == 'active'
 
@@ -81,8 +81,8 @@ def test_terminate_lease(client, test_users, auth_headers, session, test_propert
     lease = Lease(
         tenant_id=test_users['tenant'].id,
         landlord_id=test_users['landlord'].id,
-        property_id=test_property['property'].id,
-        unit_id=test_property['units'][0].id,
+        property_id=test_property['property_id'],
+        unit_id=test_property['unit_ids'][0],
         start_date=start_date,
         end_date=end_date,
         rent_amount=1200.00,
@@ -90,6 +90,7 @@ def test_terminate_lease(client, test_users, auth_headers, session, test_propert
         status='active',
         payment_day=1,
         rent_cycle='monthly',
+        terms='Standard lease agreement terms',
         created_at=datetime.utcnow(),
         accepted_at=datetime.utcnow()
     )
@@ -98,8 +99,9 @@ def test_terminate_lease(client, test_users, auth_headers, session, test_propert
     # Create tenant-property relationship
     tenant_property = TenantProperty(
         tenant_id=test_users['tenant'].id,
-        property_id=test_property['property'].id,
-        unit_id=test_property['units'][0].id,
+        property_id=test_property['property_id'],
+        unit_id=test_property['unit_ids'][0],
+        rent_amount=1200.00,  # Add the required rent_amount field
         status='active',
         start_date=start_date,
         end_date=end_date
@@ -122,7 +124,7 @@ def test_terminate_lease(client, test_users, auth_headers, session, test_propert
     # Verify tenant-property relationship was updated
     tenant_property = TenantProperty.query.filter_by(
         tenant_id=test_users['tenant'].id,
-        property_id=test_property['property'].id
+        property_id=test_property['property_id']
     ).first()
     
     assert tenant_property.status == 'inactive'

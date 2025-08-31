@@ -37,6 +37,10 @@ class User(db.Model):
     # Account status
     is_active = db.Column(db.Boolean, default=True)
     
+    # Stripe integration fields
+    stripe_customer_id = db.Column(db.String(100), nullable=True)
+    stripe_account_id = db.Column(db.String(100), nullable=True)
+    
     def set_password(self, password):
         self.password = generate_password_hash(password)  # Changed from password_hash to password
         
@@ -56,7 +60,15 @@ class User(db.Model):
             return False
         return True
         
-    def to_dict(self):
+    def to_dict(self, minimal=False):
+        if minimal:
+            return {
+                'id': self.id,
+                'name': self.name,
+                'email': self.email,
+                'role': self.role,
+                'profile_picture': self.profile_picture,
+            }
         return {
             'id': self.id,
             'name': self.name,

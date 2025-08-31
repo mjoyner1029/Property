@@ -1,7 +1,7 @@
 import os
 import requests
-from flask import current_app, render_template
 from abc import ABC, abstractmethod
+import logging
 
 class EmailProvider(ABC):
     """Abstract base class for email providers."""
@@ -55,7 +55,7 @@ class PostmarkProvider(EmailProvider):
         response = requests.post(self.api_url, json=payload, headers=headers)
         
         if response.status_code not in [200, 201]:
-            current_app.logger.error(f"Failed to send email: {response.text}")
+            logging.error(f"Failed to send email: {response.text}")
             return False, response.text
             
         return True, response.json()
@@ -99,7 +99,7 @@ class SendgridProvider(EmailProvider):
             response = sg.send(message)
             return True, {"status_code": response.status_code}
         except Exception as e:
-            current_app.logger.error(f"Failed to send email: {str(e)}")
+            logging.error(f"Failed to send email: {str(e)}")
             return False, str(e)
             
     def _html_to_text(self, html):
@@ -116,8 +116,27 @@ class EmailService:
     def __init__(self, app=None):
         self.provider = None
         
+        # Initialize with environment variables if no app is provided
         if app:
             self.init_app(app)
+        else:
+            self.init_from_env()
+            
+    def init_from_env(self):
+        """Initialize the email service from environment variables."""
+        provider_name = os.environ.get("EMAIL_PROVIDER", "postmark").lower()
+        api_key = os.environ.get("EMAIL_API_KEY")
+        from_address = os.environ.get("EMAIL_FROM", "no-reply@assetanchor.io")
+        
+        if not api_key and os.environ.get("FLASK_ENV") != "development":
+            logging.warning("Email API key not configured")
+            
+        if provider_name == "postmark":
+            self.provider = PostmarkProvider(api_key, from_address)
+        elif provider_name == "sendgrid":
+            self.provider = SendgridProvider(api_key, from_address)
+        else:
+            logging.error(f"Unsupported email provider: {provider_name}")
             
     def init_app(self, app):
         """Initialize the email service with the Flask app."""
@@ -126,23 +145,40 @@ class EmailService:
         from_address = app.config.get("EMAIL_FROM", "no-reply@assetanchor.io")
         
         if not api_key and app.config.get("ENV") != "development":
-            app.logger.warning("Email API key not configured")
+            logging.warning("Email API key not configured")
             
         if provider_name == "postmark":
             self.provider = PostmarkProvider(api_key, from_address)
         elif provider_name == "sendgrid":
             self.provider = SendgridProvider(api_key, from_address)
         else:
-            app.logger.error(f"Unsupported email provider: {provider_name}")
+            logging.error(f"Unsupported email provider: {provider_name}")
     
     def _render_template(self, template_name, **kwargs):
         """Render an email template."""
-        return render_template(f"email/{template_name}.html", **kwargs)
+        # Simple placeholder - in production you'd want a proper template system
+        # that doesn't require Flask's render_template
+        template_path = os.path.join(os.path.dirname(__file__), '..', 'templates', 'email', f"{template_name}.html")
+        
+        try:
+            with open(template_path, 'r') as f:
+                template = f.read()
+                
+            # Very basic template substitution
+            for key, value in kwargs.items():
+                template = template.replace("{{ " + key + " }}", str(value))
+                
+            return template
+        except Exception as e:
+            logging.error(f"Failed to render template: {str(e)}")
+            # Fallback to a simple template
+            title = kwargs.get('subject', template_name.title())
+            return f"<h1>{title}</h1><p>Please see the content below:</p>" + "\n".join([f"<p>{k}: {v}</p>" for k, v in kwargs.items()])
         
     def send_email(self, to, subject, template_name, **kwargs):
         """Send an email using a template."""
         if not self.provider:
-            current_app.logger.error("Email provider not configured")
+            logging.error("Email provider not configured")
             return False, "Email provider not configured"
             
         # Render the email template

@@ -46,6 +46,12 @@ if os.environ.get("FLASK_ENV") == "testing" or os.environ.get("TESTING") == "Tru
             
         def init_app(self, app, **kwargs):
             app.extensions['limiter'] = self
+            # Ensure all rate limiting is disabled in app config
+            app.config["RATELIMIT_ENABLED"] = False
+            app.config["LIMITER_ENABLED"] = False
+            app.config["FLASK_LIMITER_ENABLED"] = False
+            app.config["RATELIMIT_STORAGE_URI"] = "memory://"
+            app.config["RATELIMIT_DEFAULT"] = "1000000 per second"
             
         def limit(self, *args, **kwargs):
             return NoOpDecorator()
@@ -54,6 +60,9 @@ if os.environ.get("FLASK_ENV") == "testing" or os.environ.get("TESTING") == "Tru
             return NoOpDecorator()
             
         def exempt(self, *args, **kwargs):
+            return NoOpDecorator()
+            
+        def request_filter(self, *args, **kwargs):
             return NoOpDecorator()
             
     limiter = NoOpLimiter()
@@ -117,22 +126,31 @@ def init_extensions(app: Flask) -> None:
         
         # The most important part - disable rate limiting completely for tests
         app.config["RATELIMIT_ENABLED"] = False
+        app.config["LIMITER_ENABLED"] = False
+        app.config["FLASK_LIMITER_ENABLED"] = False
         app.config["RATELIMIT_STORAGE_URI"] = "memory://"
         app.config["RATELIMIT_STORAGE_URL"] = "memory://"
         app.config["RATELIMIT_DEFAULT"] = "1000000 per second"
         app.config["RATELIMIT_APPLICATION"] = "1000000 per second"
         app.config["RATELIMIT_HEADERS_ENABLED"] = False
-        app.config["FLASK_LIMITER_ENABLED"] = False
 
-        # Also add before_request handlers to ensure rate limiting is bypassed
+        # Add before_request handlers to ensure rate limiting is bypassed
         @app.before_request
         def _disable_rate_limiting():
             if 'flask_limiter.limits' in request.environ:
                 request.environ.pop('flask_limiter.limits', None)
         
         # Set the NoOpLimiter in the app extensions
-        app.extensions['limiter'] = limiter
-        
+        if isinstance(limiter, NoOpLimiter):
+            limiter.init_app(app)
+        else:
+            app.extensions['limiter'] = limiter
+            
+        # Add app-level filter to bypass rate limiting
+        @app.before_request
+        def bypass_all_rate_limits():
+            return None
+            
         return  # Skip the rest of the setup for tests
 
     # Get limiter configuration and apply to app.config
@@ -140,6 +158,17 @@ def init_extensions(app: Flask) -> None:
 
     # Initialize limiter with app
     limiter.init_app(app)    # Register additional hooks
+    
+    # Disable rate limiting during tests - force disable
+    if app.config.get("TESTING"):
+        limiter.enabled = False
+        
+        # Add app-level handler to ensure rate limits are bypassed in tests
+        @app.before_request
+        def bypass_rate_limits_in_tests():
+            if 'flask_limiter.limits' in request.environ:
+                request.environ.pop('flask_limiter.limits', None)
+        
     _register_jwt_hooks(app)
 
 

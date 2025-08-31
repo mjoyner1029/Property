@@ -32,7 +32,8 @@ def test_upload_document(client, test_users, auth_headers, sample_pdf, monkeypat
     os.makedirs(test_upload_folder, exist_ok=True)
     
     # Patch the config
-    monkeypatch.setattr("flask.current_app.config", {"UPLOAD_FOLDER": test_upload_folder})
+    with client.application.app_context():
+        client.application.config['UPLOAD_FOLDER'] = test_upload_folder
     
     response = client.post('/api/documents',
                           headers=auth_headers['landlord'],
@@ -55,6 +56,7 @@ def test_get_user_documents(client, test_users, auth_headers, session):
     # Create a test document in the database
     document = Document(
         user_id=test_users['landlord'].id,
+        title='Test Document',  # Added title field
         name='Test Document',
         description='Description for test document',
         file_path='/fake/path/document.pdf',
@@ -89,6 +91,7 @@ def test_delete_document(client, test_users, auth_headers, session, monkeypatch)
     # Create a test document in the database
     document = Document(
         user_id=test_users['landlord'].id,
+        title='Document to Delete',  # Added title field
         name='Document to Delete',
         description='This document will be deleted',
         file_path='/fake/path/to_delete.pdf',

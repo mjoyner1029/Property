@@ -36,6 +36,7 @@ class Unit(db.Model):
         return {
             'id': self.id,
             'property_id': self.property_id,
+            'property': {'id': self.property.id, 'name': self.property.name} if hasattr(self, 'property') and self.property else None,
             'unit_number': self.unit_number,
             'size': self.size,
             'square_feet': self.size,  # Add alias for API compatibility

@@ -12,7 +12,7 @@ def test_invitation(session, test_users, test_property):
         email='newtenant@example.com',
         role='tenant',
         invited_by=test_users['landlord'].id,
-        property_id=test_property['property'].id,
+        property_id=test_property['property_id'],
         token='test-invitation-token',
         created_at=datetime.utcnow()
     )
@@ -27,8 +27,8 @@ def test_invite_tenant(client, test_users, auth_headers, test_property):
                           headers=auth_headers['landlord'],
                           json={
                               'email': 'invited_tenant@example.com',
-                              'property_id': test_property['property'].id,
-                              'unit_id': test_property['units'][0].id
+                              'property_id': test_property['property_id'],
+                              'unit_id': test_property['unit_ids'][0]
                           })
     
     assert response.status_code == 201
@@ -43,8 +43,8 @@ def test_invite_existing_tenant(client, test_users, auth_headers, test_property)
                           headers=auth_headers['landlord'],
                           json={
                               'email': test_users['tenant'].email,
-                              'property_id': test_property['property'].id,
-                              'unit_id': test_property['units'][0].id
+                              'property_id': test_property['property_id'],
+                              'unit_id': test_property['unit_ids'][0]
                           })
     
     assert response.status_code == 200
@@ -55,7 +55,7 @@ def test_invite_existing_tenant(client, test_users, auth_headers, test_property)
     # Check if tenant-property relationship was created
     tp = TenantProperty.query.filter_by(
         tenant_id=test_users['tenant'].id,
-        property_id=test_property['property'].id
+        property_id=test_property['property_id']
     ).first()
     assert tp is not None
 
@@ -78,7 +78,7 @@ def test_unauthorized_invite(client, test_users, auth_headers, test_property):
                           headers=auth_headers['tenant'],
                           json={
                               'email': 'someone@example.com',
-                              'property_id': test_property['property'].id
+                              'property_id': test_property['property_id']
                           })
     
     assert response.status_code == 403

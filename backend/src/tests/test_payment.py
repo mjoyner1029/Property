@@ -22,8 +22,8 @@ def setup_tenant_property(session, test_users, test_property):
     """Associate the tenant with the property for payment tests."""
     tp = TenantProperty(
         tenant_id=test_users["tenant"].id,
-        property_id=test_property["property"].id,
-        unit_id=test_property["units"][0].id,
+        property_id=test_property["property_id"],
+        unit_id=test_property["unit_ids"][0],
         status="active",
         start_date=_today(),
         end_date=_in_days(365),
@@ -37,16 +37,17 @@ def setup_tenant_property(session, test_users, test_property):
 @pytest.fixture(scope="function")
 def test_invoice(session, test_users, test_property, setup_tenant_property):
     """Create a test invoice."""
+    import uuid
     invoice = Invoice(
         landlord_id=test_users["landlord"].id,
         tenant_id=test_users["tenant"].id,
-        property_id=test_property["property"].id,
-        unit_id=test_property["units"][0].id,
+        property_id=test_property["property_id"],
+        unit_id=test_property["unit_ids"][0],
         amount=1200.00,
         description="Rent for current month",
         due_date=_in_days(10),
         status="due",
-        invoice_number=f'INV-{datetime.utcnow().strftime("%Y%m%d")}-{test_users["tenant"].id}',
+        invoice_number=f'INV-{datetime.utcnow().strftime("%Y%m%d")}-{uuid.uuid4().hex[:8]}',
         category="rent",
         created_at=datetime.utcnow(),
     )

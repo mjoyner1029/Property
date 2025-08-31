@@ -9,9 +9,11 @@ class Invoice(db.Model):
     landlord_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
     property_id = db.Column(db.Integer, db.ForeignKey('properties.id'), nullable=False)
     unit_id = db.Column(db.Integer, db.ForeignKey('units.id'))
+    invoice_number = db.Column(db.String(50), nullable=True, unique=True)
     amount = db.Column(db.Float, nullable=False)
     amount_cents = db.Column(db.Integer, nullable=True)  # new
     currency = db.Column(db.String(3), nullable=True)    # new
+    category = db.Column(db.String(20), nullable=True)   # rent, utilities, etc.
     due_date = db.Column(db.DateTime, nullable=False)
     description = db.Column(db.Text, nullable=False)
     status = db.Column(db.String(20), default='pending')  # pending, paid, overdue, cancelled
@@ -35,9 +37,13 @@ class Invoice(db.Model):
             'tenant_id': self.tenant_id,
             'landlord_id': self.landlord_id,
             'property_id': self.property_id,
+            'property': {'id': self.property.id, 'name': self.property.name} if self.property else None,
             'unit_id': self.unit_id,
+            'invoice_number': self.invoice_number,
+            'amount': self.amount,
             'amount_cents': self.amount_cents,
             'currency': self.currency,
+            'category': self.category,
             'due_date': self.due_date.isoformat() if self.due_date else None,
             'description': self.description,
             'status': self.status,

@@ -49,11 +49,12 @@ def send_email(to, subject, template=None, body=None, **kwargs):
 
 def _send_email_smtp(to_email, subject, body, is_html=False):
     """Send email using direct SMTP connection"""
-    smtp_server = current_app.config.get("SMTP_SERVER", "localhost")
-    smtp_port = current_app.config.get("SMTP_PORT", 587)
-    smtp_username = current_app.config.get("SMTP_USERNAME")
-    smtp_password = current_app.config.get("SMTP_PASSWORD")
-    from_email = current_app.config.get("MAIL_DEFAULT_SENDER", "no-reply@propertymgmt.com")
+    import os
+    smtp_server = os.environ.get("SMTP_SERVER", "localhost")
+    smtp_port = int(os.environ.get("SMTP_PORT", "587"))
+    smtp_username = os.environ.get("SMTP_USERNAME")
+    smtp_password = os.environ.get("SMTP_PASSWORD")
+    from_email = os.environ.get("MAIL_DEFAULT_SENDER", "no-reply@propertymgmt.com")
 
     msg = MIMEMultipart("alternative" if is_html else "mixed")
     msg["From"] = from_email
@@ -73,12 +74,15 @@ def _send_email_smtp(to_email, subject, body, is_html=False):
             server.sendmail(from_email, to_email, msg.as_string())
         return True
     except Exception as e:
-        current_app.logger.error(f"Failed to send email to {to_email}: {e}")
+        logging.error(f"Failed to send email to {to_email}: {e}")
         return False
 
-def send_verification_email(user, token):
+def send_verification_email(user, token, base_url=None):
     """Send email verification link to a new user"""
-    verification_url = f"{current_app.config.get('FRONTEND_URL', 'http://localhost:3000')}/verify-email/{token}"
+    import os
+    # Use provided base_url or fall back to environment variable or default
+    base_url = base_url or os.environ.get("FRONTEND_URL", "http://localhost:3000")
+    verification_url = f"{base_url}/verify-email/{token}"
     
     template = """
     <h2>Welcome to Property Management!</h2>
@@ -97,9 +101,12 @@ def send_verification_email(user, token):
         name=user.name
     )
 
-def send_password_reset_email(user, token):
+def send_password_reset_email(user, token, base_url=None):
     """Send password reset link"""
-    reset_url = f"{current_app.config.get('FRONTEND_URL', 'http://localhost:3000')}/reset-password/{token}"
+    import os
+    # Use provided base_url or fall back to environment variable or default
+    base_url = base_url or os.environ.get("FRONTEND_URL", "http://localhost:3000")
+    reset_url = f"{base_url}/reset-password/{token}"
     
     template = """
     <h2>Password Reset</h2>
@@ -135,9 +142,12 @@ def send_welcome_email(user):
         name=user.name
     )
 
-def send_invite_email(email, inviter_name, property_name, token, role='tenant'):
+def send_invite_email(email, inviter_name, property_name, token, role='tenant', base_url=None):
     """Send invitation email to join the platform"""
-    invite_url = f"{current_app.config.get('FRONTEND_URL', 'http://localhost:3000')}/invitation/{token}"
+    import os
+    # Use provided base_url or fall back to environment variable or default
+    base_url = base_url or os.environ.get("FRONTEND_URL", "http://localhost:3000")
+    invite_url = f"{base_url}/invitation/{token}"
     
     template = """
     <h2>You've Been Invited to Property Management!</h2>

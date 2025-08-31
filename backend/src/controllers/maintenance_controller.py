@@ -15,7 +15,12 @@ logger = logging.getLogger(__name__)
 def create_request():
     """Create a new maintenance request"""
     current_user_id = get_jwt_identity()
-    data = request.form
+    
+    # Handle both form and JSON data
+    if request.is_json:
+        data = request.json
+    else:
+        data = request.form
     
     try:
         # Validate required fields
@@ -49,8 +54,8 @@ def create_request():
                 return jsonify({"error": "Tenant is not associated with this property"}), 403
         elif user.role == 'landlord':
             # Check if landlord owns this property
-            if property.landlord_id != current_user_id:
-                return jsonify({"error": "Landlord does not own this property"}), 403
+            if str(property.landlord_id) != str(current_user_id):
+                return jsonify({"error": f"Landlord does not own this property. Property landlord_id: {property.landlord_id}, Current user ID: {current_user_id}"}), 403
         
         # Handle file upload
         photos = []
@@ -74,13 +79,13 @@ def create_request():
         # Create maintenance request
         new_request = MaintenanceRequest(
             property_id=property_id,
-            unit_id=int(data['unit_id']) if 'unit_id' in data else None,
-            tenant_id=current_user_id if user.role == 'tenant' else None,
+            unit_id=int(data['unit_id']) if 'unit_id' in data and data['unit_id'] else None,
+            tenant_id=current_user_id if user.role == 'tenant' else None,  # tenant_id is nullable now
+            landlord_id=property.landlord_id,
             title=data['title'],
             description=data['description'],
             priority=data['priority'],
-            status='pending',
-            photos=','.join(photos) if photos else None,
+            status='open',
             created_at=datetime.utcnow(),
             updated_at=datetime.utcnow()
         )
@@ -191,8 +196,11 @@ def update_request(request_id):
         
         # Landlords have more permissions
         elif user.role == 'landlord':
-            property = Property.query.get(maintenance_request.property_id)
-            if not property or property.landlord_id != current_user_id:
+            # Debug output to help diagnose permission issues
+            logger.debug(f"Maintenance Request landlord_id: {maintenance_request.landlord_id}, Current user ID: {current_user_id}")
+            
+            # Check if this landlord owns the maintenance request
+            if str(maintenance_request.landlord_id) != str(current_user_id):
                 return jsonify({"error": "Unauthorized to update this request"}), 403
             
             # Landlords can update more fields
@@ -264,7 +272,7 @@ def delete_request(request_id):
         logger.error(f"Error deleting maintenance request: {str(e)}")
         return jsonify({"error": str(e)}), 500
 
-def get_tenant_requests(tenant_id):
+def get_tenant_requests(tenant_id=None):
     """Get all maintenance requests for a specific tenant"""
     current_user_id = get_jwt_identity()
     
@@ -273,6 +281,13 @@ def get_tenant_requests(tenant_id):
         user = User.query.get(current_user_id)
         if not user:
             return jsonify({"error": "User not found"}), 404
+        
+        # If no tenant_id provided, use current user
+        if tenant_id is None:
+            if user.role == 'tenant':
+                tenant_id = current_user_id
+            else:
+                return jsonify({"error": "Tenant ID required for non-tenant users"}), 400
         
         # Only landlords and admins can view tenant requests
         if user.role == 'tenant' and current_user_id != tenant_id:
@@ -392,13 +407,16 @@ def complete_request(request_id):
         
         # Check if property belongs to landlord
         if user.role == 'landlord':
-            property = Property.query.get(maintenance_request.property_id)
-            if not property or property.landlord_id != current_user_id:
+            # Add debug logging
+            logger.debug(f"Maintenance Request landlord_id: {maintenance_request.landlord_id}, Current user ID: {current_user_id}")
+            
+            # Check if this landlord owns the maintenance request
+            if str(maintenance_request.landlord_id) != str(current_user_id):
                 return jsonify({"error": "Unauthorized to complete this request"}), 403
         
         # Update the request
         maintenance_request.status = 'completed'
-        maintenance_request.resolution_notes = data.get('resolution_notes', '')
+        maintenance_request.notes = data.get('notes', maintenance_request.notes)  # Use 'notes' from request
         maintenance_request.completed_at = datetime.utcnow()
         maintenance_request.updated_at = datetime.utcnow()
         

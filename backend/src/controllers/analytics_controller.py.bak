@@ -1,0 +1,718 @@
+import logging
+from datetime import datetime, timedelta
+from sqlalchemy import func, and_
+from sqlalchemy.exc import SQLAlchemyEr        # Calculate income
+        income_query = db.session.query(
+            func.sum(Payment.amount)
+        ).filter(
+            Payment.landlord_id.in_([p.landlord_id for p in properties]),
+            Payment.status == "completed",
+            Payment.created_at.between(start_date, end_date)
+        ) flask import jsonify, request
+from flask_jwt_extended import jwt_required, get_jwt_identity
+from src.extensions import db
+from src.models.property import Property
+from src.models.unit import Unit
+from src.models.payment import Payment
+from src.models.maintenance_request import MaintenanceRequest
+from src.models.tenant_profile import TenantProfile
+from src.models.tenant_property import TenantProperty
+from src.models.user import User
+
+logger = logging.getLogger(__name__)
+
+def get_financial_overview(landlord_id, period=None):
+    """
+    Get financial overview for a landlord's properties.
+    
+    Args:
+        landlord_id (int): ID of the landlord
+        period (str, optional): Time period for data. Options: "month", "quarter", "year"
+    
+    Returns:
+        Financial metrics including income, expenses, and occupancy rates
+    """
+    try:
+        # Calculate date range based on period
+        end_date = datetime.utcnow()
+        if period == "month":
+            start_date = end_date - timedelta(days=30)
+        elif period == "quarter":
+            start_date = end_date - timedelta(days=90)
+        elif period == "year":
+            start_date = end_date - timedelta(days=365)
+        else:
+            # Default to all-time if period not specified
+            start_date = datetime(1970, 1, 1)
+            
+        # Get properties for landlord
+        properties = Property.query.filter_by(landlord_id=landlord_id).all()
+        property_ids = [p.id for p in properties]
+        
+        if not property_ids:
+            return {"error": "No properties found for landlord"}, 404
+            
+        # Calculate income (payments received)
+        income_query = db.session.query(
+            func.sum(Payment.amount)
+        ).filter(
+            Payment.property_id.in_(property_ids),
+            Payment.status == "paid",
+            Payment.paid_date.between(start_date, end_date)
+        )
+        total_income = income_query.scalar() or 0
+        
+        # Calculate expected income (all payments due)
+        expected_income_query = db.session.query(
+            func.sum(Payment.amount)
+        ).filter(
+            Payment.property_id.in_(property_ids),
+            Payment.due_date.between(start_date, end_date)
+        )
+        total_expected = expected_income_query.scalar() or 0
+        
+        # Calculate expenses (maintenance costs)
+        expenses_query = db.session.query(
+            func.sum(MaintenanceRequest.cost)
+        ).filter(
+            MaintenanceRequest.property_id.in_(property_ids),
+            MaintenanceRequest.created_at.between(start_date, end_date)
+        )
+        total_expenses = expenses_query.scalar() or 0
+        
+        # Calculate occupancy
+        occupied_units = TenantProfile.query.filter(
+            TenantProfile.property_id.in_(property_ids),
+            TenantProfile.lease_end > datetime.utcnow()
+        ).count()
+        
+        # Get total units (simplified - in a real app, you'd have a units table)
+        total_units = sum(p.units for p in properties) if hasattr(properties[0], 'units') else len(properties)
+        
+        occupancy_rate = (occupied_units / total_units) * 100 if total_units > 0 else 0
+        
+        return {
+            "total_income": total_income,
+            "total_expected": total_expected,
+            "collection_rate": (total_income / total_expected) * 100 if total_expected > 0 else 0,
+            "total_expenses": total_expenses,
+            "net_income": total_income - total_expenses,
+            "occupancy_rate": occupancy_rate,
+            "period": period or "all_time",
+            "properties_count": len(properties)
+        }, 200
+    except SQLAlchemyError as e:
+        logger.error(f"Database error in financial overview: {str(e)}")
+        return {"error": "Failed to retrieve financial overview"}, 500
+
+def get_property_performance(property_id, period=None):
+    """
+    Get detailed performance metrics for a specific property.
+    
+    Args:
+        property_id (int): ID of the property
+        period (str, optional): Time period for data. Options: "month", "quarter", "year"
+    
+    Returns:
+        Property-specific metrics including income, expenses, tenant history
+    """
+    try:
+        # Calculate date range based on period
+        end_date = datetime.utcnow()
+        if period == "month":
+            start_date = end_date - timedelta(days=30)
+        elif period == "quarter":
+            start_date = end_date - timedelta(days=90)
+        elif period == "year":
+            start_date = end_date - timedelta(days=365)
+        else:
+            # Default to all-time if period not specified
+            start_date = datetime(1970, 1, 1)
+            
+        property_data = Property.query.get(property_id)
+        if not property_data:
+            return {"error": "Property not found"}, 404
+            
+        # Calculate income
+        income_query = db.session.query(
+            func.sum(Payment.amount)
+        ).filter(
+            Payment.property_id == property_id,
+            Payment.status == "paid",
+            Payment.paid_date.between(start_date, end_date)
+        )
+        total_income = income_query.scalar() or 0
+        
+        # Calculate expenses
+        expenses_query = db.session.query(
+            func.sum(MaintenanceRequest.cost)
+        ).filter(
+            MaintenanceRequest.property_id == property_id,
+            MaintenanceRequest.created_at.between(start_date, end_date)
+        )
+        total_expenses = expenses_query.scalar() or 0
+        
+        # Get maintenance request counts
+        maintenance_counts = db.session.query(
+            MaintenanceRequest.status,
+            func.count(MaintenanceRequest.id)
+        ).filter(
+            MaintenanceRequest.property_id == property_id,
+            MaintenanceRequest.created_at.between(start_date, end_date)
+        ).group_by(MaintenanceRequest.status).all()
+        
+        maintenance_stats = {status: count for status, count in maintenance_counts}
+        
+        # Get current tenants
+        current_tenants = TenantProfile.query.filter(
+            TenantProfile.property_id == property_id,
+            TenantProfile.lease_end > datetime.utcnow()
+        ).count()
+        
+        return {
+            "property": {
+                "id": property_data.id,
+                "name": property_data.name,
+                "address": property_data.address
+            },
+            "financial": {
+                "total_income": total_income,
+                "total_expenses": total_expenses,
+                "net_income": total_income - total_expenses
+            },
+            "maintenance": {
+                "pending": maintenance_stats.get("pending", 0),
+                "in_progress": maintenance_stats.get("in_progress", 0),
+                "completed": maintenance_stats.get("completed", 0),
+                "total": sum(maintenance_stats.values()) if maintenance_stats else 0
+            },
+            "occupancy": {
+                "current_tenants": current_tenants,
+                "vacancy_rate": 0  # Calculate based on units if available
+            },
+            "period": period or "all_time"
+        }, 200
+    except SQLAlchemyError as e:
+        logger.error(f"Database error in property performance: {str(e)}")
+        return {"error": "Failed to retrieve property performance"}, 500
+
+def get_payment_trends(landlord_id):
+    """
+    Get payment trends over time for a landlord's properties.
+    
+    Args:
+        landlord_id (int): ID of the landlord
+    
+    Returns:
+        Payment trends data for visualization
+    """
+    try:
+        # Get properties for landlord
+        properties = Property.query.filter_by(landlord_id=landlord_id).all()
+        property_ids = [p.id for p in properties]
+        
+        if not property_ids:
+            return {"error": "No properties found for landlord"}, 404
+        
+        # Get data for last 12 months
+        end_date = datetime.utcnow()
+        start_date = end_date - timedelta(days=365)
+        
+        # Query monthly payments
+        monthly_payments = db.session.query(
+            func.date_trunc('month', Payment.paid_date).label('month'),
+            func.sum(Payment.amount).label('amount')
+        ).filter(
+            Payment.property_id.in_(property_ids),
+            Payment.status == "paid",
+            Payment.paid_date.between(start_date, end_date)
+        ).group_by('month').order_by('month').all()
+        
+        # Format data for frontend chart
+        payment_data = [
+            {
+                "month": month.strftime("%b %Y"),
+                "amount": float(amount)
+            }
+            for month, amount in monthly_payments
+        ]
+        
+        return {
+            "payment_trends": payment_data,
+            "total_collected": sum(item['amount'] for item in payment_data)
+        }, 200
+    except SQLAlchemyError as e:
+        logger.error(f"Database error in payment trends: {str(e)}")
+        return {"error": "Failed to retrieve payment trends"}, 500
+
+def get_maintenance_analytics(landlord_id):
+    """
+    Get analytics about maintenance requests for a landlord's properties.
+    
+    Args:
+        landlord_id (int): ID of the landlord
+    
+    Returns:
+        Maintenance request analytics
+    """
+    try:
+        # Get properties for landlord
+        properties = Property.query.filter_by(landlord_id=landlord_id).all()
+        property_ids = [p.id for p in properties]
+        
+        if not property_ids:
+            return {"error": "No properties found for landlord"}, 404
+        
+        # Get maintenance request statistics
+        maintenance_by_status = db.session.query(
+            MaintenanceRequest.status,
+            func.count(MaintenanceRequest.id)
+        ).filter(
+            MaintenanceRequest.property_id.in_(property_ids)
+        ).group_by(MaintenanceRequest.status).all()
+        
+        # Calculate average resolution time
+        resolved_requests = MaintenanceRequest.query.filter(
+            MaintenanceRequest.property_id.in_(property_ids),
+            MaintenanceRequest.status == "completed",
+            MaintenanceRequest.completed_at.isnot(None)
+        ).all()
+        
+        total_resolution_time = sum(
+            (req.completed_at - req.created_at).total_seconds() / 86400  # Convert to days
+            for req in resolved_requests
+        )
+        avg_resolution_days = total_resolution_time / len(resolved_requests) if resolved_requests else 0
+        
+        return {
+            "request_counts": {
+                status: count for status, count in maintenance_by_status
+            },
+            "avg_resolution_days": round(avg_resolution_days, 1),
+            "total_requests": sum(count for _, count in maintenance_by_status),
+            "properties_count": len(properties)
+        }, 200
+    except SQLAlchemyError as e:
+        logger.error(f"Database error in maintenance analytics: {str(e)}")
+        return {"error": "Failed to retrieve maintenance analytics"}, 500
+
+@jwt_required()
+def get_dashboard_stats():
+    """
+    Get dashboard statistics for the landlord
+    
+    Returns:
+        JSON with dashboard statistics
+    """
+    try:
+        user_id = get_jwt_identity()
+        
+        # Get landlord's properties
+        properties = Property.query.filter_by(landlord_id=user_id).all()
+        property_ids = [p.id for p in properties]
+        
+        if not property_ids:
+            return jsonify({"stats": {
+                "property_count": 0,
+                "unit_count": 0,
+                "occupied_units": 0,
+                "vacancy_rate": 0,
+                "tenant_count": 0,
+                "revenue_current_month": 0,
+                "outstanding_rent": 0,
+                "open_maintenance_requests": 0
+            }}), 200
+        
+        # Count units
+        unit_count = Unit.query.filter(Unit.property_id.in_(property_ids)).count()
+        
+        # Count occupied units
+        occupied_units = TenantProperty.query.filter(
+            TenantProperty.property_id.in_(property_ids),
+            TenantProperty.status == 'active'
+        ).count()
+        
+        # Calculate vacancy rate
+        vacancy_rate = 0
+        if unit_count > 0:
+            vacancy_rate = round(((unit_count - occupied_units) / unit_count) * 100, 1)
+        
+        # Count tenants
+        tenant_count = TenantProfile.query.filter(
+            TenantProfile.property_id.in_(property_ids)
+        ).distinct(TenantProfile.user_id).count()
+        
+        # Calculate revenue for current month
+        current_month_start = datetime.utcnow().replace(day=1, hour=0, minute=0, second=0, microsecond=0)
+        current_month_end = (current_month_start.replace(month=current_month_start.month+1) if current_month_start.month < 12 
+                            else current_month_start.replace(year=current_month_start.year+1, month=1)) - timedelta(seconds=1)
+        
+        revenue_current_month = db.session.query(
+            func.sum(Payment.amount)
+        ).filter(
+            Payment.property_id.in_(property_ids),
+            Payment.status == "paid",
+            Payment.paid_date.between(current_month_start, current_month_end)
+        ).scalar() or 0
+        
+        # Calculate outstanding rent
+        outstanding_rent = db.session.query(
+            func.sum(Payment.amount)
+        ).filter(
+            Payment.property_id.in_(property_ids),
+            Payment.status == "pending",
+            Payment.due_date <= datetime.utcnow()
+        ).scalar() or 0
+        
+        # Count open maintenance requests
+        open_requests = MaintenanceRequest.query.filter(
+            MaintenanceRequest.property_id.in_(property_ids),
+            MaintenanceRequest.status.in_(["pending", "in_progress"])
+        ).count()
+        
+        return jsonify({
+            "stats": {
+                "property_count": len(properties),
+                "unit_count": unit_count,
+                "occupied_units": occupied_units,
+                "vacancy_rate": vacancy_rate,
+                "tenant_count": tenant_count,
+                "revenue_current_month": float(revenue_current_month),
+                "outstanding_rent": float(outstanding_rent),
+                "open_maintenance_requests": open_requests
+            }
+        }), 200
+    except SQLAlchemyError as e:
+        logger.error(f"Database error in dashboard stats: {str(e)}")
+        return jsonify({"error": "Failed to retrieve dashboard stats"}), 500
+
+@jwt_required()
+def get_revenue_stats():
+    """
+    Get revenue statistics for the landlord
+    
+    Returns:
+        JSON with revenue data
+    """
+    try:
+        user_id = get_jwt_identity()
+        period = request.args.get('period', 'monthly')
+        
+        # Get landlord's properties
+        properties = Property.query.filter_by(landlord_id=user_id).all()
+        property_ids = [p.id for p in properties]
+        
+        if not property_ids:
+            return jsonify({"revenue_data": []}), 200
+        
+        # Calculate date range
+        end_date = datetime.utcnow()
+        if period == 'monthly':
+            start_date = end_date - timedelta(days=365)  # Last 12 months
+            date_trunc = 'month'
+            date_format = '%b %Y'
+        elif period == 'weekly':
+            start_date = end_date - timedelta(days=12*7)  # Last 12 weeks
+            date_trunc = 'week'
+            date_format = 'Week %W, %Y'
+        elif period == 'quarterly':
+            start_date = end_date - timedelta(days=4*365/4)  # Last 4 quarters
+            date_trunc = 'quarter'
+            date_format = 'Q%q %Y'
+        else:
+            start_date = end_date - timedelta(days=365)
+            date_trunc = 'month'
+            date_format = '%b %Y'
+        
+        # Query revenue data
+        payments = Payment.query.filter(
+            Payment.landlord_id == user_id,
+            Payment.status == "completed",
+            Payment.created_at.between(start_date, end_date)
+        ).all()
+        
+        # Group by period
+        period_data = {}
+        for payment in payments:
+            if period == 'monthly':
+                period_key = payment.paid_date.strftime('%Y-%m')
+                display_period = payment.paid_date.strftime('%b %Y')
+            elif period == 'weekly':
+                period_key = f"{payment.paid_date.year}-{payment.paid_date.isocalendar()[1]}"
+                display_period = f"Week {payment.paid_date.isocalendar()[1]}, {payment.paid_date.year}"
+            elif period == 'quarterly':
+                quarter = (payment.paid_date.month - 1) // 3 + 1
+                period_key = f"{payment.paid_date.year}-Q{quarter}"
+                display_period = f"Q{quarter} {payment.paid_date.year}"
+            else:
+                period_key = payment.paid_date.strftime('%Y-%m')
+                display_period = payment.paid_date.strftime('%b %Y')
+                
+            if period_key not in period_data:
+                period_data[period_key] = {
+                    'period': display_period,
+                    'revenue': 0,
+                    'payment_count': 0
+                }
+            
+            period_data[period_key]['revenue'] += float(payment.amount)
+            period_data[period_key]['payment_count'] += 1
+        
+        # Convert to list and sort
+        revenue_data = list(period_data.values())
+        revenue_data.sort(key=lambda x: x['period'])
+        
+        return jsonify({"revenue_data": revenue_data}), 200
+    except SQLAlchemyError as e:
+        logger.error(f"Database error in revenue stats: {str(e)}")
+        return jsonify({"error": "Failed to retrieve revenue stats"}), 500
+
+@jwt_required()
+def get_occupancy_stats():
+    """
+    Get occupancy statistics for the landlord's properties
+    
+    Returns:
+        JSON with occupancy data
+    """
+    try:
+        user_id = get_jwt_identity()
+        
+        # Get landlord's properties
+        properties = Property.query.filter_by(landlord_id=user_id).all()
+        
+        if not properties:
+            return jsonify({"occupancy_data": []}), 200
+        
+        occupancy_data = []
+        
+        for prop in properties:
+            # Count units for this property
+            unit_count = Unit.query.filter_by(property_id=prop.id).count()
+            
+            # Count occupied units
+            occupied_units = TenantProperty.query.filter(
+                TenantProperty.property_id == prop.id,
+                TenantProperty.status == 'active'
+            ).count()
+            
+            # Calculate occupancy rate
+            occupancy_rate = 0
+            if unit_count > 0:
+                occupancy_rate = round((occupied_units / unit_count) * 100, 1)
+            
+            occupancy_data.append({
+                "property_id": prop.id,
+                "property_name": prop.name,
+                "occupancy_rate": occupancy_rate,
+                "total_units": unit_count,
+                "occupied_units": occupied_units
+            })
+        
+        return jsonify({"occupancy_data": occupancy_data}), 200
+    except SQLAlchemyError as e:
+        logger.error(f"Database error in occupancy stats: {str(e)}")
+        return jsonify({"error": "Failed to retrieve occupancy stats"}), 500
+
+@jwt_required()
+def get_property_analytics(property_id):
+    """
+    Get analytics for a specific property
+    
+    Args:
+        property_id (int): ID of the property
+        
+    Returns:
+        JSON with property analytics
+    """
+    try:
+        user_id = get_jwt_identity()
+        
+        # Get the property and verify ownership
+        property_data = Property.query.filter_by(id=property_id, landlord_id=user_id).first()
+        
+        if not property_data:
+            return jsonify({"error": "Property not found or access denied"}), 404
+        
+        # Count units
+        unit_count = Unit.query.filter_by(property_id=property_id).count()
+        
+        # Count occupied units
+        occupied_units = TenantProperty.query.filter(
+            TenantProperty.property_id == property_id,
+            TenantProperty.active == True
+        ).count()
+        
+        # Calculate occupancy rate
+        occupancy_rate = 0
+        if unit_count > 0:
+            occupancy_rate = round((occupied_units / unit_count) * 100, 1)
+        
+        # Calculate current month revenue
+        current_month_start = datetime.utcnow().replace(day=1, hour=0, minute=0, second=0, microsecond=0)
+        current_month_end = (current_month_start.replace(month=current_month_start.month+1) if current_month_start.month < 12 
+                            else current_month_start.replace(year=current_month_start.year+1, month=1)) - timedelta(seconds=1)
+        
+        revenue = db.session.query(
+            func.sum(Payment.amount)
+        ).filter(
+            Payment.property_id == property_id,
+            Payment.status == "paid",
+            Payment.paid_date.between(current_month_start, current_month_end)
+        ).scalar() or 0
+        
+        # Count maintenance requests
+        open_requests = MaintenanceRequest.query.filter(
+            MaintenanceRequest.property_id == property_id,
+            MaintenanceRequest.status.in_(["pending", "in_progress"])
+        ).count()
+        
+        completed_requests = MaintenanceRequest.query.filter(
+            MaintenanceRequest.property_id == property_id,
+            MaintenanceRequest.status == "completed"
+        ).count()
+        
+        return jsonify({
+            "property": {
+                "id": property_data.id,
+                "name": property_data.name,
+                "address": getattr(property_data, 'address', 'N/A')
+            },
+            "occupancy": {
+                "total_units": unit_count,
+                "occupied_units": occupied_units,
+                "occupancy_rate": occupancy_rate
+            },
+            "financial": {
+                "current_month_revenue": float(revenue),
+                "outstanding_balance": 0  # Simplified - would calculate from unpaid invoices
+            },
+            "maintenance": {
+                "open_requests": open_requests,
+                "completed_requests": completed_requests
+            }
+        }), 200
+    except SQLAlchemyError as e:
+        logger.error(f"Database error in property analytics: {str(e)}")
+        return jsonify({"error": "Failed to retrieve property analytics"}), 500
+
+@jwt_required()
+def get_maintenance_stats():
+    """
+    Get maintenance statistics for the landlord's properties
+    
+    Returns:
+        JSON with maintenance data
+    """
+    try:
+        user_id = get_jwt_identity()
+        
+        # Get landlord's properties
+        properties = Property.query.filter_by(landlord_id=user_id).all()
+        property_ids = [p.id for p in properties]
+        
+        if not property_ids:
+            return jsonify({
+                "maintenance_data": {
+                    "open": 0,
+                    "in_progress": 0,
+                    "completed": 0,
+                    "avg_resolution_days": 0
+                }
+            }), 200
+        
+        # Count maintenance requests by status
+        open_count = MaintenanceRequest.query.filter(
+            MaintenanceRequest.property_id.in_(property_ids),
+            MaintenanceRequest.status == "pending"
+        ).count()
+        
+        in_progress_count = MaintenanceRequest.query.filter(
+            MaintenanceRequest.property_id.in_(property_ids),
+            MaintenanceRequest.status == "in_progress"
+        ).count()
+        
+        completed_count = MaintenanceRequest.query.filter(
+            MaintenanceRequest.property_id.in_(property_ids),
+            MaintenanceRequest.status == "completed"
+        ).count()
+        
+        # Calculate average resolution time
+        resolved_requests = MaintenanceRequest.query.filter(
+            MaintenanceRequest.property_id.in_(property_ids),
+            MaintenanceRequest.status == "completed",
+            MaintenanceRequest.completed_at.isnot(None)
+        ).all()
+        
+        avg_resolution_days = 0
+        if resolved_requests:
+            total_resolution_time = sum(
+                (req.completed_at - req.created_at).total_seconds() / 86400  # Convert to days
+                for req in resolved_requests if req.completed_at and req.created_at
+            )
+            avg_resolution_days = round(total_resolution_time / len(resolved_requests), 1)
+        
+        return jsonify({
+            "maintenance_data": {
+                "open": open_count,
+                "in_progress": in_progress_count,
+                "completed": completed_count,
+                "avg_resolution_days": avg_resolution_days
+            }
+        }), 200
+    except SQLAlchemyError as e:
+        logger.error(f"Database error in maintenance stats: {str(e)}")
+        return jsonify({"error": "Failed to retrieve maintenance stats"}), 500
+
+@jwt_required()
+def get_tenant_stats():
+    """
+    Get tenant statistics for the landlord's properties
+    
+    Returns:
+        JSON with tenant data
+    """
+    try:
+        user_id = get_jwt_identity()
+        
+        # Get landlord's properties
+        properties = Property.query.filter_by(landlord_id=user_id).all()
+        property_ids = [p.id for p in properties]
+        
+        if not property_ids:
+            return jsonify({"tenant_data": []}), 200
+        
+        # Count tenants per property
+        tenant_counts = []
+        for prop in properties:
+            tenant_count = TenantProfile.query.filter(
+                TenantProfile.property_id == prop.id
+            ).distinct(TenantProfile.user_id).count()
+            
+            tenant_counts.append({
+                "property_id": prop.id,
+                "property_name": prop.name,
+                "tenant_count": tenant_count
+            })
+        
+        # Count total tenants
+        total_tenant_count = TenantProfile.query.filter(
+            TenantProfile.property_id.in_(property_ids)
+        ).distinct(TenantProfile.user_id).count()
+        
+        # Count tenants with leases expiring in next 90 days
+        expiring_soon_count = TenantProfile.query.filter(
+            TenantProfile.property_id.in_(property_ids),
+            TenantProfile.lease_end.between(datetime.utcnow(), datetime.utcnow() + timedelta(days=90))
+        ).count()
+        
+        return jsonify({
+            "tenant_data": {
+                "properties": tenant_counts,
+                "total_tenants": total_tenant_count,
+                "leases_expiring_soon": expiring_soon_count
+            }
+        }), 200
+    except SQLAlchemyError as e:
+        logger.error(f"Database error in tenant stats: {str(e)}")
+        return jsonify({"error": "Failed to retrieve tenant stats"}), 500

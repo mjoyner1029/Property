@@ -6,6 +6,7 @@ from ..controllers.invite_controller import (
 invite_bp = Blueprint('invites', __name__)
 
 invite_bp.route('/', methods=['POST'])(create_invite)
-invite_bp.route('/<token>', methods=['GET'])(verify_invite)
+invite_bp.route('/verify/<token>', methods=['GET'])(verify_invite)
+invite_bp.route('/<token>', methods=['GET'])(verify_invite)  # Keep old route for backward compatibility
 invite_bp.route('/resend/<int:invite_id>', methods=['POST'])(resend_invite)
 invite_bp.route('/tenant', methods=['POST'])(invite_tenant)

@@ -23,6 +23,7 @@ class TenantProperty(db.Model):
             'id': self.id,
             'tenant_id': self.tenant_id,
             'property_id': self.property_id,
+            'property': {'id': self.property.id, 'name': self.property.name} if hasattr(self, 'property') and self.property else None,
             'unit_id': self.unit_id,
             'rent_amount': self.rent_amount,
             'status': self.status,

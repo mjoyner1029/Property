@@ -47,22 +47,27 @@ def app() -> Flask:
     app.config["LIMITER_ENABLED"] = False
     app.config["FLASK_LIMITER_ENABLED"] = False
     
-    # Set extreme limits to avoid test failures
-    app.config["RATELIMIT_DEFAULT"] = "10000 per second"
+    # Completely disable rate limiting for tests
+    app.config["RATELIMIT_ENABLED"] = False
+    app.config["LIMITER_ENABLED"] = False
+    app.config["FLASK_LIMITER_ENABLED"] = False
     app.config["RATELIMIT_STORAGE_URI"] = "memory://"
     app.config["RATELIMIT_STORAGE_URL"] = "memory://"
     app.config["RATELIMIT_IN_MEMORY_FALLBACK_ENABLED"] = True
-    app.config["RATELIMIT_APPLICATION"] = "10000 per second"
+    app.config["RATELIMIT_DEFAULT"] = "1000000 per second"
+    app.config["RATELIMIT_APPLICATION"] = "1000000 per second"
     app.config["RATELIMIT_HEADERS_ENABLED"] = False
     
     # Disable account lockout for tests
     app.config["ACCOUNT_LOCKOUT_MAX_ATTEMPTS"] = 1000
     app.config["ACCOUNT_LOCKOUT_DURATION_MINUTES"] = 1
     
-    # Enforce header-only JWT for consistent testing
+    # Configure JWT for deterministic tests - extremely long expiry to prevent any expiration during tests
     app.config["JWT_TOKEN_LOCATION"] = ["headers"]
     app.config["JWT_COOKIE_SECURE"] = False
     app.config["JWT_COOKIE_CSRF_PROTECT"] = False
+    app.config["JWT_ACCESS_TOKEN_EXPIRES"] = 7 * 24 * 3600  # 7 days for tests
+    app.config["JWT_REFRESH_TOKEN_EXPIRES"] = 30 * 24 * 3600  # 30 days for tests
 
     with app.app_context():
         _db.create_all()
@@ -171,10 +176,10 @@ def admin_token(app, test_users):
         admin = test_users['admin']
         # Set explicit expiration to ensure we have plenty of time for the test
         import datetime
-        expiry = datetime.timedelta(hours=1)  # 1 hour expiry for test tokens
-        # Use just the ID instead of a dictionary, ensure it's an integer
-        token = create_access_token(identity=int(admin.id), expires_delta=expiry)
-        print(f"DEBUG - Created admin token with ID: {admin.id}, type: {type(admin.id)}")
+        expiry = datetime.timedelta(hours=24)  # 24 hour expiry for test tokens - long enough for any test run
+        # Use string ID consistently to match how tokens are created in production routes
+        token = create_access_token(identity=str(admin.id), expires_delta=expiry)
+        print(f"DEBUG - Created admin token with ID: {admin.id}, type: {type(str(admin.id))}")
         return token
 
 
@@ -186,10 +191,10 @@ def landlord_token(app, test_users):
         landlord = test_users['landlord']
         # Set explicit expiration to ensure we have plenty of time for the test
         import datetime
-        expiry = datetime.timedelta(hours=1)  # 1 hour expiry for test tokens
-        # Use just the ID instead of a dictionary, ensure it's an integer
-        token = create_access_token(identity=int(landlord.id), expires_delta=expiry)
-        print(f"DEBUG - Created landlord token with ID: {landlord.id}, type: {type(landlord.id)}")
+        expiry = datetime.timedelta(hours=24)  # 24 hour expiry for test tokens - long enough for any test run
+        # Use string ID consistently to match how tokens are created in production routes
+        token = create_access_token(identity=str(landlord.id), expires_delta=expiry)
+        print(f"DEBUG - Created landlord token with ID: {landlord.id}, type: {type(str(landlord.id))}")
         return token
 
 
@@ -201,10 +206,10 @@ def tenant_token(app, test_users):
         tenant = test_users['tenant']
         # Set explicit expiration to ensure we have plenty of time for the test
         import datetime
-        expiry = datetime.timedelta(hours=1)  # 1 hour expiry for test tokens
-        # Use just the ID instead of a dictionary, ensure it's an integer
-        token = create_access_token(identity=int(tenant.id), expires_delta=expiry)
-        print(f"DEBUG - Created tenant token with ID: {tenant.id}, type: {type(tenant.id)}")
+        expiry = datetime.timedelta(hours=24)  # 24 hour expiry for test tokens - long enough for any test run
+        # Use string ID consistently to match how tokens are created in production routes
+        token = create_access_token(identity=str(tenant.id), expires_delta=expiry)
+        print(f"DEBUG - Created tenant token with ID: {tenant.id}, type: {type(str(tenant.id))}")
         return token
 
 
@@ -310,10 +315,12 @@ def test_property(app, db, session, test_users):
         
         db.session.commit()  # Commit to ensure units are persisted
         
-        # Return a dictionary with property and unit IDs
+        # Return a dictionary with property and unit IDs only
+        # This avoids DetachedInstanceError by not storing the actual ORM objects
         result = {
             'property_id': property_id,
             'property_name': property_name,
-            'unit_ids': unit_ids
+            'unit_ids': unit_ids,
+            'property': test_property  # Add the property object for tests that need it
         }
         return result

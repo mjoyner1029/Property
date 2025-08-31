@@ -41,19 +41,32 @@ def test_start_tenant_onboarding(client, test_users, auth_headers):
 
 def test_update_onboarding_step(client, test_users, auth_headers, session):
     """Test updating an onboarding step"""
-    # Create onboarding record
-    onboarding = OnboardingProgress(
-        user_id=test_users['landlord'].id,
-        role='landlord',
-        steps=[
+    # Check if onboarding progress already exists for this user
+    existing = OnboardingProgress.query.filter_by(user_id=test_users['landlord'].id).first()
+    
+    if not existing:
+        # Create onboarding record only if it doesn't exist
+        onboarding = OnboardingProgress(
+            user_id=test_users['landlord'].id,
+            role='landlord',
+            steps=[
+                {"id": "profile", "name": "Basic Profile", "completed": False},
+                {"id": "company", "name": "Company Information", "completed": False}
+            ],
+            current_step='profile',
+            completed=False
+        )
+        session.add(onboarding)
+        session.commit()
+    else:
+        # Update existing onboarding record
+        existing.steps = [
             {"id": "profile", "name": "Basic Profile", "completed": False},
             {"id": "company", "name": "Company Information", "completed": False}
-        ],
-        current_step='profile',
-        completed=False
-    )
-    session.add(onboarding)
-    session.commit()
+        ]
+        existing.current_step = 'profile'
+        existing.completed = False
+        session.commit()
     
     # Update step
     response = client.put('/api/onboard/step/profile',
@@ -66,6 +79,7 @@ def test_update_onboarding_step(client, test_users, auth_headers, session):
                              }
                          })
     
+    print(f"Update step response: {response.data.decode()}")
     assert response.status_code == 200
     data = json.loads(response.data)
     assert data['step']['id'] == 'profile'
@@ -77,20 +91,34 @@ def test_update_onboarding_step(client, test_users, auth_headers, session):
 
 def test_complete_onboarding(client, test_users, auth_headers, session):
     """Test completing the onboarding process"""
-    # Create onboarding record with all steps completed except last
-    onboarding = OnboardingProgress(
-        user_id=test_users['tenant'].id,
-        role='tenant',
-        steps=[
+    # Check if onboarding progress already exists for this user
+    existing = OnboardingProgress.query.filter_by(user_id=test_users['tenant'].id).first()
+    
+    if not existing:
+        # Create onboarding record with all steps completed except last
+        onboarding = OnboardingProgress(
+            user_id=test_users['tenant'].id,
+            role='tenant',
+            steps=[
+                {"id": "profile", "name": "Basic Profile", "completed": True},
+                {"id": "lease", "name": "Lease Details", "completed": True},
+                {"id": "payment", "name": "Payment Method", "completed": False}
+            ],
+            current_step='payment',
+            completed=False
+        )
+        session.add(onboarding)
+        session.commit()
+    else:
+        # Update existing onboarding record
+        existing.steps = [
             {"id": "profile", "name": "Basic Profile", "completed": True},
             {"id": "lease", "name": "Lease Details", "completed": True},
             {"id": "payment", "name": "Payment Method", "completed": False}
-        ],
-        current_step='payment',
-        completed=False
-    )
-    session.add(onboarding)
-    session.commit()
+        ]
+        existing.current_step = 'payment'
+        existing.completed = False
+        session.commit()
     
     # Complete final step
     response = client.put('/api/onboard/step/payment',
@@ -103,6 +131,7 @@ def test_complete_onboarding(client, test_users, auth_headers, session):
                              }
                          })
     
+    print(f"Complete step response: {response.data.decode()}")
     assert response.status_code == 200
     data = json.loads(response.data)
     assert data['onboarding']['completed'] is True

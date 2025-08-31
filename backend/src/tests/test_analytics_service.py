@@ -11,7 +11,7 @@ def setup_analytics_data(session, test_users, test_property):
     """Set up test data for analytics"""
     landlord_id = test_users['landlord'].id
     tenant_id = test_users['tenant'].id
-    property_id = test_property['property'].id
+    property_id = test_property['property_id']
     
     # Add payments
     for i in range(3):
@@ -41,20 +41,22 @@ def setup_analytics_data(session, test_users, test_property):
         session.add(request)
     
     # Add invoices
-    for i in range(2):
-        status = 'due' if i == 0 else 'paid'
-        invoice = Invoice(
-            tenant_id=tenant_id,
-            landlord_id=landlord_id,
-            property_id=property_id,
-            amount=1200,
-            description=f'Test Invoice {i}',
-            due_date=(datetime.utcnow() + timedelta(days=15 - i*30)).date(),
-            status=status,
-            invoice_number=f'TEST-{i}',
-            category='rent',
-            created_at=datetime.utcnow() - timedelta(days=i*30)
-        )
+        for i in range(2):
+            status = 'due' if i == 0 else 'paid'
+            import uuid
+            unique_id = uuid.uuid4().hex[:8]
+            invoice = Invoice(
+                tenant_id=tenant_id,
+                landlord_id=landlord_id,
+                property_id=property_id,
+                amount=1200,
+                description=f'Test Invoice {i}',
+                due_date=(datetime.utcnow() + timedelta(days=15 - i*30)).date(),
+                status=status,
+                invoice_number=f'TEST-{i}-{unique_id}',
+                category='rent',
+                created_at=datetime.utcnow() - timedelta(days=i*30)
+            )
         session.add(invoice)
     
     session.commit()

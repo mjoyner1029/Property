@@ -10,11 +10,22 @@ class TenantProfile(db.Model):
     employment_status = db.Column(db.String(50))
     employer = db.Column(db.String(100))
     annual_income = db.Column(db.Float)
+    phone = db.Column(db.String(32), nullable=True)  # Added phone field
     emergency_contact_name = db.Column(db.String(100))
     emergency_contact_phone = db.Column(db.String(20))
     emergency_contact_relation = db.Column(db.String(50))
     created_at = db.Column(db.DateTime, default=datetime.now)
     updated_at = db.Column(db.DateTime, default=datetime.now, onupdate=datetime.now)
+    
+    @property
+    def phone_number(self):
+        """Alias for phone field for backwards compatibility with tests."""
+        return self.phone
+        
+    @phone_number.setter
+    def phone_number(self, value):
+        """Setter for phone_number alias."""
+        self.phone = value
     
     # Relationship
     user = db.relationship('User', backref='tenant_profile', uselist=False)
@@ -30,6 +41,7 @@ class TenantProfile(db.Model):
             'employment_status': self.employment_status,
             'employer': self.employer,
             'annual_income': self.annual_income,
+            'phone': self.phone,  # Added phone field to to_dict
             'emergency_contact_name': self.emergency_contact_name,
             'emergency_contact_phone': self.emergency_contact_phone,
             'emergency_contact_relation': self.emergency_contact_relation,

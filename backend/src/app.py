@@ -110,7 +110,37 @@ def create_app(config_name: Optional[str] = None) -> Flask:
     
     # Initialize extensions with the app
     init_extensions(app)
-
+    
+    # Ensure rate limiter is fully disabled in test mode
+    if app.config.get("TESTING", False):
+        app.config["RATELIMIT_ENABLED"] = False
+        app.config["LIMITER_ENABLED"] = False
+        app.config["FLASK_LIMITER_ENABLED"] = False
+        
+        # If using Flask-Limiter v2+
+        if hasattr(limiter, 'enabled'):
+            limiter.enabled = False
+        
+        # Add direct monkey patch to disable the limiter's key rate limit function
+        if hasattr(limiter, '_limiter'):
+            # Replace the rate limiting function with a no-op
+            limiter._limiter.hit = lambda *args, **kwargs: True
+            limiter._limiter.get_window_stats = lambda *args, **kwargs: (0, 0, 0, 0)
+            
+        # For Flask-Limiter v1.x - use a before_request handler to bypass limits
+        @app.before_request
+        def bypass_limiter_in_tests():
+            # Forcefully remove any limiter information from the request
+            request.environ.pop('flask_limiter.limits', None)
+            
+            # Monkey patch the limiter directly for this request
+            if hasattr(limiter, 'limiter'):
+                old_check = limiter.limiter.check
+                limiter.limiter.check = lambda *args, **kwargs: True
+            
+            # Add debug log to verify rate limiting is disabled
+            app.logger.debug("Rate limiting disabled for testing")
+    
     # Register error handlers
     register_error_handlers(app)
     
@@ -232,11 +262,19 @@ def register_blueprints(app: Flask) -> None:
             blueprints.append((payment_bp, f'{API_PREFIX}/payments'))
         except Exception as e:
             app.logger.warning(f"Failed to load payment routes: {str(e)}")
+            
+        # Invoice routes
+        try:
+            from .routes.invoice_routes import invoice_bp
+            blueprints.append((invoice_bp, f'{API_PREFIX}/invoices'))  # Register with API prefix
+        except Exception as e:
+            app.logger.warning(f"Failed to load invoice routes: {str(e)}")
         
         # Stripe-specific routes - separated to avoid failing all payment routes if stripe fails
         try:
-            from .routes.stripe_routes import bp
-            blueprints.append((bp, f'{API_PREFIX}/stripe'))
+            # Use the direct routes implementation
+            from .routes.direct_stripe_routes import direct_stripe_bp
+            blueprints.append((direct_stripe_bp, ''))  # Blueprint has explicitly prefixed routes
         except Exception as e:
             app.logger.warning(f"Failed to load stripe routes: {str(e)}")
     
@@ -255,6 +293,41 @@ def register_blueprints(app: Flask) -> None:
             blueprints.append((notification_bp, f'{API_PREFIX}/notifications'))
         except Exception as e:
             app.logger.warning(f"Failed to load notification_bp: {str(e)}")
+    
+    # Analytics routes
+    try:
+        from .routes.analytics_routes import analytics_bp
+        blueprints.append((analytics_bp, f'{API_PREFIX}/analytics'))
+    except Exception as e:
+        app.logger.warning(f"Failed to load analytics_bp: {str(e)}")
+    
+    # Dashboard routes
+    try:
+        from .routes.dashboard_routes import dashboard_bp
+        blueprints.append((dashboard_bp, f'{API_PREFIX}/dashboard'))
+    except Exception as e:
+        app.logger.warning(f"Failed to load dashboard_bp: {str(e)}")
+    
+    # Invitation routes
+    try:
+        from .routes.invite_routes import invite_bp
+        blueprints.append((invite_bp, f'{API_PREFIX}/invites'))
+    except Exception as e:
+        app.logger.warning(f"Failed to load invite_bp: {str(e)}")
+        
+    # Lease routes
+    try:
+        from .routes.lease_routes import lease_bp
+        blueprints.append((lease_bp, f'{API_PREFIX}/leases'))
+    except Exception as e:
+        app.logger.warning(f"Failed to load lease_bp: {str(e)}")
+        
+    # Maintenance routes
+    try:
+        from .routes.maintenance_routes import maintenance_bp
+        blueprints.append((maintenance_bp, f'{API_PREFIX}/maintenance'))
+    except Exception as e:
+        app.logger.warning(f"Failed to load maintenance_bp: {str(e)}")
     
     # Admin routes
     if ENABLE_ADMIN:

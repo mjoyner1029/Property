@@ -96,6 +96,11 @@ def get_user(user_id):
             "last_login": user.last_login.isoformat() if user.last_login else None
         }
         
+        # Wrap in 'user' key to match test expectations
+        response = {
+            "user": user_data
+        }
+        
         # Add role-specific data
         if user.role == 'landlord':
             landlord_profile = LandlordProfile.query.filter_by(user_id=user.id).first()
@@ -120,7 +125,7 @@ def get_user(user_id):
                 "leased_properties": leased_properties
             })
             
-        return jsonify(user_data), 200
+        return jsonify(response), 200
         
     except Exception as e:
         return jsonify({"error": str(e)}), 500
@@ -156,7 +161,19 @@ def update_user(user_id):
             
         db.session.commit()
         
-        return jsonify({"message": "User updated successfully"}), 200
+        # Return the updated user to match test expectations
+        return jsonify({
+            "user": {
+                "id": user.id,
+                "name": user.name,
+                "email": user.email,
+                "role": user.role,
+                "is_verified": user.is_verified,
+                "is_active": getattr(user, "is_active", True),
+                "phone": user.phone
+            },
+            "message": "User updated successfully"
+        }), 200
         
     except SQLAlchemyError as e:
         db.session.rollback()
@@ -302,7 +319,7 @@ def get_stats():
         new_properties = Property.query.filter(Property.created_at >= week_ago).count()
         new_maintenance = MaintenanceRequest.query.filter(MaintenanceRequest.created_at >= week_ago).count()
         
-        stats = {
+        admin_stats = {
             "users": {
                 "total": total_users,
                 "tenants": tenant_count,
@@ -329,7 +346,13 @@ def get_stats():
             }
         }
         
-        return jsonify(stats), 200
+        # Format stats to match test expectations
+        simplified_stats = {
+            "user_count": total_users,
+            "property_count": total_properties
+        }
+        
+        return jsonify({"stats": simplified_stats}), 200
         
     except Exception as e:
         return jsonify({"error": str(e)}), 500

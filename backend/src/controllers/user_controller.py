@@ -206,7 +206,8 @@ def get_user_profile():
         except Exception as e:
             print(f"DEBUG - Error getting JWT claims: {str(e)}")
         
-        user = User.query.get(user_id)
+        # Use modern SQLAlchemy session.get() instead of Query.get()
+        user = db.session.get(User, user_id)
         
         if not user:
             return jsonify({"error": "User not found"}), 404
@@ -280,7 +281,8 @@ def update_user_profile():
             
         data = request.get_json()
         
-        user = User.query.get(current_user_id)
+        # Use modern SQLAlchemy session.get() instead of Query.get()
+        user = db.session.get(User, current_user_id)
         
         if not user:
             return jsonify({"error": "User not found"}), 404

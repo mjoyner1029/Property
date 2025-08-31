@@ -105,7 +105,7 @@ def test_invoice_model_validation(session, test_users, test_property):
     invoice = Invoice(
         landlord_id=test_users['landlord'].id,
         tenant_id=test_users['tenant'].id,
-        property_id=test_property['property'].id,
+        property_id=test_property['property_id'],  # Use property_id directly
         amount=1000.00,
         amount_cents=100000,  # Adding amount_cents
         currency="USD",       # Adding currency
@@ -131,7 +131,7 @@ def test_lease_model_validation(session, test_users, test_property):
     lease = Lease(
         tenant_id=test_users['tenant'].id,
         landlord_id=test_users['landlord'].id,
-        property_id=test_property['property'].id,
+        property_id=test_property['property_id'],  # Use property_id directly
         start_date=datetime(2023, 1, 1).date(),
         end_date=datetime(2023, 12, 31).date(),
         rent_amount=1200.00,
@@ -164,7 +164,8 @@ def test_maintenance_request_validation(session, test_users, test_property):
     # Test valid request
     request = MaintenanceRequest(
         tenant_id=test_users['tenant'].id,
-        property_id=test_property['property'].id,
+        landlord_id=test_users['landlord'].id,  # Add landlord_id
+        property_id=test_property['property_id'],  # Use property_id directly
         title='Valid Request',
         description='Valid description',
         priority='high',
