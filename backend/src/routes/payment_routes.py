@@ -1,5 +1,6 @@
 # backend/src/routes/payment_routes.py
 from flask import Blueprint
+from ..extensions import db
 from ..controllers.payment_controller import (
     create_payment, get_payments, get_payment,
     get_tenant_payments, get_landlord_payments, 
@@ -31,7 +32,7 @@ def create_payment_route():
         # Get the landlord ID from the invoice
         from ..models.invoice import Invoice
         if 'invoice_id' in data:
-            invoice = Invoice.query.get(data['invoice_id'])
+            invoice = db.session.get(Invoice, data['invoice_id'])
             if invoice:
                 data['landlord_id'] = invoice.landlord_id
                 logger.info(f"Added landlord_id from invoice: {data['landlord_id']}")
