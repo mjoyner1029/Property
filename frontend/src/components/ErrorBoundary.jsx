@@ -120,7 +120,7 @@ export default class ErrorBoundary extends React.Component {
         route: window.location.pathname,
         timestamp: new Date().toISOString(),
         userId: localStorage.getItem('userId') || 'anonymous',
-        appVersion: process.env.REACT_APP_VERSION || import.meta?.env?.VITE_APP_VERSION || 'unknown',
+        appVersion: process.env.REACT_APP_VERSION || 'unknown',
         errorType: this.state.errorType,
         environment: ENVIRONMENT,
         viewport: {

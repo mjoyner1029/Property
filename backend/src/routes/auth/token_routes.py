@@ -22,7 +22,7 @@ def refresh_token():
         dict: New access token
     """
     identity = get_jwt_identity()
-    user = User.query.get(identity)
+    user = db.session.get(User, identity)
     
     if not user:
         return jsonify({"error": "User not found"}), 404
@@ -51,7 +51,7 @@ def validate_token():
         dict: User information if token is valid
     """
     current_user_id = get_jwt_identity()
-    user = User.query.get(current_user_id)
+    user = db.session.get(User, current_user_id)
     
     if not user:
         return jsonify({"error": "User not found"}), 404

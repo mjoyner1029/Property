@@ -2,6 +2,8 @@ import pytest
 from datetime import datetime, timedelta
 import secrets
 from ..models.user import User
+from ..extensions import db
+
 
 
 def test_request_password_reset(client, test_users, app):

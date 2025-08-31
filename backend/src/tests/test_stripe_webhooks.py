@@ -12,6 +12,8 @@ from src.models.payment import Payment
 from src.models.invoice import Invoice
 from src.models.user import User
 from src.models.property import Property
+from src.extensions import db
+
 
 @pytest.fixture
 def mock_stripe_event():
@@ -95,7 +97,7 @@ def sample_property(app, db, test_users):
         
         # Get a fresh instance from the database to ensure it's attached to a session
         property_id = property_obj.id
-        fresh_property = db.session.query(Property).get(property_id)
+        fresh_property = db.session.get(Property, property_id)
         return fresh_property
 
 @pytest.fixture
@@ -122,7 +124,7 @@ def sample_payment(app, db, test_users, sample_property, mock_stripe_event):
         
         # Get a fresh instance from the database to ensure it's attached to a session
         payment_id = payment.id
-        fresh_payment = Payment.query.get(payment_id)
+        fresh_payment = db.session.get(Payment, payment_id)
         return fresh_payment
 
 @pytest.fixture
@@ -163,8 +165,8 @@ def sample_invoice_payment(app, db, test_users, sample_property, mock_invoice_ev
         # Get fresh instances from the database to ensure they're attached to a session
         payment_id = payment.id
         invoice_id = invoice.id
-        fresh_payment = Payment.query.get(payment_id)
-        fresh_invoice = Invoice.query.get(invoice_id)
+        fresh_payment = db.session.get(Payment, payment_id)
+        fresh_invoice = db.session.get(Invoice, invoice_id)
         
         return fresh_payment, fresh_invoice
 
@@ -313,7 +315,7 @@ class TestStripeWebhooks:
             
             # Get fresh objects bound to the session
             fresh_payment = Payment.query.filter_by(payment_intent_id=payment_intent_id).first()
-            fresh_invoice = Invoice.query.get(invoice.id)
+            fresh_invoice = db.session.get(Invoice, invoice.id)
             
             # Send the webhook request
             response = client.post(

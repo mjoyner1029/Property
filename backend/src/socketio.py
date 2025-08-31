@@ -148,7 +148,7 @@ def handle_send_message(data):
         return
 
     # Get user details for the message
-    user = User.query.get(user_id)
+    user = db.session.get(User, user_id)
     if not user:
         emit("error", {"message": "User not found"})
         return
@@ -245,7 +245,7 @@ def validate_room_access(user_id: int | None, room: str) -> bool:
 
     # Admin broadcast
     if room == "admin":
-        user = User.query.get(user_id)
+        user = db.session.get(User, user_id)
         return bool(user and getattr(user, "role", None) == "admin")
 
     return False

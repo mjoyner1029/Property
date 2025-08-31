@@ -1,9 +1,10 @@
 // frontend/src/setupTests.js
 import '@testing-library/jest-dom';
 
-// Mock all contexts
-jest.mock('./context/AppContext');
-jest.mock('./context/AuthContext');
+// No need to import shared mock objects here
+// We'll use require() inside the mock factory functions
+
+// Mock other contexts that haven't been centralized yet
 jest.mock('./context/PropertyContext');
 jest.mock('./context/TenantContext');
 jest.mock('./context/MaintenanceContext');

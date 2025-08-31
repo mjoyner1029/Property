@@ -4,43 +4,42 @@ import { render, screen } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
 import userEvent from "@testing-library/user-event";
 
+// We no longer need to import mocks directly as we'll use require() in the mock factories
+
 // --- Mock Auth hook so App treats us as logged in ---
-const useAuthMock = jest.fn(() => ({
-  isAuthenticated: true,
-  user: { firstName: "Sam", full_name: "Sam Example", email: "sam@example.com", role: "landlord" },
-}));
-jest.mock("../context/AuthContext", () => ({
-  useAuth: () => useAuthMock(),
-}));
+jest.mock("../context/AuthContext", () => {
+  return {
+    useAuth: () => {
+      const mock = require("../test/__mocks__/authContext");
+      return mock.useAuth();
+    }
+  };
+});
 
-// --- Mock the barrel context to avoid real network calls from pages ---
-const updatePageTitleMock = jest.fn();
-const fetchPaymentsMock = jest.fn();
-const fetchRequestsMock = jest.fn();
-const createPaymentMock = jest.fn();
-const createRequestMock = jest.fn();
-const fetchPropertyByIdMock = jest.fn();
-const updatePropertyMock = jest.fn();
-const createPropertyMock = jest.fn();
-const getTenantMock = jest.fn();
-const updateTenantMock = jest.fn();
-const deleteTenantMock = jest.fn();
-
-jest.mock("../context", () => ({
-  // App / global
-  useApp: () => ({ updatePageTitle: updatePageTitleMock }),
-
-  // Payments page
-  usePayment: () => ({
+jest.mock("../context", () => {
+  return {
+    // App / global
+    useApp: () => {
+      const { updatePageTitleMock } = require("../test/__mocks__/pageTitle");
+      return { updatePageTitle: updatePageTitleMock };
+    },
+    
+    // Payments page
+    usePayment: () => {
+      const { fetchPaymentsMock, createPaymentMock } = require("../test/mocks/services");
+      return {
     payments: [],
     loading: false,
     error: null,
     fetchPayments: fetchPaymentsMock,
     createPayment: createPaymentMock,
-  }),
+      };
+    },
 
-  // Maintenance pages
-  useMaintenance: () => ({
+    // Maintenance pages
+    useMaintenance: () => {
+      const { fetchRequestsMock, createRequestMock } = require("../test/mocks/services");
+      return {
     maintenanceRequests: [],
     stats: { open: 0, inProgress: 0, completed: 0, total: 0 },
     loading: false,
@@ -49,10 +48,13 @@ jest.mock("../context", () => ({
     createRequest: createRequestMock,
     updateRequest: jest.fn(),
     deleteRequest: jest.fn(),
-  }),
+      };
+    },
 
-  // Property pages
-  useProperty: () => ({
+    // Property pages
+    useProperty: () => {
+      const { fetchPropertyByIdMock, updatePropertyMock, createPropertyMock } = require("../test/mocks/services");
+      return {
     selectedProperty: null,
     loading: false,
     error: null,
@@ -60,15 +62,20 @@ jest.mock("../context", () => ({
     updateProperty: updatePropertyMock,
     createProperty: createPropertyMock,
     properties: [],
-  }),
+      };
+    },
 
   // Tenant pages
-  useTenant: () => ({
-    getTenant: getTenantMock,
-    updateTenant: updateTenantMock,
-    deleteTenant: deleteTenantMock,
-  }),
-}));
+  useTenant: () => {
+    const { getTenantMock, updateTenantMock, deleteTenantMock } = require("../test/mocks/services");
+    return {
+      getTenant: getTenantMock,
+      updateTenant: updateTenantMock,
+      deleteTenant: deleteTenantMock,
+    };
+  }
+  };
+});
 
 // --- Stub heavy/visual components used by Dashboard to keep tests lean ---
 jest.mock("../components/ChartCard", () => () => (

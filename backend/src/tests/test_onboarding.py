@@ -2,6 +2,8 @@ import pytest
 import json
 
 from ..models.onboarding_progress import OnboardingProgress
+from ..extensions import db
+
 
 def test_start_landlord_onboarding(client, test_users, auth_headers):
     """Test starting landlord onboarding"""

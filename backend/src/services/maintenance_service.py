@@ -26,7 +26,7 @@ class MaintenanceService:
                 return None, "You are not registered as a tenant for this property"
                 
             # Get landlord ID from property
-            property = Property.query.get(property_id)
+            property = db.session.get(Property, property_id)
             if not property:
                 return None, "Property not found"
                 
@@ -56,7 +56,7 @@ class MaintenanceService:
     def update_request(request_id, user_id, is_landlord, data):
         """Update a maintenance request"""
         try:
-            request = MaintenanceRequest.query.get(request_id)
+            request = db.session.get(MaintenanceRequest, request_id)
             
             if not request:
                 return None, "Maintenance request not found"

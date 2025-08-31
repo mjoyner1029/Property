@@ -22,7 +22,7 @@ def get_landlord_dashboard():
     try:
         # Get current user ID
         current_user_id = get_jwt_identity()
-        user = User.query.get(current_user_id)
+        user = db.session.get(User, current_user_id)
         
         if not user or user.role != 'landlord':
             return jsonify({"error": "Access denied"}), 403
@@ -54,7 +54,7 @@ def get_tenant_dashboard():
     try:
         # Get current user ID
         current_user_id = get_jwt_identity()
-        user = User.query.get(current_user_id)
+        user = db.session.get(User, current_user_id)
         
         if not user or user.role != 'tenant':
             return jsonify({"error": "Access denied"}), 403
@@ -79,7 +79,7 @@ def get_dashboard_stats():
     try:
         # Get current user ID
         current_user_id = get_jwt_identity()
-        user = User.query.get(current_user_id)
+        user = db.session.get(User, current_user_id)
         
         if not user or user.role not in ['landlord', 'admin']:
             return jsonify({"error": "Access denied"}), 403

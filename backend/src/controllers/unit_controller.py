@@ -81,13 +81,13 @@ def create_unit():
 def get_units_by_property(property_id):
     """Get all units for a specific property"""
     current_user_id = get_jwt_identity()
-    user = User.query.get(current_user_id)
+    user = db.session.get(User, current_user_id)
     
     if not user:
         return jsonify({"error": "User not found"}), 404
     
     try:
-        property = Property.query.get(property_id)
+        property = db.session.get(Property, property_id)
         if not property:
             return jsonify({"error": "Property not found"}), 404
             
@@ -133,18 +133,18 @@ def get_units_by_property(property_id):
 def get_unit(unit_id):
     """Get details of a specific unit"""
     current_user_id = get_jwt_identity()
-    user = User.query.get(current_user_id)
+    user = db.session.get(User, current_user_id)
     
     if not user:
         return jsonify({"error": "User not found"}), 404
     
     try:
-        unit = Unit.query.get(unit_id)
+        unit = db.session.get(Unit, unit_id)
         if not unit:
             return jsonify({"error": "Unit not found"}), 404
             
         # Get associated property
-        property = Property.query.get(unit.property_id)
+        property = db.session.get(Property, unit.property_id)
         if not property:
             return jsonify({"error": "Property not found"}), 404
             
@@ -176,7 +176,7 @@ def update_unit(unit_id):
     current_user_id = get_jwt_identity()
     
     try:
-        unit = Unit.query.get(unit_id)
+        unit = db.session.get(Unit, unit_id)
         if not unit:
             return jsonify({"error": "Unit not found"}), 404
             
@@ -234,7 +234,7 @@ def delete_unit(unit_id):
     current_user_id = get_jwt_identity()
     
     try:
-        unit = Unit.query.get(unit_id)
+        unit = db.session.get(Unit, unit_id)
         if not unit:
             return jsonify({"error": "Unit not found"}), 404
             
@@ -271,7 +271,7 @@ def delete_unit(unit_id):
 def get_available_units():
     """Get all available units"""
     current_user_id = get_jwt_identity()
-    user = User.query.get(current_user_id)
+    user = db.session.get(User, current_user_id)
     
     if not user:
         return jsonify({"error": "User not found"}), 404
@@ -338,7 +338,7 @@ def assign_tenant_to_unit(unit_id):
     
     try:
         # Verify unit exists
-        unit = Unit.query.get(unit_id)
+        unit = db.session.get(Unit, unit_id)
         if not unit:
             return jsonify({"error": "Unit not found"}), 404
             
@@ -407,7 +407,7 @@ def remove_tenant_from_unit(unit_id):
     
     try:
         # Verify unit exists
-        unit = Unit.query.get(unit_id)
+        unit = db.session.get(Unit, unit_id)
         if not unit:
             return jsonify({"error": "Unit not found"}), 404
             

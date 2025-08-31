@@ -63,7 +63,7 @@ def verify_token():
         current_user_id = int(current_user_id)
     
     current_app.logger.debug(f"Looking up user with ID: {current_user_id}, type: {type(current_user_id)}")
-    user = User.query.get(current_user_id)
+    user = db.session.get(User, current_user_id)
     current_app.logger.debug(f"Found user: {user}")
     
     if not user:
@@ -287,7 +287,7 @@ def register():
 @limit_if_enabled(limiter, "60 per hour")
 def refresh():
     current_user_id = get_jwt_identity()
-    user = User.query.get(current_user_id)
+    user = db.session.get(User, current_user_id)
     if not user or not user.is_active:
         return jsonify({"error": "User inactive or not found"}), 401
 
@@ -324,7 +324,7 @@ def logout():
 @limit_if_enabled(limiter, "60 per minute")
 def get_current_user():
     current_user_id = get_jwt_identity()
-    user = User.query.get(current_user_id)
+    user = db.session.get(User, current_user_id)
     if not user:
         return jsonify({"error": "User not found"}), 404
     return jsonify({"user": user.to_dict()}), 200
@@ -544,7 +544,7 @@ def reset_password():
         return jsonify({"error": "Token has expired. Please request a new password reset."}), 400
     
     # Get the user and update password
-    user = User.query.get(reset.user_id)
+    user = db.session.get(User, reset.user_id)
     if not user:
         return jsonify({"error": "User not found"}), 404
     

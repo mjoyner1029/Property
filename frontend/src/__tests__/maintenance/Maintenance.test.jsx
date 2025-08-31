@@ -3,9 +3,8 @@ import React from "react";
 import { render, screen, fireEvent, within } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
 
-// ---- Mocks for context hooks used by the page ----
-const fetchRequestsMock = jest.fn();
-const createRequestMock = jest.fn();
+// Import from shared mocks for direct assertions
+import { fetchRequestsMock, createRequestMock } from "../../test/mocks/services";
 
 jest.mock("../context", () => ({
   useMaintenance: jest.fn(() => ({
@@ -13,8 +12,8 @@ jest.mock("../context", () => ({
     stats: { open: 0, inProgress: 0, completed: 0, total: 0 },
     loading: false,
     error: null,
-    fetchRequests: fetchRequestsMock,
-    createRequest: createRequestMock,
+    fetchRequests: require("../../test/mocks/services").fetchRequestsMock,
+    createRequest: require("../../test/mocks/services").createRequestMock,
   })),
   useProperty: jest.fn(() => ({
     properties: [],

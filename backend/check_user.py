@@ -1,4 +1,6 @@
 import os
+from src.extensions import db
+
 os.environ['FLASK_ENV'] = 'testing'
 
 from src import create_app

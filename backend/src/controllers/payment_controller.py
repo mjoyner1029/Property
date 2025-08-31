@@ -147,7 +147,7 @@ def create_payment(data: Dict[str, Any]) -> Tuple[Dict[str, Any], int]:
     try:
         # Get the landlord_id from the invoice
         from ..models.invoice import Invoice
-        invoice = Invoice.query.get(invoice_id)
+        invoice = db.session.get(Invoice, invoice_id)
         if not invoice:
             logger.warning(f"Invoice not found: {invoice_id}")
             return {"error": f"Invoice {invoice_id} not found"}, 404
@@ -239,7 +239,7 @@ def get_payment(payment_id: Any) -> Tuple[Dict[str, Any], int]:
         return {"error": "payment_id must be an integer"}, 400
 
     try:
-        payment = Payment.query.get(pid)
+        payment = db.session.get(Payment, pid)
         if not payment:
             return {"error": "Payment not found"}, 404
         return _payment_to_dict(payment), 200
@@ -259,7 +259,7 @@ def update_payment(payment_id: Any, data: Dict[str, Any]) -> Tuple[Dict[str, Any
         return {"error": "payment_id must be an integer"}, 400
 
     try:
-        payment = Payment.query.get(pid)
+        payment = db.session.get(Payment, pid)
         if not payment:
             return {"error": "Payment not found"}, 404
 
@@ -274,7 +274,7 @@ def update_payment(payment_id: Any, data: Dict[str, Any]) -> Tuple[Dict[str, Any
                 # Update the associated invoice status
                 if payment.invoice_id:
                     from ..models.invoice import Invoice
-                    invoice = Invoice.query.get(payment.invoice_id)
+                    invoice = db.session.get(Invoice, payment.invoice_id)
                     if invoice:
                         invoice.status = 'paid'
                         invoice.paid_at = datetime.utcnow()
@@ -319,7 +319,7 @@ def delete_payment(payment_id: Any) -> Tuple[Dict[str, Any], int]:
         return {"error": "payment_id must be an integer"}, 400
 
     try:
-        payment = Payment.query.get(pid)
+        payment = db.session.get(Payment, pid)
         if not payment:
             return {"error": "Payment not found"}, 404
 
@@ -380,7 +380,7 @@ def get_payments():
 def get_payment(payment_id):
     """Get a specific payment by ID"""
     try:
-        payment = Payment.query.get(payment_id)
+        payment = db.session.get(Payment, payment_id)
         
         if not payment:
             return {"error": "Payment not found"}, 404

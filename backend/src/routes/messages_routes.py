@@ -73,7 +73,7 @@ def list_threads():
     """
     try:
         current_user_id = get_jwt_identity()
-        user = User.query.get(current_user_id)
+        user = db.session.get(User, current_user_id)
         
         if not user:
             return _err("User not found", 404)
@@ -97,7 +97,7 @@ def list_threads():
         for thread in paginated_threads.items:
             # Get the other user in the conversation
             other_user_id = thread.user2_id if thread.user1_id == current_user_id else thread.user1_id
-            other_user = User.query.get(other_user_id)
+            other_user = db.session.get(User, other_user_id)
             
             thread_data = {
                 "id": thread.id,
@@ -165,7 +165,7 @@ def create_thread_direct():
         
         # Ensure the other user exists
         from ..models.user import User
-        other_user = User.query.get(recipient_id)
+        other_user = db.session.get(User, recipient_id)
         if not other_user:
             return _err("Recipient user not found", 404)
             
@@ -303,7 +303,7 @@ def list_messages(thread_id: int):
         current_user_id = get_jwt_identity()
         
         # Ensure thread exists and user is part of it
-        thread = MessageThread.query.get(thread_id)
+        thread = db.session.get(MessageThread, thread_id)
         if not thread:
             return _err("Thread not found", 404)
             
@@ -388,7 +388,7 @@ def send_message_route(thread_id: int):
             return _err("Message content is required", 400)
             
         # Ensure thread exists and user is part of it
-        thread = MessageThread.query.get(thread_id)
+        thread = db.session.get(MessageThread, thread_id)
         if not thread:
             return _err("Thread not found", 404)
         

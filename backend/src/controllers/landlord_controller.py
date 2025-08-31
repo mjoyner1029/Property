@@ -292,7 +292,7 @@ def create_stripe_account():
             return _error("Stripe account already exists", 400)
 
         # Get user information for creating the account
-        user = User.query.get(current_user_id)
+        user = db.session.get(User, current_user_id)
         if not user:
             return _error("User not found", 404)
             

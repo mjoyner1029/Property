@@ -17,41 +17,46 @@ import LoadingFallback from './components/LoadingFallback';
 import ErrorBoundary from './components/ErrorBoundary';
 import Toast from './components/Toast';
 
-// lazy pages
-const WelcomePage = React.lazy(() => import('./pages/WelcomePage'));
-const Dashboard = React.lazy(() => import('./pages/Dashboard'));
-const Overview = React.lazy(() => import('./pages/Overview'));
-const Properties = React.lazy(() => import('./pages/Properties'));
-const PropertyForm = React.lazy(() => import('./pages/PropertyForm'));
-const PropertyDetail = React.lazy(() => import('./pages/PropertyDetail'));
-const Payments = React.lazy(() => import('./pages/Payments'));
-const Settings = React.lazy(() => import('./pages/Settings'));
-const NotFound = React.lazy(() => import('./pages/NotFound'));
-const Unauthorized = React.lazy(() => import('./pages/Unauthorized'));
-const Calendar = React.lazy(() => import('./pages/Calendar'));
-const Maintenance = React.lazy(() => import('./pages/Maintenance'));
-const MaintenanceDetail = React.lazy(() => import('./pages/MaintenanceDetail'));
-const Tenants = React.lazy(() => import('./pages/Tenants'));
-const TenantDetail = React.lazy(() => import('./pages/TenantDetail'));
-const Messages = React.lazy(() => import('./pages/Messages'));
-const MessagesPage = React.lazy(() => import('./pages/MessagesPage'));
-const Notifications = React.lazy(() => import('./pages/Notifications'));
-const PayPortal = React.lazy(() => import('./pages/PayPortal'));
-const Profile = React.lazy(() => import('./pages/Profile'));
-const Support = React.lazy(() => import('./pages/Support'));
-const Terms = React.lazy(() => import('./pages/Terms'));
-const ActivityFeed = React.lazy(() => import('./pages/ActivityFeed'));
-const AdminDashboard = React.lazy(() => import('./pages/AdminDashboard'));
-const InviteTenant = React.lazy(() => import('./pages/InviteTenant'));
-const JoinProperty = React.lazy(() => import('./pages/JoinProperty'));
-const LandlordOnboarding = React.lazy(() => import('./pages/LandlordOnboarding'));
-const TenantOnboarding = React.lazy(() => import('./pages/TenantOnboarding'));
-const Login = React.lazy(() => import('./pages/Login'));
-const Register = React.lazy(() => import('./pages/Register'));
-const ForgotPassword = React.lazy(() => import('./pages/ForgotPassword'));
-const ResetPassword = React.lazy(() => import('./pages/ResetPassword'));
-const VerifyEmail = React.lazy(() => import('./pages/VerifyEmail'));
-const RoutesIndex = React.lazy(() => import('./pages/RoutesIndex'));
+// lazy pages - import from barrel index
+const WelcomePage = React.lazy(() => import('./pages').then(m => ({ default: m.WelcomePage })));
+const Dashboard = React.lazy(() => import('./pages').then(m => ({ default: m.Dashboard })));
+const Overview = React.lazy(() => import('./pages').then(m => ({ default: m.Overview })));
+const Properties = React.lazy(() => import('./pages').then(m => ({ default: m.Properties })));
+const PropertyForm = React.lazy(() => import('./pages').then(m => ({ default: m.PropertyForm })));
+const PropertyDetail = React.lazy(() => import('./pages').then(m => ({ default: m.PropertyDetail })));
+const Payments = React.lazy(() => import('./pages').then(m => ({ default: m.Payments })));
+const PaymentDetail = React.lazy(() => import('./pages').then(m => ({ default: m.PaymentDetail })));
+const Settings = React.lazy(() => import('./pages').then(m => ({ default: m.Settings })));
+const NotFound = React.lazy(() => import('./pages').then(m => ({ default: m.NotFound })));
+const Unauthorized = React.lazy(() => import('./pages').then(m => ({ default: m.Unauthorized })));
+const Calendar = React.lazy(() => import('./pages').then(m => ({ default: m.Calendar })));
+const Maintenance = React.lazy(() => import('./pages').then(m => ({ default: m.Maintenance })));
+const MaintenanceDetail = React.lazy(() => import('./pages').then(m => ({ default: m.MaintenanceDetail })));
+const Tenants = React.lazy(() => import('./pages').then(m => ({ default: m.Tenants })));
+const TenantDetail = React.lazy(() => import('./pages').then(m => ({ default: m.TenantDetail })));
+const TenantForm = React.lazy(() => import('./pages').then(m => ({ default: m.TenantForm })));
+const Messages = React.lazy(() => import('./pages').then(m => ({ default: m.Messages })));
+const MessagesPage = React.lazy(() => import('./pages').then(m => ({ default: m.MessagesPage })));
+const MessageDetail = React.lazy(() => import('./pages').then(m => ({ default: m.MessageDetail })));
+const MessageCreate = React.lazy(() => import('./pages').then(m => ({ default: m.MessageCreate })));
+const Notifications = React.lazy(() => import('./pages').then(m => ({ default: m.Notifications })));
+const NotificationDetail = React.lazy(() => import('./pages').then(m => ({ default: m.NotificationDetail })));
+const PayPortal = React.lazy(() => import('./pages').then(m => ({ default: m.PayPortal })));
+const Profile = React.lazy(() => import('./pages').then(m => ({ default: m.Profile })));
+const Support = React.lazy(() => import('./pages').then(m => ({ default: m.Support })));
+const Terms = React.lazy(() => import('./pages').then(m => ({ default: m.Terms })));
+const ActivityFeed = React.lazy(() => import('./pages').then(m => ({ default: m.ActivityFeed })));
+const AdminDashboard = React.lazy(() => import('./pages').then(m => ({ default: m.AdminDashboard })));
+const InviteTenant = React.lazy(() => import('./pages').then(m => ({ default: m.InviteTenant })));
+const JoinProperty = React.lazy(() => import('./pages').then(m => ({ default: m.JoinProperty })));
+const LandlordOnboarding = React.lazy(() => import('./pages').then(m => ({ default: m.LandlordOnboarding })));
+const TenantOnboarding = React.lazy(() => import('./pages').then(m => ({ default: m.TenantOnboarding })));
+const Login = React.lazy(() => import('./pages').then(m => ({ default: m.Login })));
+const Register = React.lazy(() => import('./pages').then(m => ({ default: m.Register })));
+const ForgotPassword = React.lazy(() => import('./pages').then(m => ({ default: m.ForgotPassword })));
+const ResetPassword = React.lazy(() => import('./pages').then(m => ({ default: m.ResetPassword })));
+const VerifyEmail = React.lazy(() => import('./pages').then(m => ({ default: m.VerifyEmail })));
+const RoutesIndex = React.lazy(() => import('./pages').then(m => ({ default: m.RoutesIndex })));
 
 
 export default function App() {
@@ -125,6 +130,11 @@ export default function App() {
                       <Payments />
                     </MainLayout>
                   } />
+                  <Route path="/payments/:id" element={
+                    <MainLayout>
+                      <PaymentDetail />
+                    </MainLayout>
+                  } />
                   <Route path="/settings" element={
                     <MainLayout>
                       <Settings />
@@ -135,6 +145,16 @@ export default function App() {
                       <MessagesPage />
                     </MainLayout>
                   } />
+                  <Route path="/messages/new" element={
+                    <MainLayout>
+                      <MessageCreate />
+                    </MainLayout>
+                  } />
+                  <Route path="/messages/:threadId/detail" element={
+                    <MainLayout>
+                      <MessageDetail />
+                    </MainLayout>
+                  } />
                   <Route path="/support" element={
                     <MainLayout>
                       <Support />
@@ -143,6 +163,11 @@ export default function App() {
                   <Route path="/notifications" element={
                     <MainLayout>
                       <Notifications />
+                    </MainLayout>
+                  } />
+                  <Route path="/notifications/:id" element={
+                    <MainLayout>
+                      <NotificationDetail />
                     </MainLayout>
                   } />
                   <Route path="/activity" element={
@@ -180,6 +205,11 @@ export default function App() {
                   <Route path="/tenants/:id" element={
                     <MainLayout>
                       <TenantDetail />
+                    </MainLayout>
+                  } />
+                  <Route path="/tenants/new" element={
+                    <MainLayout>
+                      <TenantForm />
                     </MainLayout>
                   } />
                   <Route path="/invite-tenant" element={

@@ -4,6 +4,8 @@ from datetime import datetime
 
 from ..models.invitation import Invitation
 from ..models.tenant_property import TenantProperty
+from ..extensions import db
+
 
 @pytest.fixture
 def test_invitation(session, test_users, test_property):

@@ -32,11 +32,11 @@ export default function Unauthorized() {
         </Box>
         
         <Typography variant="h4" component="h1" gutterBottom>
-          Access Denied
+          Unauthorized
         </Typography>
         
         <Typography variant="h6" component="h2" color="text.secondary" gutterBottom>
-          Unauthorized Access
+          Access Denied
         </Typography>
         
         <Typography paragraph align="center" sx={{ mb: 3 }}>

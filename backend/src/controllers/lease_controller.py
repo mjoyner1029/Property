@@ -25,7 +25,7 @@ def get_tenant_leases():
     for lease in leases:
         lease_data = lease.to_dict()
         # Add property information
-        property = Property.query.get(lease.property_id)
+        property = db.session.get(Property, lease.property_id)
         if property:
             lease_data['property'] = safe_property_dict(property)
         result.append(lease_data)
@@ -45,7 +45,7 @@ def get_landlord_leases():
     for lease in leases:
         lease_data = lease.to_dict()
         # Add property information
-        property = Property.query.get(lease.property_id)
+        property = db.session.get(Property, lease.property_id)
         if property:
             lease_data['property'] = safe_property_dict(property)
         result.append(lease_data)
@@ -325,7 +325,7 @@ def create_lease():
 def get_leases():
     """Get leases based on user role"""
     current_user_id = get_jwt_identity()
-    user = User.query.get(current_user_id)
+    user = db.session.get(User, current_user_id)
     
     if not user:
         return jsonify({"error": "User not found"}), 404
@@ -375,13 +375,13 @@ def get_leases():
 def get_lease(lease_id):
     """Get a specific lease"""
     current_user_id = get_jwt_identity()
-    user = User.query.get(current_user_id)
+    user = db.session.get(User, current_user_id)
     
     if not user:
         return jsonify({"error": "User not found"}), 404
     
     try:
-        lease = Lease.query.get(lease_id)
+        lease = db.session.get(Lease, lease_id)
         
         if not lease:
             return jsonify({"error": "Lease not found"}), 404
@@ -406,7 +406,7 @@ def update_lease(lease_id):
     data = request.get_json()
     
     try:
-        lease = Lease.query.get(lease_id)
+        lease = db.session.get(Lease, lease_id)
         
         if not lease:
             return jsonify({"error": "Lease not found"}), 404
@@ -473,7 +473,7 @@ def accept_lease(lease_id):
     print(f"DEBUG - Accept Lease - Current user ID: {current_user_id}, type: {type(current_user_id)}")
     
     try:
-        lease = Lease.query.get(lease_id)
+        lease = db.session.get(Lease, lease_id)
         
         if not lease:
             print(f"DEBUG - Accept Lease - Lease not found for ID: {lease_id}")
@@ -547,7 +547,7 @@ def reject_lease(lease_id):
     rejection_reason = data.get('rejection_reason', '')
     
     try:
-        lease = Lease.query.get(lease_id)
+        lease = db.session.get(Lease, lease_id)
         
         if not lease:
             return jsonify({"error": "Lease not found"}), 404
@@ -585,7 +585,7 @@ def reject_lease(lease_id):
 def terminate_lease(lease_id):
     """Terminate an active lease"""
     current_user_id = get_jwt_identity()
-    user = User.query.get(current_user_id)
+    user = db.session.get(User, current_user_id)
     data = request.get_json()
     
     # Allow both 'reason' and 'termination_reason' fields for compatibility
@@ -599,7 +599,7 @@ def terminate_lease(lease_id):
         return jsonify({"error": "User not found"}), 404
     
     try:
-        lease = Lease.query.get(lease_id)
+        lease = db.session.get(Lease, lease_id)
         
         if not lease:
             return jsonify({"error": "Lease not found"}), 404
@@ -661,7 +661,7 @@ def renew_lease(lease_id):
     
     try:
         # Get the original lease
-        original_lease = Lease.query.get(lease_id)
+        original_lease = db.session.get(Lease, lease_id)
         
         if not original_lease:
             return jsonify({"error": "Original lease not found"}), 404
@@ -750,12 +750,12 @@ def get_expiring_leases():
 def delete_lease(lease_id):
     """Delete a lease agreement - only allowed for drafts or pending leases"""
     current_user_id = get_jwt_identity()
-    user = User.query.get(current_user_id)
+    user = db.session.get(User, current_user_id)
     
     if not user:
         return jsonify({"error": "User not found"}), 404
         
-    lease = Lease.query.get(lease_id)
+    lease = db.session.get(Lease, lease_id)
     if not lease:
         return jsonify({"error": "Lease not found"}), 404
         

@@ -1,43 +1,36 @@
 // frontend/src/__tests__/framer-motion.test.jsx
-// Jest manual mock for 'framer-motion' to keep tests fast and SSR-safe.
-// If your Jest config maps 'framer-motion' to this file, this will be used in place of the real lib.
+import React from 'react';
+import { render } from '@testing-library/react';
 
-const React = require("react");
-const { fn } = require("jest-mock");
+// Import our mock version of framer-motion
+const framerMotion = require('../test/__mocks__/framer-motion');
 
-const make = (tag) =>
-  React.forwardRef(({ children, ...props }, ref) =>
-    React.createElement(tag, { ref, ...props }, children)
-  );
-
-module.exports = {
-  // Basic motion primitives as plain HTML elements (with ref support)
-  motion: {
-    div: make("div"),
-    form: make("form"),
-    button: make("button"),
-    span: make("span"),
-    p: make("p"),
-    h1: make("h1"),
-    h2: make("h2"),
-    h3: make("h3"),
-    h4: make("h4"),
-    a: make("a"),
-    ul: make("ul"),
-    li: make("li"),
-    input: make("input"),
-    textarea: make("textarea"),
-    img: make("img"),
-    section: make("section"),
-  },
-
-  // No-op presence component
-  AnimatePresence: ({ children }) =>
-    React.createElement(React.Fragment, null, children),
-
-  // Stubbable controls
-  useAnimation: () => ({ start: fn() }),
-
-  // Tuple-shaped stub (ref + inView boolean) for compatibility with tuple usage
-  useInView: () => [React.createRef(), false],
-};
+describe('Framer Motion Mock Tests', () => {
+  test('mock motion components render without crashing', () => {
+    const { motion } = framerMotion;
+    
+    // Test that our motion.div component renders properly
+    const { container } = render(<motion.div>Test</motion.div>);
+    expect(container.textContent).toBe('Test');
+  });
+  
+  test('AnimatePresence renders children', () => {
+    const { AnimatePresence } = framerMotion;
+    
+    const { container } = render(
+      <AnimatePresence>
+        <div>Child Component</div>
+      </AnimatePresence>
+    );
+    
+    expect(container.textContent).toBe('Child Component');
+  });
+  
+  test('useAnimation returns object with start function', () => {
+    const { useAnimation } = framerMotion;
+    const controls = useAnimation();
+    
+    expect(controls).toHaveProperty('start');
+    expect(typeof controls.start).toBe('function');
+  });
+});

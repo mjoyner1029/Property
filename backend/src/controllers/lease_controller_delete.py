@@ -1,12 +1,12 @@
 def delete_lease(lease_id):
     """Delete a lease agreement - only allowed for drafts or pending leases"""
     current_user_id = get_jwt_identity()
-    user = User.query.get(current_user_id)
+    user = db.session.get(User, current_user_id)
     
     if not user:
         return jsonify({"error": "User not found"}), 404
         
-    lease = Lease.query.get(lease_id)
+    lease = db.session.get(Lease, lease_id)
     if not lease:
         return jsonify({"error": "Lease not found"}), 404
         

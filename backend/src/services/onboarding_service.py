@@ -16,7 +16,7 @@ class OnboardingService:
         """Initialize the onboarding process for a user"""
         try:
             # Get the user's role
-            user = User.query.get(user_id)
+            user = db.session.get(User, user_id)
             if not user:
                 return None, "User not found"
             
@@ -211,7 +211,7 @@ class OnboardingService:
             
             if property_id:
                 # Verify property exists
-                property = Property.query.get(property_id)
+                property = db.session.get(Property, property_id)
                 if property:
                     # Create tenant-property relationship
                     tenant_property = TenantProperty.query.filter_by(

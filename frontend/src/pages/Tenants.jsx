@@ -92,7 +92,7 @@ export default function Tenants() {
           <Button
             variant="contained"
             startIcon={<PersonAddIcon />}
-            onClick={() => setCreateDialogOpen(true)}
+            onClick={() => navigate('/tenants/new')}
             sx={{ 
               display: { xs: 'none', sm: 'flex' },
               borderRadius: 2
@@ -121,7 +121,7 @@ export default function Tenants() {
             <Button 
               variant="contained" 
               startIcon={<PersonAddIcon />}
-              onClick={() => setCreateDialogOpen(true)}
+              onClick={() => navigate('/tenants/new')}
               sx={{ mt: 3, borderRadius: 2 }}
             >
               Add Tenant
@@ -192,7 +192,7 @@ export default function Tenants() {
         <Box sx={{ position: 'fixed', right: 16, bottom: 16, display: { xs: 'block', sm: 'none' } }}>
           <Button
             variant="contained"
-            onClick={() => setCreateDialogOpen(true)}
+            onClick={() => navigate('/tenants/new')}
             sx={{ 
               borderRadius: '50%', 
               minWidth: 'auto', 

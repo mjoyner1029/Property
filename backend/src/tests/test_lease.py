@@ -4,6 +4,8 @@ from datetime import datetime, timedelta
 
 from ..models.lease import Lease
 from ..models.tenant_property import TenantProperty
+from ..extensions import db
+
 
 def test_create_lease(client, test_users, auth_headers, test_property):
     """Test creating a lease agreement"""

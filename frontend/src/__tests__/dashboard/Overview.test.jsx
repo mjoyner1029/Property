@@ -26,10 +26,13 @@ jest.mock("../../context/AuthContext", () => ({
   useAuth: () => ({ isAuthenticated: true, user: { firstName: "Sam" } }),
 }));
 
+// ---- Import from shared mocks ----
+import { updatePageTitleMock } from "../../test/mocks/pageTitle";
+import { fetchPaymentsMock } from "../../test/mocks/services";
+
 // ---- Mock the general context barrel in case Overview pulls summary data ----
-const updatePageTitleMock = jest.fn();
 jest.mock("../../context", () => ({
-  useApp: () => ({ updatePageTitle: updatePageTitleMock }),
+  useApp: () => ({ updatePageTitle: require("../../test/mocks/pageTitle").updatePageTitleMock }),
   useProperty: () => ({
     properties: [],
     loading: false,
@@ -45,7 +48,7 @@ jest.mock("../../context", () => ({
     payments: [],
     loading: false,
     error: null,
-    fetchPayments: jest.fn(),
+    fetchPayments: require("../../test/mocks/services").fetchPaymentsMock,
   }),
 }));
 

@@ -3,7 +3,7 @@ import React from "react";
 import { screen, waitFor, fireEvent } from "@testing-library/react";
 import { Routes, Route } from "react-router-dom";
 import { renderWithProviders } from "../../test-utils/renderWithProviders";
-import PaymentDetail from "../../pages/PaymentDetail";
+import { PaymentDetail } from "../../pages";
 
 // ---- Router mocks ----
 const mockNavigate = jest.fn();

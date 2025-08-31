@@ -2,6 +2,8 @@
 from __future__ import annotations
 
 import pytest
+from src.extensions import db
+
 
 
 def test_create_property(client, test_users, auth_headers):
@@ -37,7 +39,7 @@ def test_get_property(client, test_users, auth_headers, test_property, db, app):
     # First, let's make sure the landlord is correctly associated with this property
     with app.app_context():
         from src.models.property import Property
-        prop = db.session.query(Property).get(prop_id)
+        prop = db.session.get(Property, prop_id)
         landlord = test_users["landlord"]
         
         # Always update the property to have the correct landlord_id
@@ -52,7 +54,7 @@ def test_get_property(client, test_users, auth_headers, test_property, db, app):
             
             # Query the database directly to verify
             db.session.expunge_all()  # Clear the session
-            fresh_prop = db.session.query(Property).get(prop_id)
+            fresh_prop = db.session.get(Property, prop_id)
             print(f"DEBUG - Fresh query shows property {prop_id} has landlord_id: {fresh_prop.landlord_id}")
     
     resp = client.get(f"/api/properties/{prop_id}", headers=auth_headers["landlord"])
@@ -74,7 +76,7 @@ def test_update_property(client, test_users, auth_headers, test_property, db, ap
         
         # Get fresh property data from the database
         from src.models.property import Property
-        prop = db.session.query(Property).get(prop_id)
+        prop = db.session.get(Property, prop_id)
         
         # First, let's make sure the landlord is correctly associated with this property
         landlord = test_users["landlord"]
@@ -91,7 +93,7 @@ def test_update_property(client, test_users, auth_headers, test_property, db, ap
             
             # Query the database directly to verify
             db.session.expunge_all()  # Clear the session
-            fresh_prop = db.session.query(Property).get(prop_id)
+            fresh_prop = db.session.get(Property, prop_id)
             print(f"DEBUG - Fresh query shows property {prop_id} has landlord_id: {fresh_prop.landlord_id}")
         
         # Print the JWT user ID that will be used
@@ -157,7 +159,7 @@ def test_unauthorized_property_update(client, test_users, auth_headers, test_pro
         
         # Get fresh property data from the database
         from src.models.property import Property
-        prop = db.session.query(Property).get(prop_id)
+        prop = db.session.get(Property, prop_id)
         
         resp = client.put(
             f"/api/properties/{prop_id}",

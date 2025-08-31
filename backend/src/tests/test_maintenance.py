@@ -4,6 +4,8 @@ from datetime import datetime
 
 from ..models.maintenance_request import MaintenanceRequest
 from ..models.tenant_property import TenantProperty
+from ..extensions import db
+
 
 @pytest.fixture(scope='function')
 def setup_tenant_property(session, test_users, test_property):

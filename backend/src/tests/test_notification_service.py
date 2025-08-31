@@ -4,6 +4,8 @@ from datetime import datetime
 
 from ..services.notification_service import NotificationService
 from ..models.notification import Notification
+from ..extensions import db
+
 
 def test_notification_service_create(session, test_users):
     """Test creating notification"""
@@ -84,7 +86,7 @@ def test_notification_service_mark_as_read(session, test_users):
     assert success is True
     
     # Verify notification is marked read
-    updated = Notification.query.get(notification.id)
+    updated = db.session.get(Notification, notification.id)
     assert updated.read is True
     assert updated.read_at is not None
 

@@ -21,7 +21,7 @@ def create_customer():
     data = request.get_json() or {}
     
     # Get user information
-    user = User.query.get(user_id)
+    user = db.session.get(User, user_id)
     if not user:
         return jsonify({"error": "User not found"}), 404
         

@@ -17,7 +17,7 @@ def get_tenants():
     
     try:
         # Check if user is a landlord
-        user = User.query.get(current_user_id)
+        user = db.session.get(User, current_user_id)
         if not user or user.role != 'landlord':
             return jsonify({"error": "Only landlords can view tenants"}), 403
         
@@ -55,7 +55,7 @@ def get_tenants():
             property_data = []
             for tp in tenant_properties:
                 if tp.property_id in property_ids:  # Only include properties owned by this landlord
-                    property = Property.query.get(tp.property_id)
+                    property = db.session.get(Property, tp.property_id)
                     if property:
                         property_data.append({
                             "id": property.id,
@@ -81,7 +81,7 @@ def get_tenant(tenant_id):
     
     try:
         # Check if user is a landlord
-        user = User.query.get(current_user_id)
+        user = db.session.get(User, current_user_id)
         if not user or user.role != 'landlord':
             return jsonify({"error": "Only landlords can view tenant details"}), 403
         
@@ -122,7 +122,7 @@ def get_tenant(tenant_id):
         
         property_data = []
         for tp in tenant_properties:
-            property = Property.query.get(tp.property_id)
+            property = db.session.get(Property, tp.property_id)
             if property:
                 property_data.append({
                     "id": property.id,
@@ -148,7 +148,7 @@ def add_tenant():
     
     try:
         # Check if user is a landlord
-        user = User.query.get(current_user_id)
+        user = db.session.get(User, current_user_id)
         if not user or user.role != 'landlord':
             return jsonify({"error": "Only landlords can add tenants"}), 403
         
@@ -159,7 +159,7 @@ def add_tenant():
                 return jsonify({"error": f"Missing required field: {field}"}), 400
         
         # Check if property belongs to this landlord
-        property = Property.query.get(data['property_id'])
+        property = db.session.get(Property, data['property_id'])
         if not property or property.landlord_id != current_user_id:
             return jsonify({"error": "Property not found or not owned by you"}), 404
         
@@ -229,12 +229,12 @@ def remove_tenant(tenant_id, property_id):
     
     try:
         # Check if user is a landlord
-        user = User.query.get(current_user_id)
+        user = db.session.get(User, current_user_id)
         if not user or user.role != 'landlord':
             return jsonify({"error": "Only landlords can remove tenants"}), 403
         
         # Check if property belongs to this landlord
-        property = Property.query.get(property_id)
+        property = db.session.get(Property, property_id)
         if not property or property.landlord_id != current_user_id:
             return jsonify({"error": "Property not found or not owned by you"}), 404
         
@@ -269,7 +269,7 @@ def update_tenant(tenant_id):
     
     try:
         # Check if user is a landlord or the tenant themselves
-        user = User.query.get(current_user_id)
+        user = db.session.get(User, current_user_id)
         if not user or (user.role != 'landlord' and current_user_id != tenant_id):
             return jsonify({"error": "Unauthorized to update tenant information"}), 403
         

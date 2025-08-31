@@ -19,11 +19,14 @@ class TestDocumentService:
     def test_user(self, app):
         """Create a test user"""
         with app.app_context():
+            import time
+            timestamp = int(time.time() * 1000)
+            email = f"document_test_{timestamp}@test.com"
+            
             user = User(
-                email="document_test@test.com",
+                email=email,
                 password="SecureP@ssw0rd123",
-                first_name="Document",
-                last_name="Tester",
+                name="Document Tester",
                 role="tenant",
                 is_verified=True
             )
@@ -102,7 +105,7 @@ class TestDocumentService:
         assert "file type not allowed" in error
 
     @patch.object(DocumentService, 'save_file')
-    def test_upload_document(self, mock_save_file, test_user, mock_file, app):
+    def test_upload_document(self, mock_save_file, mock_file, app):
         """Test document upload"""
         # Set up mocks
         mock_save_file.return_value = (
@@ -126,14 +129,31 @@ class TestDocumentService:
         
         # Test document upload
         with app.app_context():
-            document, error = DocumentService.upload_document(test_user.id, mock_file, data)
+            # Create a fresh user for this test
+            import time
+            timestamp = int(time.time() * 1000)
+            email = f"doc_upload_{timestamp}@test.com"
+            
+            user = User(
+                email=email,
+                password="SecureP@ssw0rd123",
+                name="Document Test User",
+                role="tenant",
+                is_verified=True
+            )
+            db.session.add(user)
+            db.session.commit()
+            
+            document, error = DocumentService.upload_document(user.id, mock_file, data)
             
             # Verify document was created
+            if error:
+                print(f"Error: {error}")
             assert error is None
             assert document is not None
             assert document.title == 'Test Document'
             assert document.document_type == 'lease'
-            assert document.user_id == test_user.id
+            assert document.user_id == user.id
             
             # Verify document exists in database
             db_document = Document.query.filter_by(title='Test Document').first()
@@ -141,7 +161,7 @@ class TestDocumentService:
             assert db_document.id == document.id
 
     @patch.object(DocumentService, 'save_file')
-    def test_upload_document_failure(self, mock_save_file, test_user, mock_file, app):
+    def test_upload_document_failure(self, mock_save_file, mock_file, app):
         """Test document upload failure"""
         # Set up mocks for failure
         mock_save_file.return_value = (None, "File save error")
@@ -156,25 +176,55 @@ class TestDocumentService:
         
         # Test document upload failure
         with app.app_context():
-            document, error = DocumentService.upload_document(test_user.id, mock_file, data)
+            # Create a fresh user for this test
+            import time
+            timestamp = int(time.time() * 1000)
+            email = f"doc_upload_fail_{timestamp}@test.com"
+            
+            user = User(
+                email=email,
+                password="SecureP@ssw0rd123",
+                name="Document Test User",
+                role="tenant",
+                is_verified=True
+            )
+            db.session.add(user)
+            db.session.commit()
+            
+            document, error = DocumentService.upload_document(user.id, mock_file, data)
             
             # Verify error was returned
             assert document is None
             assert "File save error" in error
 
-    def test_get_user_documents(self, test_user, app):
+    def test_get_user_documents(self, app):
         """Test retrieving user documents"""
         with app.app_context():
+            # Create a user specifically for this test
+            import time
+            timestamp = int(time.time() * 1000)
+            email = f"doc_get_user_{timestamp}@test.com"
+            
+            user = User(
+                email=email,
+                password="SecureP@ssw0rd123",
+                name="Document Get User",
+                role="tenant",
+                is_verified=True
+            )
+            db.session.add(user)
+            db.session.commit()
+            
             # Create test documents
             doc1 = Document(
-                user_id=test_user.id,
+                user_id=user.id,
                 title="Test Document 1",
                 name="test1.pdf",
                 file_path="/path/to/test1.pdf",
                 document_type="lease"
             )
             doc2 = Document(
-                user_id=test_user.id,
+                user_id=user.id,
                 title="Test Document 2",
                 name="test2.pdf",
                 file_path="/path/to/test2.pdf",
@@ -185,20 +235,37 @@ class TestDocumentService:
             db.session.commit()
             
             # Test getting all documents
-            documents = DocumentService.get_user_documents(test_user.id)
+            documents, count, error = DocumentService.get_user_documents(user.id)
             assert len(documents) == 2
+            assert count == 2
+            assert error is None
             
             # Test getting documents by type
-            lease_docs = DocumentService.get_user_documents(test_user.id, document_type="lease")
+            lease_docs, lease_count, lease_error = DocumentService.get_user_documents(user.id, {'document_type': "lease"})
             assert len(lease_docs) == 1
             assert lease_docs[0].title == "Test Document 1"
 
-    def test_delete_document(self, test_user, app):
+    def test_delete_document(self, app):
         """Test document deletion"""
         with app.app_context():
+            # Create a user specifically for this test
+            import time
+            timestamp = int(time.time() * 1000)
+            email = f"doc_delete_{timestamp}@test.com"
+            
+            user = User(
+                email=email,
+                password="SecureP@ssw0rd123",
+                name="Document Delete User",
+                role="tenant",
+                is_verified=True
+            )
+            db.session.add(user)
+            db.session.commit()
+            
             # Create test document
             doc = Document(
-                user_id=test_user.id,
+                user_id=user.id,
                 title="Document to Delete",
                 name="delete_me.pdf",
                 file_path="/path/to/delete_me.pdf",
@@ -213,33 +280,50 @@ class TestDocumentService:
                 with patch('os.remove') as mock_remove:
                     mock_exists.return_value = True
                     
-                    success = DocumentService.delete_document(doc_id, test_user.id)
+                    success, error = DocumentService.delete_document(doc_id, user.id)
                     assert success is True
+                    assert error is None
                     
                     # Verify file was deleted
                     mock_remove.assert_called_once()
                     
                     # Verify document no longer exists in database
-                    assert Document.query.get(doc_id) is None
+                    assert db.session.get(Document, doc_id) is None
 
-    def test_delete_document_unauthorized(self, test_user, app):
+    def test_delete_document_unauthorized(self, app):
         """Test document deletion by unauthorized user"""
         with app.app_context():
-            # Create another user
-            other_user = User(
-                email="other@test.com",
+            # Create two users for this test
+            import time
+            timestamp = int(time.time() * 1000)
+            
+            # Document owner
+            owner_email = f"doc_owner_{timestamp}@test.com"
+            owner = User(
+                email=owner_email,
                 password="SecureP@ssw0rd123",
-                first_name="Other",
-                last_name="User",
+                name="Document Owner",
                 role="tenant",
                 is_verified=True
             )
+            
+            # Other user trying to delete
+            other_email = f"other_user_{timestamp}@test.com"
+            other_user = User(
+                email=other_email,
+                password="SecureP@ssw0rd123",
+                name="Other User",
+                role="tenant",
+                is_verified=True
+            )
+            
+            db.session.add(owner)
             db.session.add(other_user)
             db.session.commit()
             
-            # Create test document owned by test_user
+            # Create test document owned by owner
             doc = Document(
-                user_id=test_user.id,
+                user_id=owner.id,
                 title="Protected Document",
                 name="protected.pdf",
                 file_path="/path/to/protected.pdf",
@@ -250,8 +334,9 @@ class TestDocumentService:
             doc_id = doc.id
             
             # Try to delete with wrong user
-            success = DocumentService.delete_document(doc_id, other_user.id)
+            success, error = DocumentService.delete_document(doc_id, other_user.id)
             assert success is False
+            assert "Not authorized" in error
             
             # Verify document still exists in database
-            assert Document.query.get(doc_id) is not None
+            assert db.session.get(Document, doc_id) is not None

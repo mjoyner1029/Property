@@ -9,16 +9,12 @@ import NotificationsPage from "../../pages/Notifications";
 import NotificationDetail from "../../pages/NotificationDetail";
 
 // ---- Router mocks ----
-const mockNavigate = jest.fn();
+// Import the mock directly
+import { setParams } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 
-// We'll default useParams to { id: "1" } but override within tests as needed
-let currentParams = { id: "1" };
-
-jest.mock("react-router-dom", () => ({
-  ...jest.requireActual("react-router-dom"),
-  useNavigate: () => mockNavigate,
-  useParams: () => currentParams,
-}));
+// Initialize params for this test
+setParams({ id: "1" });
 
 // ---- Context barrel mocks ----
 const mockFetchNotifications = jest.fn();

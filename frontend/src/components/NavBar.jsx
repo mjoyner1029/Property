@@ -138,6 +138,8 @@ const NavBar = () => {
               to="/payments" 
               color="inherit"
               sx={{ mx: 1 }}
+              data-testid="payments-link"
+              aria-label="Payments"
             >
               Payments
             </Button>
@@ -161,7 +163,7 @@ const NavBar = () => {
             color="inherit"
             onClick={handleMenuOpen}
             sx={{ ml: 1 }}
-            aria-label="account of current user"
+            aria-label="Account of current user"
             aria-controls="menu-appbar"
             aria-haspopup="true"
           >
@@ -247,6 +249,7 @@ const NavBar = () => {
               component={Link} 
               to="/payments" 
               onClick={handleMobileMenuClose}
+              data-testid="payments-menu-item"
             >
               Payments
             </MenuItem>

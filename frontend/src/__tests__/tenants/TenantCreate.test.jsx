@@ -50,7 +50,7 @@ jest.mock("../../components", () => ({
 }));
 
 // ---- Import the page under test AFTER mocks ----
-import TenantForm from "../../pages/TenantForm"; // adjust if your file is named differently
+import { TenantForm } from "../../pages"; // adjust if your file is named differently
 
 const renderCreate = (route = "/tenants/add") =>
   renderWithProviders(<TenantForm />, { route });

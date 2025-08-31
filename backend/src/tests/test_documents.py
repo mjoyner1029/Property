@@ -6,6 +6,8 @@ from datetime import datetime
 from werkzeug.datastructures import FileStorage
 
 from ..models.document import Document
+from ..extensions import db
+
 
 @pytest.fixture
 def sample_pdf():
@@ -113,5 +115,5 @@ def test_delete_document(client, test_users, auth_headers, session, monkeypatch)
     assert 'success' in data['message'].lower()
     
     # Verify document was deleted from database
-    deleted_doc = Document.query.get(document.id)
+    deleted_doc = db.session.get(Document, document.id)
     assert deleted_doc is None

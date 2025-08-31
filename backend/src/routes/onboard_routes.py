@@ -80,7 +80,7 @@ def onboard_tenant():
                 return jsonify({"error": "Email already registered"}), 400
                 
             # Get the property to verify it exists
-            property = Property.query.get(code_entry.property_id)
+            property = db.session.get(Property, code_entry.property_id)
             if not property:
                 return jsonify({"error": "Associated property not found"}), 404
                 
@@ -232,7 +232,7 @@ def validate_property_code():
             return jsonify({"error": "Invalid property code"}), 400
         
         # Look up the property
-        property = Property.query.get(code_entry.property_id)
+        property = db.session.get(Property, code_entry.property_id)
         if not property:
             return jsonify({"error": "Property not found"}), 400
             
@@ -244,12 +244,12 @@ def validate_property_code():
         
         # Link user to property if user_id provided
         if user_id:
-            user = User.query.get(user_id)
+            user = db.session.get(User, user_id)
             if not user:
                 return jsonify({"error": "User not found"}), 400
                 
             # Check if user exists
-            user = User.query.get(user_id)
+            user = db.session.get(User, user_id)
             if not user:
                 return jsonify({"error": "User not found"}), 404
                 
@@ -321,7 +321,7 @@ def validate_property_code():
             return jsonify({"error": "Property code has expired"}), 400
         
         # Get the property
-        property = Property.query.get(code_entry.property_id)
+        property = db.session.get(Property, code_entry.property_id)
         if not property:
             return jsonify({"error": "Property not found"}), 404
         
@@ -333,7 +333,7 @@ def validate_property_code():
         
         # If user_id is provided, link the user to the property
         if user_id:
-            user = User.query.get(user_id)
+            user = db.session.get(User, user_id)
             if not user:
                 return jsonify({"error": "User not found"}), 404
                 

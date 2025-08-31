@@ -195,7 +195,7 @@ def notify_user_about_expiring_access(item_id, days_until_expiration):
     try:
         account = BankAccount.query.filter_by(plaid_item_id=item_id).first()
         if account and account.user_id:
-            user = User.query.get(account.user_id)
+            user = db.session.get(User, account.user_id)
             if user:
                 # Send notification
                 from ..utils.email_service import send_email
@@ -222,7 +222,7 @@ def disable_bank_account(item_id):
             
             # Notify user if applicable
             if account.user_id:
-                user = User.query.get(account.user_id)
+                user = db.session.get(User, account.user_id)
                 if user:
                     from ..utils.email_service import send_email
                     

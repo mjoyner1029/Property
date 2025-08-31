@@ -8,6 +8,8 @@ from datetime import datetime, timedelta
 from ..models.invoice import Invoice
 from ..models.payment import Payment
 from ..models.tenant_property import TenantProperty
+from ..extensions import db
+
 
 
 def _today():

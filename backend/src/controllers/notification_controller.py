@@ -53,7 +53,7 @@ def get_notification(notification_id):
     current_user_id = get_jwt_identity()
     
     try:
-        notification = Notification.query.get(notification_id)
+        notification = db.session.get(Notification, notification_id)
         
         if not notification:
             return jsonify({"error": "Notification not found"}), 404
@@ -74,7 +74,7 @@ def mark_as_read(notification_id):
     current_user_id = get_jwt_identity()
     
     try:
-        notification = Notification.query.get(notification_id)
+        notification = db.session.get(Notification, notification_id)
         
         if not notification:
             return jsonify({"error": "Notification not found"}), 404
@@ -132,7 +132,7 @@ def delete_notification(notification_id):
     current_user_id = get_jwt_identity()
     
     try:
-        notification = Notification.query.get(notification_id)
+        notification = db.session.get(Notification, notification_id)
         
         if not notification:
             return jsonify({"error": "Notification not found"}), 404
@@ -206,7 +206,7 @@ def create_notification():
                 return jsonify({"error": f"Missing required field: {field}"}), 400
         
         # Ensure user exists
-        user = User.query.get(data['user_id'])
+        user = db.session.get(User, data['user_id'])
         if not user:
             return jsonify({"error": "User not found"}), 404
             

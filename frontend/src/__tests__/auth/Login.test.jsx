@@ -4,28 +4,14 @@ import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { MemoryRouter } from "react-router-dom";
 
-// ---- Mocks ----
-const loginMock = jest.fn();
-let isAuthenticatedMock = false;
-let loadingMock = false;
+// Import from shared mocks
+import { navigateMock } from "../../test/mocks/router";
+import { loginMock, isAuthenticatedMock, AuthContextMock } from "../../test/mocks/auth";
 
-const navigateMock = jest.fn();
-
-jest.mock("../../context/AuthContext", () => ({
-  useAuth: () => ({
-    isAuthenticated: isAuthenticatedMock,
-    loading: loadingMock,
-    user: null,
-    login: loginMock,
-  }),
-}));
-
-jest.mock("react-router-dom", () => {
-  const actual = jest.requireActual("react-router-dom");
-  return {
-    ...actual,
-    useNavigate: () => navigateMock,
-  };
+// Using mockImplementation instead of inline arrow function to avoid Jest's variable reference issues
+jest.mock("../../context/AuthContext", () => {
+  const mockUseAuth = jest.fn();
+  return { useAuth: mockUseAuth };
 });
 
 // Import after mocks
@@ -38,8 +24,17 @@ const getSubmitButton = () =>
 describe("Login page", () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    isAuthenticatedMock = false;
-    loadingMock = false;
+    isAuthenticatedMock.mockImplementation(() => false);
+    AuthContextMock.loading = false;
+    
+    // Set up the mock implementation for each test
+    const { useAuth } = require("../../context/AuthContext");
+    useAuth.mockImplementation(() => ({
+      isAuthenticated: isAuthenticatedMock,
+      loading: AuthContextMock.loading,
+      user: null,
+      login: loginMock,
+    }));
   });
 
   function renderAtLogin() {
@@ -51,7 +46,7 @@ describe("Login page", () => {
   }
 
   test("redirects to '/' if already authenticated", () => {
-    isAuthenticatedMock = true;
+    isAuthenticatedMock.mockImplementation(() => true);
 
     renderAtLogin();
 
@@ -145,7 +140,7 @@ describe("Login page", () => {
     expect(btn).toBeEnabled();
 
     // Flip loading state to simulate in-flight request
-    loadingMock = true;
+    AuthContextMock.loading = true;
 
     // Interact to trigger re-render paths in some implementations
     await userEvent.type(screen.getByLabelText(/email/i), "x@y.com");

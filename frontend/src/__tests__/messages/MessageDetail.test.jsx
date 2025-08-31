@@ -4,18 +4,11 @@ import { screen, waitFor, fireEvent, within } from "@testing-library/react";
 import { Routes, Route } from "react-router-dom";
 import { renderWithProviders } from "../../test-utils/renderWithProviders";
 
+// Import from shared mocks
+import { navigateMock, currentParams, setParams } from "../../test/mocks/router";
+
 // Page under test (adjust import if your filename differs)
-import MessageDetail from "../../pages/MessageDetail";
-
-// ---- Router mocks ----
-const mockNavigate = jest.fn();
-let currentParams = { id: "1" };
-
-jest.mock("react-router-dom", () => ({
-  ...jest.requireActual("react-router-dom"),
-  useNavigate: () => mockNavigate,
-  useParams: () => currentParams,
-}));
+import { MessageDetail } from "../../pages";
 
 // ---- Context barrel mocks ----
 const mockFetchThread = jest.fn();
@@ -145,7 +138,7 @@ const setContexts = (messagesOverrides = {}) => {
 };
 
 const renderDetail = (id = "1") => {
-  currentParams = { id };
+  setParams({ id });
   return renderWithProviders(
     <Routes>
       <Route path="/messages/:id" element={<MessageDetail />} />
@@ -170,8 +163,8 @@ const findMessageInput = (container = document) =>
 describe("Message Detail", () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    mockNavigate.mockReset();
-    currentParams = { id: "1" };
+    navigateMock.mockReset(); // Fix: use navigateMock instead of mockNavigate
+    setParams({ id: "1" });
   });
 
   test("shows loading state", () => {

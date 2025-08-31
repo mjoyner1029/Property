@@ -3,23 +3,21 @@ import React from "react";
 import { render, screen, fireEvent, waitFor } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
 
-// ---- Mocks for context hooks used by PropertyForm ----
-const fetchPropertyByIdMock = jest.fn();
-const updatePropertyMock = jest.fn();
-const createPropertyMock = jest.fn();
-const updatePageTitleMock = jest.fn();
+// Import from shared mocks for direct assertions
+import { fetchPropertyByIdMock, updatePropertyMock, createPropertyMock } from "../../test/mocks/services";
+import { updatePageTitleMock } from "../../test/mocks/pageTitle";
 
 jest.mock("../../context", () => ({
   useProperty: jest.fn(() => ({
     selectedProperty: null,
     loading: false,
     error: null,
-    createProperty: createPropertyMock,
-    updateProperty: updatePropertyMock,
-    fetchPropertyById: fetchPropertyByIdMock,
+    createProperty: require("../../test/mocks/services").createPropertyMock,
+    updateProperty: require("../../test/mocks/services").updatePropertyMock,
+    fetchPropertyById: require("../../test/mocks/services").fetchPropertyByIdMock,
   })),
   useApp: jest.fn(() => ({
-    updatePageTitle: updatePageTitleMock,
+    updatePageTitle: require("../../test/mocks/pageTitle").updatePageTitleMock,
   })),
 }));
 
@@ -38,13 +36,15 @@ jest.mock("../../components", () => ({
 }));
 
 // Mock router bits: useParams + useNavigate
-const navigateMock = jest.fn();
 jest.mock("react-router-dom", () => {
   const actual = jest.requireActual("react-router-dom");
   return {
     ...actual,
     useParams: () => ({ id: "123" }),
-    useNavigate: () => navigateMock,
+    useNavigate: () => {
+      const mock = require("../../test/mocks/router");
+      return mock.navigateMock;
+    },
   };
 });
 

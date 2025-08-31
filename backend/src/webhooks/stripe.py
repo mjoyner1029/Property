@@ -118,7 +118,7 @@ def handle_checkout_completed(event):
         
         # If this payment is linked to an invoice, update the invoice status too
         if payment.invoice_id:
-            invoice = Invoice.query.get(payment.invoice_id)
+            invoice = db.session.get(Invoice, payment.invoice_id)
             if invoice:
                 invoice.status = "paid"
                 invoice.paid_at = datetime.utcnow()
@@ -144,7 +144,7 @@ def handle_payment_succeeded(event):
         
         # If this payment is linked to an invoice, update the invoice status too
         if payment.invoice_id:
-            invoice = Invoice.query.get(payment.invoice_id)
+            invoice = db.session.get(Invoice, payment.invoice_id)
             if invoice:
                 invoice.status = "paid"
                 invoice.paid_at = datetime.utcnow()
@@ -164,7 +164,7 @@ def handle_invoice_payment_succeeded(event):
         # Find payment record by payment intent ID
         payment = Payment.query.filter_by(payment_intent_id=payment_intent_id).first()
         if payment and payment.invoice_id:
-            invoice = Invoice.query.get(payment.invoice_id)
+            invoice = db.session.get(Invoice, payment.invoice_id)
             if invoice:
                 invoice.status = "paid"
                 invoice.paid_at = datetime.utcnow()

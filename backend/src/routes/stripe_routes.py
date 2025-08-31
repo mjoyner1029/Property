@@ -20,7 +20,7 @@ bp.route('/create-customer', methods=['POST'])(create_customer)
 @jwt_required()
 def create_stripe_account():
     user_id = get_jwt_identity()["id"]
-    user = User.query.get(user_id)
+    user = db.session.get(User, user_id)
     if not user or user.role != "landlord":
         return jsonify({"error": "Unauthorized"}), 403
 
@@ -53,12 +53,12 @@ def create_checkout_session():
     amount = data.get("amount")
     currency = data.get("currency", "usd")
     user_id = get_jwt_identity()["id"]
-    user = User.query.get(user_id)
+    user = db.session.get(User, user_id)
 
     if not landlord_id or not amount:
         return jsonify({"error": "Missing required fields"}), 400
 
-    landlord = User.query.get(landlord_id)
+    landlord = db.session.get(User, landlord_id)
     if not landlord or not landlord.stripe_account_id:
         return jsonify({"error": "Landlord not onboarded with Stripe"}), 400
 

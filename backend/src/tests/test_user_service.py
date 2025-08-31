@@ -3,6 +3,8 @@ from datetime import datetime, timedelta
 
 from ..services.user_service import UserService
 from ..models.user import User
+from ..extensions import db
+
 
 def test_user_service_get_user_by_id(session, test_users):
     """Test retrieving user by ID"""
@@ -82,7 +84,7 @@ def test_user_service_password_reset(session, test_users):
     assert token is not None
     
     # Get user and check token
-    user = User.query.get(user_id)
+    user = db.session.get(User, user_id)
     assert user.reset_token == token
     assert user.reset_token_expiry > datetime.utcnow()
     

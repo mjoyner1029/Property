@@ -351,7 +351,7 @@ def update_password():
             }), 400
             
         # Get the user
-        user = User.query.get(user_id)
+        user = db.session.get(User, user_id)
         if not user:
             return jsonify({"error": "User not found"}), 404
             
@@ -422,7 +422,7 @@ def reset_password(token):
             return jsonify({"error": "Invalid or expired token"}), 400
             
         # Update password
-        user = User.query.get(reset_request.user_id)
+        user = db.session.get(User, reset_request.user_id)
         if not user:
             return jsonify({"error": "User not found"}), 404
             
@@ -527,14 +527,14 @@ def get_users():
 def get_user(user_id):
     """Get a specific user"""
     current_user_id = get_jwt_identity()
-    current_user = User.query.get(current_user_id)
+    current_user = db.session.get(User, current_user_id)
     
     # Users can only view their own profiles unless they are admins
     if current_user_id != user_id and current_user.role != 'admin':
         return jsonify({"error": "Unauthorized access"}), 403
         
     try:
-        user = User.query.get(user_id)
+        user = db.session.get(User, user_id)
         
         if not user:
             return jsonify({"error": "User not found"}), 404
@@ -563,7 +563,7 @@ def update_user(user_id):
     data = request.get_json()
     
     try:
-        user = User.query.get(user_id)
+        user = db.session.get(User, user_id)
         
         if not user:
             return jsonify({"error": "User not found"}), 404
@@ -598,7 +598,7 @@ def update_user(user_id):
 def admin_delete_user(user_id):
     """Delete a user (admin only)"""
     try:
-        user = User.query.get(user_id)
+        user = db.session.get(User, user_id)
         
         if not user:
             return jsonify({"error": "User not found"}), 404
@@ -629,7 +629,7 @@ def get_user_preferences():
     """Get user preferences"""
     try:
         user_id = int(get_jwt_identity())
-        user = User.query.get(user_id)
+        user = db.session.get(User, user_id)
         
         if not user:
             return jsonify({"error": "User not found"}), 404
@@ -651,7 +651,7 @@ def set_user_preferences():
     """Update user preferences"""
     try:
         user_id = int(get_jwt_identity())
-        user = User.query.get(user_id)
+        user = db.session.get(User, user_id)
         
         if not user:
             return jsonify({"error": "User not found"}), 404
@@ -740,7 +740,7 @@ def get_user_stats():
             return jsonify({"error": "Invalid JWT token - identity is None"}), 401
         
         # Fetch the user from database
-        user = User.query.get(user_id)
+        user = db.session.get(User, user_id)
         if not user:
             print(f"DEBUG - User not found with ID: {user_id}")
             return jsonify({"error": "User not found"}), 404
@@ -771,7 +771,7 @@ def get_user_stats():
         user_id = int(identity) if not isinstance(identity, dict) else int(identity.get('id'))
         
         # Fetch the user from database
-        user = User.query.get(user_id)
+        user = db.session.get(User, user_id)
         if not user:
             return jsonify({"error": "User not found"}), 404
             
@@ -811,7 +811,7 @@ def get_user_stats():
         user_id = int(identity) if not isinstance(identity, dict) else int(identity.get('id'))
         
         # Fetch the user from database
-        user = User.query.get(user_id)
+        user = db.session.get(User, user_id)
         if not user:
             return jsonify({"error": "User not found"}), 404
             
@@ -851,7 +851,7 @@ def get_user_stats():
         user_id = int(identity) if not isinstance(identity, dict) else int(identity.get('id'))
         
         # Fetch the user from database
-        user = User.query.get(user_id)
+        user = db.session.get(User, user_id)
         if not user:
             return jsonify({"error": "User not found"}), 404
             
@@ -912,7 +912,7 @@ def get_user_stats():
         user_id = int(identity) if not isinstance(identity, dict) else int(identity.get('id'))
         
         # Fetch the user from database
-        user = User.query.get(user_id)
+        user = db.session.get(User, user_id)
         if not user:
             return jsonify({"error": "User not found"}), 404
             
@@ -939,7 +939,7 @@ def get_user_stats():
         user_id = int(identity) if not isinstance(identity, dict) else int(identity.get('id'))
         
         # Fetch the user from database
-        user = User.query.get(user_id)
+        user = db.session.get(User, user_id)
         if not user:
             return jsonify({"error": "User not found"}), 404
             
@@ -977,7 +977,7 @@ def get_user_stats():
         user_id = int(identity) if not isinstance(identity, dict) else int(identity.get('id'))
         
         # Fetch the user from database
-        user = User.query.get(user_id)
+        user = db.session.get(User, user_id)
         if not user:
             return jsonify({"error": "User not found"}), 404
             

@@ -1,5 +1,7 @@
 import pytest
 import json
+from src.extensions import db
+
 
 def test_create_unit(client, test_users, auth_headers, app, db):
     """Test creating a unit for a property"""

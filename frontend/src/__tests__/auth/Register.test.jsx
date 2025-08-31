@@ -4,19 +4,26 @@ import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { MemoryRouter } from "react-router-dom";
 
-// ---- Auth mocks ----
-const registerMock = jest.fn();
-let isAuthenticatedMock = false;
-let loadingMock = false;
-const navigateMock = jest.fn();
+// Import mocks directly
+import { 
+  isAuthenticatedMock,
+  registerMock,
+  AuthContextMock,
+} from "../../test/mocks/auth";
+
+// Import router mocks
+import { navigateMock } from "../../test/mocks/router";
 
 jest.mock("../../context/AuthContext", () => ({
-  useAuth: () => ({
-    isAuthenticated: isAuthenticatedMock,
-    loading: loadingMock,
-    user: null,
-    register: registerMock,
-  }),
+  useAuth: () => {
+    const mock = require("../../test/mocks/auth");
+    return {
+      isAuthenticated: mock.isAuthenticatedMock,
+      loading: mock.AuthContextMock.loading,
+      user: null,
+      register: mock.registerMock,
+    };
+  },
 }));
 
 // (Optional) If your Register page calls useApp().updatePageTitle
@@ -24,13 +31,7 @@ jest.mock("../../context", () => ({
   useApp: () => ({ updatePageTitle: jest.fn() }),
 }));
 
-jest.mock("react-router-dom", () => {
-  const actual = jest.requireActual("react-router-dom");
-  return {
-    ...actual,
-    useNavigate: () => navigateMock,
-  };
-});
+// We don't need to mock react-router-dom here as we're importing navigateMock from shared mocks
 
 // Import after mocks
 import Register from "../../pages/Register";
@@ -68,8 +69,8 @@ const getPasswordInputs = () => {
 describe("Register page", () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    isAuthenticatedMock = false;
-    loadingMock = false;
+    isAuthenticatedMock.mockImplementation(() => false);
+    AuthContextMock.loading = false;
   });
 
   function renderAtRegister() {
@@ -81,7 +82,7 @@ describe("Register page", () => {
   }
 
   test("redirects to '/' if already authenticated", () => {
-    isAuthenticatedMock = true;
+    isAuthenticatedMock.mockImplementation(() => true);
     renderAtRegister();
     expect(navigateMock).toHaveBeenCalledWith("/", { replace: true });
   });
@@ -219,7 +220,7 @@ describe("Register page", () => {
     expect(submit).toBeEnabled();
 
     // Flip loading to true to simulate in-flight request + re-renders
-    loadingMock = true;
+    AuthContextMock.loading = true;
 
     await userEvent.type(getNameInput(), "Deb");
     await userEvent.type(getEmailInput(), "deb@example.com");

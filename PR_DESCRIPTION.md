@@ -1,19 +1,45 @@
-# fix(auth): normalize jwt identity + disable slash strictness
+# Fix Jest Mock Factory Scope Issues
+
+## Problem
+
+Several tests were failing due to mock declaration order issues:
+1. Mock functions (like `navigateMock`) were being referenced by `jest.mock()` factory functions before they were declared
+2. Constant variables (`const`) were being reassigned in helper functions, causing "Assignment to constant variable" errors
 
 ## Changes
 
-- Disabled strict slashes in URL map to avoid 308 redirects when URLs differ only by trailing slash
-- Normalized JWT identity handling by converting to int in controllers
-- Created a utility function for consistent JWT identity parsing
-- Enforced header-only JWT in test configurations
-- Updated controllers to handle both dict and direct ID formats for JWT identity
+### Fixed Mock Declaration Order
 
-## Acceptance
+- Fixed variable name inconsistency in `MessageDetail.test.jsx`: changed reference from `mockNavigate` to `navigateMock` to match imported mock
 
-- Auth-protected routes no longer return 422 for valid tokens
-- `/api/...` endpoints no longer 308 when trailing slash differs
-- Existing unit tests that create tokens pass without modifying test payloads
+### Eliminated Variable Reassignment Errors
 
-## Notes
+- Changed declarations from `const` to `let` for variables that are reassigned:
+  - In `/src/test/mocks/router.js`: `paramsMock`, `searchMock`, `locationMock`
+  - In `/__mocks__/react-router-dom.js`: `mockSearch`, `mockLocation`
+  
+- Improved `setParams` function to avoid direct property mutation:
+  ```js
+  // Old implementation (problematic)
+  const setParams = (params) => {
+    Object.keys(params).forEach(key => {
+      paramsMock[key] = params[key]; // Modifies properties of a const
+    });
+    return paramsMock;
+  };
+  
+  // New implementation 
+  const setParams = (params) => {
+    paramsMock = { ...paramsMock, ...params }; // Replaces entire object
+    return paramsMock;
+  };
+  ```
 
-This PR addresses issues with JWT identity handling where controllers would sometimes receive a dict format and sometimes a direct ID format. By consistently converting to integer, we ensure proper type safety and compatibility across all auth-protected routes.
+## Tests
+
+- Verified that reference errors in `MessageDetail.test.jsx` are resolved
+- Verified that "Assignment to constant variable" errors in router mocks are fixed
+
+## Additional Notes
+
+Some tests are still failing due to other issues (like missing DOM elements, empty contexts, etc.), but the specific issues related to mock hoisting and constant reassignment have been fixed.

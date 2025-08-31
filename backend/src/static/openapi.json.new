@@ -1,0 +1,511 @@
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "Property Management API",
+    "description": "API for Property Management System",
+    "version": "1.0.0",
+    "contact": {
+      "email": "support@propertymgmt.com"
+    }
+  },
+  "servers": [
+    {
+      "url": "/api",
+      "description": "Development server"
+    }
+  ],
+  "tags": [
+    {
+      "name": "auth",
+      "description": "Authentication operations"
+    },
+    {
+      "name": "users",
+      "description": "User operations"
+    },
+    {
+      "name": "properties",
+      "description": "Property management"
+    },
+    {
+      "name": "maintenance",
+      "description": "Maintenance requests"
+    },
+    {
+      "name": "payments",
+      "description": "Payment processing"
+    },
+    {
+      "name": "stripe",
+      "description": "Direct Stripe integrations"
+    }
+  ],
+  "paths": {
+    "/auth/login": {
+      "post": {
+        "tags": ["auth"],
+        "summary": "Log in to the system",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "email": {
+                    "type": "string",
+                    "format": "email"
+                  },
+                  "password": {
+                    "type": "string"
+                  }
+                },
+                "required": ["email", "password"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful login",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "access_token": {
+                      "type": "string"
+                    },
+                    "refresh_token": {
+                      "type": "string"
+                    },
+                    "user": {
+                      "$ref": "#/components/schemas/User"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Invalid credentials"
+          }
+        }
+      }
+    },
+    "/properties": {
+      "get": {
+        "tags": ["properties"],
+        "summary": "List properties",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "query",
+            "name": "page",
+            "schema": {
+              "type": "integer",
+              "default": 1
+            }
+          },
+          {
+            "in": "query",
+            "name": "per_page",
+            "schema": {
+              "type": "integer",
+              "default": 20
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "List of properties",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "properties": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/Property"
+                      }
+                    },
+                    "pagination": {
+                      "$ref": "#/components/schemas/Pagination"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
+          }
+        }
+      },
+      "post": {
+        "tags": ["properties"],
+        "summary": "Create a new property",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PropertyInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Property created successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Property"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid input"
+          },
+          "401": {
+            "description": "Unauthorized"
+          }
+        }
+      }
+    },
+    "/stripe/checkout": {
+      "post": {
+        "tags": ["stripe"],
+        "summary": "Create a Stripe checkout session for payment",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "amount": {
+                    "type": "number",
+                    "description": "Amount to charge in USD"
+                  },
+                  "description": {
+                    "type": "string",
+                    "description": "Payment description"
+                  },
+                  "invoice_id": {
+                    "type": "string",
+                    "description": "Optional invoice ID to associate with this payment"
+                  }
+                },
+                "required": ["amount"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Checkout session created successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "session_id": {
+                      "type": "string",
+                      "description": "Stripe checkout session ID"
+                    },
+                    "checkout_url": {
+                      "type": "string",
+                      "description": "URL to redirect the user to for payment"
+                    },
+                    "simulated": {
+                      "type": "boolean",
+                      "description": "Whether this is a simulated response (for testing)"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid input"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "500": {
+            "description": "Server error or Stripe API error"
+          }
+        }
+      }
+    },
+    "/stripe/create-account": {
+      "post": {
+        "tags": ["stripe"],
+        "summary": "Create a Stripe Connect account for the current user",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": false,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "email": {
+                    "type": "string",
+                    "format": "email",
+                    "description": "Email for the Stripe account (defaults to user's email)"
+                  },
+                  "account_type": {
+                    "type": "string",
+                    "enum": ["express", "standard"],
+                    "description": "Type of Stripe Connect account to create"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Stripe Connect account created successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "account_id": {
+                      "type": "string",
+                      "description": "Stripe account ID"
+                    },
+                    "details_submitted": {
+                      "type": "boolean",
+                      "description": "Whether the account details have been submitted"
+                    },
+                    "charges_enabled": {
+                      "type": "boolean",
+                      "description": "Whether the account can process charges"
+                    },
+                    "payouts_enabled": {
+                      "type": "boolean",
+                      "description": "Whether the account can receive payouts"
+                    },
+                    "simulated": {
+                      "type": "boolean",
+                      "description": "Whether this is a simulated response (for testing)"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid input"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "404": {
+            "description": "User not found"
+          },
+          "500": {
+            "description": "Server error or Stripe API error"
+          }
+        }
+      }
+    },
+    "/stripe/account-status": {
+      "get": {
+        "tags": ["stripe"],
+        "summary": "Get the status of the current user's Stripe Connect account",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Account status retrieved successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "connected": {
+                      "type": "boolean",
+                      "description": "Whether the user has a Stripe account connected"
+                    },
+                    "account_id": {
+                      "type": "string",
+                      "description": "Stripe account ID"
+                    },
+                    "charges_enabled": {
+                      "type": "boolean",
+                      "description": "Whether the account can process charges"
+                    },
+                    "payouts_enabled": {
+                      "type": "boolean",
+                      "description": "Whether the account can receive payouts"
+                    },
+                    "details_submitted": {
+                      "type": "boolean",
+                      "description": "Whether the account details have been submitted"
+                    },
+                    "simulated": {
+                      "type": "boolean",
+                      "description": "Whether this is a simulated response (for testing)"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "404": {
+            "description": "User not found"
+          },
+          "500": {
+            "description": "Server error or Stripe API error"
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "securitySchemes": {
+      "bearerAuth": {
+        "type": "http",
+        "scheme": "bearer",
+        "bearerFormat": "JWT"
+      }
+    },
+    "schemas": {
+      "User": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer"
+          },
+          "email": {
+            "type": "string",
+            "format": "email"
+          },
+          "name": {
+            "type": "string"
+          },
+          "role": {
+            "type": "string",
+            "enum": ["tenant", "landlord", "admin"]
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "Property": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer"
+          },
+          "name": {
+            "type": "string"
+          },
+          "address": {
+            "type": "string"
+          },
+          "city": {
+            "type": "string"
+          },
+          "state": {
+            "type": "string"
+          },
+          "zip_code": {
+            "type": "string"
+          },
+          "owner_id": {
+            "type": "integer"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "PropertyInput": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "address": {
+            "type": "string"
+          },
+          "city": {
+            "type": "string"
+          },
+          "state": {
+            "type": "string"
+          },
+          "zip_code": {
+            "type": "string"
+          }
+        },
+        "required": ["name", "address", "city", "state", "zip_code"]
+      },
+      "Pagination": {
+        "type": "object",
+        "properties": {
+          "total": {
+            "type": "integer"
+          },
+          "per_page": {
+            "type": "integer"
+          },
+          "current_page": {
+            "type": "integer"
+          },
+          "last_page": {
+            "type": "integer"
+          },
+          "has_next": {
+            "type": "boolean"
+          },
+          "has_prev": {
+            "type": "boolean"
+          },
+          "next_page": {
+            "type": "integer"
+          },
+          "prev_page": {
+            "type": "integer"
+          }
+        }
+      }
+    }
+  }
+}

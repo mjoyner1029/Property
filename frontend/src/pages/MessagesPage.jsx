@@ -15,7 +15,8 @@ import {
   CircularProgress,
   Alert,
   TextField,
-  InputAdornment
+  InputAdornment,
+  Button
 } from "@mui/material";
 import { useNavigate, useParams } from "react-router-dom";
 import { useAuth, useApp } from "../context";
@@ -77,9 +78,18 @@ const MessagesPage = () => {
             }}
           >
             <Box p={2} borderBottom="1px solid" borderColor="divider">
-              <Typography variant="h6" fontWeight={600}>
-                Conversations
-              </Typography>
+              <Box display="flex" justifyContent="space-between" alignItems="center">
+                <Typography variant="h6" fontWeight={600}>
+                  Conversations
+                </Typography>
+                <Button 
+                  variant="contained" 
+                  size="small" 
+                  onClick={() => navigate('/messages/new')}
+                >
+                  New
+                </Button>
+              </Box>
               <TextField
                 placeholder="Search conversations..."
                 value={searchTerm}

@@ -5,6 +5,8 @@ from ..services.analytics_service import AnalyticsService
 from ..models.payment import Payment
 from ..models.maintenance_request import MaintenanceRequest
 from ..models.invoice import Invoice
+from ..extensions import db
+
 
 @pytest.fixture
 def setup_analytics_data(session, test_users, test_property):

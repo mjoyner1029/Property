@@ -5,12 +5,17 @@ import { render } from '@testing-library/react';
 import axios from 'axios';
 import { ThemeProvider } from '@mui/material/styles';
 import theme from '../theme';
-import { AuthProvider } from '../context/AuthContext';
-import { PropertyProvider } from '../context/PropertyContext';
-import { AppProvider } from '../context/AppContext';
-import { MaintenanceProvider } from '../context/MaintenanceContext';
-import { PaymentProvider } from '../context/PaymentContext';
-import { TenantProvider } from '../context/TenantContext';
+import { TestAuthProvider } from '../test/simpleAuthHarness';
+// Import everything from context to ensure we have all providers
+import {
+  PropertyProvider,
+  AppProvider,
+  MaintenanceProvider,
+  PaymentProvider,
+  TenantProvider,
+  NotificationProvider,
+  useAuth
+} from '../context';
 
 // Mock axios defaults
 if (!axios.defaults) {
@@ -31,36 +36,50 @@ export function makeMockProvider(Context, value) {
   );
 }
 
-import { NotificationProvider } from '../context/NotificationContext';
-
 export function renderWithProviders(
   ui,
   { 
     route = '/',
+    authState = null,
     ...renderOptions 
   } = {}
 ) {
   function Wrapper({ children }) {
+    // Setup a default auth state that matches what components might expect
+    const defaultAuth = {
+      isAuthenticated: true,
+      user: { id: 'test-user', role: 'admin' },
+      roles: ['admin'],
+      login: jest.fn().mockResolvedValue({}),
+      logout: jest.fn().mockResolvedValue({}),
+      isRole: (role) => {
+        const roles = ['admin'];
+        return Array.isArray(role) ? role.some(r => roles.includes(r)) : roles.includes(role);
+      },
+      loading: false,
+      error: null,
+      ...authState // Allow overriding of auth properties
+    };
+    
     return (
       <MemoryRouter initialEntries={[route]}>
         <ThemeProvider theme={theme}>
-          <AuthProvider>
+          <TestAuthProvider authValue={defaultAuth}>
             <AppProvider>
               <NotificationProvider>
                 <PropertyProvider>
                   <MaintenanceProvider>
                     <PaymentProvider>
                       <TenantProvider>
-                        <div>
-                          {children}
-                        </div>
+                        {/* Remove the extra div wrapper which might cause issues */}
+                        {children}
                       </TenantProvider>
                     </PaymentProvider>
                   </MaintenanceProvider>
                 </PropertyProvider>
               </NotificationProvider>
             </AppProvider>
-          </AuthProvider>
+          </TestAuthProvider>
         </ThemeProvider>
       </MemoryRouter>
     );

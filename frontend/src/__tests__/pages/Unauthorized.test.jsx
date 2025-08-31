@@ -12,7 +12,7 @@ describe('Unauthorized Page', () => {
     );
 
     // Check for unauthorized heading or message
-    expect(screen.getByText('Unauthorized Access')).toBeInTheDocument();
+    expect(screen.getByText('Unauthorized')).toBeInTheDocument();
     expect(screen.getByText(/You don't have permission to view this page/i)).toBeInTheDocument();
   });
 });

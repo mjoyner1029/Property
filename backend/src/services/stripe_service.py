@@ -216,7 +216,7 @@ class StripeEventHandler:
         
         # Get user from metadata or customer ID
         user_id = metadata.get('user_id')
-        user = User.query.get(user_id) if user_id else None
+        user = db.session.get(User, user_id) if user_id else None
         
         if not user:
             current_app.logger.error(f"User not found for checkout: {session.get('id')}")

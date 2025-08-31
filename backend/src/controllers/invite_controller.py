@@ -28,7 +28,7 @@ class Invitation:
         self.created_at = created_at or datetime.now()
     
     def to_dict(self):
-        inviter = User.query.get(self.invited_by)
+        inviter = db.session.get(User, self.invited_by)
         inviter_name = inviter.name if inviter else "Unknown"
         
         return {
@@ -178,7 +178,7 @@ def resend_invite(invite_id):
             return jsonify({"error": "Invitation not found"}), 404
             
         # Check if the user has permission to resend this invitation
-        user = User.query.get(current_user_id)
+        user = db.session.get(User, current_user_id)
         if not user.role == 'admin' and invitation.invited_by != current_user_id:
             return jsonify({"error": "You don't have permission to resend this invitation"}), 403
             
@@ -241,7 +241,7 @@ def invite_tenant():
         print(f"DEBUG - Property ID from request: {property_id}, type: {type(property_id)}")
         
         # Check if the property belongs to the landlord
-        property = Property.query.get(property_id)
+        property = db.session.get(Property, property_id)
         if not property:
             return jsonify({"error": "Property not found"}), 404
             
@@ -252,7 +252,7 @@ def invite_tenant():
             
         # If unit_id is provided, verify it belongs to the property
         if unit_id:
-            unit = Unit.query.get(unit_id)
+            unit = db.session.get(Unit, unit_id)
             if not unit or unit.property_id != property_id:
                 return jsonify({"error": "Invalid unit for this property"}), 400
                 
@@ -339,7 +339,7 @@ def invite_tenant():
             # Mock email sending in test environment
             invite_url = f"{current_app.config.get('FRONTEND_URL', 'http://localhost:3000')}/register?token={token}"
             
-            landlord = User.query.get(current_user_id)
+            landlord = db.session.get(User, current_user_id)
             landlord_name = landlord.name if landlord else "Your landlord"
             
             # Check if we're in testing mode - to avoid actual email sending in tests

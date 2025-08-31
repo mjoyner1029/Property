@@ -18,7 +18,7 @@ messaging_bp = Blueprint('messaging', __name__)
 def get_threads():
     """Get all message threads for the current user"""
     current_user_id = get_jwt_identity()
-    user = User.query.get(current_user_id)
+    user = db.session.get(User, current_user_id)
     
     if not user:
         return jsonify({"error": "User not found"}), 404
@@ -42,7 +42,7 @@ def get_threads():
         for thread in paginated_threads.items:
             # Get the other user in the conversation
             other_user_id = thread.user2_id if thread.user1_id == current_user_id else thread.user1_id
-            other_user = User.query.get(other_user_id)
+            other_user = db.session.get(User, other_user_id)
             
             # Get the last message in the thread
             last_message = Message.query.filter_by(thread_id=thread.id).order_by(Message.created_at.desc()).first()
@@ -88,7 +88,7 @@ def create_thread(user_id):
     current_user_id = get_jwt_identity()
     
     # Ensure the other user exists
-    other_user = User.query.get(user_id)
+    other_user = db.session.get(User, user_id)
     if not other_user:
         return jsonify({"error": "User not found"}), 404
         
@@ -112,7 +112,7 @@ def create_thread(user_id):
             }), 200
             
         # If user is tenant, verify they have a property relationship with the landlord
-        current_user = User.query.get(current_user_id)
+        current_user = db.session.get(User, current_user_id)
         if current_user.role == 'tenant' and other_user.role == 'landlord':
             # Check if tenant has property from this landlord
             tenant_property = TenantProperty.query.join(Property).filter(
@@ -148,7 +148,7 @@ def get_messages(thread_id):
     current_user_id = get_jwt_identity()
     
     # Ensure thread exists and user is part of it
-    thread = MessageThread.query.get(thread_id)
+    thread = db.session.get(MessageThread, thread_id)
     if not thread:
         return jsonify({"error": "Thread not found"}), 404
         
@@ -206,7 +206,7 @@ def send_message(thread_id):
         return jsonify({"error": "Message content is required"}), 400
         
     # Ensure thread exists and user is part of it
-    thread = MessageThread.query.get(thread_id)
+    thread = db.session.get(MessageThread, thread_id)
     if not thread:
         return jsonify({"error": "Thread not found"}), 404
         
@@ -259,7 +259,7 @@ def mark_as_read(message_id):
     current_user_id = get_jwt_identity()
     
     try:
-        message = Message.query.get(message_id)
+        message = db.session.get(Message, message_id)
         
         if not message:
             return jsonify({"error": "Message not found"}), 404
@@ -287,7 +287,7 @@ def mark_thread_as_read(thread_id):
     current_user_id = get_jwt_identity()
     
     # Ensure thread exists and user is part of it
-    thread = MessageThread.query.get(thread_id)
+    thread = db.session.get(MessageThread, thread_id)
     if not thread:
         return jsonify({"error": "Thread not found"}), 404
         
@@ -341,7 +341,7 @@ def get_unread_count():
 def get_contacts():
     """Get users that the current user can message"""
     current_user_id = get_jwt_identity()
-    user = User.query.get(current_user_id)
+    user = db.session.get(User, current_user_id)
     
     if not user:
         return jsonify({"error": "User not found"}), 404

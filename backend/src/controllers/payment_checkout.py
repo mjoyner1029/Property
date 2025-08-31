@@ -30,7 +30,7 @@ def create_checkout_session():
     user_id = get_jwt_identity()
     
     # Get current user
-    user = User.query.get(user_id)
+    user = db.session.get(User, user_id)
     if not user:
         return jsonify({"error": "User not found"}), 404
     
@@ -53,7 +53,7 @@ def create_checkout_session():
                 return jsonify({"error": "You are not associated with this property"}), 403
         
         # Get the property to include details in payment
-        property_obj = Property.query.get(property_id)
+        property_obj = db.session.get(Property, property_id)
         if not property_obj:
             return jsonify({"error": "Property not found"}), 404
         
@@ -117,7 +117,7 @@ def get_payment_history():
         List of payments filtered by role (tenant or landlord)
     """
     user_id = get_jwt_identity()
-    user = User.query.get(user_id)
+    user = db.session.get(User, user_id)
     
     if not user:
         return jsonify({"error": "User not found"}), 404
@@ -153,10 +153,10 @@ def get_payment_history():
         # Format payments for response
         result = []
         for payment in payments:
-            property_obj = Property.query.get(payment.property_id) if payment.property_id else None
+            property_obj = db.session.get(Property, payment.property_id) if payment.property_id else None
             property_name = property_obj.name if property_obj else "Unknown property"
             
-            tenant = User.query.get(payment.tenant_id) if payment.tenant_id else None
+            tenant = db.session.get(User, payment.tenant_id) if payment.tenant_id else None
             tenant_name = tenant.full_name if tenant else "Unknown tenant"
             
             result.append({

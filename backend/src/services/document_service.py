@@ -49,7 +49,7 @@ class DocumentService:
         """Upload a new document"""
         try:
             # Verify user exists
-            user = User.query.get(user_id)
+            user = db.session.get(User, user_id)
             if not user:
                 return None, "User not found"
             
@@ -63,6 +63,7 @@ class DocumentService:
             # Create document record
             document = Document(
                 user_id=user_id,
+                title=data.get('title', file_data['original_filename']),
                 name=data.get('name', file_data['original_filename']),
                 description=data.get('description'),
                 file_path=file_data['path'],
@@ -72,10 +73,6 @@ class DocumentService:
                 file_type=file_data['extension'],
                 document_type=data.get('document_type', 'other'),
                 property_id=data.get('property_id'),
-                unit_id=data.get('unit_id'),
-                related_entity_id=data.get('related_entity_id'),
-                related_entity_type=data.get('related_entity_type'),
-                is_private=data.get('is_private', False),
                 created_at=datetime.utcnow()
             )
             
@@ -124,13 +121,13 @@ class DocumentService:
     def delete_document(document_id, user_id):
         """Delete a document"""
         try:
-            document = Document.query.get(document_id)
+            document = db.session.get(Document, document_id)
             
             if not document:
                 return False, "Document not found"
             
-            # Verify ownership or proper access
-            if document.user_id != user_id and not document.is_shared_with(user_id):
+            # Verify ownership
+            if document.user_id != user_id:
                 return False, "Not authorized to delete this document"
             
             # Delete file from filesystem

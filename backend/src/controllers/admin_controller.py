@@ -79,7 +79,7 @@ def get_users():
 def get_user(user_id):
     """Get user details including role-specific information"""
     try:
-        user = User.query.get(user_id)
+        user = db.session.get(User, user_id)
         
         if not user:
             return jsonify({"error": "User not found"}), 404
@@ -138,7 +138,7 @@ def update_user(user_id):
     data = request.get_json()
     
     try:
-        user = User.query.get(user_id)
+        user = db.session.get(User, user_id)
         
         if not user:
             return jsonify({"error": "User not found"}), 404
@@ -188,7 +188,7 @@ def update_user(user_id):
 def delete_user(user_id):
     """Delete a user"""
     try:
-        user = User.query.get(user_id)
+        user = db.session.get(User, user_id)
         
         if not user:
             return jsonify({"error": "User not found"}), 404
@@ -243,7 +243,7 @@ def get_properties():
         properties_data = []
         for prop in paginated_properties.items:
             # Get landlord name
-            landlord = User.query.get(prop.landlord_id)
+            landlord = db.session.get(User, prop.landlord_id)
             landlord_name = landlord.name if landlord else "Unknown"
             
             # Get unit count
@@ -391,8 +391,8 @@ def get_payments():
         
         payments_data = []
         for payment in paginated_payments.items:
-            tenant = User.query.get(payment.tenant_id)
-            landlord = User.query.get(payment.landlord_id)
+            tenant = db.session.get(User, payment.tenant_id)
+            landlord = db.session.get(User, payment.landlord_id)
             
             payment_data = {
                 "id": payment.id,
@@ -462,9 +462,9 @@ def get_maintenance_requests():
         
         requests_data = []
         for req in paginated_requests.items:
-            tenant = User.query.get(req.tenant_id)
-            property = Property.query.get(req.property_id)
-            assignee = User.query.get(req.assigned_to) if req.assigned_to else None
+            tenant = db.session.get(User, req.tenant_id)
+            property = db.session.get(Property, req.property_id)
+            assignee = db.session.get(User, req.assigned_to) if req.assigned_to else None
             
             req_data = {
                 "id": req.id,
@@ -565,7 +565,7 @@ def get_verification_requests():
         landlord_requests = []
         
         for profile in landlord_profiles:
-            user = User.query.get(profile.user_id)
+            user = db.session.get(User, profile.user_id)
             if user:
                 landlord_requests.append({
                     "id": profile.id,
@@ -607,7 +607,7 @@ def get_verification_requests():
 def verify_user_email(user_id):
     """Manually verify a user's email"""
     try:
-        user = User.query.get(user_id)
+        user = db.session.get(User, user_id)
         
         if not user:
             return jsonify({"error": "User not found"}), 404

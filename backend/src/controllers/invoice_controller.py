@@ -60,7 +60,7 @@ def _to_dict(inv: Invoice) -> Dict[str, Any]:
     }
 
 def _get_or_404(invoice_id: int) -> Invoice:
-    inv: Optional[Invoice] = Invoice.query.get(invoice_id)
+    inv: Optional[Invoice] = db.session.get(Invoice, invoice_id)
     if not inv:
         abort(404, description="Invoice not found")
     return inv

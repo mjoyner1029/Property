@@ -6,6 +6,8 @@ from werkzeug.security import generate_password_hash
 from flask_jwt_extended import create_access_token
 
 from src.models.user import User
+from src.extensions import db
+
 
 
 def make_user(app, db, **overrides):
@@ -74,7 +76,7 @@ def make_user(app, db, **overrides):
         user_id = user.id
         
         # Query the user again to ensure it's attached to a session
-        fresh_user = User.query.get(user_id)
+        fresh_user = db.session.get(User, user_id)
         return fresh_user
 
 
@@ -103,7 +105,7 @@ def auth_header(app, user):
                 # Try to get the ID from the user object, but don't use the attribute directly
                 from src.models.user import User
                 # Re-query the user to ensure it's attached to a session
-                user_db = User.query.get(user.id)
+                user_db = db.session.get(User, user.id)
                 if user_db:
                     user_id = user_db.id
             except Exception:

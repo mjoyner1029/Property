@@ -21,7 +21,7 @@ def setup_mfa():
     Returns QR code for scanning and secret for manual entry
     """
     user_id = get_jwt_identity()
-    user = User.query.get(user_id)
+    user = db.session.get(User, user_id)
     
     if not user:
         return jsonify({"error": "User not found"}), 404
@@ -60,7 +60,7 @@ def verify_mfa_setup():
         return jsonify({"error": "Verification code is required"}), 400
     
     user_id = get_jwt_identity()
-    user = User.query.get(user_id)
+    user = db.session.get(User, user_id)
     
     if not user:
         return jsonify({"error": "User not found"}), 404
@@ -98,7 +98,7 @@ def disable_mfa():
         return jsonify({"error": "Password is required"}), 400
     
     user_id = get_jwt_identity()
-    user = User.query.get(user_id)
+    user = db.session.get(User, user_id)
     
     if not user:
         return jsonify({"error": "User not found"}), 404
@@ -170,7 +170,7 @@ def generate_new_backup_codes():
         return jsonify({"error": "Password is required"}), 400
     
     user_id = get_jwt_identity()
-    user = User.query.get(user_id)
+    user = db.session.get(User, user_id)
     
     if not user:
         return jsonify({"error": "User not found"}), 404
@@ -200,7 +200,7 @@ def mfa_status():
     Check if MFA is enabled for the current user
     """
     user_id = get_jwt_identity()
-    user = User.query.get(user_id)
+    user = db.session.get(User, user_id)
     
     if not user:
         return jsonify({"error": "User not found"}), 404

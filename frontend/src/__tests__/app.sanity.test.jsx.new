@@ -1,0 +1,31 @@
+// App.sanity.test.jsx - Basic app rendering test
+import React from 'react';
+import { render, screen } from '@testing-library/react';
+import App from '../App';
+
+// Mock router to prevent actual navigation
+jest.mock('react-router-dom', () => ({
+  ...jest.requireActual('react-router-dom'),
+  BrowserRouter: ({ children }) => <div data-testid="mock-router">{children}</div>,
+}));
+
+// Mock any context providers that the App might use
+jest.mock('../context/AuthContext', () => ({
+  AuthProvider: ({ children }) => <div data-testid="mock-auth-provider">{children}</div>,
+}));
+
+// Mock key components that might make network requests
+jest.mock('../components/NavBar', () => () => <div data-testid="mock-navbar">NavBar</div>);
+
+describe('App Sanity Tests', () => {
+  test('App renders without crashing', () => {
+    render(<App />);
+    
+    // Check that the root wrappers are in place
+    expect(screen.getByTestId('mock-router')).toBeInTheDocument();
+    expect(screen.getByTestId('mock-auth-provider')).toBeInTheDocument();
+    
+    // Check that core layout components are rendered
+    expect(screen.getByTestId('mock-navbar')).toBeInTheDocument();
+  });
+});

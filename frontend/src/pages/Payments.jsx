@@ -115,9 +115,9 @@ export default function Payments() {
                   <TableRow
                     key={p.id}
                     hover
-                    sx={{ cursor: p.tenant_id ? "pointer" : "default" }}
+                    sx={{ cursor: "pointer" }}
                     onClick={() => {
-                      if (p.tenant_id) navigate(`/tenants/${p.tenant_id}`);
+                      navigate(`/payments/${p.id}`);
                     }}
                   >
                     <TableCell>

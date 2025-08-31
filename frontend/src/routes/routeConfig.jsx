@@ -71,8 +71,20 @@ const routeConfig = [
     layout: true,
   },
   {
+    path: '/tenants/new',
+    component: 'TenantForm',
+    guard: 'private',
+    layout: true,
+  },
+  {
     path: '/messages',
     component: 'Messages',
+    guard: 'private',
+    layout: true,
+  },
+  {
+    path: '/messages/new',
+    component: 'MessageCreate',
     guard: 'private',
     layout: true,
   },
@@ -83,14 +95,32 @@ const routeConfig = [
     layout: true,
   },
   {
+    path: '/messages/:threadId/detail',
+    component: 'MessageDetail',
+    guard: 'private',
+    layout: true,
+  },
+  {
     path: '/notifications',
     component: 'Notifications',
     guard: 'private',
     layout: true,
   },
   {
+    path: '/notifications/:id',
+    component: 'NotificationDetail',
+    guard: 'private',
+    layout: true,
+  },
+  {
     path: '/payments',
     component: 'Payments',
+    guard: 'private',
+    layout: true,
+  },
+  {
+    path: '/payments/:id',
+    component: 'PaymentDetail',
     guard: 'private',
     layout: true,
   },

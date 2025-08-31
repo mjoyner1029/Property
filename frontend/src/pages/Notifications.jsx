@@ -159,8 +159,10 @@ const Notifications = ({ userId }) => {
                     sx={{ 
                       px: 3, 
                       py: 2,
-                      bgcolor: notification.is_read ? 'background.paper' : 'action.hover'
+                      bgcolor: notification.is_read ? 'background.paper' : 'action.hover',
+                      cursor: 'pointer'
                     }}
+                    onClick={() => window.location.href = `/notifications/${notification.id}`}
                   >
                     <ListItemText
                       primary={

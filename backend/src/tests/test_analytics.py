@@ -4,6 +4,8 @@ from datetime import datetime, timedelta
 
 from ..models.payment import Payment
 from ..services.analytics_service import AnalyticsService
+from ..extensions import db
+
 
 @pytest.fixture(scope='function')
 def setup_analytics_data(session, test_users, test_property):

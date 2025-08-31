@@ -3,7 +3,7 @@ import React from "react";
 import { screen, waitFor, fireEvent, within } from "@testing-library/react";
 import { Routes, Route } from "react-router-dom";
 import { renderWithProviders } from "../../test-utils/renderWithProviders";
-import NotificationDetail from "../../pages/NotificationDetail";
+import { NotificationDetail } from "../../pages";
 
 // ---- Router mocks ----
 const mockNavigate = jest.fn();

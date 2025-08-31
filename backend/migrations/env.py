@@ -3,6 +3,8 @@ from logging.config import fileConfig
 
 from alembic import context
 from flask import current_app
+from src.extensions import db
+
 
 # Alembic Config object (gives access to alembic.ini)
 config = context.config

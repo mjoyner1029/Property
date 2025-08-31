@@ -6,6 +6,8 @@ from flask import jsonify, current_app
 from flask_jwt_extended import verify_jwt_in_request, get_jwt, get_jwt_identity
 
 from ..models.user import User
+from ..extensions import db
+
 
 def role_required(required_role):
     """
@@ -27,7 +29,7 @@ def role_required(required_role):
             # Get claims to use for logging
             claims = get_jwt()
             
-            user = User.query.get(user_id)
+            user = db.session.get(User, user_id)
             if not user:
                 current_app.logger.warning(
                     f"Access attempt with valid JWT but non-existent user_id: {user_id}"
@@ -69,7 +71,7 @@ def admin_required(fn):
         verify_jwt_in_request()
         user_id = get_jwt_identity()
         
-        user = User.query.get(user_id)
+        user = db.session.get(User, user_id)
         if not user:
             current_app.logger.warning(
                 f"Access attempt with valid JWT but non-existent user_id: {user_id}"
@@ -102,7 +104,7 @@ def landlord_required(fn):
         verify_jwt_in_request()
         user_id = get_jwt_identity()
         
-        user = User.query.get(user_id)
+        user = db.session.get(User, user_id)
         if not user:
             current_app.logger.warning(
                 f"Access attempt with valid JWT but non-existent user_id: {user_id}"
@@ -135,7 +137,7 @@ def tenant_required(fn):
         verify_jwt_in_request()
         user_id = get_jwt_identity()
         
-        user = User.query.get(user_id)
+        user = db.session.get(User, user_id)
         if not user:
             current_app.logger.warning(
                 f"Access attempt with valid JWT but non-existent user_id: {user_id}"

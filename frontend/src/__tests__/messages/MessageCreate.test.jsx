@@ -4,18 +4,11 @@ import { screen, waitFor, fireEvent } from "@testing-library/react";
 import { Routes, Route } from "react-router-dom";
 import { renderWithProviders } from "../../test-utils/renderWithProviders";
 
+// Import from shared mocks
+import { navigateMock, currentSearch, setSearch } from "../../test/mocks/router";
+
 // Page under test (adjust import if your filename differs)
-import MessageCreate from "../../pages/MessageCreate";
-
-// ---- Router mocks ----
-const mockNavigate = jest.fn();
-let currentSearch = ""; // to simulate ?to=<id> prefill via useSearchParams
-
-jest.mock("react-router-dom", () => ({
-  ...jest.requireActual("react-router-dom"),
-  useNavigate: () => mockNavigate,
-  useSearchParams: () => [new URLSearchParams(currentSearch)],
-}));
+import { MessageCreate } from "../../pages";
 
 // ---- Context barrel mocks ----
 const mockCreateConversation = jest.fn();
@@ -150,8 +143,9 @@ const findSubmitButton = () =>
 describe("Message Create", () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    mockNavigate.mockReset();
-    currentSearch = "";
+    navigateMock.mockReset();
+    // Reset search params to default
+    setSearch("?q=foo");
   });
 
   test("renders form fields", () => {
@@ -321,8 +315,9 @@ describe("Message Create", () => {
 
   test("prefills recipient from query param '?to=<id>' if present", async () => {
     setContexts();
-    currentSearch = "to=3";
-
+    // Use our new setSearch helper to set the query string
+    setSearch("?to=3");
+    
     renderCreate();
 
     // Prefill can be a select value or input value

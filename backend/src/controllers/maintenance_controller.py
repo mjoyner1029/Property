@@ -30,13 +30,13 @@ def create_request():
                 return jsonify({"error": f"Missing required field: {field}"}), 400
         
         # Check if user exists
-        user = User.query.get(current_user_id)
+        user = db.session.get(User, current_user_id)
         if not user:
             return jsonify({"error": "User not found"}), 404
         
         # Check property access
         property_id = int(data['property_id'])
-        property = Property.query.get(property_id)
+        property = db.session.get(Property, property_id)
         
         if not property:
             return jsonify({"error": "Property not found"}), 404
@@ -107,7 +107,7 @@ def get_requests():
     current_user_id = get_jwt_identity()
     
     try:
-        user = User.query.get(current_user_id)
+        user = db.session.get(User, current_user_id)
         if not user:
             return jsonify({"error": "User not found"}), 404
         
@@ -140,12 +140,12 @@ def get_request(request_id):
     
     try:
         # Check if request exists
-        maintenance_request = MaintenanceRequest.query.get(request_id)
+        maintenance_request = db.session.get(MaintenanceRequest, request_id)
         if not maintenance_request:
             return jsonify({"error": "Maintenance request not found"}), 404
         
         # Check user access
-        user = User.query.get(current_user_id)
+        user = db.session.get(User, current_user_id)
         if not user:
             return jsonify({"error": "User not found"}), 404
         
@@ -155,7 +155,7 @@ def get_request(request_id):
                 return jsonify({"error": "Unauthorized to view this request"}), 403
         elif user.role == 'landlord':
             # Landlord can only view requests for their properties
-            property = Property.query.get(maintenance_request.property_id)
+            property = db.session.get(Property, maintenance_request.property_id)
             if not property or property.landlord_id != current_user_id:
                 return jsonify({"error": "Unauthorized to view this request"}), 403
         
@@ -173,12 +173,12 @@ def update_request(request_id):
     
     try:
         # Check if request exists
-        maintenance_request = MaintenanceRequest.query.get(request_id)
+        maintenance_request = db.session.get(MaintenanceRequest, request_id)
         if not maintenance_request:
             return jsonify({"error": "Maintenance request not found"}), 404
         
         # Check user access
-        user = User.query.get(current_user_id)
+        user = db.session.get(User, current_user_id)
         if not user:
             return jsonify({"error": "User not found"}), 404
         
@@ -243,12 +243,12 @@ def delete_request(request_id):
     
     try:
         # Check if request exists
-        maintenance_request = MaintenanceRequest.query.get(request_id)
+        maintenance_request = db.session.get(MaintenanceRequest, request_id)
         if not maintenance_request:
             return jsonify({"error": "Maintenance request not found"}), 404
         
         # Check user access
-        user = User.query.get(current_user_id)
+        user = db.session.get(User, current_user_id)
         if not user:
             return jsonify({"error": "User not found"}), 404
         
@@ -256,7 +256,7 @@ def delete_request(request_id):
         if user.role == 'tenant':
             return jsonify({"error": "Tenants cannot delete maintenance requests"}), 403
         elif user.role == 'landlord':
-            property = Property.query.get(maintenance_request.property_id)
+            property = db.session.get(Property, maintenance_request.property_id)
             if not property or property.landlord_id != current_user_id:
                 return jsonify({"error": "Unauthorized to delete this request"}), 403
         
@@ -278,7 +278,7 @@ def get_tenant_requests(tenant_id=None):
     
     try:
         # Check if user is authorized
-        user = User.query.get(current_user_id)
+        user = db.session.get(User, current_user_id)
         if not user:
             return jsonify({"error": "User not found"}), 404
         
@@ -327,7 +327,7 @@ def get_landlord_requests():
     
     try:
         # Check if user is a landlord
-        user = User.query.get(current_user_id)
+        user = db.session.get(User, current_user_id)
         if not user or user.role != 'landlord':
             return jsonify({"error": "Only landlords can access this endpoint"}), 403
         
@@ -354,18 +354,18 @@ def assign_request(request_id):
     
     try:
         # Check if request exists
-        maintenance_request = MaintenanceRequest.query.get(request_id)
+        maintenance_request = db.session.get(MaintenanceRequest, request_id)
         if not maintenance_request:
             return jsonify({"error": "Maintenance request not found"}), 404
         
         # Check if user is authorized
-        user = User.query.get(current_user_id)
+        user = db.session.get(User, current_user_id)
         if not user or user.role not in ['landlord', 'admin']:
             return jsonify({"error": "Unauthorized to assign maintenance requests"}), 403
         
         # Check if property belongs to landlord
         if user.role == 'landlord':
-            property = Property.query.get(maintenance_request.property_id)
+            property = db.session.get(Property, maintenance_request.property_id)
             if not property or property.landlord_id != current_user_id:
                 return jsonify({"error": "Unauthorized to assign this request"}), 403
         
@@ -396,12 +396,12 @@ def complete_request(request_id):
     
     try:
         # Check if request exists
-        maintenance_request = MaintenanceRequest.query.get(request_id)
+        maintenance_request = db.session.get(MaintenanceRequest, request_id)
         if not maintenance_request:
             return jsonify({"error": "Maintenance request not found"}), 404
         
         # Check if user is authorized
-        user = User.query.get(current_user_id)
+        user = db.session.get(User, current_user_id)
         if not user or user.role not in ['landlord', 'admin']:
             return jsonify({"error": "Unauthorized to complete maintenance requests"}), 403
         

@@ -4,6 +4,8 @@ from datetime import datetime
 
 from ..models.property import Property
 from ..models.property_code import PropertyCode
+from ..extensions import db
+
 
 @pytest.fixture
 def test_property_code(app, db):

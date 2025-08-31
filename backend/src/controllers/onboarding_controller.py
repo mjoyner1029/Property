@@ -25,7 +25,7 @@ def start_onboarding():
             current_user_id = int(identity)
         
         # Get the user
-        user = User.query.get(current_user_id)
+        user = db.session.get(User, current_user_id)
         if not user:
             return jsonify({"error": "User not found"}), 404
             
@@ -152,7 +152,7 @@ def update_onboarding_step(step_name=None):
             return jsonify({"error": "Step is required"}), 400
             
         # Get the user
-        user = User.query.get(current_user_id)
+        user = db.session.get(User, current_user_id)
         if not user:
             return jsonify({"error": "User not found"}), 404
             
@@ -333,8 +333,8 @@ def update_onboarding_step(step_name=None):
                     return jsonify({"error": "Property and unit selection is required"}), 400
                     
                 # Verify property and unit exist
-                property = Property.query.get(data['property_id'])
-                unit = Unit.query.get(data.get('unit_id'))
+                property = db.session.get(Property, data['property_id'])
+                unit = db.session.get(Unit, data.get('unit_id'))
                 
                 if not property:
                     return jsonify({"error": "Selected property not found"}), 404
@@ -390,7 +390,7 @@ def get_onboarding_status():
     
     try:
         # Get the user's role
-        user = User.query.get(current_user_id)
+        user = db.session.get(User, current_user_id)
         if not user:
             return jsonify({"error": "User not found"}), 404
             
@@ -465,7 +465,7 @@ def skip_step(step_name):
     
     try:
         # Get the user's role and current onboarding progress
-        user = User.query.get(current_user_id)
+        user = db.session.get(User, current_user_id)
         if not user:
             return jsonify({"error": "User not found"}), 404
             
@@ -534,7 +534,7 @@ def reset_onboarding():
     
     try:
         # Get the user's role
-        user = User.query.get(current_user_id)
+        user = db.session.get(User, current_user_id)
         if not user:
             return jsonify({"error": "User not found"}), 404
             
@@ -678,7 +678,7 @@ def onboard_tenant():
 
         lease = Lease(
             tenant_id=current_user_id,
-            landlord_id=Property.query.get(property_id).landlord_id,
+            landlord_id=db.session.get(Property, property_id).landlord_id,
             property_id=property_id,
             unit_id=unit_id,
             start_date=lease_start,

@@ -4,22 +4,23 @@ import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { MemoryRouter, Routes, Route } from "react-router-dom";
 
-// --- Mock context hooks used by TenantDetail ---
-const getTenantMock = jest.fn();
-const updateTenantMock = jest.fn();
-const deleteTenantMock = jest.fn();
-const updatePageTitleMock = jest.fn();
+// Import shared mocks
+import { updatePageTitleMock } from "../../test/mocks/pageTitle";
+import { getTenantMock, updateTenantMock, deleteTenantMock } from "../../test/mocks/services";
 
-jest.mock("../../context", () => ({
-  useTenant: jest.fn(() => ({
-    getTenant: getTenantMock,
-    updateTenant: updateTenantMock,
-    deleteTenant: deleteTenantMock,
-  })),
-  useApp: jest.fn(() => ({
-    updatePageTitle: updatePageTitleMock,
-  })),
-}));
+// Mock context hooks used by TenantDetail
+jest.mock("../../context", () => {
+  return {
+    useTenant: () => ({
+      getTenant: require("../../test/mocks/services").getTenantMock,
+      updateTenant: require("../../test/mocks/services").updateTenantMock,
+      deleteTenant: require("../../test/mocks/services").deleteTenantMock,
+    }),
+    useApp: () => ({
+      updatePageTitle: require("../../test/mocks/pageTitle").updatePageTitleMock,
+    }),
+  };
+});
 
 // Use real router, but stub useNavigate/useParams to keep test simple
 jest.mock("react-router-dom", () => {

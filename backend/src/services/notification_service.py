@@ -11,7 +11,7 @@ class NotificationService:
         """Create a notification for a user"""
         try:
             # Check if user exists
-            user = User.query.get(user_id)
+            user = db.session.get(User, user_id)
             if not user:
                 return None, "User not found"
                 
@@ -77,7 +77,7 @@ class NotificationService:
     def mark_notification_as_read(notification_id, user_id):
         """Mark a notification as read"""
         try:
-            notification = Notification.query.get(notification_id)
+            notification = db.session.get(Notification, notification_id)
             
             if not notification:
                 return False, "Notification not found"

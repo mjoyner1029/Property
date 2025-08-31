@@ -2,7 +2,10 @@ import React from 'react';
 import { render, screen } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import { MemoryRouter } from 'react-router-dom';
-import { PublicRoute, PrivateRoute, RoleRoute } from '../routes/guards';
+import { PublicOnlyRoute as PublicRoute, ProtectedRoute as PrivateRoute, RoleRoute } from '../routes/guards';
+
+// Import navigateMock for router testing
+import { navigateMock } from '../test/mocks/router';
 
 // Mock the useAuth hook
 jest.mock('../context', () => ({
@@ -60,8 +63,8 @@ describe('Route Guards', () => {
     });
     
     it('should redirect to dashboard when user is authenticated', () => {
-      // Mock navigate function
-      const navigateMock = jest.fn();
+      // Reset the navigate mock
+      navigateMock.mockClear();
       
       // Set up the auth mock
       setupAuthMock(true, false, 'tenant');

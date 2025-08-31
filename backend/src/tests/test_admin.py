@@ -2,6 +2,8 @@ import pytest
 import json
 
 from ..models.user import User
+from ..extensions import db
+
 
 def test_admin_get_users(client, test_users, auth_headers):
     """Test admin getting all users"""

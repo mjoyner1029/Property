@@ -10,23 +10,28 @@ import {
 import userEvent from "@testing-library/user-event";
 import { MemoryRouter } from "react-router-dom";
 
-// --- Mocks for context hooks used by Payments.jsx ---
-const fetchPaymentsMock = jest.fn();
-const createPaymentMock = jest.fn();
-const updatePageTitleMock = jest.fn();
+// Import from shared mocks for direct assertions
+import { fetchPaymentsMock, createPaymentMock } from "../../test/mocks/services";
+import { updatePageTitleMock } from "../../test/mocks/pageTitle";
 
-jest.mock("../../context", () => ({
-  usePayment: jest.fn(() => ({
-    payments: [],
-    loading: false,
-    error: null,
-    fetchPayments: fetchPaymentsMock,
-    createPayment: createPaymentMock,
-  })),
-  useApp: jest.fn(() => ({
-    updatePageTitle: updatePageTitleMock,
-  })),
-}));
+jest.mock("../../context", () => {
+  // Store these references when the mock is created
+  const serviceMocks = require("../../test/mocks/services");
+  const pageTitleMocks = require("../../test/mocks/pageTitle");
+  
+  return {
+    usePayment: jest.fn(() => ({
+      payments: [],
+      loading: false,
+      error: null,
+      fetchPayments: serviceMocks.fetchPaymentsMock,
+      createPayment: serviceMocks.createPaymentMock,
+    })),
+    useApp: jest.fn(() => ({
+      updatePageTitle: pageTitleMocks.updatePageTitleMock,
+    })),
+  };
+});
 
 // Use real router utilities (no need to mock useNavigate here)
 import Payments from "../../pages/Payments";

@@ -19,7 +19,7 @@ class LeaseService:
                     return None, f"Missing required field: {field}"
             
             # Verify property ownership
-            property = Property.query.get(data['property_id'])
+            property = db.session.get(Property, data['property_id'])
             if not property or property.landlord_id != landlord_id:
                 return None, "Property not found or not owned by you"
             
@@ -35,7 +35,7 @@ class LeaseService:
             
             # Check if unit is available if specified
             if 'unit_id' in data and data['unit_id']:
-                unit = Unit.query.get(data['unit_id'])
+                unit = db.session.get(Unit, data['unit_id'])
                 if not unit or unit.property_id != data['property_id']:
                     return None, "Unit not found or does not belong to this property"
                 
@@ -101,7 +101,7 @@ class LeaseService:
     def accept_lease(lease_id, tenant_id):
         """Tenant accepts a lease agreement"""
         try:
-            lease = Lease.query.get(lease_id)
+            lease = db.session.get(Lease, lease_id)
             
             if not lease:
                 return False, "Lease not found"
@@ -132,7 +132,7 @@ class LeaseService:
             
             # Update unit status if applicable
             if lease.unit_id:
-                unit = Unit.query.get(lease.unit_id)
+                unit = db.session.get(Unit, lease.unit_id)
                 if unit:
                     unit.status = 'occupied'
                     unit.tenant_id = tenant_id
@@ -148,7 +148,7 @@ class LeaseService:
     def terminate_lease(lease_id, user_id, is_landlord, data):
         """Terminate a lease agreement"""
         try:
-            lease = Lease.query.get(lease_id)
+            lease = db.session.get(Lease, lease_id)
             
             if not lease:
                 return False, "Lease not found"
@@ -181,7 +181,7 @@ class LeaseService:
             
             # Update unit status if applicable
             if lease.unit_id:
-                unit = Unit.query.get(lease.unit_id)
+                unit = db.session.get(Unit, lease.unit_id)
                 if unit:
                     unit.status = 'available'
                     unit.tenant_id = None
@@ -197,7 +197,7 @@ class LeaseService:
     def renew_lease(lease_id, landlord_id, data):
         """Renew an existing lease"""
         try:
-            original_lease = Lease.query.get(lease_id)
+            original_lease = db.session.get(Lease, lease_id)
             
             if not original_lease:
                 return None, "Original lease not found"

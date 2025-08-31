@@ -57,7 +57,7 @@ class PropertyService:
     def update_property(property_id, landlord_id, data):
         """Update property details"""
         try:
-            property = Property.query.get(property_id)
+            property = db.session.get(Property, property_id)
             
             if not property:
                 return None, "Property not found"
@@ -89,7 +89,7 @@ class PropertyService:
     def get_property(property_id):
         """Get property by ID with unit and tenant counts"""
         try:
-            property = Property.query.get(property_id)
+            property = db.session.get(Property, property_id)
             
             if not property:
                 return None, "Property not found"
@@ -162,7 +162,7 @@ class PropertyService:
     def delete_property(property_id, landlord_id):
         """Delete a property"""
         try:
-            property = Property.query.get(property_id)
+            property = db.session.get(Property, property_id)
             
             if not property:
                 return False, "Property not found"

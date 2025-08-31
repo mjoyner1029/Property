@@ -4,20 +4,15 @@ import { screen, waitFor, fireEvent, within } from "@testing-library/react";
 import { Routes, Route } from "react-router-dom";
 import { renderWithProviders } from "../../test-utils/renderWithProviders";
 
+// Import from shared mocks
+import { navigateMock, currentParams, setParams } from "../../test/mocks/router";
+
 // Pages under test (adjust paths if your filenames differ)
 import MessagesPage from "../../pages/Messages";
 import MessageDetail from "../../pages/MessageDetail";
 
-// ---- Router mocks ----
-const mockNavigate = jest.fn();
-let currentParams = { id: "1" };
+// Maintain currentRoute for test purposes
 let currentRoute = "/messages";
-
-jest.mock("react-router-dom", () => ({
-  ...jest.requireActual("react-router-dom"),
-  useNavigate: () => mockNavigate,
-  useParams: () => currentParams,
-}));
 
 // ---- Context barrel mocks ----
 const mockFetchConversations = jest.fn();
@@ -156,7 +151,8 @@ const renderList = () =>
   );
 
 const renderDetail = (id = "1") => {
-  currentParams = { id };
+  // Use the setParams helper to update route params
+  setParams({ id });
   currentRoute = `/messages/${id}`;
   return renderWithProviders(
     <Routes>
@@ -192,8 +188,9 @@ const openDeleteFromRow = (row) => {
 describe("Message Delete", () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    mockNavigate.mockReset();
-    currentParams = { id: "1" };
+    navigateMock.mockReset();
+    // Use the setParams helper to reset params
+    setParams({ id: "1" });
     currentRoute = "/messages";
   });
 

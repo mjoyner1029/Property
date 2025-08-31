@@ -5,6 +5,8 @@ import pytest
 from datetime import datetime
 
 from ..models.notification import Notification
+from ..extensions import db
+
 
 
 def _set_read_flags(n: Notification, value: bool):
@@ -90,7 +92,7 @@ def test_mark_notification_read(client, test_users, auth_headers, session):
     assert data["notification"].get("is_read", data["notification"].get("read")) is True
 
     # Verify persisted
-    updated = Notification.query.get(n.id)
+    updated = db.session.get(Notification, n.id)
     assert _get_read_flag(updated) is True
     # Support either explicit read_at or updated_at as the persistence marker
     assert _has_read_at(updated) or getattr(updated, "updated_at", None) is not None

@@ -4,6 +4,8 @@ from datetime import datetime
 
 from ..models.message import Message
 from ..models.message_thread import MessageThread
+from ..extensions import db
+
 
 @pytest.fixture
 def test_thread(session, test_users):

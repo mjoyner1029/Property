@@ -127,7 +127,7 @@ class InvoiceService:
     def mark_invoice_paid(invoice_id, landlord_id, payment_id=None):
         """Mark an invoice as paid"""
         try:
-            invoice = Invoice.query.get(invoice_id)
+            invoice = db.session.get(Invoice, invoice_id)
             
             if not invoice:
                 return False, "Invoice not found"

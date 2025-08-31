@@ -8,7 +8,7 @@ import React, {
   useRef,
 } from "react";
 import axios from "axios";
-import { useAuth } from "./AuthContext";
+import { useAuth } from "../context";
 
 export const NotificationContext = createContext();
 
@@ -31,7 +31,8 @@ function computeUnread(list) {
 }
 
 export const NotificationProvider = ({ children }) => {
-  const { isAuthenticated } = useAuth();
+  const auth = useAuth();
+  const isAuthenticated = auth?.isAuthenticated || false;
 
   const [notifications, setNotifications] = useState([]);
   const [unreadCount, setUnreadCount] = useState(0);

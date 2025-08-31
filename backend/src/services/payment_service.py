@@ -13,7 +13,7 @@ class PaymentService:
         """Create a payment record for an invoice"""
         try:
             # Get invoice
-            invoice = Invoice.query.get(invoice_id)
+            invoice = db.session.get(Invoice, invoice_id)
             if not invoice:
                 return None, "Invoice not found"
                 
@@ -53,7 +53,7 @@ class PaymentService:
     def complete_payment(payment_id, transaction_id=None):
         """Mark a payment as completed"""
         try:
-            payment = Payment.query.get(payment_id)
+            payment = db.session.get(Payment, payment_id)
             if not payment:
                 return False, "Payment not found"
                 
@@ -62,7 +62,7 @@ class PaymentService:
             payment.completed_at = datetime.utcnow()
             
             # Update invoice status
-            invoice = Invoice.query.get(payment.invoice_id)
+            invoice = db.session.get(Invoice, payment.invoice_id)
             if invoice:
                 invoice.status = 'paid'
                 invoice.payment_date = datetime.utcnow()
@@ -80,7 +80,7 @@ class PaymentService:
     def fail_payment(payment_id, reason=None):
         """Mark a payment as failed"""
         try:
-            payment = Payment.query.get(payment_id)
+            payment = db.session.get(Payment, payment_id)
             if not payment:
                 return False, "Payment not found"
                 
@@ -89,7 +89,7 @@ class PaymentService:
             payment.updated_at = datetime.utcnow()
             
             # Update invoice status back to due
-            invoice = Invoice.query.get(payment.invoice_id)
+            invoice = db.session.get(Invoice, payment.invoice_id)
             if invoice:
                 invoice.status = 'due' if invoice.due_date >= datetime.utcnow().date() else 'overdue'
                 invoice.updated_at = datetime.utcnow()
@@ -107,7 +107,7 @@ class PaymentService:
         """Create a Stripe payment intent"""
         try:
             # Get invoice
-            invoice = Invoice.query.get(invoice_id)
+            invoice = db.session.get(Invoice, invoice_id)
             if not invoice:
                 return None, "Invoice not found"
                 
@@ -116,8 +116,8 @@ class PaymentService:
                 return None, "Not authorized to pay this invoice"
                 
             # Get tenant and landlord details
-            tenant = User.query.get(tenant_id)
-            landlord = User.query.get(invoice.landlord_id)
+            tenant = db.session.get(User, tenant_id)
+            landlord = db.session.get(User, invoice.landlord_id)
             
             if not tenant or not landlord:
                 return None, "User information missing"
