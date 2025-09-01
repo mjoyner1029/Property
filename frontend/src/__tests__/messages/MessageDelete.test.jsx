@@ -1,17 +1,17 @@
 // frontend/src/__tests__/messages/MessageDelete.test.jsx
 import React from "react";
-import { screen, waitFor, fireEvent, within } from "@testing-library/react";
+import { screen, within, waitFor, fireEvent } from "@testing-library/react";
 import { Routes, Route } from "react-router-dom";
-import { renderWithProviders } from "../../test-utils/renderWithProviders";
+import { renderWithProviders } from "src/test/utils/renderWithProviders";
 
-// Import from shared mocks
-import { mockNavigate, currentParams, setParams } from "../../test/mocks/router";
+// Import from shared mocks with absolute paths
+import { mockNavigate, currentParams, setParams } from "src/test/mocks/router";
 
-// Pages under test (adjust paths if your filenames differ)
-import MessagesPage from "../../pages/Messages";
-import MessageDetail from "../../pages/MessageDetail";
+// Pages under test with absolute paths
+import MessagesPage from "src/pages/Messages";
+import MessageDetail from "src/pages/MessageDetail";
 
-import { useMessages, useApp } from "../../context";
+import { useMessages, useApp } from "src/context";
 
 // Maintain currentRoute for test purposes
 let currentRoute = "/messages";

@@ -1,13 +1,13 @@
 // frontend/src/__tests__/messages/MessageList.test.jsx
 import React from "react";
-import { screen, waitFor, fireEvent, within } from "@testing-library/react";
+import { screen, within, waitFor, fireEvent } from "@testing-library/react";
 import { Routes, Route } from "react-router-dom";
-import { renderWithProviders } from "../../test-utils/renderWithProviders";
+import { renderWithProviders } from "src/test/utils/renderWithProviders";
 
-// Page under test (adjust if your filename differs)
-import MessagesPage from "../../pages/Messages";
+// Page under test with absolute path
+import MessagesPage from "src/pages/Messages";
 
-import { useMessages, useApp } from "../../context";
+import { useMessages, useApp } from "src/context";
 
 // ---- Router mocks ----
 const mockNavigate = jest.fn();
@@ -24,7 +24,7 @@ const mockMarkConversationRead = jest.fn();
 const mockDeleteConversation = jest.fn();
 const mockUpdatePageTitle = jest.fn();
 
-jest.mock("../../context", () => ({
+jest.mock("src/context", () => ({
   useMessages: jest.fn(),
   useApp: jest.fn(),
 }));

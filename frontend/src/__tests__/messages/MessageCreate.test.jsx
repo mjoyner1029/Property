@@ -1,23 +1,23 @@
 // frontend/src/__tests__/messages/MessageCreate.test.jsx
 import React from "react";
-import { screen, waitFor, fireEvent } from "@testing-library/react";
+import { screen, within, waitFor, fireEvent } from "@testing-library/react";
 import { Routes, Route } from "react-router-dom";
-import { renderWithProviders } from "../../test-utils/renderWithProviders";
+import { renderWithProviders } from "src/test/utils/renderWithProviders";
 
-// Import from shared mocks
-import { mockNavigate, currentSearch, setSearch } from "../../test/mocks/router";
+// Import from shared mocks with absolute paths
+import { mockNavigate, currentSearch, setSearch } from "src/test/mocks/router";
 
-// Page under test (adjust import if your filename differs)
-import { MessageCreate } from "../../pages";
+// Page under test with absolute path
+import { MessageCreate } from "src/pages";
 
-import { useMessages, useApp } from "../../context";
+import { useMessages, useApp } from "src/context";
 
 // ---- Context barrel mocks ----
 const mockCreateConversation = jest.fn();
 const mockFetchRecipients = jest.fn();
 const mockUpdatePageTitle = jest.fn();
 
-jest.mock("../../context", () => ({
+jest.mock("src/context", () => ({
   useMessages: jest.fn(),
   useApp: jest.fn(),
 }));

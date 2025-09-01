@@ -1,8 +1,9 @@
 // frontend/src/__tests__/messages/MessageThread.test.jsx
 import React from "react";
-import { render, screen, within } from "@testing-library/react";
+import { screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import MessageThread from "../../components/MessageThread";
+import { renderWithProviders } from "src/test/utils/renderWithProviders";
+import MessageThread from "src/components/MessageThread";
 
 // Mock the scrollIntoView function which isn't implemented in jsdom
 window.HTMLElement.prototype.scrollIntoView = jest.fn();
@@ -65,13 +66,13 @@ describe("MessageThread", () => {
       },
     ];
 
-    render(
+    renderWithProviders(
       <MessageThread
         messages={msgs}
         currentUserId={currentUserId}
         usersById={usersById}
         height={320}
-      />
+      />, { withRouter: false }
     );
 
     // Message contents
@@ -100,13 +101,13 @@ describe("MessageThread", () => {
       },
     ];
 
-    render(
+    renderWithProviders(
       <MessageThread
         messages={msgs}
         currentUserId={currentUserId}
         usersById={usersById}
         height={240}
-      />
+      />, { withRouter: false }
     );
 
     // Avatar fallback should render initials from name "Bob Roberts" => "BR"
@@ -132,14 +133,14 @@ describe("MessageThread", () => {
       error: true,
     };
 
-    render(
+    renderWithProviders(
       <MessageThread
         messages={[pendingMsg, failedMsg]}
         currentUserId={currentUserId}
         usersById={usersById}
         onRetry={onRetry}
         height={260}
-      />
+      />, { withRouter: false }
     );
 
     // Pending indicator
@@ -168,14 +169,14 @@ describe("MessageThread", () => {
       },
     ];
 
-    render(
+    renderWithProviders(
       <MessageThread
         messages={msgs}
         currentUserId={currentUserId}
         usersById={usersById}
         typingUsers={[{ id: "u2", name: "Bob" }]}
         height={240}
-      />
+      />, { withRouter: false }
     );
 
     expect(screen.getByText(/bob is typing/i)).toBeInTheDocument();
@@ -195,13 +196,13 @@ describe("MessageThread", () => {
       },
     ];
 
-    const { rerender } = render(
+    const { rerender } = renderWithProviders(
       <MessageThread
         messages={base}
         currentUserId={currentUserId}
         usersById={usersById}
         height={200}
-      />
+      />, { withRouter: false }
     );
 
     // Called at least once on initial mount
