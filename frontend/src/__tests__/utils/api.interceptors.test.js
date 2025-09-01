@@ -2,7 +2,7 @@
 // We're focusing on basic module import functionality rather than specific behavior
 
 // Import the module directly instead of trying to mock axios
-import api from '../../utils/api';
+import api from 'src/utils/api';
 
 describe("api.js interceptors", () => {
   test("exports an axios instance", () => {

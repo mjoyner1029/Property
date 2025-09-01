@@ -3,7 +3,7 @@ import React from 'react';
 import { screen, waitFor } from "@testing-library/react";
 import Tenants from "../../pages/Tenants";
 import axios from "axios";
-import { renderWithProviders } from '../../test-utils/renderWithProviders';
+import { renderWithProviders } from 'src/test-utils/renderWithProviders';
 
 jest.mock("axios");
 

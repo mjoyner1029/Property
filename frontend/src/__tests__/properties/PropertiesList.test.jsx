@@ -25,8 +25,8 @@ jest.mock('../../context/AppContext', () => ({
   useApp: jest.fn(),
 }));
 
-import { useProperty } from '../../context/PropertyContext';
-import { useApp } from '../../context/AppContext';
+import { useProperty } from 'src/context/PropertyContext';
+import { useApp } from 'src/context/AppContext';
 
 // ---- Mock lightweight MUI pieces used by the page (keep interactions simple) ----
 jest.mock('@mui/material', () => {
@@ -121,7 +121,7 @@ jest.mock('../../components', () => ({
 }));
 
 // ---- Import the page under test AFTER all mocks are set up ----
-import Properties from '../../pages/Properties';
+import Properties from 'src/pages/Properties';
 
 describe('Properties Component', () => {
   const defaultProperties = [

@@ -1,7 +1,7 @@
 import React from 'react';
 import { render, screen } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
-import Terms from '../../pages/Terms';
+import Terms from 'src/pages/Terms';
 
 describe('Terms Page', () => {
   test('renders terms page with title', () => {

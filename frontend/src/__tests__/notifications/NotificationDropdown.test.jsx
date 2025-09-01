@@ -1,7 +1,7 @@
 import React from 'react';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import NotificationDropdown from '../../components/NotificationDropdown';
+import NotificationDropdown from 'src/components/NotificationDropdown';
 
 jest.mock('@heroicons/react/outline', () => ({
   BellIcon: ({ className }) => (

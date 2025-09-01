@@ -1,7 +1,7 @@
 import React from 'react';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import CheckoutButton from '../../components/CheckoutButton';
+import CheckoutButton from 'src/components/CheckoutButton';
 
 describe('CheckoutButton Component', () => {
   test('renders with default props', () => {

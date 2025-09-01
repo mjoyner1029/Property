@@ -2,8 +2,8 @@
 import React from 'react';
 import { screen, waitFor, fireEvent } from '@testing-library/react';
 import { Routes, Route } from 'react-router-dom';
-import { renderWithProviders } from '../../test-utils/renderWithProviders';
-import TenantDetail from '../../pages/TenantDetail';
+import { renderWithProviders } from 'src/test-utils/renderWithProviders';
+import TenantDetail from 'src/pages/TenantDetail';
 
 // ---- Router mocks ----
 const mockNavigate = jest.fn();
@@ -24,7 +24,7 @@ jest.mock('../../context', () => ({
   useApp: jest.fn(),
 }));
 
-import { useTenant, useApp } from '../../context';
+import { useTenant, useApp } from 'src/context';
 
 const tenant = {
   id: 1,

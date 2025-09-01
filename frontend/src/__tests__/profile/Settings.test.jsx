@@ -2,8 +2,8 @@
 import React from 'react';
 import { screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { renderWithProviders } from '../../test-utils/renderWithProviders';
-import Settings from '../../pages/Settings';
+import { renderWithProviders } from 'src/test-utils/renderWithProviders';
+import Settings from 'src/pages/Settings';
 import axios from 'axios';
 
 // ---- Global mocks (must be top-level) ----

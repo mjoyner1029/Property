@@ -1,9 +1,9 @@
 import React from 'react';
 import { render, screen, fireEvent, waitFor, act } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
-import PropertyForm from '../../pages/PropertyForm';
-import { useProperty } from '../../context/PropertyContext';
-import { useApp } from '../../context/AppContext';
+import PropertyForm from 'src/pages/PropertyForm';
+import { useProperty } from 'src/context/PropertyContext';
+import { useApp } from 'src/context/AppContext';
 
 // Mock MUI components with lightweight versions to avoid flakiness
 jest.mock('@mui/material', () => require('../__mocks__/muiLightMock'));
@@ -24,6 +24,9 @@ const mockUpdateProperty = jest.fn();
 const mockFetchPropertyById = jest.fn();
 const mockUpdatePageTitle = jest.fn();
 
+// Import mock hooks
+import { mockPropertyHook, mockAppHook } from '../__mocks__/contextHooks';
+
 jest.mock('../../context/PropertyContext');
 jest.mock('../../context/AppContext');
 
@@ -32,15 +35,15 @@ describe('PropertyForm Component', () => {
     jest.clearAllMocks();
 
     useProperty.mockReturnValue({
+      ...mockPropertyHook,
       selectedProperty: null,
-      loading: false,
-      error: null,
       createProperty: mockCreateProperty,
       updateProperty: mockUpdateProperty,
       fetchPropertyById: mockFetchPropertyById
     });
 
     useApp.mockReturnValue({
+      ...mockAppHook,
       updatePageTitle: mockUpdatePageTitle
     });
   });

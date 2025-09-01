@@ -1,6 +1,6 @@
 import React from 'react';
 import { render } from '@testing-library/react';
-import LoadingFallback from '../../components/LoadingFallback';
+import LoadingFallback from 'src/components/LoadingFallback';
 
 describe('LoadingFallback component', () => {
   test('renders the fallback loading state', () => {

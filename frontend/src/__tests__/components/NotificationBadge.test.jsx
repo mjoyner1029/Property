@@ -1,7 +1,7 @@
 import React from 'react';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import NotificationBadge from '../../components/NotificationBadge';
+import NotificationBadge from 'src/components/NotificationBadge';
 
 describe('NotificationBadge Component', () => {
   test('renders with correct count for multiple notifications', () => {

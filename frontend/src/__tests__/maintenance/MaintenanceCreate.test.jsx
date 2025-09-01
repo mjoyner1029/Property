@@ -19,6 +19,9 @@ const mockFetchRequests = jest.fn();
 const mockCreateRequest = jest.fn();
 const mockUpdatePageTitle = jest.fn();
 
+// Import mock hooks
+import { mockMaintenanceHook, mockAppHook, mockPropertyHook } from '../__mocks__/contextHooks';
+
 jest.mock("../../context", () => ({
   useMaintenance: jest.fn(),
   useApp: jest.fn(),
@@ -162,6 +165,7 @@ const properties = [
 ];
 
 const defaultUseMaintenance = () => ({
+  ...mockMaintenanceHook,
   maintenanceRequests: [
     {
       id: "1",
@@ -173,17 +177,14 @@ const defaultUseMaintenance = () => ({
       created_at: "2025-07-10T10:00:00Z",
     },
   ],
-  stats: { open: 1, inProgress: 0, completed: 0, total: 1 },
-  loading: false,
-  error: null,
   fetchRequests: mockFetchRequests,
   createRequest: mockCreateRequest,
 });
 
 const setContexts = (overrides = {}) => {
   (useMaintenance).mockReturnValue({ ...defaultUseMaintenance(), ...overrides });
-  (useApp).mockReturnValue({ updatePageTitle: mockUpdatePageTitle });
-  (useProperty).mockReturnValue({ properties });
+  (useApp).mockReturnValue({ ...mockAppHook, updatePageTitle: mockUpdatePageTitle });
+  (useProperty).mockReturnValue({ ...mockPropertyHook, properties });
 };
 
 const renderPage = () => renderWithProviders(<Maintenance />, { route: "/maintenance" });

@@ -1,7 +1,7 @@
 import React from 'react';
 import { render, screen } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
-import Support from '../../pages/Support';
+import Support from 'src/pages/Support';
 
 jest.mock('../../components/PageHeader', () => () => <div data-testid="page-header">Page Header</div>);
 

@@ -2,8 +2,8 @@
 import React from 'react';
 import { screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { renderWithProviders } from '../../test-utils/renderWithProviders';
-import Profile from '../../pages/Profile';
+import { renderWithProviders } from 'src/test-utils/renderWithProviders';
+import Profile from 'src/pages/Profile';
 
 describe('Profile Component', () => {
   const mockUser = {

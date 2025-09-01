@@ -1,8 +1,8 @@
 import React from 'react';
 import { render, screen } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
-import WelcomePage from '../../pages/WelcomePage';
-import { useAuth } from '../../context/AuthContext';
+import WelcomePage from 'src/pages/WelcomePage';
+import { useAuth } from 'src/context/AuthContext';
 
 // Mock the auth context
 jest.mock('../../context/AuthContext', () => ({

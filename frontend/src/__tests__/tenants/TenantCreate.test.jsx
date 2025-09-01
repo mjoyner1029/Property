@@ -22,6 +22,9 @@ const mockUpdateTenant = jest.fn();
 const mockFetchTenantById = jest.fn();
 const mockUpdatePageTitle = jest.fn();
 
+// Import mock hooks
+import { mockTenantHook, mockAppHook } from '../__mocks__/contextHooks';
+
 jest.mock("../../context", () => ({
   useTenant: jest.fn(),
   useApp: jest.fn(),
@@ -63,15 +66,15 @@ describe("TenantForm (Create mode)", () => {
     jest.clearAllMocks();
 
     useTenant.mockReturnValue({
+      ...mockTenantHook,
       selectedTenant: null,
-      loading: false,
-      error: null,
       createTenant: mockCreateTenant,
       updateTenant: mockUpdateTenant,
       fetchTenantById: mockFetchTenantById,
     });
 
     useApp.mockReturnValue({
+      ...mockAppHook,
       updatePageTitle: mockUpdatePageTitle,
     });
   });

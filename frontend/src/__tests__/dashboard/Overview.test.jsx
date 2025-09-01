@@ -32,7 +32,7 @@ import { fetchPaymentsMock } from "../../test/mocks/services";
 
 // ---- Mock the general context barrel in case Overview pulls summary data ----
 jest.mock("../../context", () => ({
-  useApp: () => ({ updatePageTitle: require("../../test/mocks/pageTitle").updatePageTitleMock }),
+  useApp: () => ({ updatePageTitle: require('src/test/mocks/pageTitle').updatePageTitleMock }),
   useProperty: () => ({
     properties: [],
     loading: false,
@@ -48,7 +48,7 @@ jest.mock("../../context", () => ({
     payments: [],
     loading: false,
     error: null,
-    fetchPayments: require("../../test/mocks/services").fetchPaymentsMock,
+    fetchPayments: require('src/test/mocks/services').fetchPaymentsMock,
   }),
 }));
 

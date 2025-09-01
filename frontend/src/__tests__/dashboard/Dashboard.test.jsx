@@ -38,7 +38,7 @@ jest.mock("../../context/MaintenanceContext", () => ({
     maintenanceRequests: [],
     loading: false,
     error: null,
-    fetchRequests: require("../../test/mocks/services").fetchRequestsMock
+    fetchRequests: require('src/test/mocks/services').fetchRequestsMock
   }),
 }));
 
@@ -48,7 +48,7 @@ jest.mock("../../context/PaymentContext", () => ({
     payments: [],
     loading: false,
     error: null,
-    fetchPayments: require("../../test/mocks/services").fetchPaymentsMock
+    fetchPayments: require('src/test/mocks/services').fetchPaymentsMock
   }),
 }));
 

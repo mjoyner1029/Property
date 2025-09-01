@@ -12,12 +12,12 @@ import { getTenantMock, updateTenantMock, deleteTenantMock } from "../../test/mo
 jest.mock("../../context", () => {
   return {
     useTenant: () => ({
-      getTenant: require("../../test/mocks/services").getTenantMock,
-      updateTenant: require("../../test/mocks/services").updateTenantMock,
-      deleteTenant: require("../../test/mocks/services").deleteTenantMock,
+      getTenant: require('src/test/mocks/services').getTenantMock,
+      updateTenant: require('src/test/mocks/services').updateTenantMock,
+      deleteTenant: require('src/test/mocks/services').deleteTenantMock,
     }),
     useApp: () => ({
-      updatePageTitle: require("../../test/mocks/pageTitle").updatePageTitleMock,
+      updatePageTitle: require('src/test/mocks/pageTitle').updatePageTitleMock,
     }),
   };
 });

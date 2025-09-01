@@ -1,7 +1,7 @@
 import React from 'react';
 import { render, screen } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
-import Unauthorized from '../../pages/Unauthorized';
+import Unauthorized from 'src/pages/Unauthorized';
 
 describe('Unauthorized Page', () => {
   test('renders unauthorized page with correct heading', () => {

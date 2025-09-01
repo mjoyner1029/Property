@@ -1,11 +1,11 @@
 import React from 'react';
 import { screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { renderWithProviders } from '../../test-utils/renderWithProviders';
-import NavBar from '../../components/NavBar';
+import { renderWithProviders } from 'src/test-utils/renderWithProviders';
+import NavBar from 'src/components/NavBar';
 
 // Import the AuthContext mocks but don't override them
-import { useAuth } from '../../context/AuthContext';
+import { useAuth } from 'src/context/AuthContext';
 
 jest.mock('../../context/AuthContext');
 

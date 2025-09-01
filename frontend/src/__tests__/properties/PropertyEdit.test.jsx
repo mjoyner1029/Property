@@ -12,12 +12,12 @@ jest.mock("../../context", () => ({
     selectedProperty: null,
     loading: false,
     error: null,
-    createProperty: require("../../test/mocks/services").createPropertyMock,
-    updateProperty: require("../../test/mocks/services").updatePropertyMock,
-    fetchPropertyById: require("../../test/mocks/services").fetchPropertyByIdMock,
+    createProperty: require('src/test/mocks/services').createPropertyMock,
+    updateProperty: require('src/test/mocks/services').updatePropertyMock,
+    fetchPropertyById: require('src/test/mocks/services').fetchPropertyByIdMock,
   })),
   useApp: jest.fn(() => ({
-    updatePageTitle: require("../../test/mocks/pageTitle").updatePageTitleMock,
+    updatePageTitle: require('src/test/mocks/pageTitle').updatePageTitleMock,
   })),
 }));
 
@@ -42,7 +42,7 @@ jest.mock("react-router-dom", () => {
     ...actual,
     useParams: () => ({ id: "123" }),
     useNavigate: () => {
-      const mock = require("../../test/mocks/router");
+      const mock = require('src/test/mocks/router');
       return mock.navigateMock;
     },
   };

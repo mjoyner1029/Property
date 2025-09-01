@@ -2,7 +2,7 @@ import React from 'react';
 import { screen, waitFor } from "@testing-library/react";
 import AdminDashboard from "../../pages/AdminDashboard";
 import axios from 'axios';
-import { renderWithProviders } from '../../test-utils/renderWithProviders';
+import { renderWithProviders } from 'src/test-utils/renderWithProviders';
 
 // Mock axios
 jest.mock('axios');

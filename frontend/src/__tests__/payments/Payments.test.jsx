@@ -16,8 +16,8 @@ import { updatePageTitleMock } from "../../test/mocks/pageTitle";
 
 jest.mock("../../context", () => {
   // Store these references when the mock is created
-  const serviceMocks = require("../../test/mocks/services");
-  const pageTitleMocks = require("../../test/mocks/pageTitle");
+  const serviceMocks = require('src/test/mocks/services');
+  const pageTitleMocks = require('src/test/mocks/pageTitle');
   
   return {
     usePayment: jest.fn(() => ({

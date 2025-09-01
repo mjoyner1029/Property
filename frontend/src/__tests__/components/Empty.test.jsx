@@ -1,6 +1,6 @@
 import React from 'react';
 import { render, screen, fireEvent } from '@testing-library/react';
-import Empty from '../../components/Empty';
+import Empty from 'src/components/Empty';
 
 describe('Empty component', () => {
   test('renders with default props', () => {

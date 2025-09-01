@@ -17,10 +17,14 @@ import {
 // Import router mocks
 import { navigateMock } from "src/test/mocks/router";
 
+// Import mock hooks
+import { mockAuthHook, mockAppHook } from '../__mocks__/contextHooks';
+
 jest.mock("src/contexts/AuthContext", () => ({
   useAuth: () => {
     const mock = require("src/test/mocks/auth");
     return {
+      ...mockAuthHook,
       isAuthenticated: mock.isAuthenticatedMock,
       loading: mock.AuthContextMock.loading,
       user: null,
@@ -31,7 +35,7 @@ jest.mock("src/contexts/AuthContext", () => ({
 
 // (Optional) If your Register page calls useApp().updatePageTitle
 jest.mock("src/contexts", () => ({
-  useApp: () => ({ updatePageTitle: jest.fn() }),
+  useApp: () => ({ ...mockAppHook }),
 }));
 
 // We don't need to mock react-router-dom here as we're importing navigateMock from shared mocks

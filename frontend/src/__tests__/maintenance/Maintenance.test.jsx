@@ -6,14 +6,14 @@ import { MemoryRouter } from "react-router-dom";
 // Import from shared mocks for direct assertions
 import { fetchRequestsMock, createRequestMock } from "../../test/mocks/services";
 
-jest.mock("../context", () => ({
+jest.mock("../../context", () => ({
   useMaintenance: jest.fn(() => ({
     maintenanceRequests: [],
     stats: { open: 0, inProgress: 0, completed: 0, total: 0 },
     loading: false,
     error: null,
-    fetchRequests: require("../../test/mocks/services").fetchRequestsMock,
-    createRequest: require("../../test/mocks/services").createRequestMock,
+    fetchRequests: require('src/test/mocks/services').fetchRequestsMock,
+    createRequest: require('src/test/mocks/services').createRequestMock,
   })),
   useProperty: jest.fn(() => ({
     properties: [],
@@ -24,7 +24,7 @@ jest.mock("../context", () => ({
 }));
 
 // ---- Lightweight component stubs so the page can render in isolation ----
-jest.mock("../components", () => ({
+jest.mock("../../components", () => ({
   Layout: ({ children }) => <div data-testid="layout">{children}</div>,
   PageHeader: ({ title, actionText, onActionClick }) => (
     <div>

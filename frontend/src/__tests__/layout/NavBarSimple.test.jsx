@@ -2,7 +2,7 @@ import React from 'react';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { MemoryRouter } from 'react-router-dom';
-import NavBarSimple from '../../components/NavBarSimple';
+import NavBarSimple from 'src/components/NavBarSimple';
 
 // Use direct render with MemoryRouter instead of renderWithProviders
 // to simplify the test and avoid any issues with context providers

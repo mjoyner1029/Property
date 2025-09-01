@@ -3,8 +3,8 @@ import React from "react";
 import { screen, waitFor, fireEvent, within } from "@testing-library/react";
 import { renderWithProviders } from "../../test-utils/renderWithProviders";
 import PropertyDetail from "../../pages/PropertyDetail";
-import * as PropertyContext from "../../context/PropertyContext";
-import * as AppContext from "../../context/AppContext";
+import * as PropertyContext from 'src/context/PropertyContext';
+import * as AppContext from 'src/context/AppContext';
 
 // ---- Router mocks ----
 const mockNavigate = jest.fn();

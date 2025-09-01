@@ -1,21 +1,8 @@
 import React from "react";
-import { screen, render } from "@testing-library/react";
-import { Routes, Route, MemoryRouter } from "react-router-dom";
+import { screen } from "@testing-library/react";
+import { Routes, Route } from "react-router-dom";
+import { renderWithAuth } from "../../test/simpleAuthHarness"; // Using the simple auth harness
 import Unauthorized from "../../pages/Unauthorized";
-
-// Create a simplified AuthContext for testing
-const AuthContext = React.createContext(null);
-
-// Mock the context module to use our test auth
-// Mock the context module to use our test auth
-jest.mock("../../context", () => {
-  const originalModule = jest.requireActual("../../test/simpleAuthHarness");
-  return {
-    useAuth: originalModule.useAuth,
-    // Add any other hooks that might be needed
-    AuthProvider: originalModule.TestAuthProvider,
-  };
-});
 
 // Mock the Unauthorized component 
 jest.mock("../../pages/Unauthorized", () => function MockUnauthorized() {
@@ -33,35 +20,6 @@ jest.mock('@mui/material/CircularProgress', () => function MockCircularProgress(
 
 // Import the mock guards for testing
 import { RoleRoute, ProtectedRoute, PublicOnlyRoute } from "../../test/mocks/guards";
-import { TestAuthProvider } from "../../test/simpleAuthHarness";
-
-// Helper function to render with auth context
-function renderWithAuth(ui, { auth = {}, route = "/", ...renderOptions } = {}) {
-  const defaultAuth = {
-    isAuthenticated: false,
-    loading: false,
-    user: null,
-    roles: [],
-    login: jest.fn(),
-    logout: jest.fn(),
-    isRole: (role) => {
-      if (!auth.roles) return false;
-      return Array.isArray(role) 
-        ? role.some(r => auth.roles.includes(r)) 
-        : auth.roles.includes(role);
-    },
-    ...auth
-  };
-  
-  return render(
-    <MemoryRouter initialEntries={[route]}>
-      <TestAuthProvider authValue={defaultAuth}>
-        {ui}
-      </TestAuthProvider>
-    </MemoryRouter>,
-    renderOptions
-  );
-}
 
 // Tiny page markers with more specific text that can be found by tests
 const AdminPage = () => <div>Admin Panel Content</div>;
@@ -95,7 +53,8 @@ describe("Routing guards", () => {
           isAuthenticated: true,
           loading: false,
           user: { role: 'admin' },
-          roles: ['admin']
+          roles: ['admin'],
+          isRole: (role) => role === 'admin'
         },
         route: "/admin"
       }

@@ -1,7 +1,7 @@
 import React from 'react';
 import { render, screen } from '@testing-library/react';
 import '@testing-library/jest-dom';
-import routeConfig from '../../routes/routeConfig';
+import routeConfig from 'src/routes/routeConfig';
 
 // Required routes according to specification
 const requiredRoutes = [

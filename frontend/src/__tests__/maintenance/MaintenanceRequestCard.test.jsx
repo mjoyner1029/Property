@@ -2,8 +2,8 @@ import React from 'react';
 import { screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import axios from 'axios';
-import { renderWithProviders } from '../../test-utils/renderWithProviders';
-import MaintenanceRequestCard from '../../components/MaintenanceRequestCard';
+import { renderWithProviders } from 'src/test-utils/renderWithProviders';
+import MaintenanceRequestCard from 'src/components/MaintenanceRequestCard';
 
 // Mock date-fns functions to avoid date issues
 jest.mock('date-fns', () => ({

@@ -4,9 +4,9 @@ import { screen, waitFor } from "@testing-library/react";
 import userEvent from '@testing-library/user-event';
 import Properties from "../../pages/Properties";
 import axios from "axios";
-import { renderWithProviders } from '../../test-utils/renderWithProviders';
-import * as PropertyContext from '../../context/PropertyContext';
-import * as AppContext from '../../context/AppContext';
+import { renderWithProviders } from 'src/test-utils/renderWithProviders';
+import * as PropertyContext from 'src/context/PropertyContext';
+import * as AppContext from 'src/context/AppContext';
 
 jest.mock("axios");
 

@@ -1,9 +1,9 @@
 import React from 'react';
 import { screen } from '@testing-library/react';
 import { Routes, Route } from 'react-router-dom';
-import { renderWithProviders } from '../../test-utils/renderWithProviders';
-import NotFound from '../../pages/NotFound';
-import Unauthorized from '../../pages/Unauthorized';
+import { renderWithProviders } from 'src/test-utils/renderWithProviders';
+import NotFound from 'src/pages/NotFound';
+import Unauthorized from 'src/pages/Unauthorized';
 
 describe('Fallback Pages', () => {
   test('renders 404 page', () => {
