@@ -3,15 +3,15 @@ import React from "react";
 import { screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import axios from "axios";
-import { renderWithProviders } from "../../test-utils/renderWithProviders";
+import { renderWithProviders } from "src/test/utils/renderWithProviders";
 
 // We assume your component lives at src/pages/ResetPassword.jsx
-import ResetPassword from "../../pages/ResetPassword";
+import ResetPassword from "src/pages/ResetPassword";
 
 jest.mock("react-router-dom", () => ({
   ...jest.requireActual("react-router-dom"),
   useNavigate: () => {
-    const mock = require("../../test/mocks/router");
+    const mock = require("src/test/mocks/router");
     return mock.navigateMock;
   },
   // Provide a stable token via useSearchParams

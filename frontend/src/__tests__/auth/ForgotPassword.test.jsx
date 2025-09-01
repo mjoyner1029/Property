@@ -2,8 +2,8 @@ import React from 'react';
 import { screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import axios from 'axios';
-import { renderWithProviders } from '../../test-utils/renderWithProviders';
-import ForgotPassword from '../../auth/ForgotPassword';
+import { renderWithProviders } from 'src/test/utils/renderWithProviders';
+import ForgotPassword from 'src/auth/ForgotPassword';
 
 // Mock fetch since the component uses fetch instead of axios
 global.fetch = jest.fn();

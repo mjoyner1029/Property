@@ -2,8 +2,8 @@ import React from 'react';
 import { screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import axios from 'axios';
-import { renderWithProviders } from '../../test-utils/renderWithProviders';
-import VerifyEmail from '../../pages/VerifyEmail';
+import { renderWithProviders } from 'src/test/utils/renderWithProviders';
+import VerifyEmail from 'src/pages/VerifyEmail';
 
 // Mock react-router-dom
 jest.mock('react-router-dom', () => ({

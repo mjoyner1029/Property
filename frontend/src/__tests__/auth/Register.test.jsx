@@ -1,22 +1,22 @@
 // frontend/src/__tests__/auth/Register.test.jsx
 import React from "react";
-import { render, screen, waitFor } from "@testing-library/react";
+import { screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { MemoryRouter } from "react-router-dom";
+import { renderWithProviders } from "src/test/utils/renderWithProviders";
 
 // Import mocks directly
 import { 
   isAuthenticatedMock,
   registerMock,
   AuthContextMock,
-} from "../../test/mocks/auth";
+} from "src/test/mocks/auth";
 
 // Import router mocks
-import { navigateMock } from "../../test/mocks/router";
+import { navigateMock } from "src/test/mocks/router";
 
-jest.mock("../../context/AuthContext", () => ({
+jest.mock("src/contexts/AuthContext", () => ({
   useAuth: () => {
-    const mock = require("../../test/mocks/auth");
+    const mock = require("src/test/mocks/auth");
     return {
       isAuthenticated: mock.isAuthenticatedMock,
       loading: mock.AuthContextMock.loading,
@@ -27,14 +27,14 @@ jest.mock("../../context/AuthContext", () => ({
 }));
 
 // (Optional) If your Register page calls useApp().updatePageTitle
-jest.mock("../../context", () => ({
+jest.mock("src/contexts", () => ({
   useApp: () => ({ updatePageTitle: jest.fn() }),
 }));
 
 // We don't need to mock react-router-dom here as we're importing navigateMock from shared mocks
 
 // Import after mocks
-import Register from "../../pages/Register";
+import Register from "src/pages/Register";
 
 // -- Helpers ----------------------------------------------------
 
@@ -74,11 +74,9 @@ describe("Register page", () => {
   });
 
   function renderAtRegister() {
-    return render(
-      <MemoryRouter initialEntries={["/register"]}>
-        <Register />
-      </MemoryRouter>
-    );
+    return renderWithProviders(<Register />, {
+      route: "/register"
+    });
   }
 
   test("redirects to '/' if already authenticated", () => {
