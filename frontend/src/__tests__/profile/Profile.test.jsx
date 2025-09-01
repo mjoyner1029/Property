@@ -1,6 +1,7 @@
 // frontend/src/__tests__/profile/Profile.test.jsx
 import React from 'react';
-import { screen, waitFor } from '@testing-library/react';
+import { screen, within, waitFor } from '@testing-library/react';
+import { getInputByName, getSelectByName } from 'src/test/utils/muiTestUtils';
 import userEvent from '@testing-library/user-event';
 import { renderWithProviders } from 'src/test-utils/renderWithProviders';
 import Profile from 'src/pages/Profile';
@@ -47,8 +48,8 @@ describe('Profile Component', () => {
     expect(await screen.findByText(/My Profile/i)).toBeInTheDocument();
 
     // Fields populated
-    const nameInput = screen.getByLabelText(/Full Name/i);
-    const emailInput = screen.getByLabelText(/Email Address/i);
+    const nameInput = getInputByName(/Full Name/i);
+    const emailInput = getInputByName(/Email Address/i);
     expect(nameInput).toHaveValue('Jane Doe');
     expect(emailInput).toHaveValue('jane@example.com');
 
@@ -64,7 +65,7 @@ describe('Profile Component', () => {
     renderWithProviders(<Profile />);
 
     const nameInput = await screen.findByLabelText(/Full Name/i);
-    const emailInput = screen.getByLabelText(/Email Address/i);
+    const emailInput = getInputByName(/Email Address/i);
     const saveButton = screen.getByRole('button', { name: /Save Changes/i });
 
     // Change values
@@ -121,6 +122,6 @@ describe('Profile Component', () => {
     expect(screen.getByText(/^User$/i)).toBeInTheDocument();
 
     // Email field populated from localStorage
-    expect(screen.getByLabelText(/Email Address/i)).toHaveValue('no-name@example.com');
+    expect(getInputByName(/Email Address/i)).toHaveValue('no-name@example.com');
   });
 });

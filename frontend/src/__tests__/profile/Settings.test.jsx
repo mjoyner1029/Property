@@ -1,6 +1,7 @@
 // frontend/src/__tests__/profile/Settings.test.jsx
 import React from 'react';
-import { screen, waitFor } from '@testing-library/react';
+import { screen, within, waitFor } from '@testing-library/react';
+import { getInputByName, getSelectByName } from 'src/test/utils/muiTestUtils';
 import userEvent from '@testing-library/user-event';
 import { renderWithProviders } from 'src/test-utils/renderWithProviders';
 import Settings from 'src/pages/Settings';
@@ -59,10 +60,10 @@ describe('Settings Component', () => {
 
     // Notifications section controls (be tolerant: "In-App" vs "Push")
     expect(
-      screen.getByLabelText(/email notifications/i)
+      getInputByName(/email notifications/i)
     ).toBeInTheDocument();
     expect(
-      screen.getByLabelText(/sms notifications/i)
+      getInputByName(/sms notifications/i)
     ).toBeInTheDocument();
     const inApp =
       screen.queryByLabelText(/in-?app notifications/i) ||
@@ -120,7 +121,7 @@ describe('Settings Component', () => {
     renderSettings();
 
     // SMS initially off in fixture
-    const smsToggle = screen.getByLabelText(/sms notifications/i);
+    const smsToggle = getInputByName(/sms notifications/i);
     expect(smsToggle).not.toBeChecked();
 
     await userEvent.click(smsToggle);
