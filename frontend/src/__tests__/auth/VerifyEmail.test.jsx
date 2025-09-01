@@ -1,8 +1,9 @@
 import React from 'react';
-import { screen, waitFor } from '@testing-library/react';
+import { screen, within, waitFor } from '@testing-library/react';
+import { getInputByName, getSelectByName } from 'src/test/utils/muiTestUtils';
 import userEvent from '@testing-library/user-event';
 import axios from 'axios';
-import { renderWithProviders } from 'src/test-utils/renderWithProviders';
+import { renderWithProviders } from 'src/test/utils/renderWithProviders';
 import VerifyEmail from 'src/pages/VerifyEmail';
 
 // Mock react-router-dom

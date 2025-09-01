@@ -1,20 +1,27 @@
 // frontend/src/__tests__/auth/Login.test.jsx
 import React from "react";
-import { screen, waitFor } from "@testing-library/react";
+import { screen, within, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
+import { getInputByName, getSelectByName } from 'src/test/utils/muiTestUtils';
 
-// Import from shared mocks
-import { mockNavigate } from "../../test/mocks/router";
-import { loginMock, isAuthenticatedMock, AuthContextMock } from "../../test/mocks/auth";
-import { renderWithProviders } from "../../test/utils/renderWithProviders";
+// Import from shared mocks with absolute paths
+import { mockNavigate } from "src/test/mocks/router";
+import { loginMock, isAuthenticatedMock, AuthContextMock } from "src/test/mocks/auth";
+import { renderWithProviders } from "src/test/utils/renderWithProviders";
 
-// Import after mocks
-import Login from "../../pages/Login";
+// Import after mocks with absolute path
+import Login from "src/pages/Login";
 
 // Using mockImplementation instead of inline arrow function to avoid Jest's variable reference issues
-jest.mock("../../context/AuthContext", () => {
+jest.mock("src/context/AuthContext", () => {
   const mockUseAuth = jest.fn();
-  return { useAuth: mockUseAuth };
+  // Create a mock context that has a Provider property
+  const mockAuthContext = { Provider: ({ children }) => children };
+  return { 
+    __esModule: true,
+    default: mockAuthContext,
+    useAuth: mockUseAuth 
+  };
 });
 
 // Helper: find the submit button regardless of label variants
@@ -28,7 +35,7 @@ describe("Login page", () => {
     AuthContextMock.loading = false;
     
     // Set up the mock implementation for each test
-    const { useAuth } = require("src/contexts/AuthContext");
+    const { useAuth } = require("src/context/AuthContext");
     useAuth.mockImplementation(() => ({
       isAuthenticated: isAuthenticatedMock,
       loading: AuthContextMock.loading,
@@ -56,8 +63,8 @@ describe("Login page", () => {
     renderAtLogin();
 
     // Be flexible about label wording
-    const email = screen.getByLabelText(/email/i);
-    const password = screen.getByLabelText(/password/i);
+    const email = getInputByName(/email/i);
+    const password = getInputByName(/password/i);
     expect(email).toBeInTheDocument();
     expect(password).toBeInTheDocument();
 
@@ -69,8 +76,8 @@ describe("Login page", () => {
 
     renderAtLogin();
 
-    await userEvent.type(screen.getByLabelText(/email/i), "user@example.com");
-    await userEvent.type(screen.getByLabelText(/password/i), "s3cret!");
+    await userEvent.type(getInputByName(/email/i), "user@example.com");
+    await userEvent.type(getInputByName(/password/i), "s3cret!");
 
     await userEvent.click(getSubmitButton());
 
@@ -100,8 +107,8 @@ describe("Login page", () => {
 
     renderAtLogin();
 
-    await userEvent.type(screen.getByLabelText(/email/i), "enter@example.com");
-    const pwd = screen.getByLabelText(/password/i);
+    await userEvent.type(getInputByName(/email/i), "enter@example.com");
+    const pwd = getInputByName(/password/i);
     await userEvent.type(pwd, "enterpass");
 
     // Press Enter to submit
@@ -117,8 +124,8 @@ describe("Login page", () => {
 
     renderAtLogin();
 
-    await userEvent.type(screen.getByLabelText(/email/i), "bad@example.com");
-    await userEvent.type(screen.getByLabelText(/password/i), "wrongpass");
+    await userEvent.type(getInputByName(/email/i), "bad@example.com");
+    await userEvent.type(getInputByName(/password/i), "wrongpass");
     await userEvent.click(getSubmitButton());
 
     // Expect some visible error text (component likely renders error.message)
@@ -141,8 +148,8 @@ describe("Login page", () => {
     AuthContextMock.loading = true;
 
     // Interact to trigger re-render paths in some implementations
-    await userEvent.type(screen.getByLabelText(/email/i), "x@y.com");
-    await userEvent.type(screen.getByLabelText(/password/i), "pw");
+    await userEvent.type(getInputByName(/email/i), "x@y.com");
+    await userEvent.type(getInputByName(/password/i), "pw");
 
     // Depending on implementation, the button may be disabled when loading
     // If your Login doesn't reflect loading on the button, feel free to remove this check.

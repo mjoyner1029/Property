@@ -1,6 +1,6 @@
 // frontend/src/__tests__/auth/PasswordReset.test.jsx
 import React from "react";
-import { screen, waitFor } from "@testing-library/react";
+import { screen, within, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import axios from "axios";
 import { renderWithProviders } from "src/test/utils/renderWithProviders";
@@ -59,7 +59,7 @@ describe("ResetPassword", () => {
       screen.getAllByLabelText(/new password/i).length
     ).toBeGreaterThanOrEqual(1);
     expect(
-      screen.getByLabelText(/confirm new password/i)
+      getInputByName(/confirm new password/i)
     ).toBeInTheDocument();
     expect(
       screen.getByRole("button", { name: /reset password/i })
@@ -79,7 +79,7 @@ describe("ResetPassword", () => {
     await screen.findByText(/reset your password/i);
 
     const newPw = screen.getAllByLabelText(/new password/i)[0];
-    const confirm = screen.getByLabelText(/confirm new password/i);
+    const confirm = getInputByName(/confirm new password/i);
     await userEvent.type(newPw, "Password123!");
     await userEvent.type(confirm, "Different123!");
 
@@ -106,7 +106,7 @@ describe("ResetPassword", () => {
     await screen.findByText(/reset your password/i);
 
     const newPw = screen.getAllByLabelText(/new password/i)[0];
-    const confirm = screen.getByLabelText(/confirm new password/i);
+    const confirm = getInputByName(/confirm new password/i);
 
     // Extremely short to ensure any reasonable validator fails
     await userEvent.type(newPw, "a");
@@ -133,7 +133,7 @@ describe("ResetPassword", () => {
     await screen.findByText(/reset your password/i);
 
     const newPw = screen.getAllByLabelText(/new password/i)[0];
-    const confirm = screen.getByLabelText(/confirm new password/i);
+    const confirm = getInputByName(/confirm new password/i);
 
     await userEvent.type(newPw, "ValidPass123!");
     await userEvent.type(confirm, "ValidPass123!");

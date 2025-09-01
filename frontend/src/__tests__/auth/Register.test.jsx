@@ -1,33 +1,33 @@
 // frontend/src/__tests__/auth/Register.test.jsx
 import React from "react";
-import { screen, waitFor } from "@testing-library/react";
+import { screen, within, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { renderWithProviders } from "../../test/utils/renderWithProviders";
+import { renderWithProviders } from "src/test/utils/renderWithProviders";
 
-// Import mocks directly
+// Import mocks directly with absolute paths
 import { 
   isAuthenticatedMock,
   registerMock,
   AuthContextMock,
-} from "../../test/mocks/auth";
+} from "src/test/mocks/auth";
 
-// Import router mocks
-import { mockNavigate } from "../../test/mocks/router";
+// Import router mocks with absolute paths
+import { mockNavigate } from "src/test/mocks/router";
 
-// Import mock hooks
-import { mockAuthHook, mockAppHook } from '../__mocks__/contextHooks';
+// Import mock hooks with absolute paths
+import { mockAuthHook, mockAppHook } from 'src/__tests__/__mocks__/contextHooks';
 
 // We don't need to mock react-router-dom here as we're importing mockNavigate from shared mocks
 
-// Import after mocks
-import Register from "../../pages/Register";
+// Import after mocks with absolute path
+import Register from "src/pages/Register";
 
 // Mock MUI components with lightweight versions to avoid flakiness
-jest.mock('@mui/material', () => require('../__mocks__/muiLightMock'));
+jest.mock('@mui/material', () => require('src/__tests__/__mocks__/muiLightMock'));
 
-jest.mock("../../context/AuthContext", () => ({
+jest.mock("src/context/AuthContext", () => ({
   useAuth: () => {
-    const mock = require("../../test/mocks/auth");
+    const mock = require("src/test/mocks/auth");
     return {
       ...mockAuthHook,
       isAuthenticated: mock.isAuthenticatedMock,
@@ -51,9 +51,9 @@ const getSubmitButton = () =>
 
 const getNameInput = () =>
   screen.queryByLabelText(/full name/i) ||
-  screen.getByLabelText(/name/i);
+  getInputByName(/name/i);
 
-const getEmailInput = () => screen.getByLabelText(/email/i);
+const getEmailInput = () => getInputByName(/email/i);
 
 const getPasswordInputs = () => {
   // Prefer explicit "Confirm" label when available

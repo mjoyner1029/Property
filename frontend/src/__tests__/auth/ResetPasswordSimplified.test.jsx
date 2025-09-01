@@ -50,8 +50,8 @@ describe("ResetPassword page (simplified)", () => {
     expect(screen.getByRole('heading', { name: /reset password/i })).toBeInTheDocument();
     
     // Check for input fields
-    expect(screen.getByLabelText(/new password/i)).toBeInTheDocument();
-    expect(screen.getByLabelText(/confirm password/i)).toBeInTheDocument();
+    expect(getInputByName(/new password/i)).toBeInTheDocument();
+    expect(getInputByName(/confirm password/i)).toBeInTheDocument();
     
     // Check for button
     expect(screen.getByRole("button", { name: /reset password/i })).toBeInTheDocument();
