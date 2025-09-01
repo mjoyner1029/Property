@@ -3,7 +3,7 @@ import { ThemeProvider as MuiThemeProvider, createTheme } from '@mui/material/st
 import CssBaseline from '@mui/material/CssBaseline';
 
 // Create the context
-const ThemeContext = createContext();
+export const ThemeContext = createContext();
 
 // Define our color palettes
 const lightTheme = createTheme({
