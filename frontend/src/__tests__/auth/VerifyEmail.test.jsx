@@ -2,16 +2,21 @@ import React from 'react';
 import { screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import axios from 'axios';
-import { renderWithProviders } from 'src/test/utils/renderWithProviders';
-import VerifyEmail from 'src/pages/VerifyEmail';
+import { renderWithProviders } from '../../test-utils/renderWithProviders';
+import VerifyEmail from '../../pages/VerifyEmail';
 
 // Mock react-router-dom
-jest.mock('react-router-dom', () => ({
-  ...jest.requireActual('react-router-dom'),
-  useNavigate: () => jest.fn(),
-  useParams: () => ({ token: 'valid-verification-token' }),
-  Link: ({ to, children, ...rest }) => <a href={to} {...rest}>{children}</a>
-}));
+jest.mock('react-router-dom', () => {
+  const originalModule = jest.requireActual('react-router-dom');
+  return {
+    ...originalModule,
+    useNavigate: () => jest.fn(),
+    useParams: () => ({ token: 'valid-verification-token' }),
+    Link: React.forwardRef(({ to, children, ...rest }, ref) => (
+      <a href={to} ref={ref} {...rest}>{children}</a>
+    ))
+  };
+});
 
 // Mock axios
 jest.mock('axios', () => {
