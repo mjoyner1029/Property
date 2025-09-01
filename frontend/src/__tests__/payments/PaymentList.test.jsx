@@ -1,10 +1,10 @@
 // frontend/src/__tests__/payments/PaymentList.test.jsx
 import React from "react";
-import { screen, waitFor, fireEvent } from "@testing-library/react";
-import { renderWithProviders } from "../../test-utils/renderWithProviders";
-import Payments from "../../pages/Payments";
+import { screen, within, waitFor, fireEvent } from "@testing-library/react";
+import { renderWithProviders } from "src/test/utils/renderWithProviders";
+import Payments from "src/pages/Payments";
 
-import { usePayment, useApp } from "../../context";
+import { usePayment, useApp } from "src/context";
 
 // ---- Router mocks (declare BEFORE component import usage) ----
 const mockNavigate = jest.fn();
@@ -18,7 +18,7 @@ const mockFetchPayments = jest.fn();
 const mockCreatePayment = jest.fn();
 const mockUpdatePageTitle = jest.fn();
 
-jest.mock("../../context", () => ({
+jest.mock("src/context", () => ({
   usePayment: jest.fn(),
   useApp: jest.fn(),
 }));
@@ -220,13 +220,13 @@ describe("Payments List Page", () => {
     await screen.findByRole("dialog");
 
     // Fill in required fields
-    fireEvent.change(screen.getByLabelText(/Tenant ID/i), {
+    fireEvent.change(getInputByName(/Tenant ID/i), {
       target: { value: "t7" },
     });
-    fireEvent.change(screen.getByLabelText(/Amount/i), {
+    fireEvent.change(getInputByName(/Amount/i), {
       target: { value: "1234.56" },
     });
-    fireEvent.change(screen.getByLabelText(/Due Date/i), {
+    fireEvent.change(getInputByName(/Due Date/i), {
       target: { value: "2025-09-01" },
     });
 
@@ -267,13 +267,13 @@ describe("Payments List Page", () => {
     await screen.findByRole("dialog");
 
     // Fill minimally required
-    fireEvent.change(screen.getByLabelText(/Tenant ID/i), {
+    fireEvent.change(getInputByName(/Tenant ID/i), {
       target: { value: "t9" },
     });
-    fireEvent.change(screen.getByLabelText(/Amount/i), {
+    fireEvent.change(getInputByName(/Amount/i), {
       target: { value: "800" },
     });
-    fireEvent.change(screen.getByLabelText(/Due Date/i), {
+    fireEvent.change(getInputByName(/Due Date/i), {
       target: { value: "2025-10-05" },
     });
 

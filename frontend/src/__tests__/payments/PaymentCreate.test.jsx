@@ -1,12 +1,12 @@
 // frontend/src/__tests__/payments/PaymentCreate.test.jsx
 import React from "react";
-import { screen, waitFor, fireEvent } from "@testing-library/react";
-import { renderWithProviders } from "../../test-utils/renderWithProviders";
+import { screen, within, waitFor, fireEvent } from "@testing-library/react";
+import { renderWithProviders } from "src/test/utils/renderWithProviders";
 
-import { usePayment, useApp } from "../../context";
+import { usePayment, useApp } from "src/context";
 
 // ---- Import component after mocks ----
-import Payments from "../../pages/Payments";
+import Payments from "src/pages/Payments";
 
 // ---- Router mocks (optional; kept for consistency with other tests) ----
 const mockNavigate = jest.fn();
@@ -20,7 +20,7 @@ const mockFetchPayments = jest.fn();
 const mockCreatePayment = jest.fn();
 const mockUpdatePageTitle = jest.fn();
 
-jest.mock("../../context", () => ({
+jest.mock("src/context", () => ({
   usePayment: jest.fn(),
   useApp: jest.fn(),
 }));
@@ -114,10 +114,10 @@ describe("PaymentCreate — Record Payment dialog", () => {
     expect(await screen.findByRole("dialog")).toBeInTheDocument();
 
     // Basic fields present
-    expect(screen.getByLabelText(/Tenant ID/i)).toBeInTheDocument();
-    expect(screen.getByLabelText(/Amount/i)).toBeInTheDocument();
-    expect(screen.getByLabelText(/Due Date/i)).toBeInTheDocument();
-    expect(screen.getByLabelText(/Description/i)).toBeInTheDocument(); // default "Rent"
+    expect(getInputByName(/Tenant ID/i)).toBeInTheDocument();
+    expect(getInputByName(/Amount/i)).toBeInTheDocument();
+    expect(getInputByName(/Due Date/i)).toBeInTheDocument();
+    expect(getInputByName(/Description/i)).toBeInTheDocument(); // default "Rent"
     // Status select exists & defaults to pending in component's state
     expect(screen.getByTestId("select-status")).toBeInTheDocument();
   });
@@ -149,13 +149,13 @@ describe("PaymentCreate — Record Payment dialog", () => {
     await screen.findByRole("dialog");
 
     // Fill tenant and due date, but set amount <= 0
-    fireEvent.change(screen.getByLabelText(/Tenant ID/i), {
+    fireEvent.change(getInputByName(/Tenant ID/i), {
       target: { value: "t42" },
     });
-    fireEvent.change(screen.getByLabelText(/Amount/i), {
+    fireEvent.change(getInputByName(/Amount/i), {
       target: { value: "0" },
     });
-    fireEvent.change(screen.getByLabelText(/Due Date/i), {
+    fireEvent.change(getInputByName(/Due Date/i), {
       target: { value: "2025-09-15" },
     });
 
@@ -179,18 +179,18 @@ describe("PaymentCreate — Record Payment dialog", () => {
     await screen.findByRole("dialog");
 
     // Fill required fields; leave status untouched so it remains 'pending'
-    fireEvent.change(screen.getByLabelText(/Tenant ID/i), {
+    fireEvent.change(getInputByName(/Tenant ID/i), {
       target: { value: "t7" },
     });
-    fireEvent.change(screen.getByLabelText(/Amount/i), {
+    fireEvent.change(getInputByName(/Amount/i), {
       target: { value: "1234.56" },
     });
-    fireEvent.change(screen.getByLabelText(/Due Date/i), {
+    fireEvent.change(getInputByName(/Due Date/i), {
       target: { value: "2025-09-01" },
     });
 
     // Optional: change description or leave default "Rent"
-    // fireEvent.change(screen.getByLabelText(/Description/i), { target: { value: "September Rent" } });
+    // fireEvent.change(getInputByName(/Description/i), { target: { value: "September Rent" } });
 
     // Submit
     fireEvent.click(screen.getByRole("button", { name: /^record payment$/i }));
@@ -222,13 +222,13 @@ describe("PaymentCreate — Record Payment dialog", () => {
     await screen.findByRole("dialog");
 
     // Fill required fields
-    fireEvent.change(screen.getByLabelText(/Tenant ID/i), {
+    fireEvent.change(getInputByName(/Tenant ID/i), {
       target: { value: "t9" },
     });
-    fireEvent.change(screen.getByLabelText(/Amount/i), {
+    fireEvent.change(getInputByName(/Amount/i), {
       target: { value: "800" },
     });
-    fireEvent.change(screen.getByLabelText(/Due Date/i), {
+    fireEvent.change(getInputByName(/Due Date/i), {
       target: { value: "2025-10-05" },
     });
 
@@ -259,13 +259,13 @@ describe("PaymentCreate — Record Payment dialog", () => {
     await screen.findByRole("dialog");
 
     // Fill minimally required fields
-    fireEvent.change(screen.getByLabelText(/Tenant ID/i), {
+    fireEvent.change(getInputByName(/Tenant ID/i), {
       target: { value: "t11" },
     });
-    fireEvent.change(screen.getByLabelText(/Amount/i), {
+    fireEvent.change(getInputByName(/Amount/i), {
       target: { value: "500" },
     });
-    fireEvent.change(screen.getByLabelText(/Due Date/i), {
+    fireEvent.change(getInputByName(/Due Date/i), {
       target: { value: "2025-12-01" },
     });
 
@@ -292,13 +292,13 @@ describe("PaymentCreate — Record Payment dialog", () => {
     fireEvent.click(screen.getByRole("button", { name: /record payment/i }));
     await screen.findByRole("dialog");
 
-    fireEvent.change(screen.getByLabelText(/Tenant ID/i), {
+    fireEvent.change(getInputByName(/Tenant ID/i), {
       target: { value: "t33" },
     });
-    fireEvent.change(screen.getByLabelText(/Amount/i), {
+    fireEvent.change(getInputByName(/Amount/i), {
       target: { value: "999.99" },
     });
-    fireEvent.change(screen.getByLabelText(/Due Date/i), {
+    fireEvent.change(getInputByName(/Due Date/i), {
       target: { value: "2025-11-11" },
     });
 
@@ -314,10 +314,10 @@ describe("PaymentCreate — Record Payment dialog", () => {
     fireEvent.click(screen.getByRole("button", { name: /record payment/i }));
     await screen.findByRole("dialog");
 
-    const tenantInput = screen.getByLabelText(/Tenant ID/i);
-    const amountInput = screen.getByLabelText(/Amount/i);
-    const dueDateInput = screen.getByLabelText(/Due Date/i);
-    const descInput = screen.getByLabelText(/Description/i);
+    const tenantInput = getInputByName(/Tenant ID/i);
+    const amountInput = getInputByName(/Amount/i);
+    const dueDateInput = getInputByName(/Due Date/i);
+    const descInput = getInputByName(/Description/i);
     const statusSelect = screen.getByTestId("select-status");
 
     expect(tenantInput).toHaveValue("");

@@ -15,7 +15,7 @@ import { fetchPaymentsMock, createPaymentMock } from "../../test/mocks/services"
 import { updatePageTitleMock } from "../../test/mocks/pageTitle";
 
 // Use real router utilities (no need to mock useNavigate here)
-import Payments from "../../pages/Payments";
+import Payments from "src/pages/Payments";
 import { usePayment } from "../../context";
 
 jest.mock("../../context", () => {
@@ -79,11 +79,7 @@ function renderWithCtx({
     createPayment: createPaymentMock,
   });
 
-  return render(
-    <MemoryRouter>
-      <Payments />
-    </MemoryRouter>
-  );
+  return renderWithProviders(<Payments />);
 }
 
 describe("Payments page", () => {
@@ -180,10 +176,10 @@ describe("Payments page", () => {
     const dialog = await screen.findByRole("dialog");
 
     // Fill fields
-    const tenantId = within(dialog).getByLabelText(/tenant id/i);
-    const amount = within(dialog).getByLabelText(/amount/i);
-    const dueDate = within(dialog).getByLabelText(/due date/i);
-    const description = within(dialog).getByLabelText(/description/i);
+    const tenantId = getInputByName(/tenant id/i);
+    const amount = getInputByName(/amount/i);
+    const dueDate = getInputByName(/due date/i);
+    const description = getInputByName(/description/i);
     // Status select defaults to "pending", we can leave it
 
     await userEvent.type(tenantId, "777");
@@ -232,9 +228,9 @@ describe("Payments page", () => {
     const dialog = await screen.findByRole("dialog");
 
     // Fill minimal required fields
-    await userEvent.type(within(dialog).getByLabelText(/tenant id/i), "55");
-    await userEvent.type(within(dialog).getByLabelText(/amount/i), "1000");
-    await userEvent.type(within(dialog).getByLabelText(/due date/i), "2025-07-31");
+    await userEvent.type(getInputByName(/tenant id/i), "55");
+    await userEvent.type(getInputByName(/amount/i), "1000");
+    await userEvent.type(getInputByName(/due date/i), "2025-07-31");
 
     // Submit
     await userEvent.click(

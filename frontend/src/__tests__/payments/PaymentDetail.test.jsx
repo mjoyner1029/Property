@@ -1,11 +1,11 @@
 // frontend/src/__tests__/payments/PaymentDetail.test.jsx
 import React from "react";
-import { screen, waitFor, fireEvent } from "@testing-library/react";
+import { screen, within, waitFor, fireEvent } from "@testing-library/react";
 import { Routes, Route } from "react-router-dom";
-import { renderWithProviders } from "../../test-utils/renderWithProviders";
+import { renderWithProviders } from "src/test/utils/renderWithProviders";
 import { PaymentDetail } from "../../pages";
 
-import { usePayment, useApp } from "../../context";
+import { usePayment, useApp } from "src/context";
 
 // ---- Router mocks ----
 const mockNavigate = jest.fn();
@@ -21,7 +21,7 @@ const mockUpdatePayment = jest.fn();
 const mockDeletePayment = jest.fn();
 const mockUpdatePageTitle = jest.fn();
 
-jest.mock("../../context", () => ({
+jest.mock("src/context", () => ({
   usePayment: jest.fn(),
   useApp: jest.fn(),
 }));

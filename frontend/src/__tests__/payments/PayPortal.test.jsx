@@ -1,6 +1,7 @@
 import React from 'react';
-import { render, screen, waitFor, fireEvent } from '@testing-library/react';
-import { MemoryRouter } from 'react-router-dom';
+import { screen, waitFor, fireEvent } from '@testing-library/react';
+import { getInputByName, getSelectByName } from 'src/test/utils/muiTestUtils';
+import { renderWithProviders } from 'src/test/utils/renderWithProviders';
 import PayPortal from 'src/pages/PayPortal';
 import axios from 'axios';
 
@@ -19,11 +20,7 @@ describe('PayPortal', () => {
       ]
     });
 
-    render(
-      <MemoryRouter>
-        <PayPortal />
-      </MemoryRouter>
-    );
+    renderWithProviders(<PayPortal />);
 
     expect(await screen.findByText('2200')).toBeInTheDocument();
     expect(screen.getByText('2025-01-01')).toBeInTheDocument();
@@ -33,11 +30,7 @@ describe('PayPortal', () => {
   test('shows empty state when no payments', async () => {
     axios.get.mockResolvedValueOnce({ data: [] });
 
-    render(
-      <MemoryRouter>
-        <PayPortal />
-      </MemoryRouter>
-    );
+    renderWithProviders(<PayPortal />);
 
     expect(await screen.findByText('No payments')).toBeInTheDocument();
   });
@@ -45,11 +38,7 @@ describe('PayPortal', () => {
   test('shows error UI on failure', async () => {
     axios.get.mockRejectedValueOnce(new Error('network'));
 
-    render(
-      <MemoryRouter>
-        <PayPortal />
-      </MemoryRouter>
-    );
+    renderWithProviders(<PayPortal />);
 
     expect(await screen.findByText('Error loading payments')).toBeInTheDocument();
   });
@@ -63,11 +52,7 @@ describe('PayPortal', () => {
     delete window.location;
     window.location = { href: '' };
 
-    render(
-      <MemoryRouter>
-        <PayPortal />
-      </MemoryRouter>
-    );
+    renderWithProviders(<PayPortal />);
 
     // Wait for initial data load
     await screen.findByText('2200');
