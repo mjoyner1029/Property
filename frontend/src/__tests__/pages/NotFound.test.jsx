@@ -1,15 +1,12 @@
 import React from 'react';
-import { render, screen } from '@testing-library/react';
-import { MemoryRouter } from 'react-router-dom';
+import { screen } from '@testing-library/react';
+import { getInputByName, getSelectByName } from 'src/test/utils/muiTestUtils';
 import NotFound from 'src/pages/NotFound';
+import { renderWithProviders } from 'src/test/utils/renderWithProviders';
 
 describe('NotFound Page', () => {
   test('renders 404 page with correct heading and message', () => {
-    render(
-      <MemoryRouter>
-        <NotFound />
-      </MemoryRouter>
-    );
+    renderWithProviders(<NotFound />);
 
     // Check for 404 heading using role
     expect(screen.getByRole('heading', { name: '404' })).toBeInTheDocument();

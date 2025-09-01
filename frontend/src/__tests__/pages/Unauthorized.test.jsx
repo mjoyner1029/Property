@@ -1,15 +1,12 @@
 import React from 'react';
-import { render, screen } from '@testing-library/react';
-import { MemoryRouter } from 'react-router-dom';
+import { screen } from '@testing-library/react';
+import { getInputByName, getSelectByName } from 'src/test/utils/muiTestUtils';
 import Unauthorized from 'src/pages/Unauthorized';
+import { renderWithProviders } from 'src/test/utils/renderWithProviders';
 
 describe('Unauthorized Page', () => {
   test('renders unauthorized page with correct heading', () => {
-    render(
-      <MemoryRouter>
-        <Unauthorized />
-      </MemoryRouter>
-    );
+    renderWithProviders(<Unauthorized />);
 
     // Check for unauthorized heading or message
     expect(screen.getByText('Unauthorized')).toBeInTheDocument();

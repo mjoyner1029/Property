@@ -1,17 +1,14 @@
 import React from 'react';
-import { render, screen } from '@testing-library/react';
-import { MemoryRouter } from 'react-router-dom';
+import { screen } from '@testing-library/react';
+import { getInputByName, getSelectByName } from 'src/test/utils/muiTestUtils';
 import Support from 'src/pages/Support';
+import { renderWithProviders } from 'src/test/utils/renderWithProviders';
 
-jest.mock('../../components/PageHeader', () => () => <div data-testid="page-header">Page Header</div>);
+jest.mock('src/components/PageHeader', () => () => <div data-testid="page-header">Page Header</div>);
 
 describe('Support Page', () => {
   test('renders support page with header and FAQ section', () => {
-    render(
-      <MemoryRouter>
-        <Support />
-      </MemoryRouter>
-    );
+    renderWithProviders(<Support />);
 
     // Check for FAQ section
     expect(screen.getByText('Frequently Asked Questions')).toBeInTheDocument();

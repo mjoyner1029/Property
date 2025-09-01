@@ -1,15 +1,12 @@
 import React from 'react';
-import { render, screen } from '@testing-library/react';
-import { MemoryRouter } from 'react-router-dom';
+import { screen } from '@testing-library/react';
+import { getInputByName, getSelectByName } from 'src/test/utils/muiTestUtils';
 import Terms from 'src/pages/Terms';
+import { renderWithProviders } from 'src/test/utils/renderWithProviders';
 
 describe('Terms Page', () => {
   test('renders terms page with title', () => {
-    render(
-      <MemoryRouter>
-        <Terms />
-      </MemoryRouter>
-    );
+    renderWithProviders(<Terms />);
     
     // Check for Terms title and content
     expect(screen.getByText('Terms of Service')).toBeInTheDocument();

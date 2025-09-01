@@ -1,11 +1,12 @@
 import React from 'react';
-import { render, screen } from '@testing-library/react';
-import { MemoryRouter } from 'react-router-dom';
+import { screen } from '@testing-library/react';
+import { getInputByName, getSelectByName } from 'src/test/utils/muiTestUtils';
 import WelcomePage from 'src/pages/WelcomePage';
 import { useAuth } from 'src/context/AuthContext';
+import { renderWithProviders } from 'src/test/utils/renderWithProviders';
 
 // Mock the auth context
-jest.mock('../../context/AuthContext', () => ({
+jest.mock('src/context/AuthContext', () => ({
   useAuth: jest.fn()
 }));
 
@@ -18,11 +19,7 @@ describe('WelcomePage', () => {
   });
 
   test('renders welcome page with welcome message', () => {
-    render(
-      <MemoryRouter>
-        <WelcomePage />
-      </MemoryRouter>
-    );
+    renderWithProviders(<WelcomePage />);
 
     // Check for welcome message
     expect(screen.getByText(/Welcome to Asset Anchor/i)).toBeInTheDocument();
