@@ -3,6 +3,11 @@ import React from "react";
 import { screen, waitFor, fireEvent } from "@testing-library/react";
 import { renderWithProviders } from "../../test-utils/renderWithProviders";
 
+import { useTenant, useApp } from "../../context";
+
+// ---- Import the page under test AFTER mocks ----
+import { TenantForm } from "../../pages";
+
 // ---- Router mocks (declare BEFORE component import) ----
 const mockNavigate = jest.fn();
 
@@ -23,8 +28,6 @@ jest.mock("../../context", () => ({
   useTenant: jest.fn(),
   useApp: jest.fn(),
 }));
-
-import { useTenant, useApp } from "../../context";
 
 // ---- Lightweight component stubs to keep tests fast/stable ----
 jest.mock("../../components", () => ({
@@ -47,10 +50,7 @@ jest.mock("../../components", () => ({
     </section>
   ),
   Card: ({ children }) => <div data-testid="card">{children}</div>,
-}));
-
-// ---- Import the page under test AFTER mocks ----
-import { TenantForm } from "../../pages"; // adjust if your file is named differently
+})); // adjust if your file is named differently
 
 const selectedTenant = {
   id: 1,
@@ -166,6 +166,8 @@ describe("TenantForm (Edit mode)", () => {
 
     // Navigation afterwards (destination might be /tenants or /tenants/1)
     await waitFor(() => {
+  // TODO: Fix multiple assertions in waitFor - split into separate waitFor calls
+  
       expect(mockNavigate).toHaveBeenCalled();
       const dest = mockNavigate.mock.calls[0][0];
       expect(String(dest)).toMatch(/\/tenants/);

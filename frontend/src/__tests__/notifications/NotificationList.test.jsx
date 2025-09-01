@@ -8,6 +8,8 @@ import { renderWithProviders } from "../../test-utils/renderWithProviders";
 // If your filename differs (e.g. NotificationList.jsx), update the import.
 import NotificationsPage from "../../pages/Notifications";
 
+import { useNotifications, useApp } from "../../context";
+
 // ---- Router mocks (kept light; page may not navigate) ----
 const mockNavigate = jest.fn();
 jest.mock("react-router-dom", () => ({
@@ -26,8 +28,6 @@ jest.mock("../../context", () => ({
   useNotifications: jest.fn(),
   useApp: jest.fn(),
 }));
-
-import { useNotifications, useApp } from "../../context";
 
 // ---- Lightweight MUI stubs for deterministic DOM (Dialog/Menu/Button/Select) ----
 jest.mock("@mui/material", () => {

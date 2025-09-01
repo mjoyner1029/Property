@@ -5,10 +5,12 @@ import { Routes, Route } from "react-router-dom";
 import { renderWithProviders } from "../../test-utils/renderWithProviders";
 
 // Import from shared mocks
-import { navigateMock, currentParams, setParams } from "../../test/mocks/router";
+import { mockNavigate, currentParams, setParams } from "../../test/mocks/router";
 
 // Page under test (adjust import if your filename differs)
 import { MessageDetail } from "../../pages";
+
+import { useMessages, useApp } from "../../context";
 
 // ---- Context barrel mocks ----
 const mockFetchThread = jest.fn();
@@ -21,8 +23,6 @@ jest.mock("../../context", () => ({
   useMessages: jest.fn(),
   useApp: jest.fn(),
 }));
-
-import { useMessages, useApp } from "../../context";
 
 // ---- Lightweight MUI stubs for deterministic DOM ----
 jest.mock("@mui/material", () => {
@@ -191,9 +191,10 @@ const findMessageInput = (container = document) =>
   screen.queryAllByRole("textbox").slice(-1)[0]; // last textbox as fallback
 
 describe("Message Detail", () => {
+  const mockNavigate = jest.fn();
   beforeEach(() => {
     jest.clearAllMocks();
-    navigateMock.mockReset(); // Fix: use navigateMock instead of mockNavigate
+    mockNavigate.mockReset(); // Fix: use mockNavigate instead of mockNavigate
     setParams({ id: "1" });
   });
 

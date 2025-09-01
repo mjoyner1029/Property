@@ -4,9 +4,6 @@ import { screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { renderWithProviders } from "src/test/utils/renderWithProviders";
 
-// Mock MUI components with lightweight versions to avoid flakiness
-jest.mock('@mui/material', () => require('../__mocks__/muiLightMock'));
-
 // Import mocks directly
 import { 
   isAuthenticatedMock,
@@ -15,10 +12,18 @@ import {
 } from "src/test/mocks/auth";
 
 // Import router mocks
-import { navigateMock } from "src/test/mocks/router";
+import { mockNavigate } from "src/test/mocks/router";
 
 // Import mock hooks
 import { mockAuthHook, mockAppHook } from '../__mocks__/contextHooks';
+
+// We don't need to mock react-router-dom here as we're importing mockNavigate from shared mocks
+
+// Import after mocks
+import Register from "src/pages/Register";
+
+// Mock MUI components with lightweight versions to avoid flakiness
+jest.mock('@mui/material', () => require('../__mocks__/muiLightMock'));
 
 jest.mock("src/contexts/AuthContext", () => ({
   useAuth: () => {
@@ -37,11 +42,6 @@ jest.mock("src/contexts/AuthContext", () => ({
 jest.mock("src/contexts", () => ({
   useApp: () => ({ ...mockAppHook }),
 }));
-
-// We don't need to mock react-router-dom here as we're importing navigateMock from shared mocks
-
-// Import after mocks
-import Register from "src/pages/Register";
 
 // -- Helpers ----------------------------------------------------
 
@@ -89,7 +89,7 @@ describe("Register page", () => {
   test("redirects to '/' if already authenticated", () => {
     isAuthenticatedMock.mockImplementation(() => true);
     renderAtRegister();
-    expect(navigateMock).toHaveBeenCalledWith("/", { replace: true });
+    expect(mockNavigate).toHaveBeenCalledWith("/", { replace: true });
   });
 
   test("renders name, email, password, confirm and submit button", () => {
@@ -168,7 +168,7 @@ describe("Register page", () => {
 
     // Allow either "/" or "/login" redirect depending on app choice
     await waitFor(() => {
-      const calledWithRoot = navigateMock.mock.calls.some(
+      const calledWithRoot = mockNavigate.mock.calls.some(
         (args) => args[0] === "/" || args[0] === "/login"
       );
       expect(calledWithRoot).toBe(true);
@@ -215,7 +215,7 @@ describe("Register page", () => {
     ).toBeInTheDocument();
 
     // Should not navigate on error
-    expect(navigateMock).not.toHaveBeenCalled();
+    expect(mockNavigate).not.toHaveBeenCalled();
   });
 
   test("disables submit button while loading (if bound to loading state)", async () => {

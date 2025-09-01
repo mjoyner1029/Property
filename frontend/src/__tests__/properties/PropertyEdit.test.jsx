@@ -7,6 +7,9 @@ import { MemoryRouter } from "react-router-dom";
 import { fetchPropertyByIdMock, updatePropertyMock, createPropertyMock } from "../../test/mocks/services";
 import { updatePageTitleMock } from "../../test/mocks/pageTitle";
 
+import PropertyForm from "../../pages/PropertyForm";
+import { useProperty } from "../../context";
+
 jest.mock("../../context", () => ({
   useProperty: jest.fn(() => ({
     selectedProperty: null,
@@ -43,13 +46,10 @@ jest.mock("react-router-dom", () => {
     useParams: () => ({ id: "123" }),
     useNavigate: () => {
       const mock = require('src/test/mocks/router');
-      return mock.navigateMock;
+      return mock.mockNavigate;
     },
   };
 });
-
-import PropertyForm from "../../pages/PropertyForm";
-import { useProperty } from "../../context";
 
 // Helper to render with overridable context values
 function renderWithCtx({
@@ -153,7 +153,7 @@ describe("PropertyForm (Edit Mode)", () => {
 
     // After success, navigate back to /properties
     await waitFor(() => {
-      expect(navigateMock).toHaveBeenCalledWith("/properties");
+      expect(mockNavigate).toHaveBeenCalledWith("/properties");
     });
   });
 

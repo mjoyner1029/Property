@@ -159,6 +159,7 @@ export default function Maintenance() {
     maintenance_type: "",
   });
   const [formErrors, setFormErrors] = useState({});
+  const [submitting, setSubmitting] = useState(false);
 
   // Derived: units for the selected property (if API provides them on the property object)
   const unitsForSelectedProperty = useMemo(() => {
@@ -253,18 +254,48 @@ export default function Maintenance() {
   };
 
   const handleCreateRequest = async () => {
+    // Clear any previous form errors
+    setFormErrors({});
+    
+    // Validate all form fields
     const errors = validateForm();
     if (Object.keys(errors).length) {
       setFormErrors(errors);
       return;
     }
+    
+    // Use the component's submitting state
+    setSubmitting(true);
+    
     try {
-      await createRequest(newRequestData);
+      // Trim string inputs to prevent whitespace-only submissions
+      const sanitizedData = {
+        ...newRequestData,
+        title: newRequestData.title?.trim(),
+        description: newRequestData.description?.trim()
+      };
+      
+      // Call the API to create the request
+      await createRequest(sanitizedData);
+      
       // Refresh list to ensure the new item appears
       await fetchRequests();
+      
+      // Close the dialog and reset form on success
       closeCreateDialog();
+      
+      // Show success message (optional - could be displayed in a snackbar)
+      // setSuccessMessage("Maintenance request created successfully");
     } catch (err) {
-      setFormErrors({ submit: err?.message || "Failed to create request" });
+      // Display the error message in the form with more detail
+      console.error("Failed to create maintenance request:", err);
+      setFormErrors(prev => ({ 
+        ...prev, 
+        submit: err?.response?.data?.message || err?.message || "Failed to create request. Please try again." 
+      }));
+    } finally {
+      // Always reset submitting state
+      setSubmitting(false);
     }
   };
 
@@ -283,9 +314,19 @@ export default function Maintenance() {
           { text: "Dashboard", link: "/" },
           { text: "Maintenance" },
         ]}
-        actionText="New Request"
-        actionIcon={<AddIcon />}
-        onActionClick={openCreateDialog}
+        action={
+          <Button
+            variant="contained"
+            color="primary"
+            startIcon={<AddIcon />}
+            onClick={openCreateDialog}
+            data-testid="header-action"
+            id="header-action-button"
+            aria-label="New maintenance request"
+          >
+            New Request
+          </Button>
+        }
       />
 
       {/* Status Tabs */}
@@ -297,11 +338,12 @@ export default function Maintenance() {
           variant="scrollable"
           scrollButtons="auto"
           TabIndicatorProps={{ sx: { backgroundColor: "primary.main" } }}
+          data-testid="status-tabs"
         >
-          <Tab label={`All (${getRequestsCount("all")})`} value="all" />
-          <Tab label={`Open (${getRequestsCount("open")})`} value="open" />
-          <Tab label={`In Progress (${getRequestsCount("in_progress")})`} value="in_progress" />
-          <Tab label={`Completed (${getRequestsCount("completed")})`} value="completed" />
+          <Tab label={`All (${getRequestsCount("all")})`} value="all" data-testid="tab-all" />
+          <Tab label={`Open (${getRequestsCount("open")})`} value="open" data-testid="tab-open" />
+          <Tab label={`In Progress (${getRequestsCount("in_progress")})`} value="in_progress" data-testid="tab-in-progress" />
+          <Tab label={`Completed (${getRequestsCount("completed")})`} value="completed" data-testid="tab-completed" />
         </Tabs>
       </Box>
 
@@ -311,6 +353,7 @@ export default function Maintenance() {
           placeholder="Search requests..."
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
+          data-testid="search-input"
           InputProps={{
             startAdornment: (
               <InputAdornment position="start">
@@ -335,6 +378,7 @@ export default function Maintenance() {
           onClick={handleFilterClick}
           variant="outlined"
           sx={{ minWidth: 100, borderRadius: 2, py: 0.9 }}
+          data-testid="filter-button"
         >
           Filter
         </Button>
@@ -409,6 +453,7 @@ export default function Maintenance() {
           icon={<BuildIcon sx={{ fontSize: 64 }} />}
           actionText="New Request"
           onActionClick={openCreateDialog}
+          actionTestId="empty-action" // Add test ID for empty state action button
         />
       ) : (
         <Grid container spacing={3}>
@@ -464,6 +509,8 @@ export default function Maintenance() {
         onClose={closeCreateDialog}
         maxWidth="sm"
         fullWidth
+        aria-label="Create maintenance request dialog"
+        data-testid="create-dialog"
         PaperProps={{
           elevation: 0,
           sx: { boxShadow: "0px 2px 16px rgba(0,0,0,0.08)", borderRadius: 3 },
@@ -472,7 +519,7 @@ export default function Maintenance() {
         <DialogTitle sx={{ fontWeight: 600 }}>Create Maintenance Request</DialogTitle>
         <DialogContent>
           {formErrors.submit && (
-            <Typography color="error" sx={{ mb: 2 }}>
+            <Typography color="error" sx={{ mb: 2 }} data-testid="submit-error">
               {formErrors.submit}
             </Typography>
           )}
@@ -487,6 +534,7 @@ export default function Maintenance() {
             error={Boolean(formErrors.title)}
             helperText={formErrors.title}
             inputProps={{ maxLength: 100 }}
+            data-testid="title-input"
             autoFocus
           />
 
@@ -502,6 +550,7 @@ export default function Maintenance() {
             error={Boolean(formErrors.description)}
             helperText={formErrors.description}
             inputProps={{ maxLength: 500 }}
+            data-testid="description-input"
           />
 
           <FormControl fullWidth margin="normal" error={Boolean(formErrors.property_id)}>
@@ -511,12 +560,14 @@ export default function Maintenance() {
               value={newRequestData.property_id}
               onChange={handleNewRequestChange}
               label="Property"
+              data-testid="select-property_id"
+              inputProps={{ "data-testid": "property-select-input" }}
             >
               <MenuItem value="">
                 <em>Select a property</em>
               </MenuItem>
               {(properties || []).map((property) => (
-                <MenuItem key={property.id} value={property.id}>
+                <MenuItem key={property.id} value={property.id} data-testid={`property-option-${property.id}`}>
                   {property.name}
                 </MenuItem>
               ))}
@@ -534,6 +585,8 @@ export default function Maintenance() {
               onChange={handleNewRequestChange}
               label="Unit (optional)"
               disabled={!newRequestData.property_id || unitsForSelectedProperty.length === 0}
+              data-testid="select-unit_id"
+              inputProps={{ "data-testid": "unit-select-input" }}
             >
               <MenuItem value="">
                 <em>None</em>
@@ -543,7 +596,7 @@ export default function Maintenance() {
                 const uid = typeof u === "object" ? u.id : u;
                 const uname = typeof u === "object" ? (u.name || `Unit ${u.id}`) : String(u);
                 return (
-                  <MenuItem key={uid} value={uid}>
+                  <MenuItem key={uid} value={uid} data-testid={`unit-option-${uid}`}>
                     {uname}
                   </MenuItem>
                 );
@@ -558,6 +611,8 @@ export default function Maintenance() {
               value={newRequestData.maintenance_type}
               onChange={handleNewRequestChange}
               label="Type of Maintenance"
+              data-testid="select-maintenance_type"
+              inputProps={{ "data-testid": "maintenance-type-select-input" }}
             >
               <MenuItem value="">
                 <em>Select maintenance type</em>
@@ -575,7 +630,7 @@ export default function Maintenance() {
                     {group.header}
                   </ListSubheader>
                   {group.items.map(([val, label]) => (
-                    <MenuItem key={val} value={val}>
+                    <MenuItem key={val} value={val} data-testid={`maintenance-type-option-${val}`}>
                       {label}
                     </MenuItem>
                   ))}
@@ -594,23 +649,51 @@ export default function Maintenance() {
               value={newRequestData.priority}
               onChange={handleNewRequestChange}
               label="Priority"
+              data-testid="select-priority"
+              inputProps={{ "data-testid": "priority-select-input" }}
             >
-              <MenuItem value="low">Low</MenuItem>
-              <MenuItem value="medium">Medium</MenuItem>
-              <MenuItem value="high">High</MenuItem>
+              <MenuItem value="low" data-testid="priority-option-low">Low</MenuItem>
+              <MenuItem value="medium" data-testid="priority-option-medium">Medium</MenuItem>
+              <MenuItem value="high" data-testid="priority-option-high">High</MenuItem>
             </Select>
           </FormControl>
+          
+          {/* Display error message when submission fails */}
+          {formErrors.submit && (
+            <Box sx={{ mt: 2 }}>
+              <Typography 
+                color="error" 
+                variant="body2" 
+                role="alert"
+              >
+                {formErrors.submit}
+              </Typography>
+            </Box>
+          )}
         </DialogContent>
         <DialogActions sx={{ px: 3, pb: 3 }}>
-          <Button onClick={closeCreateDialog} sx={{ borderRadius: 2, px: 3 }}>
+          <Button 
+            onClick={closeCreateDialog} 
+            sx={{ borderRadius: 2, px: 3 }}
+            data-testid="cancel-button"
+            id="cancel-dialog-button"
+            disabled={submitting}
+            aria-label="Cancel"
+          >
             Cancel
           </Button>
           <Button
             onClick={handleCreateRequest}
             variant="contained"
+            color="primary"
             sx={{ borderRadius: 2, px: 3 }}
+            data-testid="submit-button"
+            id="submit-request-button"
+            disabled={submitting}
+            type="submit"
+            aria-label="Create maintenance request"
           >
-            Create Request
+            {submitting ? "Creating..." : "Create Request"}
           </Button>
         </DialogActions>
       </Dialog>

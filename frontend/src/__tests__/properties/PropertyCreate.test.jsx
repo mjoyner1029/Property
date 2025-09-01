@@ -3,6 +3,11 @@ import React from "react";
 import { screen, waitFor, fireEvent } from "@testing-library/react";
 import { renderWithProviders } from "../../test-utils/renderWithProviders";
 
+import { useProperty, useApp } from "../../context";
+
+// ---- Import the component under test AFTER mocks ----
+import PropertyForm from "../../pages/PropertyForm";
+
 // ---- Router mocks (must be defined before component import) ----
 const mockNavigate = jest.fn();
 
@@ -23,8 +28,6 @@ jest.mock("../../context", () => ({
   useProperty: jest.fn(),
   useApp: jest.fn(),
 }));
-
-import { useProperty, useApp } from "../../context";
 
 // ---- Mock shared components used by PropertyForm ----
 jest.mock("../../components", () => ({
@@ -65,9 +68,6 @@ jest.mock("../../components", () => ({
     );
   },
 }));
-
-// ---- Import the component under test AFTER mocks ----
-import PropertyForm from "../../pages/PropertyForm";
 
 describe("PropertyForm (Create)", () => {
   beforeAll(() => {

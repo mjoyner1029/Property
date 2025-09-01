@@ -1,5 +1,5 @@
 import React from 'react';
-import { AuthContext } from './context/AuthContext';
+import AuthContext from './context/AuthContext';
 import { NotificationContext } from './context/NotificationContext';
 import { PropertyContext } from './context/PropertyContext';
 import { AppContext } from './context/AppContext';

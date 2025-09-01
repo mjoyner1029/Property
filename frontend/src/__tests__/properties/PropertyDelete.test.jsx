@@ -115,9 +115,7 @@ describe("Property deletion (PropertyDetail)", () => {
     setupDetail({ deleteImpl: deleteMock, fetchImpl: fetchMock });
 
     // Wait for details to display
-    await waitFor(() =>
-      expect(screen.getByText("77 Ocean Ave")).toBeInTheDocument()
-    );
+    await screen.findByText("77 Ocean Ave");
 
     // Trigger delete flow (supports both direct button and menu-item patterns)
     await triggerDeleteAction();
@@ -153,9 +151,7 @@ describe("Property deletion (PropertyDetail)", () => {
 
     setupDetail({ deleteImpl: deleteMock, fetchImpl: fetchMock });
 
-    await waitFor(() =>
-      expect(screen.getByText("77 Ocean Ave")).toBeInTheDocument()
-    );
+    await screen.findByText("77 Ocean Ave");
 
     await triggerDeleteAction();
 
@@ -187,9 +183,7 @@ describe("Property deletion (PropertyDetail)", () => {
 
     setupDetail({ deleteImpl: deleteMock, fetchImpl: fetchMock });
 
-    await waitFor(() =>
-      expect(screen.getByText("77 Ocean Ave")).toBeInTheDocument()
-    );
+    await screen.findByText("77 Ocean Ave");
 
     await triggerDeleteAction();
 

@@ -5,6 +5,8 @@ import { Routes, Route } from "react-router-dom";
 import { renderWithProviders } from "../../test-utils/renderWithProviders";
 import PaymentDetail from "../../pages/PaymentDetail";
 
+import { usePayment, useApp } from "../../context";
+
 // ---- Router mocks ----
 const mockNavigate = jest.fn();
 jest.mock("react-router-dom", () => ({
@@ -22,8 +24,6 @@ jest.mock("../../context", () => ({
   usePayment: jest.fn(),
   useApp: jest.fn(),
 }));
-
-import { usePayment, useApp } from "../../context";
 
 // ---- Lightweight MUI overrides for deterministic DOM (Dialog/Select/Button/MenuItem) ----
 jest.mock("@mui/material", () => {
@@ -210,6 +210,8 @@ describe("PaymentDetail — Refund flow", () => {
     fireEvent.change(amountInput, { target: { value: "1300" } });
     fireEvent.click(submitBtn);
     await waitFor(() => {
+  // TODO: Fix multiple assertions in waitFor - split into separate waitFor calls
+  
       expect(mockRefundPayment).not.toHaveBeenCalled();
       // Keep dialog open as proxy for validation
       expect(screen.getByRole("dialog")).toBeInTheDocument();
@@ -360,6 +362,8 @@ describe("PaymentDetail — Refund flow", () => {
     fireEvent.click(submitBtn);
 
     await waitFor(() => {
+  // TODO: Fix multiple assertions in waitFor - split into separate waitFor calls
+  
       const err =
         screen.queryByRole("alert") ||
         screen.queryByText(/failed to refund/i) ||

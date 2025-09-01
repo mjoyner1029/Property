@@ -11,7 +11,7 @@ describe('Framer Motion Mock Tests', () => {
     
     // Test that our motion.div component renders properly
     const { container } = render(<motion.div>Test</motion.div>);
-    expect(container.textContent).toBe('Test');
+    expect(container).toHaveTextContent('Test');
   });
   
   test('AnimatePresence renders children', () => {
@@ -23,7 +23,7 @@ describe('Framer Motion Mock Tests', () => {
       </AnimatePresence>
     );
     
-    expect(container.textContent).toBe('Child Component');
+    expect(container).toHaveTextContent('Child Component');
   });
   
   test('useAnimation returns object with start function', () => {

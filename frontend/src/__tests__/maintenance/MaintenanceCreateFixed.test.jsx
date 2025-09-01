@@ -4,6 +4,9 @@ import { screen, waitFor, fireEvent } from "@testing-library/react";
 import { renderWithProviders } from "src/test/utils/renderWithProviders";
 import Maintenance from "src/pages/Maintenance";
 
+// Import after defining mocks
+import { useMaintenance, useApp, useProperty } from "src/contexts";
+
 // ---- Router mocks (declare BEFORE component import) ----
 const mockNavigate = jest.fn();
 jest.mock("react-router-dom", () => ({
@@ -17,9 +20,6 @@ const mockCreateRequest = jest.fn().mockImplementation(async (data) => {
   return { id: "new-id", ...data };
 });
 const mockUpdatePageTitle = jest.fn();
-
-// Import after defining mocks
-import { useMaintenance, useApp, useProperty } from "src/contexts";
 
 // Setup context values using the mock functions defined above
 const maintenanceContextValue = {

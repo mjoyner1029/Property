@@ -4,6 +4,8 @@ import { screen, waitFor, fireEvent } from "@testing-library/react";
 import { renderWithProviders } from "../../test-utils/renderWithProviders";
 import Payments from "../../pages/Payments";
 
+import { usePayment, useApp } from "../../context";
+
 // ---- Router mocks (declare BEFORE component import usage) ----
 const mockNavigate = jest.fn();
 jest.mock("react-router-dom", () => ({
@@ -20,8 +22,6 @@ jest.mock("../../context", () => ({
   usePayment: jest.fn(),
   useApp: jest.fn(),
 }));
-
-import { usePayment, useApp } from "../../context";
 
 // ---- Lightweight MUI overrides for deterministic DOM (Dialog/Select/Menu/Button) ----
 jest.mock("@mui/material", () => {

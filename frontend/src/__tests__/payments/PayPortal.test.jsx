@@ -70,13 +70,15 @@ describe('PayPortal', () => {
     );
 
     // Wait for initial data load
-    await waitFor(() => expect(screen.getByText('2200')).toBeInTheDocument());
+    await screen.findByText('2200');
 
     // Click pay button and verify redirection
     const payButton = screen.getByRole('button', { name: /pay/i });
     fireEvent.click(payButton);
 
     await waitFor(() => {
+  // TODO: Fix multiple assertions in waitFor - split into separate waitFor calls
+  
       expect(axios.post).toHaveBeenCalledWith('/api/payments/pay/p1');
       expect(window.location.href).toBe('https://test-stripe.com');
     });

@@ -5,6 +5,8 @@ import { Routes, Route } from "react-router-dom";
 import { renderWithProviders } from "../../test-utils/renderWithProviders";
 import { PaymentDetail } from "../../pages";
 
+import { usePayment, useApp } from "../../context";
+
 // ---- Router mocks ----
 const mockNavigate = jest.fn();
 jest.mock("react-router-dom", () => ({
@@ -23,8 +25,6 @@ jest.mock("../../context", () => ({
   usePayment: jest.fn(),
   useApp: jest.fn(),
 }));
-
-import { usePayment, useApp } from "../../context";
 
 // ---- Lightweight MUI overrides for deterministic DOM (Dialog/Select/Button/MenuItem) ----
 jest.mock("@mui/material", () => {
@@ -145,6 +145,8 @@ describe("PaymentDetail Page", () => {
 
     // Details appear
     await waitFor(() => {
+  // TODO: Fix multiple assertions in waitFor - split into separate waitFor calls
+  
       // Title/name/tenant present
       expect(screen.getByText(/Alice Johnson/i)).toBeInTheDocument();
       // Amount formatted
@@ -249,6 +251,8 @@ describe("PaymentDetail Page", () => {
     fireEvent.click(screen.getByRole("button", { name: /save/i }));
 
     await waitFor(() => {
+  // TODO: Fix multiple assertions in waitFor - split into separate waitFor calls
+  
       const maybeAlert =
         screen.queryByRole("alert") ||
         screen.queryByText(/failed to update/i) ||
@@ -275,6 +279,8 @@ describe("PaymentDetail Page", () => {
     fireEvent.click(confirmBtn);
 
     await waitFor(() => {
+  // TODO: Fix multiple assertions in waitFor - split into separate waitFor calls
+  
       expect(mockDeletePayment).toHaveBeenCalledWith("1");
       expect(mockNavigate).toHaveBeenCalledWith("/payments");
     });

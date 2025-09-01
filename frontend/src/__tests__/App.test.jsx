@@ -4,6 +4,13 @@ import { render, screen } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
 import userEvent from "@testing-library/user-event";
 
+// If your App uses a Notifications icon with live counts, it’s fine to leave it real.
+// If you need, you can also stub NotificationBadge:
+// jest.mock("../components/NotificationBadge", () => ({ count }) => <span>Badge:{count}</span>);
+
+// --- Import the real App after mocks are set up ---
+import App from "../App";
+
 // We no longer need to import mocks directly as we'll use require() in the mock factories
 
 // --- Mock Auth hook so App treats us as logged in ---
@@ -93,13 +100,6 @@ jest.mock("../components/PageHeader", () => ({ title, subtitle, action }) => (
     {action || null}
   </header>
 ));
-
-// If your App uses a Notifications icon with live counts, it’s fine to leave it real.
-// If you need, you can also stub NotificationBadge:
-// jest.mock("../components/NotificationBadge", () => ({ count }) => <span>Badge:{count}</span>);
-
-// --- Import the real App after mocks are set up ---
-import App from "../App";
 
 function renderAt(route = "/") {
   return render(

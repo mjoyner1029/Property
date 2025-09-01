@@ -8,7 +8,8 @@ const Empty = ({
   message = 'There are no items to display at this time.',
   icon,
   actionText,
-  onActionClick
+  onActionClick,
+  actionTestId = 'empty-action' // Default test ID for the action button
 }) => {
   return (
     <Box 
@@ -44,6 +45,9 @@ const Empty = ({
           startIcon={<AddCircleOutlineIcon />}
           onClick={onActionClick}
           sx={{ borderRadius: 2 }}
+          data-testid={actionTestId}
+          id="empty-action-button"
+          aria-label={actionText}
         >
           {actionText}
         </Button>

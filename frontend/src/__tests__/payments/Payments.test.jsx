@@ -14,6 +14,10 @@ import { MemoryRouter } from "react-router-dom";
 import { fetchPaymentsMock, createPaymentMock } from "../../test/mocks/services";
 import { updatePageTitleMock } from "../../test/mocks/pageTitle";
 
+// Use real router utilities (no need to mock useNavigate here)
+import Payments from "../../pages/Payments";
+import { usePayment } from "../../context";
+
 jest.mock("../../context", () => {
   // Store these references when the mock is created
   const serviceMocks = require('src/test/mocks/services');
@@ -32,10 +36,6 @@ jest.mock("../../context", () => {
     })),
   };
 });
-
-// Use real router utilities (no need to mock useNavigate here)
-import Payments from "../../pages/Payments";
-import { usePayment } from "../../context";
 
 const samplePayments = [
   {

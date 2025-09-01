@@ -4,6 +4,9 @@ import { Routes, Route } from "react-router-dom";
 import { renderWithAuth } from "../../test/simpleAuthHarness"; // Using the simple auth harness
 import Unauthorized from "../../pages/Unauthorized";
 
+// Import the mock guards for testing
+import { RoleRoute, ProtectedRoute, PublicOnlyRoute } from "../../test/mocks/guards";
+
 // Mock the Unauthorized component 
 jest.mock("../../pages/Unauthorized", () => function MockUnauthorized() {
   return <div>Unauthorized Access</div>;
@@ -17,9 +20,6 @@ jest.mock('@mui/material/Box', () => function MockBox(props) {
 jest.mock('@mui/material/CircularProgress', () => function MockCircularProgress() {
   return <div data-testid="loading-spinner">Loading Spinner</div>;
 });
-
-// Import the mock guards for testing
-import { RoleRoute, ProtectedRoute, PublicOnlyRoute } from "../../test/mocks/guards";
 
 // Tiny page markers with more specific text that can be found by tests
 const AdminPage = () => <div>Admin Panel Content</div>;

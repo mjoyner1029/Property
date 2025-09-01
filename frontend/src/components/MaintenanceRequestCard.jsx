@@ -167,6 +167,7 @@ const MaintenanceRequestCard = ({
       component={id ? Link : 'div'}
       to={id ? `/maintenance/${id}` : undefined}
       style={{ textDecoration: 'none' }}
+      data-testid={`maintenance-card-${id}`}
     >
       {/* Card Header */}
       <Box sx={{ 
@@ -185,7 +186,7 @@ const MaintenanceRequestCard = ({
           )}
         </Box>
         
-        <IconButton size="small" onClick={handleMenuClick}>
+        <IconButton size="small" onClick={handleMenuClick} data-testid={`menu-button-${id}`}>
           <MoreVertIcon />
         </IconButton>
       </Box>

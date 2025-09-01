@@ -78,7 +78,7 @@ describe('Profile Component', () => {
     await user.click(saveButton);
 
     // Button should show loading state
-    expect(screen.getByRole('button')).toHaveAttribute('disabled');
+    expect(screen.getByRole('button')).toBeDisabled();
     expect(screen.getByRole('button')).toHaveTextContent(/Saving.../i);
 
     // Fast-forward the simulated API delay (800ms)
@@ -89,7 +89,7 @@ describe('Profile Component', () => {
       expect(screen.getByText(/Profile updated successfully/i)).toBeInTheDocument();
     });
     expect(screen.getByRole('button')).toHaveTextContent(/Save Changes/i);
-    expect(screen.getByRole('button')).not.toHaveAttribute('disabled');
+    expect(screen.getByRole('button')).toBeEnabled();
 
     // localStorage should be updated with new name and email
     expect(setItemSpy).toHaveBeenCalledWith(

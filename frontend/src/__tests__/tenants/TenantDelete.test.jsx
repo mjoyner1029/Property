@@ -5,6 +5,8 @@ import { Routes, Route } from 'react-router-dom';
 import { renderWithProviders } from 'src/test-utils/renderWithProviders';
 import TenantDetail from 'src/pages/TenantDetail';
 
+import { useTenant, useApp } from 'src/context';
+
 // ---- Router mocks ----
 const mockNavigate = jest.fn();
 jest.mock('react-router-dom', () => ({
@@ -23,8 +25,6 @@ jest.mock('../../context', () => ({
   useTenant: jest.fn(),
   useApp: jest.fn(),
 }));
-
-import { useTenant, useApp } from 'src/context';
 
 const tenant = {
   id: 1,
@@ -68,6 +68,8 @@ describe('Tenant delete flow (TenantDetail)', () => {
 
     // Wait for tenant to load/render
     await waitFor(() => {
+  // TODO: Fix multiple assertions in waitFor - split into separate waitFor calls
+  
       expect(mockGetTenant).toHaveBeenCalledWith('1');
       expect(screen.getByText('Alice')).toBeInTheDocument();
       expect(screen.getByText('alice@example.com')).toBeInTheDocument();
@@ -83,6 +85,8 @@ describe('Tenant delete flow (TenantDetail)', () => {
 
     // Ensure context delete called with id and navigation performed
     await waitFor(() => {
+  // TODO: Fix multiple assertions in waitFor - split into separate waitFor calls
+  
       expect(mockDeleteTenant).toHaveBeenCalledWith('1');
       expect(mockNavigate).toHaveBeenCalledWith('/tenants');
     });

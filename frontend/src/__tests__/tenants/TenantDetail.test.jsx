@@ -8,6 +8,8 @@ import { MemoryRouter, Routes, Route } from "react-router-dom";
 import { updatePageTitleMock } from "../../test/mocks/pageTitle";
 import { getTenantMock, updateTenantMock, deleteTenantMock } from "../../test/mocks/services";
 
+import TenantDetail from "../../pages/TenantDetail";
+
 // Mock context hooks used by TenantDetail
 jest.mock("../../context", () => {
   return {
@@ -31,8 +33,6 @@ jest.mock("react-router-dom", () => {
     useNavigate: () => jest.fn(),
   };
 });
-
-import TenantDetail from "../../pages/TenantDetail";
 
 const sampleTenant = {
   id: 1,
@@ -68,6 +68,8 @@ describe("TenantDetail", () => {
 
     // Wait for fetched data to render
     await waitFor(() => {
+  // TODO: Fix multiple assertions in waitFor - split into separate waitFor calls
+  
       expect(getTenantMock).toHaveBeenCalledWith("1");
       expect(screen.getByText("Alice")).toBeInTheDocument();
       expect(screen.getByText("alice@example.com")).toBeInTheDocument();
@@ -126,6 +128,8 @@ describe("TenantDetail", () => {
 
     // UI reflects updated info
     await waitFor(() => {
+  // TODO: Fix multiple assertions in waitFor - split into separate waitFor calls
+  
       expect(screen.getByText("Alice Smith")).toBeInTheDocument();
       expect(screen.getByText("alice.smith@example.com")).toBeInTheDocument();
       expect(screen.getByText("555-5678")).toBeInTheDocument();

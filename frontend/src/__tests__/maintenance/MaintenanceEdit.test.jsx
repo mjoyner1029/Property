@@ -5,6 +5,8 @@ import { Routes, Route } from "react-router-dom";
 import { renderWithProviders } from "../../test-utils/renderWithProviders";
 import MaintenanceDetail from "../../pages/MaintenanceDetail";
 
+import { useMaintenance, useApp } from "../../context";
+
 // Add missing fireEvent.clear function
 fireEvent.clear = (element) => {
   fireEvent.change(element, { target: { value: '' } });
@@ -28,8 +30,6 @@ jest.mock("../../context", () => ({
   useMaintenance: jest.fn(),
   useApp: jest.fn(),
 }));
-
-import { useMaintenance, useApp } from "../../context";
 
 // ---- Mock components ----
 jest.mock("../../components", () => {
@@ -365,6 +365,8 @@ describe("MaintenanceDetail — Edit flow", () => {
 
     // Error surfaced and dialog remains
     await waitFor(() => {
+  // TODO: Fix multiple assertions in waitFor - split into separate waitFor calls
+  
       const maybeAlert =
         screen.queryByRole("alert") ||
         screen.queryByText(/failed to update request/i);

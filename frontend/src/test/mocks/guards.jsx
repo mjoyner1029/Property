@@ -1,17 +1,18 @@
 import React from "react";
 import { Navigate, useLocation } from "react-router-dom";
-import { useAuth } from "../../context"; // Import from the centralized context that has been mocked
+// Import from the test harness instead of actual context
+import { useAuth } from "../simpleAuthHarness";
 
 // Mock implementation for testing
 export function ProtectedRoute({ children }) {
-  const { isAuthenticated, loading } = useAuth();
+  const auth = useAuth();
   const loc = useLocation();
   
-  if (loading) {
+  if (auth && auth.loading) {
     return <div data-testid="loading-spinner">Loading Spinner</div>;
   }
   
-  if (!isAuthenticated) {
+  if (!auth || !auth.isAuthenticated) {
     // For tests, render a placeholder instead of actually redirecting
     return <div>Login Form Content</div>;
   }
@@ -20,13 +21,13 @@ export function ProtectedRoute({ children }) {
 }
 
 export function PublicOnlyRoute({ children }) {
-  const { isAuthenticated, loading } = useAuth();
+  const auth = useAuth();
   
-  if (loading) {
+  if (auth && auth.loading) {
     return <div data-testid="loading-spinner">Loading Spinner</div>;
   }
   
-  if (isAuthenticated) {
+  if (auth && auth.isAuthenticated) {
     // For tests, render a placeholder instead of actually redirecting
     return <div>Redirecting to dashboard</div>;
   }
@@ -35,24 +36,24 @@ export function PublicOnlyRoute({ children }) {
 }
 
 export function RoleRoute({ roles, children }) {
-  const { isAuthenticated, loading, isRole } = useAuth();
+  const auth = useAuth();
   const loc = useLocation();
   
-  if (loading) {
+  if (auth && auth.loading) {
     return <div data-testid="loading-spinner">Loading Spinner</div>;
   }
   
-  if (!isAuthenticated) {
+  if (!auth || !auth.isAuthenticated) {
     return <div>Redirecting to login</div>;
   }
   
   // Check if user has required role
-  const hasRequiredRole = Array.isArray(roles) && 
-    roles.some(role => isRole(role));
+  const hasRequiredRole = auth.isRole && ((Array.isArray(roles) && 
+    roles.some(role => auth.isRole(role))) || auth.isRole(roles));
   
   if (!hasRequiredRole) {
     // For tests, render a placeholder instead of actually redirecting
-    return <div>Unauthorized Access</div>;
+    return <Navigate to="/unauthorized" replace />;
   }
   
   return children;

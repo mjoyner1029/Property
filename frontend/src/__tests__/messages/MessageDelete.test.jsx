@@ -5,11 +5,13 @@ import { Routes, Route } from "react-router-dom";
 import { renderWithProviders } from "../../test-utils/renderWithProviders";
 
 // Import from shared mocks
-import { navigateMock, currentParams, setParams } from "../../test/mocks/router";
+import { mockNavigate, currentParams, setParams } from "../../test/mocks/router";
 
 // Pages under test (adjust paths if your filenames differ)
 import MessagesPage from "../../pages/Messages";
 import MessageDetail from "../../pages/MessageDetail";
+
+import { useMessages, useApp } from "../../context";
 
 // Maintain currentRoute for test purposes
 let currentRoute = "/messages";
@@ -26,8 +28,6 @@ jest.mock("../../context", () => ({
   useMessages: jest.fn(),
   useApp: jest.fn(),
 }));
-
-import { useMessages, useApp } from "../../context";
 
 // ---- Lightweight MUI stubs for deterministic DOM ----
 jest.mock("@mui/material", () => {
@@ -186,9 +186,10 @@ const openDeleteFromRow = (row) => {
 };
 
 describe("Message Delete", () => {
+  const mockNavigate = jest.fn();
   beforeEach(() => {
     jest.clearAllMocks();
-    navigateMock.mockReset();
+    mockNavigate.mockReset();
     // Use the setParams helper to reset params
     setParams({ id: "1" });
     currentRoute = "/messages";

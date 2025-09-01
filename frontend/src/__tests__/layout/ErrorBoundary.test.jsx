@@ -5,6 +5,7 @@ import { Routes, Route } from "react-router-dom";
 import { renderWithProviders } from "../../test-utils/renderWithProviders";
 import ErrorBoundary from 'src/components/ErrorBoundary';
 import axios from 'axios';
+import api from 'src/utils/api';
 
 // Mock axios
 jest.mock('axios', () => ({
@@ -16,7 +17,6 @@ jest.mock('../../utils/api', () => {
   const handlers = { get: jest.fn(), post: jest.fn(), put: jest.fn(), delete: jest.fn() };
   return { __esModule: true, default: handlers };
 });
-import api from 'src/utils/api';
 
 // Mock localStorage
 Object.defineProperty(window, 'localStorage', {

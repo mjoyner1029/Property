@@ -11,6 +11,11 @@ import NotificationDetail from "../../pages/NotificationDetail";
 // ---- Router mocks ----
 import { useNavigate, useParams } from 'react-router-dom';
 
+// Import mock hooks
+import { mockNotificationHook, mockAppHook } from '../__mocks__/contextHooks';
+
+import { useNotifications, useApp } from "../../context";
+
 // Create mocks that we will implement in the test setup
 const mockNavigate = jest.fn();
 const mockUseParams = jest.fn().mockReturnValue({ id: "1" });
@@ -35,16 +40,11 @@ const mockAddNotification = jest.fn();
 const mockCreateNotification = jest.fn();
 const mockUpdatePageTitle = jest.fn();
 
-// Import mock hooks
-import { mockNotificationHook, mockAppHook } from '../__mocks__/contextHooks';
-
 // Mock context hooks
 jest.mock("../../context", () => ({
   useNotifications: jest.fn(),
   useApp: jest.fn(),
 }));
-
-import { useNotifications, useApp } from "../../context";
 
 // ---- Lightweight MUI stubs for deterministic DOM (Dialog/Button/Menu/Select) ----
 jest.mock("@mui/material", () => {

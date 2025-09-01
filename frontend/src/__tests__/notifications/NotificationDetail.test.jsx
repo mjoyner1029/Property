@@ -5,6 +5,11 @@ import { Routes, Route } from "react-router-dom";
 import { renderWithProviders } from "../../test-utils/renderWithProviders";
 import { NotificationDetail } from "../../pages";
 
+// Import the mock hooks
+import { mockNotificationHook, mockAppHook } from '../__mocks__/contextHooks';
+
+import { useNotifications, useApp } from "../../context";
+
 // ---- Router mocks ----
 const mockNavigate = jest.fn();
 jest.mock("react-router-dom", () => ({
@@ -12,9 +17,6 @@ jest.mock("react-router-dom", () => ({
   useNavigate: () => mockNavigate,
   useParams: () => ({ id: "1" }),
 }));
-
-// Import the mock hooks
-import { mockNotificationHook, mockAppHook } from '../__mocks__/contextHooks';
 
 // Clone the mocks so we can customize them for each test
 const mockFetchNotifications = jest.fn();
@@ -27,8 +29,6 @@ jest.mock("../../context", () => ({
   useNotifications: jest.fn(),
   useApp: jest.fn(),
 }));
-
-import { useNotifications, useApp } from "../../context";
 
 // ---- Lightweight MUI stubs for deterministic DOM (Dialog/Button/Select/MenuItem) ----
 jest.mock("@mui/material", () => {

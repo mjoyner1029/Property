@@ -133,6 +133,8 @@ describe('PropertyDetail', () => {
 
     // Verify delete API was called
     await waitFor(() => {
+  // TODO: Fix multiple assertions in waitFor - split into separate waitFor calls
+  
       expect(axios.delete).toHaveBeenCalledWith(`/api/properties/${mockPropertyData.id}`);
       expect(mockDeleteProperty).toHaveBeenCalledWith(mockPropertyData.id);
     });

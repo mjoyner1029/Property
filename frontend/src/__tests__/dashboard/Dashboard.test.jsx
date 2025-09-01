@@ -6,6 +6,9 @@ import { MemoryRouter } from "react-router-dom";
 // Import shared mocks
 import { fetchRequestsMock, fetchPaymentsMock } from "../../test/mocks/services";
 
+// Import the real component AFTER mocks
+import Dashboard from "../../pages/Dashboard";
+
 // ---- Stub heavy visual components to keep tests fast/stable ----
 jest.mock("../../components/ChartCard", () => () => (
   <div data-testid="chart-card">Chart</div>
@@ -51,9 +54,6 @@ jest.mock("../../context/PaymentContext", () => ({
     fetchPayments: require('src/test/mocks/services').fetchPaymentsMock
   }),
 }));
-
-// Import the real component AFTER mocks
-import Dashboard from "../../pages/Dashboard";
 
 describe("Dashboard", () => {
   beforeEach(() => {

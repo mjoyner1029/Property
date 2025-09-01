@@ -4,6 +4,8 @@ import { screen, waitFor, fireEvent } from "@testing-library/react";
 import { renderWithProviders } from "src/test/utils/renderWithProviders";
 import Maintenance from "src/pages/Maintenance";
 
+import { useMaintenance, useApp, useProperty } from "src/contexts";
+
 // ---- Router mocks (declare BEFORE component import) ----
 const mockNavigate = jest.fn();
 jest.mock("react-router-dom", () => ({
@@ -21,8 +23,6 @@ jest.mock("src/contexts", () => ({
   useApp: jest.fn(),
   useProperty: jest.fn(),
 }));
-
-import { useMaintenance, useApp, useProperty } from "src/contexts";
 
 // ---- Lightweight component stubs to keep tests fast/stable ----
 jest.mock("src/components", () => ({
@@ -211,6 +211,8 @@ describe("Maintenance List Page", () => {
 
     // All three requests visible initially
     await waitFor(() => {
+  // TODO: Fix multiple assertions in waitFor - split into separate waitFor calls
+  
       expect(screen.getByText("Leaky faucet")).toBeInTheDocument();
       expect(screen.getByText("HVAC issue")).toBeInTheDocument();
       expect(screen.getByText("Electrical outlet")).toBeInTheDocument();
@@ -222,6 +224,8 @@ describe("Maintenance List Page", () => {
 
     // Only "Electrical outlet" should remain
     await waitFor(() => {
+  // TODO: Fix multiple assertions in waitFor - split into separate waitFor calls
+  
       expect(screen.getByText("Electrical outlet")).toBeInTheDocument();
       expect(screen.queryByText("Leaky faucet")).not.toBeInTheDocument();
       expect(screen.queryByText("HVAC issue")).not.toBeInTheDocument();
@@ -345,6 +349,8 @@ describe("Maintenance List Page", () => {
 
     // Now only "Leaky faucet" (bathroom) should remain
     await waitFor(() => {
+  // TODO: Fix multiple assertions in waitFor - split into separate waitFor calls
+  
       expect(screen.getByText("Leaky faucet")).toBeInTheDocument();
       expect(screen.queryByText("HVAC issue")).not.toBeInTheDocument();
       expect(screen.queryByText("Electrical outlet")).not.toBeInTheDocument();

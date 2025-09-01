@@ -1,5 +1,5 @@
 import React from 'react';
-import { render } from '@testing-library/react';
+import { screen, render  } from '@testing-library/react';
 import LoadingFallback from 'src/components/LoadingFallback';
 
 describe('LoadingFallback component', () => {

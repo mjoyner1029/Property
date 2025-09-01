@@ -5,6 +5,9 @@ import { MemoryRouter } from "react-router-dom";
 import Tenants from "../../pages/Tenants";
 import { renderWithProviders } from "../../test-utils/renderWithProviders";
 
+import { useTenant } from "../../context/TenantContext";
+import { useApp } from "../../context/AppContext";
+
 // ---- Router mocks (for any navigation inside the page) ----
 const mockNavigate = jest.fn();
 jest.mock("react-router-dom", () => ({
@@ -23,9 +26,6 @@ jest.mock("../../context/TenantContext", () => ({
 jest.mock("../../context/AppContext", () => ({
   useApp: jest.fn(),
 }));
-
-import { useTenant } from "../../context/TenantContext";
-import { useApp } from "../../context/AppContext";
 
 describe("Tenants List Page", () => {
   const tenantsSample = [

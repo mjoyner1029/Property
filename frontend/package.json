@@ -40,7 +40,10 @@
     "babel-jest": "^30.1.1",
     "chalk": "^4.1.2",
     "chrome-launcher": "^0.15.2",
+    "eslint-plugin-jest-dom": "^4.0.3",
+    "eslint-plugin-testing-library": "^5.11.0",
     "framer-motion": "^12.23.12",
+    "glob": "^11.0.3",
     "jest": "^30.1.1",
     "jest-environment-jsdom": "^30.1.1",
     "lighthouse": "^11.7.1"
@@ -66,19 +69,14 @@
     "lighthouse": "node scripts/run-lighthouse.js",
     "deploy:cdn": "bash scripts/deploy_cdn.sh",
     "lint": "eslint --max-warnings=0 \"src/**/*.{js,jsx}\"",
+    "lint:tests": "eslint \"src/__tests__/**/*.{js,jsx}\"",
+    "lint:tests:fix": "eslint --fix \"src/__tests__/**/*.{js,jsx}\" || true",
     "format": "prettier --write \"**/*.{js,jsx,css,md,json}\"",
     "preview": "NODE_ENV=production node start.js",
     "check-deps": "npm audit --production",
     "generate:env": "node scripts/generate-env-example.js",
     "validate:env": "node scripts/validate-env.js",
     "prepare:release": "npm run lint && npm run test:ci && npm run build:prod && npm run test:a11y"
-  },
-  
-  "eslintConfig": {
-    "extends": [
-      "react-app",
-      "react-app/jest"
-    ]
   },
   "browserslist": {
     "production": [

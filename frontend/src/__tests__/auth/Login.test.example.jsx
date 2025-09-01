@@ -4,7 +4,7 @@ import { screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 
 // Import from shared mocks
-import { navigateMock } from "src/test/mocks/router";
+import { mockNavigate } from "src/test/mocks/router";
 import { loginMock, isAuthenticatedMock, AuthContextMock } from "src/test/mocks/auth";
 import { renderWithProviders } from "src/test/utils/renderWithProviders";
 
@@ -81,7 +81,7 @@ describe("Login page", () => {
     renderWithProviders(<Login />);
     
     // Verify redirect was triggered
-    expect(navigateMock).toHaveBeenCalledWith("/dashboard");
+    expect(mockNavigate).toHaveBeenCalledWith("/dashboard");
   });
 
   it("disables form submission while loading", async () => {

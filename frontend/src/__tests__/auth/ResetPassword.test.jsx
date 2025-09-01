@@ -12,7 +12,7 @@ jest.mock("react-router-dom", () => ({
   ...jest.requireActual("react-router-dom"),
   useNavigate: () => {
     const mock = require("src/test/mocks/router");
-    return mock.navigateMock;
+    return mock.mockNavigate;
   },
   // Provide a stable token via useSearchParams
   useSearchParams: () => [
@@ -74,11 +74,7 @@ describe("ResetPassword", () => {
 
     renderWithProviders(<ResetPassword />);
 
-    await waitFor(() =>
-      expect(
-        screen.getByText(/reset your password/i)
-      ).toBeInTheDocument()
-    );
+    await screen.findByText(/reset your password/i);
 
     const newPw = screen.getAllByLabelText(/new password/i)[0];
     const confirm = screen.getByLabelText(/confirm new password/i);
@@ -105,11 +101,7 @@ describe("ResetPassword", () => {
 
     renderWithProviders(<ResetPassword />);
 
-    await waitFor(() =>
-      expect(
-        screen.getByText(/reset your password/i)
-      ).toBeInTheDocument()
-    );
+    await screen.findByText(/reset your password/i);
 
     const newPw = screen.getAllByLabelText(/new password/i)[0];
     const confirm = screen.getByLabelText(/confirm new password/i);
@@ -136,11 +128,7 @@ describe("ResetPassword", () => {
 
     renderWithProviders(<ResetPassword />);
 
-    await waitFor(() =>
-      expect(
-        screen.getByText(/reset your password/i)
-      ).toBeInTheDocument()
-    );
+    await screen.findByText(/reset your password/i);
 
     const newPw = screen.getAllByLabelText(/new password/i)[0];
     const confirm = screen.getByLabelText(/confirm new password/i);
@@ -171,7 +159,7 @@ describe("ResetPassword", () => {
     jest.runAllTimers();
 
     // We expect navigation to login (adjust if your app uses a different route)
-    expect(navigateMock).toHaveBeenCalledWith("/login");
+    expect(mockNavigate).toHaveBeenCalledWith("/login");
 
     jest.useRealTimers();
   });

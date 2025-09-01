@@ -7,6 +7,8 @@ import { renderWithProviders } from "../../test-utils/renderWithProviders";
 // Page under test (adjust if your file name differs)
 import NotificationsPage from "../../pages/Notifications";
 
+import { useNotifications, useApp } from "../../context";
+
 // ---- Router mocks ----
 const mockNavigate = jest.fn();
 jest.mock("react-router-dom", () => ({
@@ -27,8 +29,6 @@ jest.mock("../../context", () => ({
   useNotifications: jest.fn(),
   useApp: jest.fn(),
 }));
-
-import { useNotifications, useApp } from "../../context";
 
 // ---- Lightweight MUI stubs for deterministic DOM ----
 jest.mock("@mui/material", () => {
@@ -222,6 +222,8 @@ describe("Notifications — Create flow", () => {
 
     // Neither API should have been called
     await waitFor(() => {
+  // TODO: Fix multiple assertions in waitFor - split into separate waitFor calls
+  
       expect(mockCreateNotification).not.toHaveBeenCalled();
       expect(mockAddNotification).not.toHaveBeenCalled();
     });
@@ -295,6 +297,8 @@ describe("Notifications — Create flow", () => {
     submitCreateForm(dialog);
 
     await waitFor(() => {
+  // TODO: Fix multiple assertions in waitFor - split into separate waitFor calls
+  
       const alert =
         screen.queryByRole("alert") ||
         screen.queryByText(/failed/i) ||

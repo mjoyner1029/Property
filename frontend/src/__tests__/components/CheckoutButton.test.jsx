@@ -13,7 +13,7 @@ describe('CheckoutButton Component', () => {
     expect(button).toHaveTextContent('Checkout');
     
     // Check button is enabled by default
-    expect(button).not.toBeDisabled();
+    expect(button).toBeEnabled();
     
     // Check spinner is not visible
     expect(screen.queryByTestId('loading-spinner')).not.toBeInTheDocument();
@@ -63,25 +63,25 @@ describe('CheckoutButton Component', () => {
   test('applies different variants', () => {
     const { rerender } = render(<CheckoutButton onClick={() => {}} variant="primary" />);
     let button = screen.getByTestId('checkout-button');
-    expect(button.className).toContain('bg-blue-600');
+    expect(button).toHaveClass('bg-blue-600');
     
     // Rerender with secondary variant
     rerender(<CheckoutButton onClick={() => {}} variant="secondary" />);
     button = screen.getByTestId('checkout-button');
-    expect(button.className).toContain('bg-gray-600');
+    expect(button).toHaveClass('bg-gray-600');
     
     // Rerender with outline variant
     rerender(<CheckoutButton onClick={() => {}} variant="outline" />);
     button = screen.getByTestId('checkout-button');
-    expect(button.className).toContain('bg-transparent');
-    expect(button.className).toContain('border-blue-600');
+    expect(button).toHaveClass('bg-transparent');
+    expect(button).toHaveClass('border-blue-600');
   });
 
   test('applies additional CSS classes', () => {
     render(<CheckoutButton onClick={() => {}} className="custom-class" />);
     
     const button = screen.getByTestId('checkout-button');
-    expect(button.className).toContain('custom-class');
+    expect(button).toHaveClass('custom-class');
   });
 
   // New test for uncovered branch - invalid variant fallback
@@ -90,7 +90,7 @@ describe('CheckoutButton Component', () => {
     
     const button = screen.getByTestId('checkout-button');
     // Should fallback to primary styles
-    expect(button.className).toContain('bg-blue-600');
+    expect(button).toHaveClass('bg-blue-600');
   });
 
   // New test for disabled/loading click behavior

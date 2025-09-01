@@ -5,6 +5,9 @@ import { MemoryRouter, Routes, Route } from "react-router-dom";
 // Mock the hooks first
 import { useMaintenance, useApp } from "../../context";
 
+// Import MaintenanceDetail component - using our mock version for tests
+import MaintenanceDetail from "./mockMaintenanceDetail";
+
 // Define mock request for the implementation
 const mockRequest = {
   id: "request123",
@@ -48,9 +51,6 @@ jest.mock("../../components", () => ({
     ) : null
   )
 }));
-
-// Import MaintenanceDetail component - using our mock version for tests
-import MaintenanceDetail from "./mockMaintenanceDetail";
 
 describe("MaintenanceDeleteFresh", () => {
   beforeEach(() => {

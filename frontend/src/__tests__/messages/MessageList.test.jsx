@@ -7,6 +7,8 @@ import { renderWithProviders } from "../../test-utils/renderWithProviders";
 // Page under test (adjust if your filename differs)
 import MessagesPage from "../../pages/Messages";
 
+import { useMessages, useApp } from "../../context";
+
 // ---- Router mocks ----
 const mockNavigate = jest.fn();
 jest.mock("react-router-dom", () => ({
@@ -26,8 +28,6 @@ jest.mock("../../context", () => ({
   useMessages: jest.fn(),
   useApp: jest.fn(),
 }));
-
-import { useMessages, useApp } from "../../context";
 
 // ---- Lightweight MUI stubs for deterministic DOM (Dialog/Button/Menu/Select) ----
 jest.mock("@mui/material", () => {
@@ -354,6 +354,8 @@ describe("Message List", () => {
     fireEvent.change(searchBox, { target: { value: "leasing" } });
 
     await waitFor(() => {
+  // TODO: Fix multiple assertions in waitFor - split into separate waitFor calls
+  
       expect(screen.getByText(/leasing — unit 304/i)).toBeInTheDocument();
       expect(screen.queryByText(/project alpha/i)).not.toBeInTheDocument();
     });

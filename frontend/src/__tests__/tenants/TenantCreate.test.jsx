@@ -3,6 +3,14 @@ import React from "react";
 import { screen, waitFor, fireEvent } from "@testing-library/react";
 import { renderWithProviders } from "../../test-utils/renderWithProviders";
 
+// Import mock hooks
+import { mockTenantHook, mockAppHook } from '../__mocks__/contextHooks';
+
+import { useTenant, useApp } from "../../context";
+
+// ---- Import the page under test AFTER mocks ----
+import { TenantForm } from "../../pages";
+
 // Mock MUI components with lightweight versions to avoid flakiness
 jest.mock('@mui/material', () => require('../__mocks__/muiLightMock'));
 
@@ -22,15 +30,10 @@ const mockUpdateTenant = jest.fn();
 const mockFetchTenantById = jest.fn();
 const mockUpdatePageTitle = jest.fn();
 
-// Import mock hooks
-import { mockTenantHook, mockAppHook } from '../__mocks__/contextHooks';
-
 jest.mock("../../context", () => ({
   useTenant: jest.fn(),
   useApp: jest.fn(),
 }));
-
-import { useTenant, useApp } from "../../context";
 
 // ---- Lightweight component stubs to keep tests fast/stable ----
 jest.mock("../../components", () => ({
@@ -53,10 +56,7 @@ jest.mock("../../components", () => ({
     </section>
   ),
   Card: ({ children }) => <div data-testid="card">{children}</div>,
-}));
-
-// ---- Import the page under test AFTER mocks ----
-import { TenantForm } from "../../pages"; // adjust if your file is named differently
+})); // adjust if your file is named differently
 
 const renderCreate = (route = "/tenants/add") =>
   renderWithProviders(<TenantForm />, { route });

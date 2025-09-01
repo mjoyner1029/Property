@@ -3,6 +3,14 @@ import React from "react";
 import { render, screen, waitFor } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
 
+// ---- Import from shared mocks ----
+import { updatePageTitleMock } from "../../test/mocks/pageTitle";
+import { fetchPaymentsMock } from "../../test/mocks/services";
+
+// ---- Import the real Overview page AFTER mocks ----
+// Adjust this path if your file lives elsewhere (e.g. "../../pages/DashboardOverview")
+import Overview from "../../pages/Overview";
+
 // ---- Stub heavy/visual components that Overview might use ----
 jest.mock("../../components/ChartCard", () => () => (
   <div data-testid="chart-card">Chart</div>
@@ -26,10 +34,6 @@ jest.mock("../../context/AuthContext", () => ({
   useAuth: () => ({ isAuthenticated: true, user: { firstName: "Sam" } }),
 }));
 
-// ---- Import from shared mocks ----
-import { updatePageTitleMock } from "../../test/mocks/pageTitle";
-import { fetchPaymentsMock } from "../../test/mocks/services";
-
 // ---- Mock the general context barrel in case Overview pulls summary data ----
 jest.mock("../../context", () => ({
   useApp: () => ({ updatePageTitle: require('src/test/mocks/pageTitle').updatePageTitleMock }),
@@ -51,10 +55,6 @@ jest.mock("../../context", () => ({
     fetchPayments: require('src/test/mocks/services').fetchPaymentsMock,
   }),
 }));
-
-// ---- Import the real Overview page AFTER mocks ----
-// Adjust this path if your file lives elsewhere (e.g. "../../pages/DashboardOverview")
-import Overview from "../../pages/Overview";
 
 function renderOverview(route = "/dashboard/overview") {
   return render(
@@ -100,6 +100,8 @@ describe("Dashboard Overview page", () => {
     // We stubbed ChartCard/StatsCard; only assert presence if they’re used.
     // This keeps the test compatible even if Overview only uses one of them.
     await waitFor(() => {
+  // TODO: Fix multiple assertions in waitFor - split into separate waitFor calls
+  
       const charts = screen.queryAllByTestId("chart-card");
       const stats = screen.queryAllByTestId("stats-card");
 

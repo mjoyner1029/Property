@@ -94,7 +94,7 @@ describe("NotificationBadge", () => {
     // Find badge container and verify it has the custom class
     const badgeContainer = screen.getByTestId("notification-badge");
     expect(badgeContainer).toBeInTheDocument();
-    expect(badgeContainer.classList.contains('custom-class')).toBe(true);
+    expect(badgeContainer).toHaveClass('custom-class');
 
     // Find the button element
     const button = badgeContainer.querySelector('button');

@@ -4,18 +4,18 @@ import { screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 
 // Import from shared mocks
-import { navigateMock } from "src/test/mocks/router";
+import { mockNavigate } from "src/test/mocks/router";
 import { loginMock, isAuthenticatedMock, AuthContextMock } from "src/test/mocks/auth";
 import { renderWithProviders } from "src/test/utils/renderWithProviders";
+
+// Import after mocks
+import Login from "src/pages/Login";
 
 // Using mockImplementation instead of inline arrow function to avoid Jest's variable reference issues
 jest.mock("src/contexts/AuthContext", () => {
   const mockUseAuth = jest.fn();
   return { useAuth: mockUseAuth };
 });
-
-// Import after mocks
-import Login from "src/pages/Login";
 
 // Helper: find the submit button regardless of label variants
 const getSubmitButton = () =>
@@ -49,7 +49,7 @@ describe("Login page", () => {
     renderAtLogin();
 
     // Should navigate away immediately
-    expect(navigateMock).toHaveBeenCalledWith("/", { replace: true });
+    expect(mockNavigate).toHaveBeenCalledWith("/", { replace: true });
   });
 
   test("renders email and password fields and a submit button", () => {
@@ -91,7 +91,7 @@ describe("Login page", () => {
     }
 
     await waitFor(() => {
-      expect(navigateMock).toHaveBeenCalledWith("/", { replace: true });
+      expect(mockNavigate).toHaveBeenCalledWith("/", { replace: true });
     });
   });
 
@@ -127,7 +127,7 @@ describe("Login page", () => {
     ).toBeInTheDocument();
 
     // Should not navigate on error
-    expect(navigateMock).not.toHaveBeenCalled();
+    expect(mockNavigate).not.toHaveBeenCalled();
   });
 
   test("disables submit button while loading (if component binds to loading)", async () => {

@@ -282,9 +282,13 @@ export default function MaintenanceDetail() {
 
   // Save full edits (validates title/description)
   const handleUpdateRequest = async () => {
+    // Clear previous errors
+    setFormErrors({});
+    
+    // Validate form fields
     const errors = {};
-    if (!editData.title) errors.title = "Title is required";
-    if (!editData.description) errors.description = "Description is required";
+    if (!editData.title?.trim()) errors.title = "Title is required";
+    if (!editData.description?.trim()) errors.description = "Description is required";
     if (Object.keys(errors).length) {
       setFormErrors(errors);
       return;
@@ -295,12 +299,18 @@ export default function MaintenanceDetail() {
       const updated = await updateRequest(id, editData);
       if (updated) {
         setRequest(updated);
+        handleEditClose();
       } else {
+        // If no data returned but no error thrown, still fetch but show warning
         await fetchRequests();
+        setError("Request updated but server returned no data");
+        handleEditClose();
       }
-      handleEditClose();
     } catch (err) {
-      setFormErrors({ submit: err?.message || "Failed to update request" });
+      console.error("Update request error:", err);
+      setFormErrors({ 
+        submit: err?.response?.data?.message || err?.message || "Failed to update request. Please try again." 
+      });
     } finally {
       setSubmitting(false);
     }
@@ -330,14 +340,18 @@ export default function MaintenanceDetail() {
 
   const handleDeleteRequest = async () => {
     setSubmitting(true);
+    setError(null);
     try {
       await deleteRequest(id);
-      navigate("/maintenance");
-    } catch {
-      setError("Failed to delete maintenance request");
+      // Only navigate on success
+      navigate("/maintenance", { state: { message: "Maintenance request deleted successfully" } });
+    } catch (err) {
+      console.error("Delete request error:", err);
+      setError(err?.response?.data?.message || err?.message || "Failed to delete maintenance request. Please try again.");
+      // Close dialog on error so user can see the error message
+      handleDeleteClose();
     } finally {
       setSubmitting(false);
-      handleDeleteClose();
     }
   };
 
@@ -346,24 +360,55 @@ export default function MaintenanceDetail() {
     const text = commentText.trim();
     if (!text) return;
 
-    // Prefer context addComment if available; otherwise optimistic local append.
+    // Clear previous error
+    setError(null);
+    
+    // Show optimistic UI update first
+    const optimisticComment = { 
+      id: `temp-${Date.now()}`, 
+      user_name: "You", 
+      created_at: new Date().toISOString(), 
+      text,
+      pending: true 
+    };
+    
+    // Immediately show the comment locally
+    setRequest((prev) => ({
+      ...prev,
+      comments: [
+        ...(prev?.comments || []),
+        optimisticComment
+      ],
+    }));
+    
+    // Clear the input right away for better UX
+    setCommentText("");
+    
     try {
       if (typeof addComment === "function") {
         await addComment(id, text);
-        await fetchRequests();
+        await fetchRequests(); // Refresh to get server version
       } else {
-        const now = new Date().toISOString();
-        setRequest((prev) => ({
-          ...prev,
-          comments: [
-            ...(prev?.comments || []),
-            { user_name: "You", created_at: now, text },
-          ],
-        }));
+        // For local-only mode, we already did the optimistic update
+        // Just remove the pending flag after a delay to simulate server response
+        setTimeout(() => {
+          setRequest((prev) => ({
+            ...prev,
+            comments: prev.comments.map(c => 
+              c.id === optimisticComment.id ? {...c, pending: false} : c
+            ),
+          }));
+        }, 500);
       }
-      setCommentText("");
     } catch (err) {
-      setError(err?.message || "Failed to add comment");
+      console.error("Comment submission error:", err);
+      setError(err?.response?.data?.message || err?.message || "Failed to add comment. Please try again.");
+      
+      // Remove the optimistic comment on error
+      setRequest((prev) => ({
+        ...prev,
+        comments: prev.comments.filter(c => c.id !== optimisticComment.id),
+      }));
     }
   };
 
@@ -387,7 +432,7 @@ export default function MaintenanceDetail() {
           onActionClick={() => navigate("/maintenance")}
         />
         <Box mt={2} px={3}>
-          <Alert severity="error">{error || "Maintenance request not found"}</Alert>
+          <Alert severity="error" data-testid="main-error">{error || "Maintenance request not found"}</Alert>
           <Button variant="outlined" sx={{ mt: 2 }} onClick={() => navigate("/maintenance")}>
             Back to Maintenance
           </Button>
@@ -448,10 +493,22 @@ export default function MaintenanceDetail() {
           </Box>
 
           <Box>
-            <Button startIcon={<EditIcon />} variant="outlined" sx={{ mr: 1 }} onClick={handleEditOpen}>
+            <Button 
+              startIcon={<EditIcon />} 
+              variant="outlined" 
+              sx={{ mr: 1 }} 
+              onClick={handleEditOpen}
+              data-testid="edit-button"
+            >
               Edit
             </Button>
-            <Button startIcon={<DeleteIcon />} variant="outlined" color="error" onClick={handleDeleteOpen}>
+            <Button 
+              startIcon={<DeleteIcon />} 
+              variant="outlined" 
+              color="error" 
+              onClick={handleDeleteOpen}
+              data-testid="delete-button"
+            >
               Delete
             </Button>
           </Box>
@@ -525,7 +582,13 @@ export default function MaintenanceDetail() {
                   </Box>
                 )}
 
-                <Box component="form" onSubmit={handleCommentSubmit} mt={3}>
+                {error && (
+                  <Alert severity="error" sx={{ mt: 2, mb: 2 }} data-testid="comment-error">
+                    {error}
+                  </Alert>
+                )}
+                
+                <Box component="form" onSubmit={handleCommentSubmit} mt={3} data-testid="comment-form">
                   <TextField
                     fullWidth
                     multiline
@@ -534,9 +597,16 @@ export default function MaintenanceDetail() {
                     placeholder="Add a comment..."
                     value={commentText}
                     onChange={(e) => setCommentText(e.target.value)}
+                    data-testid="comment-input"
                     InputProps={{
                       endAdornment: (
-                        <IconButton edge="end" color="primary" disabled={!commentText.trim()} type="submit">
+                        <IconButton 
+                          edge="end" 
+                          color="primary" 
+                          disabled={!commentText.trim()} 
+                          type="submit"
+                          data-testid="send-comment-button"
+                        >
                           <SendIcon />
                         </IconButton>
                       ),
@@ -605,6 +675,7 @@ export default function MaintenanceDetail() {
                 fullWidth
                 disabled={request.status === "completed" || submitting}
                 onClick={() => quickUpdateStatus("completed")}
+                data-testid="mark-complete-button"
               >
                 Mark as Complete
               </Button>
@@ -616,6 +687,7 @@ export default function MaintenanceDetail() {
                   sx={{ mt: 1 }}
                   disabled={submitting}
                   onClick={() => quickUpdateStatus("in_progress")}
+                  data-testid="start-work-button"
                 >
                   Start Work
                 </Button>
@@ -639,6 +711,7 @@ export default function MaintenanceDetail() {
               onChange={handleEditChange}
               error={Boolean(formErrors.title)}
               helperText={formErrors.title}
+              data-testid="title-input"
             />
 
             <TextField
@@ -652,6 +725,7 @@ export default function MaintenanceDetail() {
               onChange={handleEditChange}
               error={Boolean(formErrors.description)}
               helperText={formErrors.description}
+              data-testid="description-input"
             />
 
             <Grid container spacing={2}>
@@ -664,6 +738,7 @@ export default function MaintenanceDetail() {
                     value={editData.priority || "medium"}
                     label="Priority"
                     onChange={handleEditChange}
+                    data-testid="priority-select"
                   >
                     {PRIORITY_OPTIONS.map((option) => (
                       <MenuItem key={option.value} value={option.value}>
@@ -683,6 +758,7 @@ export default function MaintenanceDetail() {
                     value={editData.status || "open"}
                     label="Status"
                     onChange={handleEditChange}
+                    data-testid="status-select"
                   >
                     {STATUS_OPTIONS.map((option) => (
                       <MenuItem key={option.value} value={option.value}>
@@ -702,6 +778,7 @@ export default function MaintenanceDetail() {
                 value={editData.maintenance_type || ""}
                 label="Maintenance Type"
                 onChange={handleEditChange}
+                data-testid="maintenance-type-select"
               >
                 <MenuItem value="">
                   <em>Select maintenance type</em>
@@ -729,15 +806,15 @@ export default function MaintenanceDetail() {
             </FormControl>
 
             {formErrors.submit && (
-              <Alert severity="error" sx={{ mt: 2 }}>
+              <Alert severity="error" sx={{ mt: 2 }} data-testid="edit-form-error">
                 {formErrors.submit}
               </Alert>
             )}
           </Box>
         </DialogContent>
         <DialogActions>
-          <Button onClick={handleEditClose}>Cancel</Button>
-          <Button onClick={handleUpdateRequest} variant="contained" disabled={submitting}>
+          <Button onClick={handleEditClose} data-testid="edit-dialog-cancel">Cancel</Button>
+          <Button onClick={handleUpdateRequest} variant="contained" disabled={submitting} data-testid="edit-dialog-save">
             {submitting ? "Saving..." : "Save Changes"}
           </Button>
         </DialogActions>
@@ -752,8 +829,8 @@ export default function MaintenanceDetail() {
           </Typography>
         </DialogContent>
         <DialogActions>
-          <Button onClick={handleDeleteClose}>Cancel</Button>
-          <Button onClick={handleDeleteRequest} color="error" variant="contained" disabled={submitting}>
+          <Button onClick={handleDeleteClose} data-testid="delete-dialog-cancel">Cancel</Button>
+          <Button onClick={handleDeleteRequest} color="error" variant="contained" disabled={submitting} data-testid="delete-dialog-confirm">
             {submitting ? "Deleting..." : "Delete Request"}
           </Button>
         </DialogActions>

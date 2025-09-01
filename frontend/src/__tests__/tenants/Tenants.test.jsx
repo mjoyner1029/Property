@@ -27,6 +27,8 @@ describe('Tenants Component', () => {
     
     // Then just check that the tenants header is there
     await waitFor(() => {
+  // TODO: Fix multiple assertions in waitFor - split into separate waitFor calls
+  
       expect(screen.getByText("Tenants")).toBeInTheDocument();
       
       // Either we show the tenant list or the "No tenants found" message

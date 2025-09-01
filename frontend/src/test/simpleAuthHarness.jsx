@@ -17,9 +17,12 @@ const defaultAuth = {
 };
 
 // Auth provider for tests
-export const TestAuthProvider = ({ authValue, children }) => {
+export const TestAuthProvider = ({ authValue = defaultAuth, children }) => {
+  // Ensure we never pass null or undefined
+  const value = authValue || defaultAuth;
+  
   return (
-    <AuthContext.Provider value={authValue}>
+    <AuthContext.Provider value={value}>
       {children}
     </AuthContext.Provider>
   );
@@ -27,9 +30,9 @@ export const TestAuthProvider = ({ authValue, children }) => {
 
 // Export the useAuth hook that will be used by mocked imports
 export const useAuth = () => {
-  // ALWAYS return a non-null value with all expected properties
-  const authFromContext = React.useContext(AuthContext);
-  return authFromContext !== null ? authFromContext : defaultAuth;
+  // Always return a non-null value with all expected properties
+  const auth = React.useContext(AuthContext);
+  return auth || defaultAuth;
 };
 
 // Helper to render components with auth context and routing
@@ -40,19 +43,25 @@ export function renderWithAuth(ui, options = {}) {
     ...renderOptions
   } = options;
   
+  // Create a complete auth object with all necessary properties
+  const authValue = {
+    ...defaultAuth,
+    ...auth,
+  };
+  
   // Make sure isRole works properly
-  if (!auth.isRole || typeof auth.isRole !== 'function') {
-    auth.isRole = (roleToCheck) => {
+  if (!authValue.isRole || typeof authValue.isRole !== 'function') {
+    authValue.isRole = (roleToCheck) => {
       if (Array.isArray(roleToCheck)) {
-        return roleToCheck.some(r => auth.roles.includes(r));
+        return roleToCheck.some(r => (authValue.roles || []).includes(r));
       }
-      return auth.roles.includes(roleToCheck);
+      return (authValue.roles || []).includes(roleToCheck);
     };
   }
   
   return render(
     <MemoryRouter initialEntries={[route]}>
-      <TestAuthProvider authValue={auth}>
+      <TestAuthProvider authValue={authValue}>
         {ui}
       </TestAuthProvider>
     </MemoryRouter>,

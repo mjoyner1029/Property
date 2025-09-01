@@ -1,5 +1,5 @@
 import React from 'react';
-import { render } from '@testing-library/react';
+import { screen, render  } from '@testing-library/react';
 import LoadingSpinner from 'src/components/LoadingSpinner';
 
 describe('LoadingSpinner component', () => {

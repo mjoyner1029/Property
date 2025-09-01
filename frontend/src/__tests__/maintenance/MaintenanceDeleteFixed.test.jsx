@@ -6,6 +6,9 @@ import { renderWithProviders } from "src/test/utils/renderWithProviders";
 // Mock the hooks first
 import { useMaintenance, useApp } from "src/contexts";
 
+// Import our mock MaintenanceDetail component
+import MaintenanceDetail from "src/__tests__/maintenance/mockMaintenanceDetail";
+
 // Define mock request for the implementation
 const mockRequest = {
   id: "request123",
@@ -49,9 +52,6 @@ jest.mock("src/components", () => ({
     ) : null
   )
 }));
-
-// Import our mock MaintenanceDetail component
-import MaintenanceDetail from "src/__tests__/maintenance/mockMaintenanceDetail";
 
 describe("MaintenanceDelete", () => {
   beforeEach(() => {

@@ -4,6 +4,11 @@ import { screen, waitFor, fireEvent } from "@testing-library/react";
 import { renderWithProviders } from "../../test-utils/renderWithProviders";
 import Maintenance from "../../pages/Maintenance";
 
+// Import mock hooks
+import { mockMaintenanceHook, mockAppHook, mockPropertyHook } from '../__mocks__/contextHooks';
+
+import { useMaintenance, useApp, useProperty } from "../../context";
+
 // Mock MUI components with lightweight versions to avoid flakiness
 jest.mock('@mui/material', () => require('../__mocks__/muiLightMock'));
 
@@ -19,16 +24,11 @@ const mockFetchRequests = jest.fn();
 const mockCreateRequest = jest.fn();
 const mockUpdatePageTitle = jest.fn();
 
-// Import mock hooks
-import { mockMaintenanceHook, mockAppHook, mockPropertyHook } from '../__mocks__/contextHooks';
-
 jest.mock("../../context", () => ({
   useMaintenance: jest.fn(),
   useApp: jest.fn(),
   useProperty: jest.fn(),
 }));
-
-import { useMaintenance, useApp, useProperty } from "../../context";
 
 // ---- Lightweight component stubs to keep tests fast/stable ----
 jest.mock("../../components", () => ({

@@ -4,6 +4,21 @@ import '@testing-library/jest-dom';
 // No need to import shared mock objects here
 // We'll use require() inside the mock factory functions
 
+// Mock window.matchMedia for Material UI and theme switching
+Object.defineProperty(window, 'matchMedia', {
+  writable: true,
+  value: jest.fn().mockImplementation(query => ({
+    matches: false,
+    media: query,
+    onchange: null,
+    addListener: jest.fn(), // Deprecated
+    removeListener: jest.fn(), // Deprecated
+    addEventListener: jest.fn(),
+    removeEventListener: jest.fn(),
+    dispatchEvent: jest.fn(),
+  })),
+});
+
 // Mock other contexts that haven't been centralized yet
 jest.mock('./context/PropertyContext');
 jest.mock('./context/TenantContext');

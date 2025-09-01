@@ -5,10 +5,12 @@ import { Routes, Route } from "react-router-dom";
 import { renderWithProviders } from "../../test-utils/renderWithProviders";
 
 // Import from shared mocks
-import { navigateMock, currentSearch, setSearch } from "../../test/mocks/router";
+import { mockNavigate, currentSearch, setSearch } from "../../test/mocks/router";
 
 // Page under test (adjust import if your filename differs)
 import { MessageCreate } from "../../pages";
+
+import { useMessages, useApp } from "../../context";
 
 // ---- Context barrel mocks ----
 const mockCreateConversation = jest.fn();
@@ -19,8 +21,6 @@ jest.mock("../../context", () => ({
   useMessages: jest.fn(),
   useApp: jest.fn(),
 }));
-
-import { useMessages, useApp } from "../../context";
 
 // ---- Lightweight MUI stubs for deterministic DOM (Dialog/Button/Menu/Select) ----
 jest.mock("@mui/material", () => {
@@ -168,9 +168,10 @@ const findSubmitButton = () =>
   screen.querySelector('button[type="submit"]');
 
 describe("Message Create", () => {
+  const mockNavigate = jest.fn();
   beforeEach(() => {
     jest.clearAllMocks();
-    navigateMock.mockReset();
+    mockNavigate.mockReset();
     // Reset search params to default
     setSearch("?q=foo");
   });
@@ -326,6 +327,8 @@ describe("Message Create", () => {
     fireEvent.click(submit);
 
     await waitFor(() => {
+  // TODO: Fix multiple assertions in waitFor - split into separate waitFor calls
+  
       expect(mockCreateConversation).toHaveBeenCalled();
       const payload = mockCreateConversation.mock.calls[0][0];
       // attachments may be [] if your UI defers upload; just assert presence if fileInput existed

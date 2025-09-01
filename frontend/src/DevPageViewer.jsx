@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Box, Button, MenuItem, Select, FormControl, InputLabel, Typography, Paper, Dialog, DialogTitle, DialogContent, DialogActions } from '@mui/material';
-import { MainLayout } from './layouts/MainLayout';
+import MainLayout from './layouts/MainLayout';
 
 // Import all pages
 import WelcomePage from './pages/WelcomePage';

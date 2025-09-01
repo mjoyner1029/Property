@@ -3,6 +3,9 @@ import { render, screen, fireEvent, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { MemoryRouter, Route, Routes } from "react-router-dom";
 
+// Now we can import our components
+import Maintenance from "../../pages/Maintenance";
+
 // Mock dependencies before importing any components
 jest.mock("@mui/material", () => {
   const actual = jest.requireActual("@mui/material");
@@ -81,9 +84,6 @@ jest.mock("../../components/PageHeader", () => ({
   ),
 }));
 
-// Now we can import our components
-import Maintenance from "../../pages/Maintenance";
-
 // Setup global matchMedia mock
 window.matchMedia = window.matchMedia || function() {
   return {
@@ -114,7 +114,7 @@ describe("Maintenance — Create Request flow", () => {
     // Verify the New Request button is visible in the header
     const addButton = screen.getByTestId("header-action-button");
     expect(addButton).toBeInTheDocument();
-    expect(addButton.textContent).toMatch(/new request/i);
+    expect(addButton).toHaveTextContent(/new request/i);
     
     // Click the button and verify dialog opens
     fireEvent.click(addButton);
@@ -139,6 +139,8 @@ describe("Maintenance — Create Request flow", () => {
 
     // Expect validation errors
     await waitFor(() => {
+  // TODO: Fix multiple assertions in waitFor - split into separate waitFor calls
+  
       expect(screen.getByTestId("title-error")).toBeInTheDocument();
       expect(screen.getByTestId("property-error")).toBeInTheDocument();
     });
@@ -222,6 +224,8 @@ describe("Maintenance — Create Request flow", () => {
 
     // Expect error alert to be shown
     await waitFor(() => {
+  // TODO: Fix multiple assertions in waitFor - split into separate waitFor calls
+  
       expect(screen.getByTestId("error-alert")).toBeInTheDocument();
       expect(screen.getByTestId("error-alert")).toHaveTextContent(/API Error/i);
     });

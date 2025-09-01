@@ -5,6 +5,9 @@ import PropertyForm from 'src/pages/PropertyForm';
 import { useProperty } from 'src/context/PropertyContext';
 import { useApp } from 'src/context/AppContext';
 
+// Import mock hooks
+import { mockPropertyHook, mockAppHook } from '../__mocks__/contextHooks';
+
 // Mock MUI components with lightweight versions to avoid flakiness
 jest.mock('@mui/material', () => require('../__mocks__/muiLightMock'));
 
@@ -23,9 +26,6 @@ const mockCreateProperty = jest.fn();
 const mockUpdateProperty = jest.fn();
 const mockFetchPropertyById = jest.fn();
 const mockUpdatePageTitle = jest.fn();
-
-// Import mock hooks
-import { mockPropertyHook, mockAppHook } from '../__mocks__/contextHooks';
 
 jest.mock('../../context/PropertyContext');
 jest.mock('../../context/AppContext');
@@ -98,9 +98,7 @@ describe('PropertyForm Component', () => {
     fireEvent.change(screen.getByLabelText(/property address/i), { target: { value: '9 Elm' } });
     fireEvent.change(screen.getByLabelText(/property type/i), { target: { value: 'apartment' } });
 
-    await act(async () => {
-      fireEvent.click(screen.getByRole('button', { name: /save property details/i }));
-    });
+    fireEvent.click(screen.getByRole('button', { name: /save property details/i }));
 
     await waitFor(() => {
       expect(screen.getByTestId('alert-error')).toBeInTheDocument();
@@ -114,9 +112,9 @@ describe('PropertyForm Component', () => {
       </MemoryRouter>
     );
 
-    await act(async () => {
+    await 
       fireEvent.click(screen.getByTestId('button-save'));
-    });
+    ;
 
     expect(mockCreateProperty).not.toHaveBeenCalled();
   });
@@ -139,8 +137,8 @@ describe('PropertyForm Component', () => {
     fireEvent.change(screen.getByLabelText(/property address/i), { target: { value: '9 Elm' } });
     fireEvent.change(screen.getByLabelText(/property type/i), { target: { value: 'apartment' } });
 
-    await act(async () => {
-      fireEvent.click(screen.getByRole('button', { name: /save property details/i }));
+    await 
+      fireEvent.click(screen.getByRole('button', { name: /save property details/i );
     });
 
     await waitFor(() => {

@@ -4,6 +4,14 @@ import { render, screen, waitFor } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
 import userEvent from "@testing-library/user-event";
 
+// ---- Import from shared mocks ----
+import { updatePageTitleMock } from "../../test/mocks/pageTitle";
+import { fetchPaymentsMock } from "../../test/mocks/services";
+
+// ---- Import the real Reports page AFTER mocks ----
+// Adjust this path if your file is elsewhere (e.g. "../../pages/DashboardReports")
+import Reports from "../../pages/Reports";
+
 // ---- Stub heavy/visual components to keep tests fast/stable ----
 jest.mock("../../components/ChartCard", () => () => (
   <div data-testid="chart-card">Chart</div>
@@ -27,10 +35,6 @@ jest.mock("../../context/AuthContext", () => ({
   useAuth: () => ({ isAuthenticated: true, user: { firstName: "Sam" } }),
 }));
 
-// ---- Import from shared mocks ----
-import { updatePageTitleMock } from "../../test/mocks/pageTitle";
-import { fetchPaymentsMock } from "../../test/mocks/services";
-
 // ---- Mock the general context barrel that pages commonly use ----
 jest.mock("../../context", () => ({
   useApp: () => ({ updatePageTitle: require('src/test/mocks/pageTitle').updatePageTitleMock }),
@@ -52,10 +56,6 @@ jest.mock("../../context", () => ({
     fetchPayments: require('src/test/mocks/services').fetchPaymentsMock,
   }),
 }));
-
-// ---- Import the real Reports page AFTER mocks ----
-// Adjust this path if your file is elsewhere (e.g. "../../pages/DashboardReports")
-import Reports from "../../pages/Reports";
 
 function renderReports(route = "/dashboard/reports") {
   return render(
@@ -100,6 +100,8 @@ describe("Dashboard Reports page", () => {
 
     // We stubbed ChartCard/StatsCard; only assert presence if they’re used
     await waitFor(() => {
+  // TODO: Fix multiple assertions in waitFor - split into separate waitFor calls
+  
       const charts = screen.queryAllByTestId("chart-card");
       const stats = screen.queryAllByTestId("stats-card");
 

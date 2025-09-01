@@ -3,6 +3,11 @@ import React from "react";
 import { screen, waitFor, fireEvent } from "@testing-library/react";
 import { renderWithProviders } from "../../test-utils/renderWithProviders";
 
+import { usePayment, useApp } from "../../context";
+
+// ---- Import component after mocks ----
+import Payments from "../../pages/Payments";
+
 // ---- Router mocks (optional; kept for consistency with other tests) ----
 const mockNavigate = jest.fn();
 jest.mock("react-router-dom", () => ({
@@ -19,8 +24,6 @@ jest.mock("../../context", () => ({
   usePayment: jest.fn(),
   useApp: jest.fn(),
 }));
-
-import { usePayment, useApp } from "../../context";
 
 // ---- Lightweight MUI overrides for deterministic DOM (Dialog/Select/Menu/Button) ----
 jest.mock("@mui/material", () => {
@@ -80,9 +83,6 @@ jest.mock("@mui/material", () => {
   };
 });
 
-// ---- Import component after mocks ----
-import Payments from "../../pages/Payments";
-
 // ---- Helpers ----
 const defaultUsePayment = () => ({
   payments: [], // force empty so we exercise the dialog from the page reliably
@@ -132,6 +132,8 @@ describe("PaymentCreate — Record Payment dialog", () => {
     fireEvent.click(screen.getByRole("button", { name: /^record payment$/i }));
 
     await waitFor(() => {
+  // TODO: Fix multiple assertions in waitFor - split into separate waitFor calls
+  
       // No API call due to validation
       expect(mockCreatePayment).not.toHaveBeenCalled();
       // Error helper texts are rendered by the component;
@@ -160,6 +162,8 @@ describe("PaymentCreate — Record Payment dialog", () => {
     fireEvent.click(screen.getByRole("button", { name: /^record payment$/i }));
 
     await waitFor(() => {
+  // TODO: Fix multiple assertions in waitFor - split into separate waitFor calls
+  
       expect(mockCreatePayment).not.toHaveBeenCalled();
       expect(screen.getByRole("dialog")).toBeInTheDocument();
     });
@@ -268,6 +272,8 @@ describe("PaymentCreate — Record Payment dialog", () => {
     fireEvent.click(screen.getByRole("button", { name: /^record payment$/i }));
 
     await waitFor(() => {
+  // TODO: Fix multiple assertions in waitFor - split into separate waitFor calls
+  
       const maybeAlert =
         screen.queryByRole("alert") ||
         screen.queryByText(/failed to create payment/i) ||
@@ -298,6 +304,8 @@ describe("PaymentCreate — Record Payment dialog", () => {
 
     fireEvent.click(screen.getByRole("button", { name: /^record payment$/i }));
     await waitFor(() => {
+  // TODO: Fix multiple assertions in waitFor - split into separate waitFor calls
+  
       expect(mockCreatePayment).toHaveBeenCalled();
       expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
     });

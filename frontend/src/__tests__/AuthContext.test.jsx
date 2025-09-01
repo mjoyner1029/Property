@@ -1,5 +1,5 @@
 import React from 'react';
-import { screen, act } from '@testing-library/react';
+import { screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { AuthProvider, useAuth } from '../context/AuthContext';
 import { renderWithProviders } from '../test-utils/renderWithProviders';
@@ -54,9 +54,7 @@ describe('AuthContext', () => {
     
     renderWithProviders(<TestComponent />);
     
-    await act(async () => {
-      await userEvent.click(screen.getByRole('button', { name: /log in to account/i }));
-    });
+    await userEvent.click(screen.getByRole('button', { name: /log in to account/i }));
     
     expect(screen.getByRole('status')).toHaveTextContent('Logged In');
     expect(screen.getByLabelText('User email')).toHaveTextContent('test@example.com');
@@ -73,20 +71,28 @@ describe('AuthContext', () => {
     
     renderWithProviders(<TestComponent />);
     
-    // Login first
-    await act(async () => {
-      await userEvent.click(screen.getByRole('button', { name: /log in to account/i }));
+    await userEvent.click(screen.getByRole('button', { name: /log in to account/i }));
+    
+    // Then logout
+    await userEvent.click(screen.getByRole('button', { name: /log out of account/i }));
+    
+    expect(screen.getByRole('status')).toHaveTextContent('Logged Out');
+    expect(screen.queryByLabelText('User email')).not.toBeInTheDocument();
+  });
+  
+  test('handles login errors', async () => {
+    axios.post.mockRejectedValueOnce({ 
+      response: { 
+        data: { message: 'Invalid credentials' },
+        status: 401
+      } 
     });
     
-    // Verify logged in state
-    expect(screen.getByRole('status')).toHaveTextContent('Logged In');
+    renderWithProviders(<TestComponent />);
     
-    // Logout
-    await act(async () => {
-      await userEvent.click(screen.getByRole('button', { name: /log out of account/i }));
-    });
+    await userEvent.click(screen.getByRole('button', { name: /log in to account/i }));
     
-    // Should be logged out
+    // Still logged out after error
     expect(screen.getByRole('status')).toHaveTextContent('Logged Out');
   });
 });

@@ -23,7 +23,7 @@ describe('NotificationBadge Component', () => {
     const { container } = render(<NotificationBadge count={0} />);
     
     // Badge should not be rendered
-    expect(container.firstChild).toBeNull();
+    expect(container).toBeEmptyDOMElement();
   });
   
   test('handles click event', async () => {

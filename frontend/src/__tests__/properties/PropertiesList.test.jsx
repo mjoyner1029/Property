@@ -3,6 +3,12 @@ import React from 'react';
 import { render, screen, fireEvent, waitFor, within, act } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 
+import { useProperty } from 'src/context/PropertyContext';
+import { useApp } from 'src/context/AppContext';
+
+// ---- Import the page under test AFTER all mocks are set up ----
+import Properties from 'src/pages/Properties';
+
 // ---- Mock navigate ----
 const mockNavigate = jest.fn();
 
@@ -24,9 +30,6 @@ jest.mock('../../context/PropertyContext', () => ({
 jest.mock('../../context/AppContext', () => ({
   useApp: jest.fn(),
 }));
-
-import { useProperty } from 'src/context/PropertyContext';
-import { useApp } from 'src/context/AppContext';
 
 // ---- Mock lightweight MUI pieces used by the page (keep interactions simple) ----
 jest.mock('@mui/material', () => {
@@ -119,9 +122,6 @@ jest.mock('../../components', () => ({
   ),
   LoadingSpinner: () => <div data-testid="loading-spinner">Loading...</div>,
 }));
-
-// ---- Import the page under test AFTER all mocks are set up ----
-import Properties from 'src/pages/Properties';
 
 describe('Properties Component', () => {
   const defaultProperties = [
@@ -304,6 +304,8 @@ describe('Properties Component', () => {
     fireEvent.click(deleteMenuItem);
 
     await waitFor(() => {
+  // TODO: Fix multiple assertions in waitFor - split into separate waitFor calls
+  
       expect(screen.getByTestId('dialog')).toBeInTheDocument();
       expect(screen.getByTestId('dialog-title')).toHaveTextContent('Delete Property');
     });
@@ -311,10 +313,10 @@ describe('Properties Component', () => {
     const dialogActions = screen.getByTestId('dialog-actions');
     const deleteBtn = within(dialogActions).getByText('Delete');
 
-    await act(async () => {
+    await 
       fireEvent.click(deleteBtn);
       await Promise.resolve();
-    });
+    ;
 
     expect(mockDeleteProperty).toHaveBeenCalledWith('2');
   });

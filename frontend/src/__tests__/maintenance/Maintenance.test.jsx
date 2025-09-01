@@ -6,6 +6,9 @@ import { MemoryRouter } from "react-router-dom";
 // Import from shared mocks for direct assertions
 import { fetchRequestsMock, createRequestMock } from "../../test/mocks/services";
 
+import Maintenance from "../../pages/Maintenance";
+import { useMaintenance } from "../../context";
+
 jest.mock("../../context", () => ({
   useMaintenance: jest.fn(() => ({
     maintenanceRequests: [],
@@ -72,9 +75,6 @@ jest.mock("react-router-dom", () => {
     useNavigate: () => jest.fn(),
   };
 });
-
-import Maintenance from "../../pages/Maintenance";
-import { useMaintenance } from "../../context";
 
 const sampleRequests = [
   {
