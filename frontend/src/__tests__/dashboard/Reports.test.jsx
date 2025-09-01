@@ -12,22 +12,38 @@ import { renderWithProviders } from 'src/test/utils/renderWithProviders';
 import Dashboard from "src/pages/Dashboard";
 
 // ---- Stub heavy/visual components to keep tests fast/stable ----
-jest.mock("src/components/ChartCard", () => () => (
-  <div data-testid="chart-card">Chart</div>
-));
-jest.mock("src/components/StatsCard", () => ({ title, value }) => (
-  <div data-testid="stats-card">
-    {title ?? "Stat"}: {value ?? ""}
-  </div>
-));
+jest.mock("src/components/ChartCard", () => ({
+  __esModule: true,
+  default: function ChartCard() {
+    const React = require('react');
+    return <div data-testid="chart-card">Chart</div>;
+  }
+}));
+jest.mock("src/components/StatsCard", () => ({
+  __esModule: true,
+  default: function StatsCard({ title, value }) {
+    const React = require('react');
+    return (
+      <div data-testid="stats-card">
+        {title ?? "Stat"}: {value ?? ""}
+      </div>
+    );
+  }
+}));
 // Keep header predictable so we can assert on titles easily
-jest.mock("src/components/PageHeader", () => ({ title, subtitle, action }) => (
-  <header>
-    <h1>{title}</h1>
-    {subtitle ? <p>{subtitle}</p> : null}
-    {action || null}
-  </header>
-));
+jest.mock("src/components/PageHeader", () => ({
+  __esModule: true,
+  default: function PageHeader({ title, subtitle, action }) {
+    const React = require('react');
+    return (
+      <header>
+        <h1>{title}</h1>
+        {subtitle ? <p>{subtitle}</p> : null}
+        {action || null}
+      </header>
+    );
+  }
+}));
 
 // ---- Mock auth so Reports can render if it shows user-aware bits ----
 jest.mock("../../context/AuthContext", () => ({

@@ -15,7 +15,13 @@ jest.mock('../context/AuthContext', () => ({
 }));
 
 // Mock key components that might make network requests
-jest.mock('../components/NavBar', () => () => <div data-testid="mock-navbar">NavBar</div>);
+jest.mock('../components/NavBar', () => ({
+  __esModule: true,
+  default: function NavBar() {
+    const React = require('react');
+    return <div data-testid="mock-navbar">NavBar</div>;
+  }
+}));
 
 describe('App Sanity Tests', () => {
   test('App renders without crashing', () => {

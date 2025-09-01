@@ -1,6 +1,7 @@
 // App.sanity.test.jsx - Basic app rendering test
 import React from 'react';
 import { render, screen } from '@testing-library/react';
+import { getInputByName, getSelectByName } from 'src/test/utils/muiTestUtils';
 import App from '../App';
 import { MemoryRouter } from 'react-router-dom';
 
@@ -28,10 +29,22 @@ jest.mock('../routing/guards', () => ({
 }));
 
 // Mock error boundary
-jest.mock('../components/ErrorBoundary', () => ({ children }) => <div data-testid="mock-error-boundary">{children}</div>);
+jest.mock('../components/ErrorBoundary', () => ({
+  __esModule: true,
+  default: function ErrorBoundary({ children }) {
+    const React = require('react');
+    return <div data-testid="mock-error-boundary">{children}</div>;
+  }
+}));
 
 // Mock suspense fallback
-jest.mock('../components/LoadingFallback', () => () => <div data-testid="mock-loading-fallback">Loading...</div>);
+jest.mock('../components/LoadingFallback', () => ({
+  __esModule: true,
+  default: function LoadingFallback() {
+    const React = require('react');
+    return <div data-testid="mock-loading-fallback">Loading...</div>;
+  }
+}));
 
 describe('App Sanity Tests', () => {
   test('App renders without crashing', () => {

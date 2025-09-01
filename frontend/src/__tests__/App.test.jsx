@@ -85,21 +85,37 @@ jest.mock("../context", () => {
 });
 
 // --- Stub heavy/visual components used by Dashboard to keep tests lean ---
-jest.mock("../components/ChartCard", () => () => (
-  <div data-testid="chart-card">Chart</div>
-));
-jest.mock("../components/StatsCard", () => ({ title, value }) => (
-  <div data-testid="stats-card">
-    {title}: {value ?? ""}
-  </div>
-));
-jest.mock("../components/PageHeader", () => ({ title, subtitle, action }) => (
-  <header>
-    <h1>{title}</h1>
-    {subtitle && <p>{subtitle}</p>}
-    {action || null}
-  </header>
-));
+jest.mock("../components/ChartCard", () => ({
+  __esModule: true,
+  default: function ChartCard() {
+    const React = require('react');
+    return <div data-testid="chart-card">Chart</div>;
+  }
+}));
+jest.mock("../components/StatsCard", () => ({
+  __esModule: true,
+  default: function StatsCard({ title, value }) {
+    const React = require('react');
+    return (
+      <div data-testid="stats-card">
+        {title}: {value ?? ""}
+      </div>
+    );
+  }
+}));
+jest.mock("../components/PageHeader", () => ({
+  __esModule: true,
+  default: function PageHeader({ title, subtitle, action }) {
+    const React = require('react');
+    return (
+      <header>
+        <h1>{title}</h1>
+        {subtitle && <p>{subtitle}</p>}
+        {action || null}
+      </header>
+    );
+  }
+}));
 
 function renderAt(route = "/") {
   return render(
@@ -162,8 +178,8 @@ describe("App routing", () => {
     ).toBeInTheDocument();
 
     // Profile form fields
-    expect(screen.getByLabelText(/full name/i)).toBeInTheDocument();
-    expect(screen.getByLabelText(/email address/i)).toBeInTheDocument();
+    expect(getInputByName(/full name/i)).toBeInTheDocument();
+    expect(getInputByName(/email address/i)).toBeInTheDocument();
   });
 
   test("navigates to Add Property route", async () => {
@@ -175,8 +191,8 @@ describe("App routing", () => {
     ).toBeInTheDocument();
 
     // A couple of the form fields
-    expect(screen.getByLabelText(/property name/i)).toBeInTheDocument();
-    expect(screen.getByLabelText(/street address/i)).toBeInTheDocument();
+    expect(getInputByName(/property name/i)).toBeInTheDocument();
+    expect(getInputByName(/street address/i)).toBeInTheDocument();
   });
 
   test("dashboard 'Add Property' action button exists and is clickable", async () => {

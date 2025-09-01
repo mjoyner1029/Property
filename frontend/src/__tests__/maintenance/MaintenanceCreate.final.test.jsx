@@ -291,10 +291,34 @@ jest.mock("@mui/material", () => {
 });
 
 // Mock MUI icons
-jest.mock("@mui/icons-material/Add", () => () => "AddIcon");
-jest.mock("@mui/icons-material/Search", () => () => "SearchIcon");
-jest.mock("@mui/icons-material/FilterList", () => () => "FilterListIcon");
-jest.mock("@mui/icons-material/Build", () => () => "BuildIcon");
+jest.mock("@mui/icons-material/Add", () => ({
+  __esModule: true,
+  default: function AddIcon() {
+    const React = require('react');
+    return React.createElement('span', null, "AddIcon");
+  }
+}));
+jest.mock("@mui/icons-material/Search", () => ({
+  __esModule: true,
+  default: function SearchIcon() {
+    const React = require('react');
+    return React.createElement('span', null, "SearchIcon");
+  }
+}));
+jest.mock("@mui/icons-material/FilterList", () => ({
+  __esModule: true,
+  default: function FilterListIcon() {
+    const React = require('react');
+    return React.createElement('span', null, "FilterListIcon");
+  }
+}));
+jest.mock("@mui/icons-material/Build", () => ({
+  __esModule: true,
+  default: function BuildIcon() {
+    const React = require('react');
+    return React.createElement('span', null, "BuildIcon");
+  }
+}));
 
 const renderPage = () => {
   // Clear any leftover dialogs from previous tests

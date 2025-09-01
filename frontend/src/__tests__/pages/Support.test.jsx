@@ -4,7 +4,13 @@ import { getInputByName, getSelectByName } from 'src/test/utils/muiTestUtils';
 import Support from 'src/pages/Support';
 import { renderWithProviders } from 'src/test/utils/renderWithProviders';
 
-jest.mock('src/components/PageHeader', () => () => <div data-testid="page-header">Page Header</div>);
+jest.mock('src/components/PageHeader', () => ({
+  __esModule: true,
+  default: function PageHeader() {
+    const React = require('react');
+    return <div data-testid="page-header">Page Header</div>;
+  }
+}));
 
 describe('Support Page', () => {
   test('renders support page with header and FAQ section', () => {
