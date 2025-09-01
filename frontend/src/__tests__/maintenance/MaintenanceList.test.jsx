@@ -1,10 +1,10 @@
 // frontend/src/__tests__/maintenance/MaintenanceList.test.jsx
 import React from "react";
 import { screen, waitFor, fireEvent } from "@testing-library/react";
-import { renderWithProviders } from "src/test/utils/renderWithProviders";
-import Maintenance from "src/pages/Maintenance";
+import { renderWithProviders } from "../../test/utils/renderWithProviders";
+import Maintenance from "../../pages/Maintenance";
 
-import { useMaintenance, useApp, useProperty } from "src/contexts";
+import { useMaintenance, useApp, useProperty } from "../../contexts";
 
 // ---- Router mocks (declare BEFORE component import) ----
 const mockNavigate = jest.fn();

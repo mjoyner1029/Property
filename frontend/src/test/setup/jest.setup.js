@@ -48,3 +48,11 @@ console.warn = (...args) => {
   }
   originalWarn.apply(console, args);
 };
+
+// Mock React DOM client to prevent createRoot issues
+jest.mock('react-dom/client', () => ({
+  createRoot: () => ({
+    render: jest.fn(),
+    unmount: jest.fn(),
+  }),
+}));

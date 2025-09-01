@@ -8,9 +8,8 @@ import userEvent from "@testing-library/user-event";
 import { updatePageTitleMock } from "../../test/mocks/pageTitle";
 import { fetchPaymentsMock } from "../../test/mocks/services";
 
-// ---- Import the real Reports page AFTER mocks ----
-// Adjust this path if your file is elsewhere (e.g. "../../pages/DashboardReports")
-import Reports from "../../pages/Reports";
+// ---- Import Dashboard component which includes reporting functionality ----
+import Dashboard from "../../pages/Dashboard";
 
 // ---- Stub heavy/visual components to keep tests fast/stable ----
 jest.mock("../../components/ChartCard", () => () => (

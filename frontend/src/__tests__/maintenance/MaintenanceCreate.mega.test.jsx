@@ -4,7 +4,7 @@ import userEvent from "@testing-library/user-event";
 import { MemoryRouter, Route, Routes } from "react-router-dom";
 
 // Now we can import our components
-import Maintenance from "../pages/Maintenance";
+import Maintenance from "../../pages/Maintenance";
 
 // Mock dependencies before importing any components
 jest.mock("@mui/material", () => {
@@ -45,7 +45,7 @@ const mockCreateRequest = jest.fn().mockResolvedValue({
 });
 
 // Important: mock the contexts before importing components that use them
-jest.mock("../context", () => ({
+jest.mock("../../context", () => ({
   useMaintenance: jest.fn(() => ({
     requests: [],
     maintenanceRequests: [],

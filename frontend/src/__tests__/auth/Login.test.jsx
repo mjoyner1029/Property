@@ -4,15 +4,15 @@ import { screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 
 // Import from shared mocks
-import { mockNavigate } from "src/test/mocks/router";
-import { loginMock, isAuthenticatedMock, AuthContextMock } from "src/test/mocks/auth";
-import { renderWithProviders } from "src/test/utils/renderWithProviders";
+import { mockNavigate } from "../../test/mocks/router";
+import { loginMock, isAuthenticatedMock, AuthContextMock } from "../../test/mocks/auth";
+import { renderWithProviders } from "../../test/utils/renderWithProviders";
 
 // Import after mocks
-import Login from "src/pages/Login";
+import Login from "../../pages/Login";
 
 // Using mockImplementation instead of inline arrow function to avoid Jest's variable reference issues
-jest.mock("src/contexts/AuthContext", () => {
+jest.mock("../../context/AuthContext", () => {
   const mockUseAuth = jest.fn();
   return { useAuth: mockUseAuth };
 });

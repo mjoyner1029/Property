@@ -1,13 +1,13 @@
 import React from "react";
 import { screen, fireEvent, waitFor } from "@testing-library/react";
 import { Routes, Route } from "react-router-dom";
-import { renderWithProviders } from "src/test/utils/renderWithProviders";
+import { renderWithProviders } from "../../test/utils/renderWithProviders";
 
 // Mock the hooks first
-import { useMaintenance, useApp } from "src/contexts";
+import { useMaintenance, useApp } from "../../contexts";
 
 // Import our mock MaintenanceDetail component
-import MaintenanceDetail from "src/__tests__/maintenance/mockMaintenanceDetail";
+import MaintenanceDetail from "./mockMaintenanceDetail";
 
 // Define mock request for the implementation
 const mockRequest = {
@@ -24,7 +24,7 @@ const mockDeleteRequest = jest.fn().mockImplementation(() => Promise.resolve(tru
 const mockUpdatePageTitle = jest.fn();
 
 // Create the context mocks
-jest.mock("src/contexts", () => ({
+jest.mock("../../contexts", () => ({
   useMaintenance: jest.fn(),
   useApp: jest.fn()
 }));

@@ -2,17 +2,17 @@
 import React from "react";
 import { screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { renderWithProviders } from "src/test/utils/renderWithProviders";
+import { renderWithProviders } from "../../test/utils/renderWithProviders";
 
 // Import mocks directly
 import { 
   isAuthenticatedMock,
   registerMock,
   AuthContextMock,
-} from "src/test/mocks/auth";
+} from "../../test/mocks/auth";
 
 // Import router mocks
-import { mockNavigate } from "src/test/mocks/router";
+import { mockNavigate } from "../../test/mocks/router";
 
 // Import mock hooks
 import { mockAuthHook, mockAppHook } from '../__mocks__/contextHooks';
@@ -20,14 +20,14 @@ import { mockAuthHook, mockAppHook } from '../__mocks__/contextHooks';
 // We don't need to mock react-router-dom here as we're importing mockNavigate from shared mocks
 
 // Import after mocks
-import Register from "src/pages/Register";
+import Register from "../../pages/Register";
 
 // Mock MUI components with lightweight versions to avoid flakiness
 jest.mock('@mui/material', () => require('../__mocks__/muiLightMock'));
 
-jest.mock("src/contexts/AuthContext", () => ({
+jest.mock("../../context/AuthContext", () => ({
   useAuth: () => {
-    const mock = require("src/test/mocks/auth");
+    const mock = require("../../test/mocks/auth");
     return {
       ...mockAuthHook,
       isAuthenticated: mock.isAuthenticatedMock,

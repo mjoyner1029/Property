@@ -45,7 +45,7 @@ const mockCreateRequest = jest.fn().mockResolvedValue({
 });
 
 // Important: mock the contexts before importing components that use them
-jest.mock("../../contexts/MaintenanceContext", () => ({
+jest.mock("../../context/MaintenanceContext", () => ({
   useMaintenanceContext: jest.fn(() => ({
     requests: [],
     loading: false,

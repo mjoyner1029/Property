@@ -1,9 +1,9 @@
 import React from 'react';
 import { render, screen } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
-import PayPortal from 'src/pages/PayPortal';
+import PayPortal from '../../pages/PayPortal';
 import axios from 'axios';
-import PaymentsHistory from 'src/pages/PaymentsHistory';
+import PaymentsHistory from '../../pages/PaymentsHistory';
 
 jest.mock('axios');
 
