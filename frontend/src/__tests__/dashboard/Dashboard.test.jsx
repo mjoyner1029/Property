@@ -1,31 +1,31 @@
 // frontend/src/__tests__/dashboard/Dashboard.test.jsx
 import React from "react";
-import { render, screen, waitFor, fireEvent } from "@testing-library/react";
-import { MemoryRouter } from "react-router-dom";
+import { screen, waitFor, fireEvent } from "@testing-library/react";
 
-// Import shared mocks
-import { fetchRequestsMock, fetchPaymentsMock } from "../../test/mocks/services";
+// Import shared mocks with absolute paths
+import { fetchRequestsMock, fetchPaymentsMock } from "src/test/mocks/services";
+import { renderWithProviders } from 'src/test/utils/renderWithProviders';
 
-// Import the real component AFTER mocks
-import Dashboard from "../../pages/Dashboard";
+// Import the real component AFTER mocks with absolute path
+import Dashboard from "src/pages/Dashboard";
 
 // ---- Stub heavy visual components to keep tests fast/stable ----
-jest.mock("../../components/ChartCard", () => () => (
+jest.mock("src/components/ChartCard", () => () => (
   <div data-testid="chart-card">Chart</div>
 ));
-jest.mock("../../components/StatsCard", () => ({ title, value }) => (
+jest.mock("src/components/StatsCard", () => ({ title, value }) => (
   <div data-testid="stats-card">
     {title}: {value ?? ""}
   </div>
 ));
 
 // ---- Make greeting deterministic: no user => "there" ----
-jest.mock("../../context/AuthContext", () => ({
+jest.mock("src/context/AuthContext", () => ({
   useAuth: () => ({ user: null, isAuthenticated: true }),
 }));
 
 // Add AppContext mock to provide updatePageTitle
-jest.mock("../../context/AppContext", () => ({
+jest.mock("src/context/AppContext", () => ({
   useApp: () => ({
     updatePageTitle: jest.fn(),
     isMobile: false,
@@ -66,11 +66,7 @@ describe("Dashboard", () => {
   });
 
   function renderDashboard(route = "/") {
-    return render(
-      <MemoryRouter initialEntries={[route]}>
-        <Dashboard />
-      </MemoryRouter>
-    );
+    return renderWithProviders(<Dashboard />, { route });
   }
 
   test("renders dashboard content", async () => {

@@ -1,27 +1,26 @@
 // frontend/src/__tests__/dashboard/Overview.test.jsx
 import React from "react";
-import { render, screen, waitFor } from "@testing-library/react";
-import { MemoryRouter } from "react-router-dom";
+import { screen, waitFor } from "@testing-library/react";
 
-// ---- Import from shared mocks ----
-import { updatePageTitleMock } from "../../test/mocks/pageTitle";
-import { fetchPaymentsMock } from "../../test/mocks/services";
+// ---- Import from shared mocks with absolute paths ----
+import { updatePageTitleMock } from "src/test/mocks/pageTitle";
+import { fetchPaymentsMock } from "src/test/mocks/services";
+import { renderWithProviders } from 'src/test/utils/renderWithProviders';
 
-// ---- Import the real Overview page AFTER mocks ----
-// Adjust this path if your file lives elsewhere (e.g. "../../pages/DashboardOverview")
-import Overview from "../../pages/Overview";
+// ---- Import the real Overview page AFTER mocks with absolute path ----
+import Overview from "src/pages/Overview";
 
 // ---- Stub heavy/visual components that Overview might use ----
-jest.mock("../../components/ChartCard", () => () => (
+jest.mock("src/components/ChartCard", () => () => (
   <div data-testid="chart-card">Chart</div>
 ));
-jest.mock("../../components/StatsCard", () => ({ title, value }) => (
+jest.mock("src/components/StatsCard", () => ({ title, value }) => (
   <div data-testid="stats-card">
     {title ?? "Stat"}: {value ?? ""}
   </div>
 ));
 // Keep the PageHeader predictable so we can assert on the title easily
-jest.mock("../../components/PageHeader", () => ({ title, subtitle, action }) => (
+jest.mock("src/components/PageHeader", () => ({ title, subtitle, action }) => (
   <header>
     <h1>{title}</h1>
     {subtitle ? <p>{subtitle}</p> : null}
@@ -57,11 +56,7 @@ jest.mock("../../context", () => ({
 }));
 
 function renderOverview(route = "/dashboard/overview") {
-  return render(
-    <MemoryRouter initialEntries={[route]}>
-      <Overview />
-    </MemoryRouter>
-  );
+  return renderWithProviders(<Overview />, { route });
 }
 
 describe("Dashboard Overview page", () => {

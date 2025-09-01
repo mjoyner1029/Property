@@ -1,27 +1,27 @@
 // frontend/src/__tests__/dashboard/Reports.test.jsx
 import React from "react";
-import { render, screen, waitFor } from "@testing-library/react";
-import { MemoryRouter } from "react-router-dom";
+import { screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 
-// ---- Import from shared mocks ----
-import { updatePageTitleMock } from "../../test/mocks/pageTitle";
-import { fetchPaymentsMock } from "../../test/mocks/services";
+// ---- Import from shared mocks with absolute paths ----
+import { updatePageTitleMock } from "src/test/mocks/pageTitle";
+import { fetchPaymentsMock } from "src/test/mocks/services";
+import { renderWithProviders } from 'src/test/utils/renderWithProviders';
 
-// ---- Import Dashboard component which includes reporting functionality ----
-import Dashboard from "../../pages/Dashboard";
+// ---- Import Dashboard component which includes reporting functionality with absolute path ----
+import Dashboard from "src/pages/Dashboard";
 
 // ---- Stub heavy/visual components to keep tests fast/stable ----
-jest.mock("../../components/ChartCard", () => () => (
+jest.mock("src/components/ChartCard", () => () => (
   <div data-testid="chart-card">Chart</div>
 ));
-jest.mock("../../components/StatsCard", () => ({ title, value }) => (
+jest.mock("src/components/StatsCard", () => ({ title, value }) => (
   <div data-testid="stats-card">
     {title ?? "Stat"}: {value ?? ""}
   </div>
 ));
 // Keep header predictable so we can assert on titles easily
-jest.mock("../../components/PageHeader", () => ({ title, subtitle, action }) => (
+jest.mock("src/components/PageHeader", () => ({ title, subtitle, action }) => (
   <header>
     <h1>{title}</h1>
     {subtitle ? <p>{subtitle}</p> : null}
@@ -57,11 +57,7 @@ jest.mock("../../context", () => ({
 }));
 
 function renderReports(route = "/dashboard/reports") {
-  return render(
-    <MemoryRouter initialEntries={[route]}>
-      <Reports />
-    </MemoryRouter>
-  );
+  return renderWithProviders(<Dashboard />, { route });
 }
 
 describe("Dashboard Reports page", () => {
