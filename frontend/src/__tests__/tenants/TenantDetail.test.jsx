@@ -8,7 +8,7 @@ import { MemoryRouter, Routes, Route } from "react-router-dom";
 import { updatePageTitleMock } from "../../test/mocks/pageTitle";
 import { getTenantMock, updateTenantMock, deleteTenantMock } from "../../test/mocks/services";
 
-import TenantDetail from "../../pages/TenantDetail";
+import TenantDetail from "src/pages/TenantDetail";
 
 // Mock context hooks used by TenantDetail
 jest.mock("../../context", () => {
@@ -102,17 +102,17 @@ describe("TenantDetail", () => {
     await userEvent.click(screen.getByRole("button", { name: /edit/i }));
 
     // Fill the form (labels per component: "Full Name", "Email Address", "Phone Number")
-    await userEvent.clear(screen.getByLabelText(/full name/i));
-    await userEvent.type(screen.getByLabelText(/full name/i), "Alice Smith");
+    await userEvent.clear(getInputByName(/full name/i));
+    await userEvent.type(getInputByName(/full name/i), "Alice Smith");
 
-    await userEvent.clear(screen.getByLabelText(/email address/i));
+    await userEvent.clear(getInputByName(/email address/i));
     await userEvent.type(
-      screen.getByLabelText(/email address/i),
+      getInputByName(/email address/i),
       "alice.smith@example.com"
     );
 
-    await userEvent.clear(screen.getByLabelText(/phone number/i));
-    await userEvent.type(screen.getByLabelText(/phone number/i), "555-5678");
+    await userEvent.clear(getInputByName(/phone number/i));
+    await userEvent.type(getInputByName(/phone number/i), "555-5678");
 
     // Save
     await userEvent.click(screen.getByRole("button", { name: /save changes/i }));
@@ -153,8 +153,8 @@ describe("TenantDetail", () => {
     await userEvent.click(screen.getByRole("button", { name: /edit/i }));
 
     // Change just the name
-    await userEvent.clear(screen.getByLabelText(/full name/i));
-    await userEvent.type(screen.getByLabelText(/full name/i), "New Name");
+    await userEvent.clear(getInputByName(/full name/i));
+    await userEvent.type(getInputByName(/full name/i), "New Name");
 
     // Save -> expect error alert in dialog
     await userEvent.click(screen.getByRole("button", { name: /save changes/i }));

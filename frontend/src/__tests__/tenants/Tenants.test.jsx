@@ -1,7 +1,7 @@
 // filepath: /Users/mjoyner/Property/frontend/src/__tests__/Tenants.test.jsx
 import React from 'react';
-import { screen, waitFor } from "@testing-library/react";
-import Tenants from "../../pages/Tenants";
+import { screen, within, waitFor } from "@testing-library/react";
+import Tenants from "src/pages/Tenants";
 import axios from "axios";
 import { renderWithProviders } from 'src/test-utils/renderWithProviders';
 

@@ -1,12 +1,12 @@
 // frontend/src/__tests__/tenants/TenantCreate.test.jsx
 import React from "react";
-import { screen, waitFor, fireEvent } from "@testing-library/react";
-import { renderWithProviders } from "../../test-utils/renderWithProviders";
+import { screen, within, waitFor, fireEvent } from "@testing-library/react";
+import { renderWithProviders } from "src/test/utils/renderWithProviders";
 
 // Import mock hooks
 import { mockTenantHook, mockAppHook } from '../__mocks__/contextHooks';
 
-import { useTenant, useApp } from "../../context";
+import { useTenant, useApp } from "src/context";
 
 // ---- Import the page under test AFTER mocks ----
 import { TenantForm } from "../../pages";
@@ -30,7 +30,7 @@ const mockUpdateTenant = jest.fn();
 const mockFetchTenantById = jest.fn();
 const mockUpdatePageTitle = jest.fn();
 
-jest.mock("../../context", () => ({
+jest.mock("src/context", () => ({
   useTenant: jest.fn(),
   useApp: jest.fn(),
 }));
@@ -93,8 +93,8 @@ describe("TenantForm (Create mode)", () => {
     expect(passedTitle.toLowerCase()).toMatch(/add|create/);
 
     // Common fields present (match labels you use in TenantDetail edit dialog)
-    expect(screen.getByLabelText(/full name|name/i)).toBeInTheDocument();
-    expect(screen.getByLabelText(/email/i)).toBeInTheDocument();
+    expect(getInputByName(/full name|name/i)).toBeInTheDocument();
+    expect(getInputByName(/email/i)).toBeInTheDocument();
     // Phone may be optional but should exist in most forms
     const maybePhone = screen.queryByLabelText(/phone/i);
     if (maybePhone) expect(maybePhone).toBeInTheDocument();
@@ -110,9 +110,9 @@ describe("TenantForm (Create mode)", () => {
 
     // Fill required fields
     const nameInput =
-      screen.getByLabelText(/full name|name/i);
+      getInputByName(/full name|name/i);
     const emailInput =
-      screen.getByLabelText(/email/i);
+      getInputByName(/email/i);
     fireEvent.change(nameInput, { target: { value: "Alice Tenant" } });
     fireEvent.change(emailInput, { target: { value: "alice@example.com" } });
 
@@ -152,10 +152,10 @@ describe("TenantForm (Create mode)", () => {
 
     renderCreate();
 
-    fireEvent.change(screen.getByLabelText(/full name|name/i), {
+    fireEvent.change(getInputByName(/full name|name/i), {
       target: { value: "Bob Tenant" },
     });
-    fireEvent.change(screen.getByLabelText(/email/i), {
+    fireEvent.change(getInputByName(/email/i), {
       target: { value: "bob@example.com" },
     });
 

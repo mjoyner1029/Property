@@ -1,9 +1,9 @@
 // frontend/src/__tests__/tenants/TenantEdit.test.jsx
 import React from "react";
-import { screen, waitFor, fireEvent } from "@testing-library/react";
-import { renderWithProviders } from "../../test-utils/renderWithProviders";
+import { screen, within, waitFor, fireEvent } from "@testing-library/react";
+import { renderWithProviders } from "src/test/utils/renderWithProviders";
 
-import { useTenant, useApp } from "../../context";
+import { useTenant, useApp } from "src/context";
 
 // ---- Import the page under test AFTER mocks ----
 import { TenantForm } from "../../pages";
@@ -24,7 +24,7 @@ const mockUpdateTenant = jest.fn();
 const mockFetchTenantById = jest.fn();
 const mockUpdatePageTitle = jest.fn();
 
-jest.mock("../../context", () => ({
+jest.mock("src/context", () => ({
   useTenant: jest.fn(),
   useApp: jest.fn(),
 }));
@@ -97,8 +97,8 @@ describe("TenantForm (Edit mode)", () => {
     });
 
     // Pre-filled fields present
-    const nameInput = screen.getByLabelText(/full name|name/i);
-    const emailInput = screen.getByLabelText(/email/i);
+    const nameInput = getInputByName(/full name|name/i);
+    const emailInput = getInputByName(/email/i);
     const phoneInput = screen.queryByLabelText(/phone/i);
 
     expect(nameInput).toHaveValue("Alice");
@@ -125,11 +125,11 @@ describe("TenantForm (Edit mode)", () => {
 
     // Wait for form to be populated
     await waitFor(() =>
-      expect(screen.getByLabelText(/name/i)).toHaveValue("Alice")
+      expect(getInputByName(/name/i)).toHaveValue("Alice")
     );
 
-    const nameInput = screen.getByLabelText(/full name|name/i);
-    const emailInput = screen.getByLabelText(/email/i);
+    const nameInput = getInputByName(/full name|name/i);
+    const emailInput = getInputByName(/email/i);
     const phoneInput = screen.queryByLabelText(/phone/i);
 
     // Modify values
@@ -182,7 +182,7 @@ describe("TenantForm (Edit mode)", () => {
 
     // Wait for form to be populated
     await waitFor(() =>
-      expect(screen.getByLabelText(/name/i)).toHaveValue("Alice")
+      expect(getInputByName(/name/i)).toHaveValue("Alice")
     );
 
     const saveBtn =
@@ -209,7 +209,7 @@ describe("TenantForm (Edit mode)", () => {
 
     // Wait for form to be populated
     const nameInput = await screen.findByLabelText(/full name|name/i);
-    const emailInput = screen.getByLabelText(/email/i);
+    const emailInput = getInputByName(/email/i);
 
     // Clear required fields
     fireEvent.clear(nameInput);

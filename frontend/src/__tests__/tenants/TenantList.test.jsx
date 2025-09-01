@@ -2,8 +2,8 @@
 import React from "react";
 import { screen } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
-import Tenants from "../../pages/Tenants";
-import { renderWithProviders } from "../../test-utils/renderWithProviders";
+import Tenants from "src/pages/Tenants";
+import { renderWithProviders } from "src/test/utils/renderWithProviders";
 
 import { useTenant } from "../../context/TenantContext";
 import { useApp } from "../../context/AppContext";

@@ -1,6 +1,7 @@
 // frontend/src/__tests__/tenants/TenantDelete.test.jsx
 import React from 'react';
-import { screen, waitFor, fireEvent } from '@testing-library/react';
+import { screen, within, waitFor, fireEvent } from '@testing-library/react';
+import { getInputByName, getSelectByName } from 'src/test/utils/muiTestUtils';
 import { Routes, Route } from 'react-router-dom';
 import { renderWithProviders } from 'src/test-utils/renderWithProviders';
 import TenantDetail from 'src/pages/TenantDetail';
