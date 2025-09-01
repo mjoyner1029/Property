@@ -39,7 +39,7 @@ jest.mock("../../context/AuthContext", () => ({
 }));
 
 // (Optional) If your Register page calls useApp().updatePageTitle
-jest.mock("src/contexts", () => ({
+jest.mock("src/context", () => ({
   useApp: () => ({ ...mockAppHook }),
 }));
 

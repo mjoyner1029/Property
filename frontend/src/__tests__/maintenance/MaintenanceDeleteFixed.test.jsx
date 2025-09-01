@@ -4,7 +4,7 @@ import { Routes, Route } from "react-router-dom";
 import { renderWithProviders } from "../../test/utils/renderWithProviders";
 
 // Mock the hooks first
-import { useMaintenance, useApp } from "../../contexts";
+import { useMaintenance, useApp } from "../../context";
 
 // Import our mock MaintenanceDetail component
 import MaintenanceDetail from "./mockMaintenanceDetail";
@@ -24,7 +24,7 @@ const mockDeleteRequest = jest.fn().mockImplementation(() => Promise.resolve(tru
 const mockUpdatePageTitle = jest.fn();
 
 // Create the context mocks
-jest.mock("../../contexts", () => ({
+jest.mock("../../context", () => ({
   useMaintenance: jest.fn(),
   useApp: jest.fn()
 }));

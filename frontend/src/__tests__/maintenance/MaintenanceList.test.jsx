@@ -4,7 +4,7 @@ import { screen, waitFor, fireEvent } from "@testing-library/react";
 import { renderWithProviders } from "../../test/utils/renderWithProviders";
 import Maintenance from "../../pages/Maintenance";
 
-import { useMaintenance, useApp, useProperty } from "../../contexts";
+import { useMaintenance, useApp, useProperty } from "../../context";
 
 // ---- Router mocks (declare BEFORE component import) ----
 const mockNavigate = jest.fn();
@@ -18,7 +18,7 @@ const mockFetchRequests = jest.fn();
 const mockCreateRequest = jest.fn();
 const mockUpdatePageTitle = jest.fn();
 
-jest.mock("../../contexts", () => ({
+jest.mock("../../context", () => ({
   useMaintenance: jest.fn(),
   useApp: jest.fn(),
   useProperty: jest.fn(),
