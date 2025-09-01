@@ -12,6 +12,7 @@ import axios from "axios";
 import { useAuth } from "./AuthContext";
 
 const MessageContext = createContext();
+export { MessageContext };
 
 function getAuthHeaders() {
   const token = localStorage.getItem("token");
