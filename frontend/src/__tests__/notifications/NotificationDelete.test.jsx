@@ -1,20 +1,20 @@
 // frontend/src/__tests__/notifications/NotificationDelete.test.jsx
 import React from "react";
-import { screen, waitFor, fireEvent, within } from "@testing-library/react";
+import { screen, within, waitFor, fireEvent } from "@testing-library/react";
 import { Routes, Route } from "react-router-dom";
-import { renderWithProviders } from "../../test-utils/renderWithProviders";
+import { renderWithProviders } from "src/test/utils/renderWithProviders";
 
-// Pages under test (adjust if your files are named differently)
-import NotificationsPage from "../../pages/Notifications";
-import NotificationDetail from "../../pages/NotificationDetail";
+// Pages under test with absolute paths
+import NotificationsPage from "src/pages/Notifications";
+import NotificationDetail from "src/pages/NotificationDetail";
 
 // ---- Router mocks ----
 import { useNavigate, useParams } from 'react-router-dom';
 
-// Import mock hooks
-import { mockNotificationHook, mockAppHook } from '../__mocks__/contextHooks';
+// Import mock hooks with absolute paths
+import { mockNotificationHook, mockAppHook } from 'src/__tests__/__mocks__/contextHooks';
 
-import { useNotifications, useApp } from "../../context";
+import { useNotifications, useApp } from "src/context";
 
 // Create mocks that we will implement in the test setup
 const mockNavigate = jest.fn();

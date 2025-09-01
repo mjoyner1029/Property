@@ -1,13 +1,14 @@
 // frontend/src/__tests__/notifications/NotificationBadge.test.jsx
 import React from "react";
-import { render, screen, fireEvent } from "@testing-library/react";
+import { screen, fireEvent } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import NotificationBadge from "../../components/NotificationBadge";
+import { renderWithProviders } from "src/test/utils/renderWithProviders";
+import NotificationBadge from "src/components/NotificationBadge";
 import { Box } from "@mui/material";
 
 describe("NotificationBadge", () => {
   test("renders nothing when count is 0", () => {
-    render(<NotificationBadge count={0} />);
+    renderWithProviders(<NotificationBadge count={0} />, { withRouter: false });
 
     // Based on implementation, component returns null when count is 0
     const badgeContainer = screen.queryByTestId("notification-badge");
@@ -17,7 +18,7 @@ describe("NotificationBadge", () => {
   test("shows count and calls onClick when clicked (default bell)", () => {
     const onClick = jest.fn();
 
-    render(<NotificationBadge count={5} onClick={onClick} />);
+    renderWithProviders(<NotificationBadge count={5} onClick={onClick} />, { withRouter: false });
 
     // Find the notification badge container
     const badgeContainer = screen.getByTestId("notification-badge");
@@ -37,7 +38,7 @@ describe("NotificationBadge", () => {
   });
 
   test("respects maxCount prop (caps display at the max)", () => {
-    render(<NotificationBadge count={120} maxCount={99} />);
+    renderWithProviders(<NotificationBadge count={120} maxCount={99} />, { withRouter: false });
 
     // Use a more specific approach - target the badge content directly
     const badge = screen.getByTestId("notification-badge");
@@ -72,7 +73,7 @@ describe("NotificationBadge", () => {
   test("applies custom tooltip text when provided", async () => {
     // Tooltip rendering is portal-based and appears on hover.
     // We can still assert the button exists with a custom tooltip prop without forcing hover in JSDOM.
-    render(<NotificationBadge count={1} tooltip="Alerts" />);
+    renderWithProviders(<NotificationBadge count={1} tooltip="Alerts" />, { withRouter: false });
     const button = screen.getByRole("button", {
       name: /open notifications \(1 unread\)/i,
     });

@@ -1,13 +1,13 @@
 // frontend/src/__tests__/notifications/NotificationCreate.test.jsx
 import React from "react";
-import { screen, waitFor, fireEvent, within } from "@testing-library/react";
+import { screen, within, waitFor, fireEvent } from "@testing-library/react";
 import { Routes, Route } from "react-router-dom";
-import { renderWithProviders } from "../../test-utils/renderWithProviders";
+import { renderWithProviders } from "src/test/utils/renderWithProviders";
 
-// Page under test (adjust if your file name differs)
-import NotificationsPage from "../../pages/Notifications";
+// Page under test with absolute path
+import NotificationsPage from "src/pages/Notifications";
 
-import { useNotifications, useApp } from "../../context";
+import { useNotifications, useApp } from "src/context";
 
 // ---- Router mocks ----
 const mockNavigate = jest.fn();
@@ -25,7 +25,7 @@ const mockAddNotification = jest.fn();
 const mockCreateNotification = jest.fn();
 const mockUpdatePageTitle = jest.fn();
 
-jest.mock("../../context", () => ({
+jest.mock("src/context", () => ({
   useNotifications: jest.fn(),
   useApp: jest.fn(),
 }));
