@@ -1,6 +1,6 @@
 // frontend/src/__tests__/maintenance/MaintenanceListFixed.test.jsx
 import React from "react";
-import { screen, waitFor, fireEvent } from "@testing-library/react";
+import { screen, within, waitFor, fireEvent } from "@testing-library/react";
 import { renderWithProviders } from "../../test-utils/renderWithProviders";
 import Maintenance from "../../pages/Maintenance";
 

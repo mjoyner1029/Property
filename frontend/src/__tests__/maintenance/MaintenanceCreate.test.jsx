@@ -1,16 +1,16 @@
 // frontend/src/__tests__/maintenance/MaintenanceCreate.test.jsx
 import React from "react";
-import { screen, waitFor, fireEvent } from "@testing-library/react";
-import { renderWithProviders } from "../../test-utils/renderWithProviders";
-import Maintenance from "../../pages/Maintenance";
+import { screen, within, waitFor, fireEvent } from "@testing-library/react";
+import { renderWithProviders } from "src/test/utils/renderWithProviders";
+import Maintenance from "src/pages/Maintenance";
 
 // Import mock hooks
-import { mockMaintenanceHook, mockAppHook, mockPropertyHook } from '../__mocks__/contextHooks';
+import { mockMaintenanceHook, mockAppHook, mockPropertyHook } from 'src/__tests__/__mocks__/contextHooks';
 
-import { useMaintenance, useApp, useProperty } from "../../context";
+import { useMaintenance, useApp, useProperty } from "src/context";
 
 // Mock MUI components with lightweight versions to avoid flakiness
-jest.mock('@mui/material', () => require('../__mocks__/muiLightMock'));
+jest.mock('@mui/material', () => require('src/__tests__/__mocks__/muiLightMock'));
 
 // ---- Router mocks (declare BEFORE component import) ----
 const mockNavigate = jest.fn();
@@ -24,7 +24,7 @@ const mockFetchRequests = jest.fn();
 const mockCreateRequest = jest.fn();
 const mockUpdatePageTitle = jest.fn();
 
-jest.mock("../../context", () => ({
+jest.mock("src/context", () => ({
   useMaintenance: jest.fn(),
   useApp: jest.fn(),
   useProperty: jest.fn(),
@@ -204,8 +204,8 @@ describe("Maintenance — Create Request flow", () => {
     expect(dialog).toBeInTheDocument();
 
     // Required fields should be present
-    expect(screen.getByLabelText(/title/i)).toBeInTheDocument();
-    expect(screen.getByLabelText(/description/i)).toBeInTheDocument();
+    expect(getInputByName(/title/i)).toBeInTheDocument();
+    expect(getInputByName(/description/i)).toBeInTheDocument();
     expect(screen.getByTestId("select-property_id")).toBeInTheDocument();
     expect(screen.getByTestId("select-maintenance_type")).toBeInTheDocument();
     expect(screen.getByTestId("select-priority")).toBeInTheDocument(); // default 'medium'
@@ -237,10 +237,10 @@ describe("Maintenance — Create Request flow", () => {
     await screen.findByRole("dialog");
 
     // Fill Title & Description
-    fireEvent.change(screen.getByLabelText(/title/i), {
+    fireEvent.change(getInputByName(/title/i), {
       target: { value: "Broken disposal" },
     });
-    fireEvent.change(screen.getByLabelText(/description/i), {
+    fireEvent.change(getInputByName(/description/i), {
       target: { value: "Kitchen disposal not working" },
     });
 
@@ -288,10 +288,10 @@ describe("Maintenance — Create Request flow", () => {
     await screen.findByRole("dialog");
 
     // Fill the minimum required fields
-    fireEvent.change(screen.getByLabelText(/title/i), {
+    fireEvent.change(getInputByName(/title/i), {
       target: { value: "Outage" },
     });
-    fireEvent.change(screen.getByLabelText(/description/i), {
+    fireEvent.change(getInputByName(/description/i), {
       target: { value: "No power in kitchen" },
     });
     fireEvent.change(screen.getByTestId("select-property_id"), {
@@ -325,10 +325,10 @@ describe("Maintenance — Create Request flow", () => {
     await screen.findByRole("dialog");
 
     // Fill fields and submit successfully
-    fireEvent.change(screen.getByLabelText(/title/i), {
+    fireEvent.change(getInputByName(/title/i), {
       target: { value: "Ceiling fan noise" },
     });
-    fireEvent.change(screen.getByLabelText(/description/i), {
+    fireEvent.change(getInputByName(/description/i), {
       target: { value: "Strange noise in living room" },
     });
     fireEvent.change(screen.getByTestId("select-property_id"), {
@@ -352,8 +352,8 @@ describe("Maintenance — Create Request flow", () => {
     fireEvent.click(screen.getByTestId("header-action"));
     await screen.findByRole("dialog");
 
-    expect(screen.getByLabelText(/title/i)).toHaveValue("");
-    expect(screen.getByLabelText(/description/i)).toHaveValue("");
+    expect(getInputByName(/title/i)).toHaveValue("");
+    expect(getInputByName(/description/i)).toHaveValue("");
     // property_id and maintenance_type reset to ""
     expect(screen.getByTestId("select-property_id")).toHaveValue("");
     expect(screen.getByTestId("select-maintenance_type")).toHaveValue("");

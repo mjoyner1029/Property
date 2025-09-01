@@ -300,11 +300,11 @@ describe("Maintenance — Create Request flow", () => {
     await screen.findByRole("dialog");
 
     // Fill required fields
-    fireEvent.change(screen.getByLabelText(/title/i), {
+    fireEvent.change(getInputByName(/title/i), {
       target: { value: "Broken Window" },
     });
     
-    fireEvent.change(screen.getByLabelText(/description/i), {
+    fireEvent.change(getInputByName(/description/i), {
       target: { value: "Window won't close" },
     });
     

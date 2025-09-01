@@ -1,15 +1,15 @@
-// frontend/src/__tests__/MaintenanceList.test.jsx
+// frontend/src/__tests__/maintenance/Maintenance.test.jsx
 import React from "react";
-import { render, screen, fireEvent, within } from "@testing-library/react";
-import { MemoryRouter } from "react-router-dom";
+import { screen, fireEvent, within } from "@testing-library/react";
+import { renderWithProviders } from "src/test/utils/renderWithProviders";
 
 // Import from shared mocks for direct assertions
-import { fetchRequestsMock, createRequestMock } from "../../test/mocks/services";
+import { fetchRequestsMock, createRequestMock } from "src/test/mocks/services";
 
-import Maintenance from "../../pages/Maintenance";
-import { useMaintenance } from "../../context";
+import Maintenance from "src/pages/Maintenance";
+import { useMaintenance } from "src/context";
 
-jest.mock("../../context", () => ({
+jest.mock("src/context", () => ({
   useMaintenance: jest.fn(() => ({
     maintenanceRequests: [],
     stats: { open: 0, inProgress: 0, completed: 0, total: 0 },
@@ -27,7 +27,7 @@ jest.mock("../../context", () => ({
 }));
 
 // ---- Lightweight component stubs so the page can render in isolation ----
-jest.mock("../../components", () => ({
+jest.mock("src/components", () => ({
   Layout: ({ children }) => <div data-testid="layout">{children}</div>,
   PageHeader: ({ title, actionText, onActionClick }) => (
     <div>
@@ -122,10 +122,8 @@ function setupWithData({ requests = [], loading = false, error = null } = {}) {
     createRequest: createRequestMock,
   });
 
-  return render(
-    <MemoryRouter>
-      <Maintenance />
-    </MemoryRouter>
+  return renderWithProviders(
+    <Maintenance />
   );
 }
 
@@ -155,9 +153,9 @@ describe("Maintenance Page", () => {
     ).toBeInTheDocument();
 
     // Basic form fields are present
-    expect(screen.getByLabelText(/title/i)).toBeInTheDocument();
-    expect(screen.getByLabelText(/^description$/i)).toBeInTheDocument();
-    expect(screen.getByLabelText(/property/i)).toBeInTheDocument();
+    expect(getInputByName(/title/i)).toBeInTheDocument();
+    expect(getInputByName(/^description$/i)).toBeInTheDocument();
+    expect(getInputByName(/property/i)).toBeInTheDocument();
   });
 
   test("renders requests and filters by status tabs", () => {

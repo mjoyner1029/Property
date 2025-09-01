@@ -1,6 +1,6 @@
 // frontend/src/__tests__/maintenance/MaintenanceCreate.final.test.jsx
 import React from "react";
-import { screen, waitFor, fireEvent } from "@testing-library/react";
+import { screen, within, waitFor, fireEvent } from "@testing-library/react";
 import { renderWithProviders } from "../../test-utils/renderWithProviders";
 
 // Define mock functions first
@@ -348,11 +348,11 @@ describe("Maintenance — Create Request flow", () => {
     await screen.findByRole("dialog");
 
     // Fill required fields
-    fireEvent.change(screen.getByLabelText(/title/i), {
+    fireEvent.change(getInputByName(/title/i), {
       target: { value: "Broken Window" },
     });
     
-    fireEvent.change(screen.getByLabelText(/description/i), {
+    fireEvent.change(getInputByName(/description/i), {
       target: { value: "Window won't close" },
     });
     

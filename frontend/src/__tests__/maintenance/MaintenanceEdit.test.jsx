@@ -1,11 +1,11 @@
 // frontend/src/__tests__/maintenance/MaintenanceEdit.test.jsx
 import React from "react";
-import { screen, waitFor, fireEvent } from "@testing-library/react";
+import { screen, within, waitFor, fireEvent } from "@testing-library/react";
 import { Routes, Route } from "react-router-dom";
-import { renderWithProviders } from "../../test-utils/renderWithProviders";
-import MaintenanceDetail from "../../pages/MaintenanceDetail";
+import { renderWithProviders } from "src/test/utils/renderWithProviders";
+import MaintenanceDetail from "src/pages/MaintenanceDetail";
 
-import { useMaintenance, useApp } from "../../context";
+import { useMaintenance, useApp } from "src/context";
 
 // Add missing fireEvent.clear function
 fireEvent.clear = (element) => {
@@ -26,7 +26,7 @@ const mockUpdateRequest = jest.fn();
 const mockDeleteRequest = jest.fn();
 const mockUpdatePageTitle = jest.fn();
 
-jest.mock("../../context", () => ({
+jest.mock("src/context", () => ({
   useMaintenance: jest.fn(),
   useApp: jest.fn(),
 }));
@@ -253,7 +253,7 @@ describe("MaintenanceDetail — Edit flow", () => {
 
     // Dialog fields are present and prefilled
     const titleInput = await screen.findByLabelText(/title/i);
-    const descInput = screen.getByLabelText(/description/i);
+    const descInput = getInputByName(/description/i);
     expect(titleInput).toHaveValue("Leaky faucet");
     expect(descInput).toHaveValue("Bathroom sink leaking under cabinet");
 
@@ -306,7 +306,7 @@ describe("MaintenanceDetail — Edit flow", () => {
     // Open dialog
     fireEvent.click(screen.getByRole("button", { name: /edit/i }));
     const titleInput = await screen.findByLabelText(/title/i);
-    const descInput = screen.getByLabelText(/description/i);
+    const descInput = getInputByName(/description/i);
 
     // Clear required fields
     fireEvent.clear(titleInput);

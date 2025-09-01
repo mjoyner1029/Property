@@ -1,6 +1,6 @@
 // frontend/src/__tests__/maintenance/MaintenanceCreateFixed.test.jsx
 import React from "react";
-import { screen, waitFor, fireEvent } from "@testing-library/react";
+import { screen, within, waitFor, fireEvent } from "@testing-library/react";
 
 // Define mock functions first, at the top level
 const mockFetchRequests = jest.fn().mockResolvedValue([]);
@@ -272,8 +272,8 @@ describe("Maintenance — Create Request flow", () => {
     expect(dialog).toBeInTheDocument();
 
     // Required fields should be present
-    expect(screen.getByLabelText(/title/i)).toBeInTheDocument();
-    expect(screen.getByLabelText(/description/i)).toBeInTheDocument();
+    expect(getInputByName(/title/i)).toBeInTheDocument();
+    expect(getInputByName(/description/i)).toBeInTheDocument();
     expect(screen.getByTestId("select-property_id")).toBeInTheDocument();
     expect(screen.getByTestId("select-maintenance_type")).toBeInTheDocument();
     expect(screen.getByTestId("select-priority")).toBeInTheDocument(); // default 'medium'
@@ -310,10 +310,10 @@ describe("Maintenance — Create Request flow", () => {
     await screen.findByRole("dialog");
 
     // Fill the minimum required fields
-    fireEvent.change(screen.getByLabelText(/title/i), {
+    fireEvent.change(getInputByName(/title/i), {
       target: { value: "Broken Window" },
     });
-    fireEvent.change(screen.getByLabelText(/description/i), {
+    fireEvent.change(getInputByName(/description/i), {
       target: { value: "Bedroom window won't close properly" },
     });
     fireEvent.change(screen.getByTestId("select-property_id"), {
@@ -358,10 +358,10 @@ describe("Maintenance — Create Request flow", () => {
     await screen.findByRole("dialog");
 
     // Fill the minimum required fields
-    fireEvent.change(screen.getByLabelText(/title/i), {
+    fireEvent.change(getInputByName(/title/i), {
       target: { value: "Outage" },
     });
-    fireEvent.change(screen.getByLabelText(/description/i), {
+    fireEvent.change(getInputByName(/description/i), {
       target: { value: "No power in kitchen" },
     });
     fireEvent.change(screen.getByTestId("select-property_id"), {
@@ -392,7 +392,7 @@ describe("Maintenance — Create Request flow", () => {
     await screen.findByRole("dialog");
 
     // Fill the form fields
-    fireEvent.change(screen.getByLabelText(/title/i), {
+    fireEvent.change(getInputByName(/title/i), {
       target: { value: "Test Title" },
     });
     
@@ -408,7 +408,7 @@ describe("Maintenance — Create Request flow", () => {
     await screen.findByRole("dialog");
     
     // Form should be reset
-    expect(screen.getByLabelText(/title/i).value).toBe("");
+    expect(getInputByName(/title/i).value).toBe("");
   });
 
   test("can open create dialog from empty state CTA", async () => {

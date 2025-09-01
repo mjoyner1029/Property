@@ -1,10 +1,10 @@
 // frontend/src/__tests__/maintenance/MaintenanceList.test.jsx
 import React from "react";
-import { screen, waitFor, fireEvent } from "@testing-library/react";
-import { renderWithProviders } from "../../test/utils/renderWithProviders";
-import Maintenance from "../../pages/Maintenance";
+import { screen, within, waitFor, fireEvent } from "@testing-library/react";
+import { renderWithProviders } from "src/test/utils/renderWithProviders";
+import Maintenance from "src/pages/Maintenance";
 
-import { useMaintenance, useApp, useProperty } from "../../context";
+import { useMaintenance, useApp, useProperty } from "src/context";
 
 // ---- Router mocks (declare BEFORE component import) ----
 const mockNavigate = jest.fn();
@@ -18,14 +18,14 @@ const mockFetchRequests = jest.fn();
 const mockCreateRequest = jest.fn();
 const mockUpdatePageTitle = jest.fn();
 
-jest.mock("../../context", () => ({
+jest.mock("src/context", () => ({
   useMaintenance: jest.fn(),
   useApp: jest.fn(),
   useProperty: jest.fn(),
 }));
 
 // ---- Lightweight component stubs to keep tests fast/stable ----
-jest.mock("../../components", () => ({
+jest.mock("src/components", () => ({
   Layout: ({ children }) => <div data-testid="layout">{children}</div>,
   PageHeader: ({ title, subtitle, actionText, actionIcon, onActionClick }) => (
     <header data-testid="page-header">
@@ -292,10 +292,10 @@ describe("Maintenance List Page", () => {
     expect(true).toBe(true);
 
     // Fill Title & Description
-    fireEvent.change(screen.getByLabelText(/title/i), {
+    fireEvent.change(getInputByName(/title/i), {
       target: { value: "Broken disposal" },
     });
-    fireEvent.change(screen.getByLabelText(/description/i), {
+    fireEvent.change(getInputByName(/description/i), {
       target: { value: "Kitchen disposal not working" },
     });
 
