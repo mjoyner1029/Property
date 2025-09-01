@@ -14,4 +14,12 @@ module.exports = {
   maxWorkers: '50%',
   modulePathIgnorePatterns: ['<rootDir>/dist/','<rootDir>/build/'],
   watchPathIgnorePatterns: ['<rootDir>/node_modules/','<rootDir>/.cache/'],
+  collectCoverageFrom: [
+    'src/**/*.{js,jsx}',
+    '!src/**/*.{spec,test}.{js,jsx}',
+    '!src/test/**',
+    '!src/index.js',
+    '!src/reportWebVitals.js',
+  ],
+  coverageDirectory: 'coverage',
 };

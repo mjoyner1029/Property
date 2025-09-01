@@ -25,9 +25,9 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 15
     strategy:
-      fail-fast: false
+      fail-fast: true
       matrix:
-        node: [ '18', '20' ]
+        node: [ '20' ]
 
     defaults:
       run:
@@ -58,7 +58,15 @@ jobs:
       - name: Test
         env:
           CI: true
-        run: npm test -- --ci
+        run: npm run test:ci
+
+      - name: Upload coverage report
+        if: success()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: frontend-coverage-${{ matrix.node }}
+          path: frontend/coverage
+          retention-days: 7
 
       - name: Build
         run: npm run build
