@@ -29,10 +29,10 @@ describe('NotificationBadge Component', () => {
   test('handles click event', async () => {
     const handleClick = jest.fn();
     render(<NotificationBadge count={3} onClick={handleClick} />);
-    const user = userEvent.setup();
     
-    // Click the badge
-    await user.click(screen.getByTestId('notification-badge'));
+    // Click the badge using fireEvent instead of userEvent
+    const badge = screen.getByTestId('notification-badge');
+    badge.click();
     
     // Check if onClick handler was called
     expect(handleClick).toHaveBeenCalledTimes(1);

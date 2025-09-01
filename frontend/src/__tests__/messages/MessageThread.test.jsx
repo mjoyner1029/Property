@@ -4,6 +4,9 @@ import { render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import MessageThread from "../../components/MessageThread";
 
+// Mock the scrollIntoView function which isn't implemented in jsdom
+window.HTMLElement.prototype.scrollIntoView = jest.fn();
+
 describe("MessageThread", () => {
   const currentUserId = "u1";
   const usersById = {
