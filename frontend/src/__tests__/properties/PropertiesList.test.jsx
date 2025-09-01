@@ -33,33 +33,60 @@ jest.mock('@mui/material', () => {
   const actual = jest.requireActual('@mui/material');
   return {
     ...actual,
-    TextField: ({ placeholder, value, onChange }) => (
-      <input
-        placeholder={placeholder}
-        value={value || ''}
-        onChange={onChange}
-        data-testid="search-input"
-      />
-    ),
-    Button: ({ children, onClick }) => (
-      <button onClick={onClick} data-testid="button">
-        {children}
-      </button>
-    ),
-    Menu: ({ children, open }) => (open ? <div data-testid="menu">{children}</div> : null),
-    MenuItem: ({ children, onClick }) => (
-      <div
-        data-testid={`menu-item-${children?.toString().toLowerCase().replace(/\s/g, '-')}`}
-        onClick={onClick}
-      >
-        {children}
-      </div>
-    ),
-    Dialog: ({ children, open }) => (open ? <div data-testid="dialog">{children}</div> : null),
-    DialogTitle: ({ children }) => <h2 data-testid="dialog-title">{children}</h2>,
-    DialogContent: ({ children }) => <div data-testid="dialog-content">{children}</div>,
-    DialogContentText: ({ children }) => <p data-testid="dialog-text">{children}</p>,
-    DialogActions: ({ children }) => <div data-testid="dialog-actions">{children}</div>,
+    TextField: ({ placeholder, value, onChange }) => {
+      const React = require('react');
+      return (
+        <input
+          placeholder={placeholder}
+          value={value || ''}
+          onChange={onChange}
+          data-testid="search-input"
+        />
+      );
+    },
+    Button: ({ children, onClick }) => {
+      const React = require('react');
+      return (
+        <button onClick={onClick} data-testid="button">
+          {children}
+        </button>
+      );
+    },
+    Menu: ({ children, open }) => {
+      const React = require('react');
+      return open ? <div data-testid="menu">{children}</div> : null;
+    },
+    MenuItem: ({ children, onClick }) => {
+      const React = require('react');
+      return (
+        <div
+          data-testid={`menu-item-${children?.toString().toLowerCase().replace(/\s/g, '-')}`}
+          onClick={onClick}
+        >
+          {children}
+        </div>
+      );
+    },
+    Dialog: ({ children, open }) => {
+      const React = require('react');
+      return open ? <div data-testid="dialog">{children}</div> : null;
+    },
+    DialogTitle: ({ children }) => {
+      const React = require('react');
+      return <h2 data-testid="dialog-title">{children}</h2>;
+    },
+    DialogContent: ({ children }) => {
+      const React = require('react');
+      return <div data-testid="dialog-content">{children}</div>;
+    },
+    DialogContentText: ({ children }) => {
+      const React = require('react');
+      return <p data-testid="dialog-text">{children}</p>;
+    },
+    DialogActions: ({ children }) => {
+      const React = require('react');
+      return <div data-testid="dialog-actions">{children}</div>;
+    },
   };
 });
 
