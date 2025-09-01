@@ -1,7 +1,7 @@
 import React from 'react';
 import { render } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
-import { ThemeProvider } from '@mui/material/styles';
+import { ThemeProvider, createTheme } from '@mui/material/styles';
 import { AppContext } from 'src/context/AppContext';
 import { PropertyContext } from 'src/context/PropertyContext';
 import { MaintenanceContext } from 'src/context/MaintenanceContext';
@@ -150,11 +150,14 @@ export function makeMockProvider(Context, value) {
  * @param {Object} [options.themeContext] - Custom theme context values to override defaults
  * @returns {Object} - Object containing the rendered component and testing utilities
  */
+// Import default MUI theme
+const defaultTheme = createTheme();
+
 export function renderWithProviders(ui, options = {}) {
   const {
     route = '/',
     withRouter = true,
-    theme: customTheme = theme,
+    theme: customTheme = defaultTheme,
     auth = defaultAuthContext,
     app = defaultAppContext,
     notification = defaultNotificationContext,
