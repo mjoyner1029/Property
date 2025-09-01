@@ -1,13 +1,14 @@
 import React from "react";
-import { render, screen } from "@testing-library/react";
-import ErrorBoundary from "../../components/ErrorBoundary";
+import { screen } from "@testing-library/react";
+import { renderWithProviders } from 'src/test/utils/renderWithProviders';
+import ErrorBoundary from "src/components/ErrorBoundary";
 import axios from 'axios';
 
 // Mock axios to prevent actual API calls
 jest.mock('axios');
 
 // Mock the components that are throwing errors within ErrorBoundary
-jest.mock('../../components/ErrorBoundary', () => {
+jest.mock('src/components/ErrorBoundary', () => {
   return {
     __esModule: true,
     default: ({ children, fallback }) => {
@@ -41,7 +42,7 @@ test("accepts a custom fallback renderer", () => {
     </div>
   );
 
-  render(
+  renderWithProviders(
     <ErrorBoundary fallback={customFallback}>
       <div>Child content</div>
     </ErrorBoundary>

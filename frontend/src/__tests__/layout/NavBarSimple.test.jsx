@@ -1,17 +1,13 @@
 import React from 'react';
-import { render, screen } from '@testing-library/react';
+import { screen } from '@testing-library/react';
+import { getInputByName, getSelectByName } from 'src/test/utils/muiTestUtils';
 import userEvent from '@testing-library/user-event';
-import { MemoryRouter } from 'react-router-dom';
 import NavBarSimple from 'src/components/NavBarSimple';
+import { renderWithProviders } from 'src/test/utils/renderWithProviders';
 
-// Use direct render with MemoryRouter instead of renderWithProviders
-// to simplify the test and avoid any issues with context providers
+// Use renderWithProviders for consistency across tests
 const renderNavBar = (ui) => {
-  return render(
-    <MemoryRouter>
-      {ui}
-    </MemoryRouter>
-  );
+  return renderWithProviders(ui);
 };
 
 describe('NavBarSimple Component', () => {

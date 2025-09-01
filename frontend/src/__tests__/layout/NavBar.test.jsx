@@ -1,13 +1,14 @@
 import React from 'react';
-import { screen, waitFor } from '@testing-library/react';
+import { screen, within, waitFor } from '@testing-library/react';
+import { getInputByName, getSelectByName } from 'src/test/utils/muiTestUtils';
 import userEvent from '@testing-library/user-event';
-import { renderWithProviders } from 'src/test-utils/renderWithProviders';
+import { renderWithProviders } from 'src/test/utils/renderWithProviders';
 import NavBar from 'src/components/NavBar';
 
 // Import the AuthContext mocks but don't override them
 import { useAuth } from 'src/context/AuthContext';
 
-jest.mock('../../context/AuthContext');
+jest.mock('src/context/AuthContext');
 
 describe('NavBar Component', () => {
   const mockLogout = jest.fn();
@@ -72,7 +73,7 @@ describe('NavBar Component', () => {
     });
     
     // Open user menu
-    await user.click(screen.getByLabelText(/account of current user/i));
+    await user.click(getInputByName(/account of current user/i));
     
     // Click logout option
     await user.click(screen.getByText(/logout/i));

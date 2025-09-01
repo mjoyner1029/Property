@@ -1,8 +1,9 @@
 import React, { useEffect } from 'react';
-import { render, screen, waitFor } from '@testing-library/react';
+import { screen, waitFor } from '@testing-library/react';
+import { getInputByName, getSelectByName } from 'src/test/utils/muiTestUtils';
 import { act } from 'react-dom/test-utils';
 import { Routes, Route } from "react-router-dom";
-import { renderWithProviders } from "../../test-utils/renderWithProviders";
+import { renderWithProviders } from "src/test/utils/renderWithProviders";
 import ErrorBoundary from 'src/components/ErrorBoundary';
 import axios from 'axios';
 import api from 'src/utils/api';
@@ -13,7 +14,7 @@ jest.mock('axios', () => ({
 }));
 
 // Mock the API module that pages import
-jest.mock('../../utils/api', () => {
+jest.mock('src/utils/api', () => {
   const handlers = { get: jest.fn(), post: jest.fn(), put: jest.fn(), delete: jest.fn() };
   return { __esModule: true, default: handlers };
 });
