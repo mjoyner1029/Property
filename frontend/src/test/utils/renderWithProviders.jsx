@@ -13,7 +13,10 @@ import MaintenanceContext from 'src/context/MaintenanceContext';
 import TenantContext from 'src/context/TenantContext';
 import PaymentContext from 'src/context/PaymentContext';
 import MessageContext from 'src/context/MessageContext';
-import { ThemeContext } from 'src/context/ThemeContext';
+
+// Import ThemeContext directly
+import { createContext } from 'react';
+const ThemeContext = createContext();
 
 // Default admin user for testing
 const defaultUser = {
@@ -174,25 +177,25 @@ export function renderWithProviders(ui, options = {}) {
     // Create the content to be wrapped with or without router
     const content = (
       <ThemeProvider theme={customTheme}>
-        <ThemeContext.Provider value={themeContext}>
-          <AppContext.Provider value={app}>
-            <AuthContext.Provider value={auth}>
-              <PropertyContext.Provider value={property}>
-                <NotificationContext.Provider value={notification}>
-                  <MaintenanceContext.Provider value={maintenance}>
-                    <TenantContext.Provider value={tenant}>
-                      <PaymentContext.Provider value={payment}>
-                        <MessageContext.Provider value={message}>
+        <AppContext.Provider value={app}>
+          <AuthContext.Provider value={auth}>
+            <PropertyContext.Provider value={property}>
+              <NotificationContext.Provider value={notification}>
+                <MaintenanceContext.Provider value={maintenance}>
+                  <TenantContext.Provider value={tenant}>
+                    <PaymentContext.Provider value={payment}>
+                      <MessageContext.Provider value={message}>
+                        <ThemeContext.Provider value={themeContext}>
                           {children}
-                        </MessageContext.Provider>
-                      </PaymentContext.Provider>
-                    </TenantContext.Provider>
-                  </MaintenanceContext.Provider>
-                </NotificationContext.Provider>
-              </PropertyContext.Provider>
-            </AuthContext.Provider>
-          </AppContext.Provider>
-        </ThemeContext.Provider>
+                        </ThemeContext.Provider>
+                      </MessageContext.Provider>
+                    </PaymentContext.Provider>
+                  </TenantContext.Provider>
+                </MaintenanceContext.Provider>
+              </NotificationContext.Provider>
+            </PropertyContext.Provider>
+          </AuthContext.Provider>
+        </AppContext.Provider>
       </ThemeProvider>
     );
 
