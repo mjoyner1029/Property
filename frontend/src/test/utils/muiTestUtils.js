@@ -1,18 +1,19 @@
 /**
  * Utility functions for testing Material UI components
  */
-import { screen } from '@testing-library/react';
+import { screen as defaultScreen } from '@testing-library/react';
 
 /**
  * Gets an input element in a MUI form field.
  * MUI inputs are often not directly accessible via getByLabelText due to their complex structure.
  * This helper uses more reliable selectors like getByRole when possible.
  * 
+ * @param {object} screen - The Testing Library screen object
  * @param {string|RegExp} name - The accessible name of the input
  * @param {object} options - Additional options for the query
  * @returns {HTMLElement} - The input element
  */
-export const getInputByName = (name, options = {}) => {
+export const getInputByName = (screen, name, options = {}) => {
   try {
     // Try to get by role first, which is more reliable for MUI components
     return screen.getByRole('textbox', { name, ...options });
@@ -41,11 +42,12 @@ export const getInputByName = (name, options = {}) => {
 /**
  * Gets a select element in a MUI form
  * 
+ * @param {object} screen - The Testing Library screen object
  * @param {string|RegExp} name - The accessible name of the select
  * @param {object} options - Additional options for the query
  * @returns {HTMLElement} - The select element
  */
-export const getSelectByName = (name, options = {}) => {
+export const getSelectByName = (screen, name, options = {}) => {
   try {
     // Try to get by role first
     return screen.getByRole('combobox', { name, ...options });
