@@ -49,10 +49,20 @@ console.warn = (...args) => {
   originalWarn.apply(console, args);
 };
 
-// Mock React DOM client to prevent createRoot issues
-jest.mock('react-dom/client', () => ({
-  createRoot: () => ({
-    render: jest.fn(),
-    unmount: jest.fn(),
-  }),
-}));
+// Mock react-dom/client to avoid real createRoot in tests
+jest.mock('react-dom/client', () => {
+  return {
+    createRoot: () => ({ render: jest.fn(), unmount: jest.fn() }),
+  };
+});
+
+// Common browser APIs missing in jsdom
+window.scrollTo = window.scrollTo || (() => {});
+Element.prototype.scrollIntoView = Element.prototype.scrollIntoView || jest.fn();
+window.matchMedia = window.matchMedia || function () {
+  return { matches: false, addListener: () => {}, removeListener: () => {}, addEventListener: () => {}, removeEventListener: () => {}, dispatchEvent: () => false };
+};
+class RO { observe(){} unobserve(){} disconnect(){} }
+window.ResizeObserver = window.ResizeObserver || RO;
+class IO { observe(){} unobserve(){} disconnect(){} takeRecords(){return [];} }
+window.IntersectionObserver = window.IntersectionObserver || IO;
