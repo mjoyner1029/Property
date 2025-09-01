@@ -1,21 +1,20 @@
-import React from 'react';
+import React, { createContext } from 'react';
 import { render } from '@testing-library/react';
 import { ThemeProvider } from '@mui/material/styles';
 import { MemoryRouter } from 'react-router-dom';
 import theme from 'src/theme';
 
 // Import all contexts directly
-import AppContext from 'src/context/AppContext';
+import { AppContext } from 'src/context/AppContext';
 import { AuthContext } from 'src/context/AuthContext';
-import NotificationContext from 'src/context/NotificationContext';
-import PropertyContext from 'src/context/PropertyContext';
-import MaintenanceContext from 'src/context/MaintenanceContext';
-import TenantContext from 'src/context/TenantContext';
-import PaymentContext from 'src/context/PaymentContext';
-import MessageContext from 'src/context/MessageContext';
+import { NotificationContext } from 'src/context/NotificationContext';
+import { PropertyContext } from 'src/context/PropertyContext';
+import { MaintenanceContext } from 'src/context/MaintenanceContext';
+import { TenantContext } from 'src/context/TenantContext';
+import { PaymentContext } from 'src/context/PaymentContext';
+import { MessageContext } from 'src/context/MessageContext';
 
-// Import ThemeContext directly
-import { createContext } from 'react';
+// Create theme context for tests
 const ThemeContext = createContext();
 
 // Default admin user for testing
