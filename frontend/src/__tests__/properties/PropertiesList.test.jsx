@@ -1,6 +1,7 @@
 // frontend/src/__tests__/properties/PropertyList.test.jsx
 import React from 'react';
 import { render, screen, fireEvent, waitFor, within, act } from '@testing-library/react';
+import { getInputByName, getSelectByName } from 'src/test/utils/muiTestUtils';
 import { MemoryRouter } from 'react-router-dom';
 
 import { useProperty } from 'src/context/PropertyContext';
@@ -165,11 +166,7 @@ describe('Properties Component', () => {
   });
 
   test('renders properties and handles property click', () => {
-    render(
-      <MemoryRouter>
-        <Properties />
-      </MemoryRouter>
-    );
+    renderWithProviders(<Properties />);
 
     // fetch + title update called
     expect(mockFetchProperties).toHaveBeenCalled();
@@ -185,11 +182,7 @@ describe('Properties Component', () => {
   });
 
   test('handles add property button click', () => {
-    render(
-      <MemoryRouter>
-        <Properties />
-      </MemoryRouter>
-    );
+    renderWithProviders(<Properties />);
 
     screen.getByTestId('add-property-button').click();
     // NOTE: If your app uses "/properties/new", swap below accordingly.
@@ -205,11 +198,7 @@ describe('Properties Component', () => {
       deleteProperty: mockDeleteProperty,
     });
 
-    render(
-      <MemoryRouter>
-        <Properties />
-      </MemoryRouter>
-    );
+    renderWithProviders(<Properties />);
 
     expect(screen.getByTestId('loading-spinner')).toBeInTheDocument();
   });
@@ -223,11 +212,7 @@ describe('Properties Component', () => {
       deleteProperty: mockDeleteProperty,
     });
 
-    render(
-      <MemoryRouter>
-        <Properties />
-      </MemoryRouter>
-    );
+    renderWithProviders(<Properties />);
 
     expect(screen.getByText('Failed to load properties')).toBeInTheDocument();
   });
@@ -241,11 +226,7 @@ describe('Properties Component', () => {
       deleteProperty: mockDeleteProperty,
     });
 
-    render(
-      <MemoryRouter>
-        <Properties />
-      </MemoryRouter>
-    );
+    renderWithProviders(<Properties />);
 
     expect(screen.getByTestId('empty-state')).toBeInTheDocument();
     screen.getByTestId('empty-add-button').click();
@@ -254,11 +235,7 @@ describe('Properties Component', () => {
   });
 
   test('filters properties by name', () => {
-    render(
-      <MemoryRouter>
-        <Properties />
-      </MemoryRouter>
-    );
+    renderWithProviders(<Properties />);
 
     const searchInput = screen.getByTestId('search-input');
     fireEvent.change(searchInput, { target: { value: 'Ocean' } });
@@ -268,11 +245,7 @@ describe('Properties Component', () => {
   });
 
   test('filters properties by address', () => {
-    render(
-      <MemoryRouter>
-        <Properties />
-      </MemoryRouter>
-    );
+    renderWithProviders(<Properties />);
 
     const searchInput = screen.getByTestId('search-input');
 
@@ -288,11 +261,7 @@ describe('Properties Component', () => {
   test('opens menu and deletes a property', async () => {
     mockDeleteProperty.mockResolvedValue({ success: true });
 
-    render(
-      <MemoryRouter>
-        <Properties />
-      </MemoryRouter>
-    );
+    renderWithProviders(<Properties />);
 
     fireEvent.click(screen.getByTestId('property-menu-2'));
 
@@ -322,11 +291,7 @@ describe('Properties Component', () => {
   });
 
   test('handles filtering by type and sorting', async () => {
-    render(
-      <MemoryRouter>
-        <Properties />
-      </MemoryRouter>
-    );
+    renderWithProviders(<Properties />);
 
     // Open filter menu
     fireEvent.click(screen.getByText('Filter'));

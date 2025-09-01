@@ -1,8 +1,8 @@
 // frontend/src/__tests__/properties/PropertyDelete.test.jsx
 import React from "react";
-import { screen, waitFor, fireEvent, within } from "@testing-library/react";
-import { renderWithProviders } from "../../test-utils/renderWithProviders";
-import PropertyDetail from "../../pages/PropertyDetail";
+import { screen, within, waitFor, fireEvent, within } from "@testing-library/react";
+import { renderWithProviders } from "src/test/utils/renderWithProviders";
+import PropertyDetail from "src/pages/PropertyDetail";
 import * as PropertyContext from 'src/context/PropertyContext';
 import * as AppContext from 'src/context/AppContext';
 

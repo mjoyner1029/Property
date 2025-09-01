@@ -1,5 +1,6 @@
 import React from 'react';
 import { render, screen, fireEvent, waitFor, act } from '@testing-library/react';
+import { getInputByName, getSelectByName } from 'src/test/utils/muiTestUtils';
 import { MemoryRouter } from 'react-router-dom';
 import PropertyForm from 'src/pages/PropertyForm';
 import { useProperty } from 'src/context/PropertyContext';
@@ -56,17 +57,13 @@ describe('PropertyForm Component', () => {
       rent: 3000
     });
 
-    render(
-      <MemoryRouter>
-        <PropertyForm />
-      </MemoryRouter>
-    );
+    renderWithProviders(<PropertyForm />);
 
     expect(mockUpdatePageTitle).toHaveBeenCalledWith('Add Property');
 
-    fireEvent.change(screen.getByLabelText(/property name/i), { target: { value: 'Loft 9' } });
-    fireEvent.change(screen.getByLabelText(/property address/i), { target: { value: '9 Elm' } });
-    fireEvent.change(screen.getByLabelText(/property type/i), { target: { value: 'apartment' } });
+    fireEvent.change(getInputByName(/property name/i), { target: { value: 'Loft 9' } });
+    fireEvent.change(getInputByName(/property address/i), { target: { value: '9 Elm' } });
+    fireEvent.change(getInputByName(/property type/i), { target: { value: 'apartment' } });
 
     const submitButton = screen.getByRole('button', { name: /save property details/i });
     fireEvent.click(submitButton);
@@ -88,15 +85,11 @@ describe('PropertyForm Component', () => {
     apiError.response = { status: 500, data: { message: 'Server error' } };
     mockCreateProperty.mockRejectedValue(apiError);
 
-    render(
-      <MemoryRouter>
-        <PropertyForm />
-      </MemoryRouter>
-    );
+    renderWithProviders(<PropertyForm />);
 
-    fireEvent.change(screen.getByLabelText(/property name/i), { target: { value: 'Loft 9' } });
-    fireEvent.change(screen.getByLabelText(/property address/i), { target: { value: '9 Elm' } });
-    fireEvent.change(screen.getByLabelText(/property type/i), { target: { value: 'apartment' } });
+    fireEvent.change(getInputByName(/property name/i), { target: { value: 'Loft 9' } });
+    fireEvent.change(getInputByName(/property address/i), { target: { value: '9 Elm' } });
+    fireEvent.change(getInputByName(/property type/i), { target: { value: 'apartment' } });
 
     fireEvent.click(screen.getByRole('button', { name: /save property details/i }));
 
@@ -106,11 +99,7 @@ describe('PropertyForm Component', () => {
   });
 
   test('client validation prevents submit when required fields are missing', async () => {
-    render(
-      <MemoryRouter>
-        <PropertyForm />
-      </MemoryRouter>
-    );
+    renderWithProviders(<PropertyForm />);
 
     await 
       fireEvent.click(screen.getByTestId('button-save'));
@@ -127,15 +116,11 @@ describe('PropertyForm Component', () => {
       type: 'apartment'
     });
 
-    render(
-      <MemoryRouter>
-        <PropertyForm />
-      </MemoryRouter>
-    );
+    renderWithProviders(<PropertyForm />);
 
-    fireEvent.change(screen.getByLabelText(/property name/i), { target: { value: 'Loft 9' } });
-    fireEvent.change(screen.getByLabelText(/property address/i), { target: { value: '9 Elm' } });
-    fireEvent.change(screen.getByLabelText(/property type/i), { target: { value: 'apartment' } });
+    fireEvent.change(getInputByName(/property name/i), { target: { value: 'Loft 9' } });
+    fireEvent.change(getInputByName(/property address/i), { target: { value: '9 Elm' } });
+    fireEvent.change(getInputByName(/property type/i), { target: { value: 'apartment' } });
 
     await 
     fireEvent.click(screen.getByRole("button", { name: /save property details/i }));

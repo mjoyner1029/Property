@@ -1,12 +1,12 @@
 // frontend/src/__tests__/properties/PropertyCreate.test.jsx
 import React from "react";
-import { screen, waitFor, fireEvent } from "@testing-library/react";
-import { renderWithProviders } from "../../test-utils/renderWithProviders";
+import { screen, within, waitFor, fireEvent } from "@testing-library/react";
+import { renderWithProviders } from "src/test/utils/renderWithProviders";
 
-import { useProperty, useApp } from "../../context";
+import { useProperty, useApp } from "src/context";
 
 // ---- Import the component under test AFTER mocks ----
-import PropertyForm from "../../pages/PropertyForm";
+import PropertyForm from "src/pages/PropertyForm";
 
 // ---- Router mocks (must be defined before component import) ----
 const mockNavigate = jest.fn();
@@ -24,7 +24,7 @@ const mockUpdateProperty = jest.fn();
 const mockFetchPropertyById = jest.fn();
 const mockUpdatePageTitle = jest.fn();
 
-jest.mock("../../context", () => ({
+jest.mock("src/context", () => ({
   useProperty: jest.fn(),
   useApp: jest.fn(),
 }));
@@ -109,15 +109,15 @@ describe("PropertyForm (Create)", () => {
 
     // Ensure basic fields exist
     expect(
-      screen.getByLabelText(/property name/i)
+      getInputByName(/property name/i)
     ).toBeInTheDocument();
     expect(
-      screen.getByLabelText(/street address/i)
+      getInputByName(/street address/i)
     ).toBeInTheDocument();
-    expect(screen.getByLabelText(/city/i)).toBeInTheDocument();
-    expect(screen.getByLabelText(/state/i)).toBeInTheDocument();
-    expect(screen.getByLabelText(/zip code/i)).toBeInTheDocument();
-    expect(screen.getByLabelText(/property type/i)).toBeInTheDocument();
+    expect(getInputByName(/city/i)).toBeInTheDocument();
+    expect(getInputByName(/state/i)).toBeInTheDocument();
+    expect(getInputByName(/zip code/i)).toBeInTheDocument();
+    expect(getInputByName(/property type/i)).toBeInTheDocument();
   });
 
   test("submits new property and navigates back to list on success", async () => {
@@ -126,22 +126,22 @@ describe("PropertyForm (Create)", () => {
     renderCreate();
 
     // Fill out required fields
-    fireEvent.change(screen.getByLabelText(/property name/i), {
+    fireEvent.change(getInputByName(/property name/i), {
       target: { value: "Sunset Apartments" },
     });
-    fireEvent.change(screen.getByLabelText(/description/i), {
+    fireEvent.change(getInputByName(/description/i), {
       target: { value: "A lovely multi-unit property." },
     });
-    fireEvent.change(screen.getByLabelText(/street address/i), {
+    fireEvent.change(getInputByName(/street address/i), {
       target: { value: "123 Main St" },
     });
-    fireEvent.change(screen.getByLabelText(/^city$/i), {
+    fireEvent.change(getInputByName(/^city$/i), {
       target: { value: "San Francisco" },
     });
-    fireEvent.change(screen.getByLabelText(/^state$/i), {
+    fireEvent.change(getInputByName(/^state$/i), {
       target: { value: "CA" },
     });
-    fireEvent.change(screen.getByLabelText(/zip code/i), {
+    fireEvent.change(getInputByName(/zip code/i), {
       target: { value: "94102" },
     });
 
@@ -176,22 +176,22 @@ describe("PropertyForm (Create)", () => {
     renderCreate();
 
     // Fill required fields
-    fireEvent.change(screen.getByLabelText(/property name/i), {
+    fireEvent.change(getInputByName(/property name/i), {
       target: { value: "Test Place" },
     });
-    fireEvent.change(screen.getByLabelText(/description/i), {
+    fireEvent.change(getInputByName(/description/i), {
       target: { value: "Desc" },
     });
-    fireEvent.change(screen.getByLabelText(/street address/i), {
+    fireEvent.change(getInputByName(/street address/i), {
       target: { value: "1 Test St" },
     });
-    fireEvent.change(screen.getByLabelText(/^city$/i), {
+    fireEvent.change(getInputByName(/^city$/i), {
       target: { value: "Testville" },
     });
-    fireEvent.change(screen.getByLabelText(/^state$/i), {
+    fireEvent.change(getInputByName(/^state$/i), {
       target: { value: "TS" },
     });
-    fireEvent.change(screen.getByLabelText(/zip code/i), {
+    fireEvent.change(getInputByName(/zip code/i), {
       target: { value: "12345" },
     });
 

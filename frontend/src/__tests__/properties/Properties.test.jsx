@@ -1,8 +1,8 @@
 // filepath: /Users/mjoyner/Property/frontend/src/__tests__/Properties.test.jsx
 import React from 'react';
-import { screen, waitFor } from "@testing-library/react";
+import { screen, within, waitFor } from "@testing-library/react";
 import userEvent from '@testing-library/user-event';
-import Properties from "../../pages/Properties";
+import Properties from "src/pages/Properties";
 import axios from "axios";
 import { renderWithProviders } from 'src/test-utils/renderWithProviders';
 import * as PropertyContext from 'src/context/PropertyContext';

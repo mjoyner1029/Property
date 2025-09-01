@@ -9,10 +9,10 @@ import { updatePageTitleMock } from "../../test/mocks/pageTitle";
 
 const mockNavigate = jest.fn();
 
-import PropertyForm from "../../pages/PropertyForm";
+import PropertyForm from "src/pages/PropertyForm";
 import { useProperty } from "../../context";
 
-jest.mock("../../context", () => ({
+jest.mock("src/context", () => ({
   useProperty: jest.fn(() => ({
     selectedProperty: null,
     loading: false,
@@ -69,11 +69,7 @@ function renderWithCtx({
     fetchPropertyById: fetchPropertyByIdMock,
   });
 
-  return render(
-    <MemoryRouter>
-      <PropertyForm />
-    </MemoryRouter>
-  );
+  return renderWithProviders(<PropertyForm />);
 }
 
 const sampleProperty = {
@@ -113,17 +109,17 @@ describe("PropertyForm (Edit Mode)", () => {
     renderWithCtx({ selectedProperty: sampleProperty });
 
     // Basic fields
-    expect(screen.getByLabelText(/property name/i)).toHaveValue("Sunset Apartments");
-    expect(screen.getByLabelText(/description/i)).toHaveValue("Great place with a view");
-    expect(screen.getByLabelText(/street address/i)).toHaveValue("123 Main St");
-    expect(screen.getByLabelText(/city/i)).toHaveValue("Springfield");
-    expect(screen.getByLabelText(/state/i)).toHaveValue("CA");
-    expect(screen.getByLabelText(/zip code/i)).toHaveValue("90210");
+    expect(getInputByName(/property name/i)).toHaveValue("Sunset Apartments");
+    expect(getInputByName(/description/i)).toHaveValue("Great place with a view");
+    expect(getInputByName(/street address/i)).toHaveValue("123 Main St");
+    expect(getInputByName(/city/i)).toHaveValue("Springfield");
+    expect(getInputByName(/state/i)).toHaveValue("CA");
+    expect(getInputByName(/zip code/i)).toHaveValue("90210");
 
     // Optional details
-    expect(screen.getByLabelText(/year built/i)).toHaveValue(1990);
-    expect(screen.getByLabelText(/square footage/i)).toHaveValue(12000);
-    expect(screen.getByLabelText(/amenities/i)).toHaveValue("Pool, Gym");
+    expect(getInputByName(/year built/i)).toHaveValue(1990);
+    expect(getInputByName(/square footage/i)).toHaveValue(12000);
+    expect(getInputByName(/amenities/i)).toHaveValue("Pool, Gym");
 
     // Image preview hint (from stubbed previews)
     expect(screen.getByTestId("file-upload")).toBeInTheDocument();
@@ -135,7 +131,7 @@ describe("PropertyForm (Edit Mode)", () => {
     renderWithCtx({ selectedProperty: sampleProperty });
 
     // Change the property name
-    const nameInput = screen.getByLabelText(/property name/i);
+    const nameInput = getInputByName(/property name/i);
     fireEvent.change(nameInput, { target: { value: "Edited Name" } });
 
     // Click Save Changes (submit button)
