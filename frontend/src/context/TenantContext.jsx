@@ -4,6 +4,7 @@ import { useAuth } from './AuthContext';
 
 // Create context
 const TenantContext = createContext();
+export { TenantContext };
 
 export const TenantProvider = ({ children }) => {
   const [tenants, setTenants] = useState([]);
