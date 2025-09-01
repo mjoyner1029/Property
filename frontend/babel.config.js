@@ -5,8 +5,7 @@ module.exports = {
       modules: 'commonjs'
     }],
     ['@babel/preset-react', { 
-      runtime: 'automatic',
-      importSource: 'react'
+      runtime: 'automatic'
     }]
   ],
   env: {
