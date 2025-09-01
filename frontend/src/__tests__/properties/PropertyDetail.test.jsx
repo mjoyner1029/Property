@@ -4,6 +4,7 @@ import { renderWithProviders } from 'src/test-utils/renderWithProviders';
 import PropertyDetail from 'src/pages/PropertyDetail';
 import * as PropertyContext from 'src/context/PropertyContext';
 import * as AppContext from 'src/context/AppContext';
+import axios from 'axios';
 
 const mockNavigate = jest.fn();
 const mockParams = { id: '123' };

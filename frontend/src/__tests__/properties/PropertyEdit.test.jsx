@@ -7,6 +7,8 @@ import { MemoryRouter } from "react-router-dom";
 import { fetchPropertyByIdMock, updatePropertyMock, createPropertyMock } from "../../test/mocks/services";
 import { updatePageTitleMock } from "../../test/mocks/pageTitle";
 
+const mockNavigate = jest.fn();
+
 import PropertyForm from "../../pages/PropertyForm";
 import { useProperty } from "../../context";
 

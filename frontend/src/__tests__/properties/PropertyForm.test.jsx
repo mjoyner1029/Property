@@ -138,9 +138,7 @@ describe('PropertyForm Component', () => {
     fireEvent.change(screen.getByLabelText(/property type/i), { target: { value: 'apartment' } });
 
     await 
-      fireEvent.click(screen.getByRole('button', { name: /save property details/i );
-    });
-
+    fireEvent.click(screen.getByRole("button", { name: /save property details/i }));
     await waitFor(() => {
       expect(mockCreateProperty).toHaveBeenCalledWith(
         expect.objectContaining({

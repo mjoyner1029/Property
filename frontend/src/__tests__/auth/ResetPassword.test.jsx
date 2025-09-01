@@ -8,6 +8,8 @@ import { renderWithProviders } from "src/test/utils/renderWithProviders";
 // We assume your component lives at src/pages/ResetPassword.jsx
 import ResetPassword from "src/pages/ResetPassword";
 
+const mockNavigate = jest.fn();
+
 jest.mock("react-router-dom", () => ({
   ...jest.requireActual("react-router-dom"),
   useNavigate: () => {
