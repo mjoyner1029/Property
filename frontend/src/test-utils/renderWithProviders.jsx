@@ -1,26 +1,69 @@
 // frontend/src/test-utils/renderWithProviders.jsx
-import React from 'react';
+import React, { createContext } from 'react';
 import { MemoryRouter } from 'react-router-dom';
 import { render } from '@testing-library/react';
 import axios from 'axios';
 import { ThemeProvider } from '@mui/material/styles';
 import theme from '../theme';
 import { TestAuthProvider } from '../test/simpleAuthHarness';
-// Import everything from context to ensure we have all providers
-import {
-  PropertyProvider,
-  AppProvider,
-  MaintenanceProvider,
-  PaymentProvider,
-  TenantProvider,
-  NotificationProvider,
-  useAuth
-} from '../context';
 
 // Mock axios defaults
 if (!axios.defaults) {
   axios.defaults = { headers: { common: {} } };
 }
+
+// Create mock context providers for testing
+const mockContextValue = { loading: false, error: null };
+
+const AppContext = createContext();
+const AppThemeContext = createContext();
+const NotificationContext = createContext();
+const PropertyContext = createContext();
+const MaintenanceContext = createContext();
+const PaymentContext = createContext();
+const TenantContext = createContext();
+
+const AppProvider = ({ children }) => (
+  <AppContext.Provider value={{ ...mockContextValue, title: 'Test App' }}>
+    {children}
+  </AppContext.Provider>
+);
+
+const AppThemeProvider = ({ children }) => (
+  <AppThemeContext.Provider value={{ ...mockContextValue, isDarkMode: false, toggleDarkMode: () => {} }}>
+    {children}
+  </AppThemeContext.Provider>
+);
+
+const NotificationProvider = ({ children }) => (
+  <NotificationContext.Provider value={{ ...mockContextValue, notifications: [] }}>
+    {children}
+  </NotificationContext.Provider>
+);
+
+const PropertyProvider = ({ children }) => (
+  <PropertyContext.Provider value={{ ...mockContextValue, properties: [] }}>
+    {children}
+  </PropertyContext.Provider>
+);
+
+const MaintenanceProvider = ({ children }) => (
+  <MaintenanceContext.Provider value={{ ...mockContextValue, maintenanceRequests: [] }}>
+    {children}
+  </MaintenanceContext.Provider>
+);
+
+const PaymentProvider = ({ children }) => (
+  <PaymentContext.Provider value={{ ...mockContextValue, payments: [] }}>
+    {children}
+  </PaymentContext.Provider>
+);
+
+const TenantProvider = ({ children }) => (
+  <TenantContext.Provider value={{ ...mockContextValue, tenants: [] }}>
+    {children}
+  </TenantContext.Provider>
+);
 
 /**
  * Creates a mock provider for a context with given value
@@ -40,7 +83,7 @@ export function renderWithProviders(
   ui,
   { 
     route = '/',
-    authState = null,
+    withRouter = true,
     ...renderOptions 
   } = {}
 ) {
@@ -50,39 +93,27 @@ export function renderWithProviders(
       isAuthenticated: true,
       user: { id: 'test-user', role: 'admin' },
       roles: ['admin'],
-      login: jest.fn().mockResolvedValue({}),
-      logout: jest.fn().mockResolvedValue({}),
-      isRole: (role) => {
-        const roles = ['admin'];
-        return Array.isArray(role) ? role.some(r => roles.includes(r)) : roles.includes(role);
-      },
       loading: false,
-      error: null,
-      ...authState // Allow overriding of auth properties
+      error: null
     };
     
-    return (
-      <MemoryRouter initialEntries={[route]}>
-        <ThemeProvider theme={theme}>
-          <TestAuthProvider authValue={defaultAuth}>
-            <AppProvider>
-              <NotificationProvider>
-                <PropertyProvider>
-                  <MaintenanceProvider>
-                    <PaymentProvider>
-                      <TenantProvider>
-                        {/* Remove the extra div wrapper which might cause issues */}
-                        {children}
-                      </TenantProvider>
-                    </PaymentProvider>
-                  </MaintenanceProvider>
-                </PropertyProvider>
-              </NotificationProvider>
-            </AppProvider>
-          </TestAuthProvider>
-        </ThemeProvider>
-      </MemoryRouter>
+    // Wrap content based on withRouter flag
+    const content = (
+      <ThemeProvider theme={theme}>
+        <TestAuthProvider authValue={defaultAuth}>
+          <div data-testid="provider-wrapper">
+            {children}
+          </div>
+        </TestAuthProvider>
+      </ThemeProvider>
     );
+    
+    // Only add the MemoryRouter if withRouter is true
+    return withRouter ? (
+      <MemoryRouter initialEntries={[route]}>
+        {content}
+      </MemoryRouter>
+    ) : content;
   }
 
   return { ...render(ui, { wrapper: Wrapper, ...renderOptions }) };
