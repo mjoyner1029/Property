@@ -25,66 +25,93 @@ import { useMessages, useApp } from "../../context";
 // ---- Lightweight MUI stubs for deterministic DOM (Dialog/Button/Menu/Select) ----
 jest.mock("@mui/material", () => {
   const actual = jest.requireActual("@mui/material");
-  const React = require("react");
-
-  const toOptions = (children) =>
-    React.Children.toArray(children)
-      .map((child, idx) => {
-        if (!React.isValidElement(child)) return null;
-        if (child.props && "value" in child.props) {
-          return (
-            <option key={idx} value={child.props.value}>
-              {child.props.children}
-            </option>
-          );
-        }
-        return null;
-      })
-      .filter(Boolean);
-
+  
   return {
     ...actual,
-    Button: ({ children, onClick, disabled, type, ...rest }) => (
-      <button onClick={onClick} disabled={disabled} type={type} {...rest}>
-        {children}
-      </button>
-    ),
+    Button: ({ children, onClick, disabled, type, ...rest }) => {
+      const React = require("react");
+      return (
+        <button onClick={onClick} disabled={disabled} type={type} {...rest}>
+          {children}
+        </button>
+      );
+    },
     IconButton: ({ children, onClick, disabled, "aria-label": ariaLabel, ...rest }) => (
       <button onClick={onClick} disabled={disabled} aria-label={ariaLabel} {...rest}>
         {children}
       </button>
     ),
-    Dialog: ({ open, children }) => (open ? <div role="dialog">{children}</div> : null),
-    DialogTitle: ({ children }) => <h2>{children}</h2>,
-    DialogContent: ({ children }) => <div>{children}</div>,
-    DialogActions: ({ children }) => <div>{children}</div>,
-    Menu: ({ open, children }) => (open ? <div role="menu">{children}</div> : null),
-    MenuItem: ({ onClick, children }) => (
-      <div role="menuitem" onClick={onClick}>
-        {children}
-      </div>
-    ),
-    Select: ({ name, value, onChange, label, children, "data-testid": dtid }) => (
-      <select
-        aria-label={label || name}
-        name={name}
-        value={value || ""}
-        onChange={(e) =>
-          onChange &&
-          onChange({
-            target: { name: name, value: e.target.value },
+    Dialog: ({ open, children }) => {
+      const React = require("react");
+      return open ? <div role="dialog">{children}</div> : null;
+    },
+    DialogTitle: ({ children }) => {
+      const React = require("react");
+      return <h2>{children}</h2>;
+    },
+    DialogContent: ({ children }) => {
+      const React = require("react");
+      return <div>{children}</div>;
+    },
+    DialogActions: ({ children }) => {
+      const React = require("react");
+      return <div>{children}</div>;
+    },
+    Menu: ({ open, children }) => {
+      const React = require("react");
+      return open ? <div role="menu">{children}</div> : null;
+    },
+    MenuItem: ({ onClick, children }) => {
+      const React = require("react");
+      return (
+        <div role="menuitem" onClick={onClick}>
+          {children}
+        </div>
+      );
+    },
+    Select: ({ name, value, onChange, label, children, "data-testid": dtid }) => {
+      const React = require("react");
+      // Convert children to options
+      const toOptions = (children) =>
+        React.Children.toArray(children)
+          .map((child, idx) => {
+            if (!React.isValidElement(child)) return null;
+            if (child.props && "value" in child.props) {
+              return (
+                <option key={idx} value={child.props.value}>
+                  {child.props.children}
+                </option>
+              );
+            }
+            return null;
           })
-        }
-        data-testid={dtid || `select-${name || label || "unnamed"}`}
-      >
-        {toOptions(children)}
-      </select>
-    ),
-    Chip: ({ label, color, ...rest }) => (
-      <span role="status" data-color={color} {...rest}>
-        {label}
-      </span>
-    ),
+          .filter(Boolean);
+      
+      return (
+        <select
+          aria-label={label || name}
+          name={name}
+          value={value || ""}
+          onChange={(e) =>
+            onChange &&
+            onChange({
+              target: { name: name, value: e.target.value },
+            })
+          }
+          data-testid={dtid || `select-${name || label || "unnamed"}`}
+        >
+          {toOptions(children)}
+        </select>
+      );
+    },
+    Chip: ({ label, color, ...rest }) => {
+      const React = require("react");
+      return (
+        <span role="status" data-color={color} {...rest}>
+          {label}
+        </span>
+      );
+    },
   };
 });
 
