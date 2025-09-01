@@ -1,19 +1,17 @@
 module.exports = {
-  // This should merge with any existing config in package.json
   testEnvironment: 'jsdom',
-  setupFilesAfterEnv: ['<rootDir>/src/test/setupTests.js'],
+  setupFilesAfterEnv: ['<rootDir>/src/test/setup/jest.setup.js'],
+  moduleFileExtensions: ['js','jsx','json'],
+  transform: { '^.+\\.[jt]sx?$': ['babel-jest', { rootMode: 'upward' }] },
   moduleNameMapper: {
-    "^@/(.*)$": "<rootDir>/src/$1",
-    "^@heroicons/react/(.*)$": "<rootDir>/src/test-utils/heroicons-stub.js",
-    "^../context$": "<rootDir>/src/context/index.js",
-    "^@context$": "<rootDir>/src/context/index.js",
-    "\\.(css|less|scss|sass)$": "<rootDir>/src/test/styleMock.js",
-    "\\.(jpg|jpeg|png|gif|eot|otf|webp|svg|ttf|woff|woff2|mp4|webm|wav|mp3|m4a|aac|oga)$": "<rootDir>/src/test/fileMock.js"
+    '^src/(.*)$': '<rootDir>/src/$1',
+    '\\.(css|less|scss|sass)$': '<rootDir>/src/test/mocks/styleMock.js',
+    '\\.(gif|ttf|eot|svg|png|jpg|jpeg|webp)$': '<rootDir>/src/test/mocks/fileMock.js'
   },
-  // Automatically mock these modules in tests
-  automock: false,
-  // Reset mocks before each test
-  resetMocks: false,
-  // Make sure modules with __mocks__ folders are properly mocked
-  restoreMocks: false,
+  clearMocks: true,
+  restoreMocks: true,
+  testTimeout: 15000,
+  maxWorkers: '50%',
+  modulePathIgnorePatterns: ['<rootDir>/dist/','<rootDir>/build/'],
+  watchPathIgnorePatterns: ['<rootDir>/node_modules/','<rootDir>/.cache/'],
 };

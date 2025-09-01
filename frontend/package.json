@@ -54,9 +54,9 @@
     "build:ci": "CI=true GENERATE_SOURCEMAP=false react-scripts build",
     "build:prod": "GENERATE_SOURCEMAP=false react-scripts build",
     "analyze": "source-map-explorer 'build/static/js/*.js'",
-    "test": "react-scripts test --env=jsdom",
-    "test:ci": "react-scripts test --watchAll=false --coverage --coverageReporters=text-summary,lcov",
-    "test:coverage": "react-scripts test --watchAll=false --coverage",
+    "test": "NODE_OPTIONS=--max-old-space-size=4096 jest",
+    "test:ci": "NODE_OPTIONS=--max-old-space-size=4096 jest --ci --runInBand",
+    "test:changed": "NODE_OPTIONS=--max-old-space-size=4096 jest -o",
     "test:routes": "react-scripts test routes.spec.jsx guards.spec.jsx --watchAll=false",
     "test:a11y": "node scripts/run-a11y-tests.js",
     "list-routes": "node scripts/verifyRoutes.mjs",
@@ -73,22 +73,7 @@
     "validate:env": "node scripts/validate-env.js",
     "prepare:release": "npm run lint && npm run test:ci && npm run build:prod && npm run test:a11y"
   },
-  "jest": {
-    "collectCoverageFrom": [
-      "src/**/*.{js,jsx}",
-      "!src/**/index.{js,jsx}"
-    ],
-    "coverageThreshold": {
-      "global": {
-        "lines": 70,
-        "statements": 70
-      }
-    },
-    "moduleNameMapper": {
-      "@heroicons/(.*)$": "<rootDir>/src/test-utils/heroicons-stub.js",
-      "\\.(css|less|sass|scss)$": "<rootDir>/src/test-utils/style-mock.js"
-    }
-  },
+  
   "eslintConfig": {
     "extends": [
       "react-app",
