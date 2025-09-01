@@ -5,6 +5,9 @@ import PropertyForm from '../../pages/PropertyForm';
 import { useProperty } from '../../context/PropertyContext';
 import { useApp } from '../../context/AppContext';
 
+// Mock MUI components with lightweight versions to avoid flakiness
+jest.mock('@mui/material', () => require('../__mocks__/muiLightMock'));
+
 // Mock navigate function
 const mockNavigate = jest.fn();
 

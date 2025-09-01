@@ -4,6 +4,9 @@ import { screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { renderWithProviders } from "src/test/utils/renderWithProviders";
 
+// Mock MUI components with lightweight versions to avoid flakiness
+jest.mock('@mui/material', () => require('../__mocks__/muiLightMock'));
+
 // Import mocks directly
 import { 
   isAuthenticatedMock,

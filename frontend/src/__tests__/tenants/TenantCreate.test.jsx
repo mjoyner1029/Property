@@ -3,6 +3,9 @@ import React from "react";
 import { screen, waitFor, fireEvent } from "@testing-library/react";
 import { renderWithProviders } from "../../test-utils/renderWithProviders";
 
+// Mock MUI components with lightweight versions to avoid flakiness
+jest.mock('@mui/material', () => require('../__mocks__/muiLightMock'));
+
 // ---- Router mocks (declare BEFORE component import) ----
 const mockNavigate = jest.fn();
 
