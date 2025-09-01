@@ -2,18 +2,18 @@ import React, { createContext } from 'react';
 import { render } from '@testing-library/react';
 import { ThemeProvider } from '@mui/material/styles';
 import { MemoryRouter } from 'react-router-dom';
-import theme from 'src/theme';
+import theme from '../../theme';
 
 // Import all contexts directly
-import { AppContext } from 'src/context/AppContext';
-import AuthContext from 'src/context/AuthContext';
-import { NotificationContext } from 'src/context/NotificationContext';
-import { PropertyContext } from 'src/context/PropertyContext';
-import { MaintenanceContext } from 'src/context/MaintenanceContext';
-import { TenantContext } from 'src/context/TenantContext';
-import { PaymentContext } from 'src/context/PaymentContext';
-import { MessageContext } from 'src/context/MessageContext';
-import { ThemeContext } from 'src/context/ThemeContext';
+import { AppContext } from '../../context/AppContext';
+import AuthContext from '../../context/AuthContext';
+import { NotificationContext } from '../../context/NotificationContext';
+import { PropertyContext } from '../../context/PropertyContext';
+import { MaintenanceContext } from '../../context/MaintenanceContext';
+import { TenantContext } from '../../context/TenantContext';
+import { PaymentContext } from '../../context/PaymentContext';
+import { MessageContext } from '../../context/MessageContext';
+import { ThemeContext } from '../../context/ThemeContext';
 
 // Default admin user for testing
 const defaultUser = {
