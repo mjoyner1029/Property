@@ -49,9 +49,9 @@ test('shows fallback UI on error', () => {
     </ErrorBoundary>
   );
   
-  expect(screen.getByText(/something went wrong/i)).toBeInTheDocument();
-  expect(screen.getByText(/reload page/i)).toBeInTheDocument();
-  expect(screen.getByText(/go to home/i)).toBeInTheDocument();
+  expect(screen.getByRole('heading', { name: /something went wrong/i })).toBeInTheDocument();
+  expect(screen.getByRole('button', { name: /try recovery/i })).toBeInTheDocument();
+  expect(screen.getByRole('button', { name: /go to home/i })).toBeInTheDocument();
 });
 
 test('shows fallback UI when API call fails', () => {
@@ -64,9 +64,9 @@ test('shows fallback UI when API call fails', () => {
     </ErrorBoundary>
   );
   
-  expect(screen.getByText(/something went wrong/i)).toBeInTheDocument();
+  expect(screen.getByRole('heading', { name: /something went wrong/i })).toBeInTheDocument();
   // Still shows the fallback UI even when the error logging fails
-  expect(screen.getByText(/reload page/i)).toBeInTheDocument();
+  expect(screen.getByRole('button', { name: /try recovery/i })).toBeInTheDocument();
 });
 
   test('accepts custom fallback component', () => {

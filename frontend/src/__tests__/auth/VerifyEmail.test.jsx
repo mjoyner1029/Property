@@ -8,13 +8,14 @@ import VerifyEmail from 'src/pages/VerifyEmail';
 // Mock react-router-dom
 jest.mock('react-router-dom', () => {
   const originalModule = jest.requireActual('react-router-dom');
+  
   return {
     ...originalModule,
     useNavigate: () => jest.fn(),
     useParams: () => ({ token: 'valid-verification-token' }),
-    Link: React.forwardRef(({ to, children, ...rest }, ref) => (
-      <a href={to} ref={ref} {...rest}>{children}</a>
-    ))
+    Link: function Link(props) {
+      return <a href={props.to} {...props}>{props.children}</a>;
+    }
   };
 });
 
