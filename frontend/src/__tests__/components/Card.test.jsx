@@ -29,7 +29,7 @@ describe('Card Component', () => {
       </Card>
     );
     
-    expect(screen.getByText('Test Card')).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: 'Test Card' })).toBeInTheDocument();
     expect(screen.getByTestId('card-content')).toBeInTheDocument();
     expect(screen.getByText('Card Content')).toBeInTheDocument();
   });
@@ -41,7 +41,8 @@ describe('Card Component', () => {
       </Card>
     );
     
-    expect(screen.getByText('Test Card')).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: 'Test Card' })).toBeInTheDocument();
+    // Subtitle might not have a semantic role, so using getByText is appropriate here
     expect(screen.getByText('Card subtitle')).toBeInTheDocument();
   });
   
@@ -80,7 +81,7 @@ describe('Card Component', () => {
       );
       
       // Check if the component renders without errors
-      expect(screen.getByText(`${variant.charAt(0).toUpperCase() + variant.slice(1)} Card`)).toBeInTheDocument();
+      expect(screen.getByRole('heading', { name: `${variant.charAt(0).toUpperCase() + variant.slice(1)} Card` })).toBeInTheDocument();
       unmount();
     });
   });
@@ -92,8 +93,10 @@ describe('Card Component', () => {
       </Card>
     );
     
+    // TestId is fine for targeting specific elements without semantic roles
     expect(screen.getByTestId('just-content')).toBeInTheDocument();
-    expect(screen.getByText('Just Content')).toBeInTheDocument();
+    // Since this is a paragraph, we can check for its role
+    expect(screen.getByText('Just Content')).toHaveTextContent('Just Content');
   });
   
   test('applies custom className', () => {
@@ -109,16 +112,17 @@ describe('Card Component', () => {
   
   test('applies different elevation values', () => {
     const { container, unmount } = renderWithTheme(
-      <Card elevation={3} data-testid="elevated-card">
+      <Card elevation={3}>
         <p>Card with elevation 3</p>
       </Card>
     );
     
+    // Check for the elevation text without relying on DOM structure
     expect(screen.getByText('Card with elevation 3')).toBeInTheDocument();
     unmount();
     
     renderWithTheme(
-      <Card elevation={0} data-testid="flat-card">
+      <Card elevation={0}>
         <p>Card with elevation 0</p>
       </Card>
     );

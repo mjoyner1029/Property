@@ -6,8 +6,8 @@ describe('Empty component', () => {
   test('renders with default props', () => {
     render(<Empty />);
     
-    // Should render the default title
-    expect(screen.getByText('No data found')).toBeInTheDocument();
+    // Should render the default title as a heading
+    expect(screen.getByRole('heading', { name: 'No data found' })).toBeInTheDocument();
     
     // Should render the default message
     expect(screen.getByText('There are no items to display at this time.')).toBeInTheDocument();
@@ -19,7 +19,7 @@ describe('Empty component', () => {
     
     render(<Empty title={title} message={message} />);
     
-    expect(screen.getByText(title)).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: title })).toBeInTheDocument();
     expect(screen.getByText(message)).toBeInTheDocument();
   });
   
@@ -29,7 +29,7 @@ describe('Empty component', () => {
     
     render(<Empty actionText={actionText} onActionClick={handleClick} />);
     
-    const actionButton = screen.getByText(actionText);
+    const actionButton = screen.getByRole('button', { name: actionText });
     expect(actionButton).toBeInTheDocument();
     
     fireEvent.click(actionButton);
@@ -42,7 +42,7 @@ describe('Empty component', () => {
     render(<Empty actionText={actionText} />);
     
     // Button should be rendered even without onActionClick
-    const button = screen.getByText(actionText);
+    const button = screen.getByRole('button', { name: actionText });
     expect(button).toBeInTheDocument();
     
     // But clicking it shouldn't cause errors
