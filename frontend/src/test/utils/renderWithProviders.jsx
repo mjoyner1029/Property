@@ -2,13 +2,13 @@ import React from 'react';
 import { render } from '@testing-library/react';
 import { ThemeProvider, createTheme } from '@mui/material/styles';
 import { MemoryRouter } from 'react-router-dom';
-import { AppProvider } from '../../contexts/AppContext';
-import { AuthContext } from '../../contexts/AuthContext';
-import { NotificationProvider } from '../../contexts/NotificationContext';
-import { PropertyProvider } from '../../contexts/PropertyContext';
-import { MaintenanceProvider } from '../../contexts/MaintenanceContext';
-import { TenantProvider } from '../../contexts/TenantContext';
-import { PaymentProvider } from '../../contexts/PaymentContext';
+import { AppProvider } from 'src/contexts/AppContext';
+import { AuthContext } from 'src/contexts/AuthContext';
+import { NotificationProvider } from 'src/contexts/NotificationContext';
+import { PropertyProvider } from 'src/contexts/PropertyContext';
+import { MaintenanceProvider } from 'src/contexts/MaintenanceContext';
+import { TenantProvider } from 'src/contexts/TenantContext';
+import { PaymentProvider } from 'src/contexts/PaymentContext';
 
 // Default admin user for testing
 const defaultUser = {
