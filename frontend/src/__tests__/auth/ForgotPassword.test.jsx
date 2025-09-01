@@ -1,5 +1,5 @@
 import React from 'react';
-import { screen, waitFor } from '@testing-library/react';
+import { screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import axios from 'axios';
 import { renderWithProviders } from 'src/test/utils/renderWithProviders';
@@ -17,7 +17,8 @@ describe('ForgotPassword Component', () => {
   test('renders forgot password form', () => {
     renderWithProviders(<ForgotPassword />);
     
-    expect(screen.getByLabelText(/email/i)).toBeInTheDocument();
+    // Using label and role is already good practice
+    expect(screen.getByRole('textbox', { name: /email/i })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: /reset password/i })).toBeInTheDocument();
   });
 
@@ -30,7 +31,7 @@ describe('ForgotPassword Component', () => {
     
     renderWithProviders(<ForgotPassword />);
     
-    const emailInput = screen.getByLabelText(/email/i);
+    const emailInput = screen.getByRole('textbox', { name: /email/i });
     const submitButton = screen.getByRole('button', { name: /reset password/i });
     
     // Fill in the email
@@ -51,9 +52,10 @@ describe('ForgotPassword Component', () => {
       );
     });
     
-    // Check for success message
+    // Check for success message - use role if possible, or testid if needed
     await waitFor(() => {
-      expect(screen.getByText(/reset link has been sent/i)).toBeInTheDocument();
+      const alertElement = screen.getByRole('alert');
+      expect(within(alertElement).getByText(/reset link has been sent/i)).toBeInTheDocument();
     });
   });
 
@@ -66,7 +68,7 @@ describe('ForgotPassword Component', () => {
     
     renderWithProviders(<ForgotPassword />);
     
-    const emailInput = screen.getByLabelText(/email/i);
+    const emailInput = screen.getByRole('textbox', { name: /email/i });
     const submitButton = screen.getByRole('button', { name: /reset password/i });
     
     // Fill in an invalid email
@@ -75,9 +77,10 @@ describe('ForgotPassword Component', () => {
     // Submit the form
     await userEvent.click(submitButton);
     
-    // Check for error message
+    // Check for error message - use role if possible, or testid if needed
     await waitFor(() => {
-      expect(screen.getByText(/Email not found/i)).toBeInTheDocument();
+      const alertElement = screen.getByRole('alert');
+      expect(within(alertElement).getByText(/Email not found/i)).toBeInTheDocument();
     });
   });
 
@@ -89,8 +92,9 @@ describe('ForgotPassword Component', () => {
     // Submit the form without entering email
     await userEvent.click(submitButton);
     
-    // Check for validation error
-    expect(screen.getByText(/Email is required/i)).toBeInTheDocument();
+    // Check for validation error - use form field error message
+    const formField = screen.getByRole('textbox', { name: /email/i }).closest('div');
+    expect(within(formField).getByText(/Email is required/i)).toBeInTheDocument();
     
     // Fetch should not be called
     expect(global.fetch).not.toHaveBeenCalled();
