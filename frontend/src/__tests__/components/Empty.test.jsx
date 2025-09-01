@@ -1,10 +1,12 @@
 import React from 'react';
-import { render, screen, fireEvent } from '@testing-library/react';
+import { screen, fireEvent } from '@testing-library/react';
+import { getInputByName, getSelectByName } from 'src/test/utils/muiTestUtils';
 import Empty from 'src/components/Empty';
+import { renderWithProviders } from 'src/test/utils/renderWithProviders';
 
 describe('Empty component', () => {
   test('renders with default props', () => {
-    render(<Empty />);
+    renderWithProviders(<Empty />);
     
     // Should render the default title as a heading
     expect(screen.getByRole('heading', { name: 'No data found' })).toBeInTheDocument();
@@ -17,7 +19,7 @@ describe('Empty component', () => {
     const title = 'Custom Empty State';
     const message = 'This is a custom empty state message';
     
-    render(<Empty title={title} message={message} />);
+    renderWithProviders(<Empty title={title} message={message} />);
     
     expect(screen.getByRole('heading', { name: title })).toBeInTheDocument();
     expect(screen.getByText(message)).toBeInTheDocument();
@@ -27,7 +29,7 @@ describe('Empty component', () => {
     const actionText = 'Add New Item';
     const handleClick = jest.fn();
     
-    render(<Empty actionText={actionText} onActionClick={handleClick} />);
+    renderWithProviders(<Empty actionText={actionText} onActionClick={handleClick} />);
     
     const actionButton = screen.getByRole('button', { name: actionText });
     expect(actionButton).toBeInTheDocument();
@@ -39,7 +41,7 @@ describe('Empty component', () => {
   test('does not trigger action without onActionClick handler', () => {
     const actionText = 'Add New Item';
     
-    render(<Empty actionText={actionText} />);
+    renderWithProviders(<Empty actionText={actionText} />);
     
     // Button should be rendered even without onActionClick
     const button = screen.getByRole('button', { name: actionText });
@@ -53,7 +55,7 @@ describe('Empty component', () => {
   test('does not render action button when only onActionClick is provided', () => {
     const handleClick = jest.fn();
     
-    render(<Empty onActionClick={handleClick} />);
+    renderWithProviders(<Empty onActionClick={handleClick} />);
     
     // There should be no button element since actionText is required
     expect(screen.queryByRole('button')).not.toBeInTheDocument();

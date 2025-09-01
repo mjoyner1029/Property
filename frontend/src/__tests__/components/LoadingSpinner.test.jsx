@@ -1,10 +1,12 @@
 import React from 'react';
-import { screen, render  } from '@testing-library/react';
+import { screen, within } from '@testing-library/react';
+import { getInputByName, getSelectByName } from 'src/test/utils/muiTestUtils';
 import LoadingSpinner from 'src/components/LoadingSpinner';
+import { renderWithProviders } from 'src/test/utils/renderWithProviders';
 
 describe('LoadingSpinner component', () => {
   test('renders the spinner', () => {
-    const { container } = render(<LoadingSpinner />);
+    const { container } = renderWithProviders(<LoadingSpinner />);
     
     // Check that the CircularProgress component is rendered
     // We can check for the class that's typically applied to MUI CircularProgress
@@ -13,7 +15,7 @@ describe('LoadingSpinner component', () => {
   });
   
   test('renders with default size', () => {
-    const { container } = render(<LoadingSpinner />);
+    const { container } = renderWithProviders(<LoadingSpinner />);
     
     const spinnerElement = container.querySelector('.MuiCircularProgress-root');
     // Default MUI CircularProgress size is 40px if not specified
@@ -21,7 +23,7 @@ describe('LoadingSpinner component', () => {
   });
   
   test('is centered in a flex container', () => {
-    const { container } = render(<LoadingSpinner />);
+    const { container } = renderWithProviders(<LoadingSpinner />);
     
     // Check the parent container has flex styling for centering
     const flexContainer = container.firstChild;

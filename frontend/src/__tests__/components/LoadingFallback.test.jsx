@@ -1,10 +1,12 @@
 import React from 'react';
-import { screen, render  } from '@testing-library/react';
+import { screen, within } from '@testing-library/react';
+import { getInputByName, getSelectByName } from 'src/test/utils/muiTestUtils';
 import LoadingFallback from 'src/components/LoadingFallback';
+import { renderWithProviders } from 'src/test/utils/renderWithProviders';
 
 describe('LoadingFallback component', () => {
   test('renders the fallback loading state', () => {
-    const { container } = render(<LoadingFallback />);
+    const { container } = renderWithProviders(<LoadingFallback />);
     
     // Check that the CircularProgress component is rendered
     const spinnerElement = container.querySelector('.MuiCircularProgress-root');
@@ -12,7 +14,7 @@ describe('LoadingFallback component', () => {
   });
   
   test('renders in a centered container', () => {
-    const { container } = render(<LoadingFallback />);
+    const { container } = renderWithProviders(<LoadingFallback />);
     
     // Check the container styling
     const containerElement = container.firstChild;
@@ -24,7 +26,7 @@ describe('LoadingFallback component', () => {
   });
   
   test('has appropriate sizing for a fallback loader', () => {
-    const { container } = render(<LoadingFallback />);
+    const { container } = renderWithProviders(<LoadingFallback />);
     
     // Check that the container takes up a reasonable amount of space
     const containerElement = container.firstChild;

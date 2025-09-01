@@ -1,11 +1,13 @@
 import React from 'react';
-import { render, screen } from '@testing-library/react';
+import { screen } from '@testing-library/react';
+import { getInputByName, getSelectByName } from 'src/test/utils/muiTestUtils';
 import userEvent from '@testing-library/user-event';
 import CheckoutButton from 'src/components/CheckoutButton';
+import { renderWithProviders } from 'src/test/utils/renderWithProviders';
 
 describe('CheckoutButton Component', () => {
   test('renders with default props', () => {
-    render(<CheckoutButton onClick={() => {}} />);
+    renderWithProviders(<CheckoutButton onClick={() => {}} />);
     
     const button = screen.getByTestId('checkout-button');
     
@@ -20,7 +22,7 @@ describe('CheckoutButton Component', () => {
   });
 
   test('renders with custom text', () => {
-    render(<CheckoutButton text="Complete Purchase" onClick={() => {}} />);
+    renderWithProviders(<CheckoutButton text="Complete Purchase" onClick={() => {}} />);
     
     const button = screen.getByTestId('checkout-button');
     expect(button).toHaveTextContent('Complete Purchase');
@@ -30,7 +32,7 @@ describe('CheckoutButton Component', () => {
     const handleClick = jest.fn();
     const user = userEvent.setup();
     
-    render(<CheckoutButton onClick={handleClick} />);
+    renderWithProviders(<CheckoutButton onClick={handleClick} />);
     
     const button = screen.getByTestId('checkout-button');
     await user.click(button);
@@ -39,7 +41,7 @@ describe('CheckoutButton Component', () => {
   });
 
   test('shows loading state', () => {
-    render(<CheckoutButton onClick={() => {}} isLoading={true} />);
+    renderWithProviders(<CheckoutButton onClick={() => {}} isLoading={true} />);
     
     const button = screen.getByTestId('checkout-button');
     
@@ -54,31 +56,31 @@ describe('CheckoutButton Component', () => {
   });
 
   test('can be disabled', () => {
-    render(<CheckoutButton onClick={() => {}} disabled={true} />);
+    renderWithProviders(<CheckoutButton onClick={() => {}} disabled={true} />);
     
     const button = screen.getByTestId('checkout-button');
     expect(button).toBeDisabled();
   });
 
   test('applies different variants', () => {
-    const { rerender } = render(<CheckoutButton onClick={() => {}} variant="primary" />);
+    const { rerender } = renderWithProviders(<CheckoutButton onClick={() => {}} variant="primary" />);
     let button = screen.getByTestId('checkout-button');
     expect(button).toHaveClass('bg-blue-600');
     
     // Rerender with secondary variant
-    rerender(<CheckoutButton onClick={() => {}} variant="secondary" />);
+    rerenderWithProviders(<CheckoutButton onClick={() => {}} variant="secondary" />);
     button = screen.getByTestId('checkout-button');
     expect(button).toHaveClass('bg-gray-600');
     
     // Rerender with outline variant
-    rerender(<CheckoutButton onClick={() => {}} variant="outline" />);
+    rerenderWithProviders(<CheckoutButton onClick={() => {}} variant="outline" />);
     button = screen.getByTestId('checkout-button');
     expect(button).toHaveClass('bg-transparent');
     expect(button).toHaveClass('border-blue-600');
   });
 
   test('applies additional CSS classes', () => {
-    render(<CheckoutButton onClick={() => {}} className="custom-class" />);
+    renderWithProviders(<CheckoutButton onClick={() => {}} className="custom-class" />);
     
     const button = screen.getByTestId('checkout-button');
     expect(button).toHaveClass('custom-class');
@@ -86,7 +88,7 @@ describe('CheckoutButton Component', () => {
 
   // New test for uncovered branch - invalid variant fallback
   test('uses primary variant when invalid variant is provided', () => {
-    render(<CheckoutButton onClick={() => {}} variant="invalid" />);
+    renderWithProviders(<CheckoutButton onClick={() => {}} variant="invalid" />);
     
     const button = screen.getByTestId('checkout-button');
     // Should fallback to primary styles
@@ -98,7 +100,7 @@ describe('CheckoutButton Component', () => {
     const handleClick = jest.fn();
     const user = userEvent.setup();
     
-    render(<CheckoutButton onClick={handleClick} disabled={true} />);
+    renderWithProviders(<CheckoutButton onClick={handleClick} disabled={true} />);
     
     const button = screen.getByTestId('checkout-button');
     await user.click(button);
@@ -110,7 +112,7 @@ describe('CheckoutButton Component', () => {
     const handleClick = jest.fn();
     const user = userEvent.setup();
     
-    render(<CheckoutButton onClick={handleClick} isLoading={true} />);
+    renderWithProviders(<CheckoutButton onClick={handleClick} isLoading={true} />);
     
     const button = screen.getByTestId('checkout-button');
     await user.click(button);

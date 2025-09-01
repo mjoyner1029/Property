@@ -1,24 +1,19 @@
 import React from 'react';
-import { render, screen } from '@testing-library/react';
-import Card from '../../components/Card';
+import { screen } from '@testing-library/react';
+import { getInputByName, getSelectByName } from 'src/test/utils/muiTestUtils';
+import Card from 'src/components/Card';
+import { renderWithProviders } from 'src/test/utils/renderWithProviders';
 
 // Mock MUI components
-jest.mock('@mui/material', () => require('./__mocks__/mui-mock'));
+jest.mock('@mui/material', () => require('src/__tests__/components/__mocks__/mui-mock'));
 jest.mock('@mui/material/styles', () => ({
   ThemeProvider: ({ children }) => <div data-testid="theme-provider">{children}</div>,
   createTheme: () => ({}),
 }));
 
-// No need for theme creation with mocks
-
-// Helper function to render directly
-const renderWithTheme = (ui) => {
-  return render(ui);
-};
-
 describe('Card Component', () => {
   test('renders with title and children', () => {
-    const { container } = renderWithTheme(
+    const { container } = renderWithProviders(
       <Card title="Test Card">
         <p data-testid="card-content">Card Content</p>
       </Card>
@@ -32,7 +27,7 @@ describe('Card Component', () => {
   });
   
   test('renders with subtitle', () => {
-    renderWithTheme(
+    renderWithProviders(
       <Card title="Test Card" subtitle="Card subtitle">
         <p>Card Content</p>
       </Card>
@@ -46,7 +41,7 @@ describe('Card Component', () => {
   test('renders with icon', () => {
     const TestIcon = () => <span data-testid="test-icon">Icon</span>;
     
-    renderWithTheme(
+    renderWithProviders(
       <Card title="Test Card" icon={<TestIcon />}>
         <p>Card Content</p>
       </Card>
@@ -58,7 +53,7 @@ describe('Card Component', () => {
   test('renders with action', () => {
     const ActionButton = () => <button data-testid="action-button">Action</button>;
     
-    renderWithTheme(
+    renderWithProviders(
       <Card title="Test Card" action={<ActionButton />}>
         <p>Card Content</p>
       </Card>
@@ -71,7 +66,7 @@ describe('Card Component', () => {
     const variants = ['primary', 'success', 'warning', 'error', 'info', 'default'];
     
     variants.forEach(variant => {
-      const { container, unmount } = renderWithTheme(
+      const { container, unmount } = renderWithProviders(
         <Card title={`${variant.charAt(0).toUpperCase() + variant.slice(1)} Card`} variant={variant} data-testid={`${variant}-card`}>
           <p>Card Content</p>
         </Card>
@@ -84,7 +79,7 @@ describe('Card Component', () => {
   });
   
   test('renders without title or icon', () => {
-    renderWithTheme(
+    renderWithProviders(
       <Card>
         <p data-testid="just-content">Just Content</p>
       </Card>
@@ -97,7 +92,7 @@ describe('Card Component', () => {
   });
   
   test('applies custom className', () => {
-    const { container } = renderWithTheme(
+    const { container } = renderWithProviders(
       <Card className="custom-card-class" data-testid="custom-class-card">
         <p>Card with custom class</p>
       </Card>
@@ -108,7 +103,7 @@ describe('Card Component', () => {
   });
   
   test('applies different elevation values', () => {
-    const { container, unmount } = renderWithTheme(
+    const { container, unmount } = renderWithProviders(
       <Card elevation={3}>
         <p>Card with elevation 3</p>
       </Card>
@@ -118,7 +113,7 @@ describe('Card Component', () => {
     expect(screen.getByText('Card with elevation 3')).toBeInTheDocument();
     unmount();
     
-    renderWithTheme(
+    renderWithProviders(
       <Card elevation={0}>
         <p>Card with elevation 0</p>
       </Card>
