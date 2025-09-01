@@ -18,14 +18,14 @@ const mockFetchRequests = jest.fn();
 const mockCreateRequest = jest.fn();
 const mockUpdatePageTitle = jest.fn();
 
-jest.mock("src/contexts", () => ({
+jest.mock("../../contexts", () => ({
   useMaintenance: jest.fn(),
   useApp: jest.fn(),
   useProperty: jest.fn(),
 }));
 
 // ---- Lightweight component stubs to keep tests fast/stable ----
-jest.mock("src/components", () => ({
+jest.mock("../../components", () => ({
   Layout: ({ children }) => <div data-testid="layout">{children}</div>,
   PageHeader: ({ title, subtitle, actionText, actionIcon, onActionClick }) => (
     <header data-testid="page-header">

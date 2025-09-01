@@ -5,6 +5,7 @@ import { useAuth } from "./AuthContext";
 
 // Create the context
 const MaintenanceContext = createContext();
+export { MaintenanceContext };
 
 function getAuthHeaders() {
   const token = localStorage.getItem("token");

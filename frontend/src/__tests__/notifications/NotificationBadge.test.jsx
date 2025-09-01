@@ -1,6 +1,6 @@
 // frontend/src/__tests__/notifications/NotificationBadge.test.jsx
 import React from "react";
-import { render, screen } from "@testing-library/react";
+import { render, screen, fireEvent } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import NotificationBadge from "../../components/NotificationBadge";
 import { Box } from "@mui/material";
@@ -32,7 +32,7 @@ describe("NotificationBadge", () => {
     expect(badgeElement).toHaveTextContent("5");
 
     // Click the button and check that onClick was called
-    iconButton.click();
+    fireEvent.click(iconButton);
     expect(onClick).toHaveBeenCalledTimes(1);
   });
 

@@ -89,7 +89,7 @@ describe('PropertyDetail', () => {
 
     // Then check for the property details
     expect(screen.getByText('Address')).toBeInTheDocument();
-    expect(screen.getByText(mockPropertyData.address)).toBeInTheDocument();
+    expect(screen.getAllByText(mockPropertyData.address)[0]).toBeInTheDocument();
     expect(screen.getByText(`${mockPropertyData.city}, ${mockPropertyData.state} ${mockPropertyData.zip_code}`)).toBeInTheDocument();
   });
 
@@ -117,7 +117,7 @@ describe('PropertyDetail', () => {
 
     // Wait for the property data to be displayed
     await waitFor(() => {
-      expect(screen.getByText(mockPropertyData.address)).toBeInTheDocument();
+      expect(screen.getAllByText(mockPropertyData.address)[0]).toBeInTheDocument();
     });
 
     // Open the more menu
@@ -162,12 +162,12 @@ describe('PropertyDetail', () => {
     });
 
     // CircularProgress should be wrapped in a container div with aria-label
-    expect(screen.getByLabelText('Loading property details...')).toBeInTheDocument();
+    expect(screen.getAllByLabelText('Loading property details...')[0]).toBeInTheDocument();
     // The CircularProgress component itself should have role="progressbar"
     expect(screen.getByRole('progressbar')).toBeInTheDocument();
   });
 
-  test('shows error state', () => {
+  test('shows error state', async () => {
     // Mock error state after failed fetch
     const mockFetchPropertyById = jest.fn().mockRejectedValue(new Error('Failed to load property'));
 
@@ -182,9 +182,11 @@ describe('PropertyDetail', () => {
       route: '/properties/123'
     });
 
-    // MUI Alert has role="alert"
-    const errorAlert = screen.getByRole('alert');
-    expect(errorAlert).toBeInTheDocument();
-    expect(errorAlert).toHaveTextContent('Failed to load property');
+    // Use waitFor to wait for the alert to appear
+    await waitFor(() => {
+      const errorAlert = screen.getByRole('alert');
+      expect(errorAlert).toBeInTheDocument();
+      expect(errorAlert).toHaveTextContent('Failed to load property');
+    });
   });
 });

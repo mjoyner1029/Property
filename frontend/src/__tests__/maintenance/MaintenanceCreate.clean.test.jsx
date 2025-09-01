@@ -3,10 +3,6 @@ import React from "react";
 import { screen, waitFor, fireEvent } from "@testing-library/react";
 import { renderWithProviders } from "../../test-utils/renderWithProviders";
 
-// Import first
-import { useMaintenance, useApp, useProperty } from "../../context";
-import Maintenance from "../../pages/Maintenance";
-
 // Define mock functions first, at the top level
 const mockFetchRequests = jest.fn().mockResolvedValue([]);
 const mockCreateRequest = jest.fn().mockImplementation(async (data) => {
@@ -15,11 +11,22 @@ const mockCreateRequest = jest.fn().mockImplementation(async (data) => {
 const mockUpdatePageTitle = jest.fn();
 const mockNavigate = jest.fn();
 
-// Router mocks (before importing Maintenance component)
+// Router mocks (before importing any components)
 jest.mock("react-router-dom", () => ({
   ...jest.requireActual("react-router-dom"),
   useNavigate: () => mockNavigate,
 }));
+
+// Mock the context module
+jest.mock("../../context", () => ({
+  useMaintenance: jest.fn(),
+  useApp: jest.fn(),
+  useProperty: jest.fn()
+}));
+
+// Import after mocking
+import { useMaintenance, useApp, useProperty } from "../../context";
+import Maintenance from "../../pages/Maintenance";
 
 // Setup context values using the mock functions defined above
 const maintenanceContextValue = {
@@ -52,17 +59,10 @@ const propertyContextValue = {
   ]
 };
 
-// Mock all the contexts
-jest.mock("../../context", () => {
-  const originalModule = jest.requireActual("../../context");
-  
-  return {
-    ...originalModule,
-    useMaintenance: jest.fn(() => maintenanceContextValue),
-    useApp: jest.fn(() => appContextValue),
-    useProperty: jest.fn(() => propertyContextValue),
-  };
-});
+// Set up the context hook implementations
+useMaintenance.mockImplementation(() => maintenanceContextValue);
+useApp.mockImplementation(() => appContextValue);
+useProperty.mockImplementation(() => propertyContextValue);
 
 // Lightweight component stubs to keep tests fast/stable
 jest.mock("../../components", () => ({
@@ -104,76 +104,131 @@ jest.mock("../../components", () => ({
  */
 jest.mock("@mui/material", () => {
   const actual = jest.requireActual("@mui/material");
-  const React = require("react");
-
-  // Helper: map MUI <MenuItem value="x">Label</MenuItem> children to <option>
-  const toOptions = (children) => {
-    const arr = React.Children.toArray(children);
-    return arr
-      .map((child, idx) => {
-        if (!React.isValidElement(child)) return null;
-        // Ignore non-option-like items (e.g., ListSubheader)
-        if (child.props && "value" in child.props) {
-          return (
-            <option key={idx} value={child.props.value}>
-              {child.props.children}
-            </option>
-          );
-        }
-        return null;
-      })
-      .filter(Boolean);
+  
+  // Helper function to convert MenuItem children to option elements
+  // Defined as a factory function to avoid referencing out-of-scope variables
+  const createToOptions = () => {
+    const React = require("react");
+    
+    return (children) => {
+      const arr = React.Children.toArray(children);
+      return arr
+        .map((child, idx) => {
+          if (!React.isValidElement(child)) return null;
+          // Ignore non-option-like items (e.g., ListSubheader)
+          if (child.props && "value" in child.props) {
+            return React.createElement(
+              'option',
+              { key: idx, value: child.props.value },
+              child.props.children
+            );
+          }
+          return null;
+        })
+        .filter(Boolean);
+    };
   };
 
+  // Create toOptions function 
+  const toOptions = createToOptions();
+  
   return {
     ...actual,
-    Button: ({ children, onClick, type, "data-testid": testId, ...rest }) => (
-      <button
-        onClick={(e) => onClick && onClick({ ...e, currentTarget: e.currentTarget || {} })}
-        type={type || "button"}
-        data-testid={testId}
-        {...rest}
-      >
-        {children}
-      </button>
-    ),
-    Menu: ({ open, children }) => (open ? <div data-testid="menu">{children}</div> : null),
-    MenuItem: ({ children, onClick, value }) => (
-      <div role="menuitem" onClick={onClick} data-value={value}>
-        {children}
-      </div>
-    ),
-    Dialog: ({ open, children, "aria-label": ariaLabel }) => (
-      open ? <div role="dialog" aria-label={ariaLabel || "dialog"}>{children}</div> : null
-    ),
-    DialogTitle: ({ children }) => <h2>{children}</h2>,
-    DialogContent: ({ children }) => <div>{children}</div>,
-    DialogActions: ({ children }) => <div>{children}</div>,
+    Button: function Button(props) {
+      const React = require("react");
+      const { children, onClick, type, "data-testid": testId, ...rest } = props;
+      
+      return React.createElement(
+        'button',
+        {
+          onClick: (e) => onClick && onClick({ ...e, currentTarget: e.currentTarget || {} }),
+          type: type || "button",
+          "data-testid": testId,
+          ...rest
+        },
+        children
+      );
+    },
+    Menu: function Menu(props) {
+      const React = require("react");
+      return props.open ? 
+        React.createElement('div', { "data-testid": "menu" }, props.children) : null;
+    },
+    MenuItem: function MenuItem(props) {
+      const React = require("react");
+      return React.createElement(
+        'div',
+        { 
+          role: "menuitem", 
+          onClick: props.onClick, 
+          "data-value": props.value 
+        },
+        props.children
+      );
+    },
+    Dialog: function Dialog(props) {
+      const React = require("react");
+      return props.open ? 
+        React.createElement(
+          'div', 
+          { 
+            role: "dialog", 
+            "aria-label": props["aria-label"] || "dialog" 
+          }, 
+          props.children
+        ) : null;
+    },
+    DialogTitle: function DialogTitle(props) {
+      const React = require("react");
+      return React.createElement('h2', null, props.children);
+    },
+    DialogContent: function DialogContent(props) {
+      const React = require("react");
+      return React.createElement('div', null, props.children);
+    },
+    DialogActions: function DialogActions(props) {
+      const React = require("react");
+      return React.createElement('div', null, props.children);
+    },
     // Native-like Select for easy testing
-    Select: ({ name, value, onChange, label, children, inputProps }) => (
-      <select
-        aria-label={label || name}
-        name={name}
-        value={value || ""}
-        onChange={(e) =>
-          onChange &&
-          onChange({
-            target: { name: name, value: e.target.value },
-          })
-        }
-        data-testid={`select-${name || label || "unnamed"}`}
-        {...inputProps}
-      >
-        {toOptions(children)}
-      </select>
-    ),
-    Alert: ({ severity, children }) => (
-      <div role="alert" data-severity={severity} data-testid="alert">
-        {children}
-      </div>
-    ),
+    Select: function Select(props) {
+      const React = require("react");
+      const { name, value, onChange, label, children, inputProps } = props;
+      
+      return React.createElement(
+        'select',
+        {
+          "aria-label": label || name,
+          name: name,
+          value: value || "",
+          onChange: (e) => 
+            onChange &&
+            onChange({
+              target: { name: name, value: e.target.value },
+            }),
+          "data-testid": `select-${name || label || "unnamed"}`,
+          ...inputProps
+        },
+        toOptions(children)
+      );
+    },
+    Alert: function Alert(props) {
+      const React = require("react");
+      return React.createElement(
+        'div',
+        { 
+          role: "alert", 
+          "data-severity": props.severity, 
+          "data-testid": "alert"
+        },
+        props.children
+      );
+    },
     // Handle FormHelperText for error messages
-    FormHelperText: ({ children }) => <div data-testid="form-error">{children}</div>,
+    FormHelperText: function FormHelperText(props) {
+      const React = require("react");
+      return React.createElement('div', { "data-testid": "form-error" }, props.children);
+    },
   };
 });
 

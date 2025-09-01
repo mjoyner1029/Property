@@ -6,16 +6,14 @@ import theme from 'src/theme';
 
 // Import all contexts directly
 import { AppContext } from 'src/context/AppContext';
-import { AuthContext } from 'src/context/AuthContext';
+import AuthContext from 'src/context/AuthContext';
 import { NotificationContext } from 'src/context/NotificationContext';
 import { PropertyContext } from 'src/context/PropertyContext';
 import { MaintenanceContext } from 'src/context/MaintenanceContext';
 import { TenantContext } from 'src/context/TenantContext';
 import { PaymentContext } from 'src/context/PaymentContext';
 import { MessageContext } from 'src/context/MessageContext';
-
-// Create theme context for tests
-const ThemeContext = createContext();
+import { ThemeContext } from 'src/context/ThemeContext';
 
 // Default admin user for testing
 const defaultUser = {

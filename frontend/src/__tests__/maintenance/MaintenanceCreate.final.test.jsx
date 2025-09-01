@@ -3,23 +3,30 @@ import React from "react";
 import { screen, waitFor, fireEvent } from "@testing-library/react";
 import { renderWithProviders } from "../../test-utils/renderWithProviders";
 
-// Import first
-import { useMaintenance, useApp, useProperty } from "../../context";
-import Maintenance from "../../pages/Maintenance";
-
-// Mock react-router-dom
-jest.mock("react-router-dom", () => ({
-  ...jest.requireActual("react-router-dom"),
-  useNavigate: () => mockNavigate,
-}));
-
-// Define mock functions
+// Define mock functions first
 const mockFetchRequests = jest.fn().mockResolvedValue([]);
 const mockCreateRequest = jest.fn().mockImplementation(async (data) => {
   return { id: "new-id", ...data };
 });
 const mockUpdatePageTitle = jest.fn();
 const mockNavigate = jest.fn();
+
+// Mock react-router-dom - must come before any component imports
+jest.mock("react-router-dom", () => ({
+  ...jest.requireActual("react-router-dom"),
+  useNavigate: () => mockNavigate,
+}));
+
+// Mock the context module
+jest.mock("../../context", () => ({
+  useMaintenance: jest.fn(),
+  useApp: jest.fn(),
+  useProperty: jest.fn()
+}));
+
+// Import after mocking
+import { useMaintenance, useApp, useProperty } from "../../context";
+import Maintenance from "../../pages/Maintenance";
 
 // Setup context values
 const maintenanceContextValue = {
@@ -52,17 +59,10 @@ const propertyContextValue = {
   ]
 };
 
-// Mock the contexts
-jest.mock("../../context", () => {
-  const originalModule = jest.requireActual("../../context");
-  
-  return {
-    ...originalModule,
-    useMaintenance: jest.fn(() => maintenanceContextValue),
-    useApp: jest.fn(() => appContextValue),
-    useProperty: jest.fn(() => propertyContextValue),
-  };
-});
+// Set up the context hook implementations
+useMaintenance.mockImplementation(() => maintenanceContextValue);
+useApp.mockImplementation(() => appContextValue);
+useProperty.mockImplementation(() => propertyContextValue);
 
 // Mock components
 jest.mock("../../components", () => {
@@ -100,97 +100,193 @@ jest.mock("../../components", () => {
 // Mock MUI
 jest.mock("@mui/material", () => {
   const actual = jest.requireActual("@mui/material");
-  const React = require("react");
-
+  
   return {
     ...actual,
-    Button: ({ children, onClick, startIcon, "data-testid": testId, ...rest }) => (
-      <button
-        onClick={onClick}
-        data-testid={testId}
-        {...rest}
-      >
-        {startIcon} {children}
-      </button>
-    ),
-    Menu: ({ open, children }) => (open ? <div data-testid="menu">{children}</div> : null),
-    MenuItem: ({ children, onClick, value }) => (
-      <div role="menuitem" onClick={onClick} data-value={value}>
-        {children}
-      </div>
-    ),
-    Dialog: ({ open, children, "aria-label": ariaLabel }) => (
-      open ? <div role="dialog" aria-label={ariaLabel || "dialog"}>{children}</div> : null
-    ),
-    DialogTitle: ({ children }) => <h2>{children}</h2>,
-    DialogContent: ({ children }) => <div>{children}</div>,
-    DialogActions: ({ children }) => <div data-testid="dialog-actions">{children}</div>,
-    TextField: ({ label, name, value, onChange, multiline, fullWidth, ...rest }) => (
-      <div>
-        <label htmlFor={name}>{label}</label>
-        <input
-          id={name}
-          name={name}
-          value={value || ""}
-          onChange={onChange}
-          data-testid={`input-${name}`}
-          aria-label={label}
-          {...rest}
-        />
-      </div>
-    ),
-    Select: ({ name, value, onChange, label, children, ...rest }) => {
-      // Convert children to options
-      const options = React.Children.toArray(children)
-        .filter(child => React.isValidElement(child) && child.props && 'value' in child.props)
-        .map((child, idx) => (
-          <option key={idx} value={child.props.value}>
-            {child.props.children}
-          </option>
-        ));
-
-      return (
-        <div>
-          <label htmlFor={name}>{label}</label>
-          <select
-            id={name}
-            name={name}
-            value={value || ""}
-            onChange={(e) => onChange && onChange({ target: { name, value: e.target.value } })}
-            data-testid={`select-${name}`}
-            aria-label={label}
-            {...rest}
-          >
-            {options}
-          </select>
-        </div>
+    Button: function Button(props) {
+      const React = require('react');
+      const { children, onClick, startIcon, "data-testid": testId, ...rest } = props;
+      return React.createElement(
+        'button',
+        {
+          onClick: onClick,
+          'data-testid': testId,
+          ...rest
+        },
+        startIcon,
+        ' ',
+        children
       );
     },
-    FormControl: ({ children, fullWidth }) => (
-      <div style={fullWidth ? { width: '100%' } : {}}>{children}</div>
-    ),
-    InputLabel: ({ children }) => <span>{children}</span>,
-    FormHelperText: ({ children }) => (
-      <div data-testid="form-error">{children}</div>
-    ),
-    Alert: ({ severity, children }) => (
-      <div role="alert" data-severity={severity} data-testid="alert">
-        {children}
-      </div>
-    ),
-    Box: ({ children, sx }) => <div>{children}</div>,
-    Grid: ({ children, container }) => <div>{children}</div>,
-    Typography: ({ children, variant }) => <div>{children}</div>,
-    Tabs: ({ children, value, onChange }) => (
-      <div data-testid="status-tabs">{children}</div>
-    ),
-    Tab: ({ label, value, "data-testid": testId }) => (
-      <button data-testid={testId} role="tab" aria-selected={value === "all"}>
-        {label}
-      </button>
-    ),
-    InputAdornment: ({ children, position }) => <div>{children}</div>,
-    ListSubheader: ({ children }) => <div role="heading">{children}</div>,
+    Menu: function Menu(props) {
+      const React = require('react');
+      return props.open ? 
+        React.createElement('div', { 'data-testid': 'menu' }, props.children) : null;
+    },
+    MenuItem: function MenuItem(props) {
+      const React = require('react');
+      return React.createElement(
+        'div',
+        {
+          role: 'menuitem',
+          onClick: props.onClick,
+          'data-value': props.value
+        },
+        props.children
+      );
+    },
+    Dialog: function Dialog(props) {
+      const React = require('react');
+      return props.open ?
+        React.createElement(
+          'div',
+          {
+            role: 'dialog',
+            'aria-label': props['aria-label'] || 'dialog'
+          },
+          props.children
+        ) : null;
+    },
+    DialogTitle: function DialogTitle(props) {
+      const React = require('react');
+      return React.createElement('h2', null, props.children);
+    },
+    DialogContent: function DialogContent(props) {
+      const React = require('react');
+      return React.createElement('div', null, props.children);
+    },
+    DialogActions: function DialogActions(props) {
+      const React = require('react');
+      return React.createElement('div', { 'data-testid': 'dialog-actions' }, props.children);
+    },
+    TextField: function TextField(props) {
+      const React = require('react');
+      const { label, name, value, onChange, multiline, fullWidth, ...rest } = props;
+      
+      return React.createElement(
+        'div',
+        null,
+        React.createElement('label', { htmlFor: name }, label),
+        React.createElement(
+          'input',
+          {
+            id: name,
+            name: name,
+            value: value || '',
+            onChange: onChange,
+            'data-testid': `input-${name}`,
+            'aria-label': label,
+            ...rest
+          }
+        )
+      );
+    },
+    Select: function Select(props) {
+      const React = require('react');
+      const { name, value, onChange, label, children, ...rest } = props;
+      
+      // Helper function to convert MenuItem children to option elements
+      const convertOptions = (children) => {
+        return React.Children.toArray(children)
+          .filter(child => React.isValidElement(child) && child.props && 'value' in child.props)
+          .map((child, idx) => (
+            React.createElement(
+              'option',
+              { key: idx, value: child.props.value },
+              child.props.children
+            )
+          ));
+      };
+      
+      const options = convertOptions(children);
+      
+      return React.createElement(
+        'div',
+        null,
+        React.createElement('label', { htmlFor: name }, label),
+        React.createElement(
+          'select',
+          {
+            id: name,
+            name: name,
+            value: value || '',
+            onChange: (e) => onChange && onChange({ target: { name, value: e.target.value } }),
+            'data-testid': `select-${name}`,
+            'aria-label': label,
+            ...rest
+          },
+          options
+        )
+      );
+    },
+    FormControl: function FormControl(props) {
+      const React = require('react');
+      return React.createElement(
+        'div',
+        { style: props.fullWidth ? { width: '100%' } : {} },
+        props.children
+      );
+    },
+    InputLabel: function InputLabel(props) {
+      const React = require('react');
+      return React.createElement('span', null, props.children);
+    },
+    FormHelperText: function FormHelperText(props) {
+      const React = require('react');
+      return React.createElement('div', { 'data-testid': 'form-error' }, props.children);
+    },
+    Alert: function Alert(props) {
+      const React = require('react');
+      return React.createElement(
+        'div',
+        {
+          role: 'alert',
+          'data-severity': props.severity,
+          'data-testid': 'alert'
+        },
+        props.children
+      );
+    },
+    Box: function Box(props) {
+      const React = require('react');
+      return React.createElement('div', null, props.children);
+    },
+    Grid: function Grid(props) {
+      const React = require('react');
+      return React.createElement('div', null, props.children);
+    },
+    Typography: function Typography(props) {
+      const React = require('react');
+      return React.createElement('div', null, props.children);
+    },
+    Tabs: function Tabs(props) {
+      const React = require('react');
+      return React.createElement(
+        'div',
+        { 'data-testid': 'status-tabs' },
+        props.children
+      );
+    },
+    Tab: function Tab(props) {
+      const React = require('react');
+      return React.createElement(
+        'button',
+        {
+          'data-testid': props['data-testid'],
+          role: 'tab',
+          'aria-selected': props.value === 'all'
+        },
+        props.label
+      );
+    },
+    InputAdornment: function InputAdornment(props) {
+      const React = require('react');
+      return React.createElement('div', null, props.children);
+    },
+    ListSubheader: function ListSubheader(props) {
+      const React = require('react');
+      return React.createElement('div', { role: 'heading' }, props.children);
+    },
   };
 });
 
