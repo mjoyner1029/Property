@@ -1,21 +1,21 @@
 // frontend/src/__tests__/auth/Login.test.jsx
 import React from "react";
-import { render, screen, waitFor } from "@testing-library/react";
+import { screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { MemoryRouter } from "react-router-dom";
 
 // Import from shared mocks
-import { navigateMock } from "../../test/mocks/router";
-import { loginMock, isAuthenticatedMock, AuthContextMock } from "../../test/mocks/auth";
+import { navigateMock } from "src/test/mocks/router";
+import { loginMock, isAuthenticatedMock, AuthContextMock } from "src/test/mocks/auth";
+import { renderWithProviders } from "src/test/utils/renderWithProviders";
 
 // Using mockImplementation instead of inline arrow function to avoid Jest's variable reference issues
-jest.mock("../../context/AuthContext", () => {
+jest.mock("src/contexts/AuthContext", () => {
   const mockUseAuth = jest.fn();
   return { useAuth: mockUseAuth };
 });
 
 // Import after mocks
-import Login from "../../pages/Login";
+import Login from "src/pages/Login";
 
 // Helper: find the submit button regardless of label variants
 const getSubmitButton = () =>
@@ -28,7 +28,7 @@ describe("Login page", () => {
     AuthContextMock.loading = false;
     
     // Set up the mock implementation for each test
-    const { useAuth } = require("../../context/AuthContext");
+    const { useAuth } = require("src/contexts/AuthContext");
     useAuth.mockImplementation(() => ({
       isAuthenticated: isAuthenticatedMock,
       loading: AuthContextMock.loading,
@@ -38,11 +38,9 @@ describe("Login page", () => {
   });
 
   function renderAtLogin() {
-    return render(
-      <MemoryRouter initialEntries={["/login"]}>
-        <Login />
-      </MemoryRouter>
-    );
+    return renderWithProviders(<Login />, {
+      route: "/login"
+    });
   }
 
   test("redirects to '/' if already authenticated", () => {

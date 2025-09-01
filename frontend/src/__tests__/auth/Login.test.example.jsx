@@ -1,15 +1,15 @@
 // frontend/src/__tests__/auth/Login.test.jsx
 import React from "react";
-import { render, screen, waitFor } from "@testing-library/react";
+import { screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { MemoryRouter } from "react-router-dom";
 
 // Import from shared mocks
-import { navigateMock } from "../../test/mocks/router";
-import { loginMock, isAuthenticatedMock, AuthContextMock } from "../../test/mocks/auth";
+import { navigateMock } from "src/test/mocks/router";
+import { loginMock, isAuthenticatedMock, AuthContextMock } from "src/test/mocks/auth";
+import { renderWithProviders } from "src/test/utils/renderWithProviders";
 
 // Import after mocks
-import Login from "../../pages/Login";
+import Login from "src/pages/Login";
 
 // Helper: find the submit button regardless of label variants
 const getSubmitButton = () =>
@@ -26,11 +26,7 @@ describe("Login page", () => {
   });
 
   it("renders the login form", () => {
-    render(
-      <MemoryRouter>
-        <Login />
-      </MemoryRouter>
-    );
+    renderWithProviders(<Login />);
     
     expect(screen.getByLabelText(/email/i)).toBeInTheDocument();
     expect(screen.getByLabelText(/password/i)).toBeInTheDocument();
@@ -40,11 +36,7 @@ describe("Login page", () => {
   it("handles form submission", async () => {
     loginMock.mockResolvedValueOnce({ success: true });
     
-    render(
-      <MemoryRouter>
-        <Login />
-      </MemoryRouter>
-    );
+    renderWithProviders(<Login />);
     
     // Fill in form fields
     await userEvent.type(screen.getByLabelText(/email/i), "test@example.com");
@@ -68,11 +60,7 @@ describe("Login page", () => {
       message: "Invalid credentials" 
     });
     
-    render(
-      <MemoryRouter>
-        <Login />
-      </MemoryRouter>
-    );
+    renderWithProviders(<Login />);
     
     // Fill in form fields
     await userEvent.type(screen.getByLabelText(/email/i), "wrong@example.com");
@@ -90,11 +78,7 @@ describe("Login page", () => {
   it("redirects to dashboard if already authenticated", () => {
     isAuthenticatedMock.mockImplementation(() => true);
     
-    render(
-      <MemoryRouter>
-        <Login />
-      </MemoryRouter>
-    );
+    renderWithProviders(<Login />);
     
     // Verify redirect was triggered
     expect(navigateMock).toHaveBeenCalledWith("/dashboard");
@@ -103,11 +87,7 @@ describe("Login page", () => {
   it("disables form submission while loading", async () => {
     AuthContextMock.loading = true;
     
-    render(
-      <MemoryRouter>
-        <Login />
-      </MemoryRouter>
-    );
+    renderWithProviders(<Login />);
     
     // Check that button is disabled
     expect(getSubmitButton()).toBeDisabled();
