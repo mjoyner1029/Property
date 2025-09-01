@@ -32,7 +32,7 @@ jest.mock("../../components", () => ({
       <h1>{title}</h1>
       {subtitle && <p>{subtitle}</p>}
       {actionText ? (
-        <button onClick={onActionClick} aria-label={actionText}>
+        <button onClick={onActionClick} aria-label={actionText} data-testid="header-action">
           {actionText}
         </button>
       ) : null}
@@ -44,7 +44,7 @@ jest.mock("../../components", () => ({
       <h2>{title}</h2>
       <p>{message}</p>
       {actionText && (
-        <button onClick={onActionClick}>{actionText}</button>
+        <button onClick={onActionClick} data-testid="empty-action">{actionText}</button>
       )}
     </div>
   ),
@@ -81,41 +81,74 @@ jest.mock("@mui/material", () => {
 
   return {
     ...actual,
-    Button: ({ children, onClick, ...rest }) => (
-      <button
-        onClick={(e) => onClick && onClick({ ...e, currentTarget: e.currentTarget || {} })}
-        {...rest}
-      >
-        {children}
-      </button>
-    ),
-    Menu: ({ open, children }) => (open ? <div data-testid="menu">{children}</div> : null),
-    MenuItem: ({ children, onClick }) => (
-      <div role="menuitem" onClick={onClick}>
-        {children}
-      </div>
-    ),
-    Dialog: ({ open, children }) => (open ? <div role="dialog">{children}</div> : null),
-    DialogTitle: ({ children }) => <h2>{children}</h2>,
-    DialogContent: ({ children }) => <div>{children}</div>,
-    DialogActions: ({ children }) => <div>{children}</div>,
+    Button: ({ children, onClick, type, ...rest }) => {
+      const React = require("react");
+      return (
+        <button
+          onClick={(e) => onClick && onClick({ ...e, currentTarget: e.currentTarget || {} })}
+          type={type || "button"}
+          {...rest}
+        >
+          {children}
+        </button>
+      );
+    },
+    Menu: ({ open, children }) => {
+      const React = require("react");
+      return open ? <div data-testid="menu">{children}</div> : null;
+    },
+    MenuItem: ({ children, onClick }) => {
+      const React = require("react");
+      return (
+        <div role="menuitem" onClick={onClick}>
+          {children}
+        </div>
+      );
+    },
+    Dialog: ({ open, children }) => {
+      const React = require("react");
+      return open ? <div role="dialog">{children}</div> : null;
+    },
+    DialogTitle: ({ children }) => {
+      const React = require("react");
+      return <h2>{children}</h2>;
+    },
+    DialogContent: ({ children }) => {
+      const React = require("react");
+      return <div>{children}</div>;
+    },
+    DialogActions: ({ children }) => {
+      const React = require("react");
+      return <div>{children}</div>;
+    },
     // Native-like Select for easy testing
-    Select: ({ name, value, onChange, label, children }) => (
-      <select
-        aria-label={label || name}
-        name={name}
-        value={value || ""}
-        onChange={(e) =>
-          onChange &&
-          onChange({
-            target: { name: name, value: e.target.value },
-          })
-        }
-        data-testid={`select-${name || label || "unnamed"}`}
-      >
-        {toOptions(children)}
-      </select>
-    ),
+    Select: ({ name, value, onChange, label, children }) => {
+      const React = require("react");
+      return (
+        <select
+          aria-label={label || name}
+          name={name}
+          value={value || ""}
+          onChange={(e) =>
+            onChange &&
+            onChange({
+              target: { name: name, value: e.target.value },
+            })
+          }
+          data-testid={`select-${name || label || "unnamed"}`}
+        >
+          {toOptions(children)}
+        </select>
+      );
+    },
+    Alert: ({ severity, children }) => {
+      const React = require("react");
+      return (
+        <div role="alert" data-severity={severity}>
+          {children}
+        </div>
+      );
+    },
   };
 });
 
@@ -162,7 +195,7 @@ describe("Maintenance — Create Request flow", () => {
     renderPage();
 
     // Header action opens dialog
-    fireEvent.click(screen.getByRole("button", { name: /new request/i }));
+    fireEvent.click(screen.getByTestId("header-action"));
     const dialog = await screen.findByRole("dialog");
     expect(dialog).toBeInTheDocument();
 
@@ -178,7 +211,7 @@ describe("Maintenance — Create Request flow", () => {
     renderPage();
 
     // Open dialog
-    fireEvent.click(screen.getByRole("button", { name: /new request/i }));
+    fireEvent.click(screen.getByTestId("header-action"));
     await screen.findByRole("dialog");
 
     // Submit immediately
@@ -196,7 +229,7 @@ describe("Maintenance — Create Request flow", () => {
     renderPage();
 
     // Open dialog
-    fireEvent.click(screen.getByRole("button", { name: /new request/i }));
+    fireEvent.click(screen.getByTestId("header-action"));
     await screen.findByRole("dialog");
 
     // Fill Title & Description
@@ -247,7 +280,7 @@ describe("Maintenance — Create Request flow", () => {
     renderPage();
 
     // Open dialog
-    fireEvent.click(screen.getByRole("button", { name: /new request/i }));
+    fireEvent.click(screen.getByTestId("header-action"));
     await screen.findByRole("dialog");
 
     // Fill the minimum required fields
@@ -284,7 +317,7 @@ describe("Maintenance — Create Request flow", () => {
     renderPage();
 
     // Open dialog
-    fireEvent.click(screen.getByRole("button", { name: /new request/i }));
+    fireEvent.click(screen.getByTestId("header-action"));
     await screen.findByRole("dialog");
 
     // Fill fields and submit successfully
@@ -312,7 +345,7 @@ describe("Maintenance — Create Request flow", () => {
     });
 
     // Reopen dialog -> fields should be reset
-    fireEvent.click(screen.getByRole("button", { name: /new request/i }));
+    fireEvent.click(screen.getByTestId("header-action"));
     await screen.findByRole("dialog");
 
     expect(screen.getByLabelText(/title/i)).toHaveValue("");
@@ -334,7 +367,7 @@ describe("Maintenance — Create Request flow", () => {
     expect(screen.getByTestId("empty-state")).toBeInTheDocument();
 
     // Click CTA to open dialog
-    fireEvent.click(screen.getByRole("button", { name: /new request/i }));
+    fireEvent.click(screen.getByTestId("empty-action"));
 
     // Dialog opens
     expect(await screen.findByRole("dialog")).toBeInTheDocument();

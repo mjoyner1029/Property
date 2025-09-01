@@ -9,12 +9,17 @@ import NotificationsPage from "../../pages/Notifications";
 import NotificationDetail from "../../pages/NotificationDetail";
 
 // ---- Router mocks ----
-// Import the mock directly
-import { setParams } from 'react-router-dom';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 
-// Initialize params for this test
-setParams({ id: "1" });
+// Mock useParams to return a fixed ID for tests
+const mockNavigate = jest.fn();
+let currentParams = { id: "1" };
+
+jest.mock('react-router-dom', () => ({
+  ...jest.requireActual('react-router-dom'),
+  useParams: () => currentParams,
+  useNavigate: () => mockNavigate
+}));
 
 // ---- Context barrel mocks ----
 const mockFetchNotifications = jest.fn();
@@ -35,10 +40,11 @@ import { useNotifications, useApp } from "../../context";
 // ---- Lightweight MUI stubs for deterministic DOM (Dialog/Button/Menu/Select) ----
 jest.mock("@mui/material", () => {
   const actual = jest.requireActual("@mui/material");
-  const React = require("react");
-
-  const toOptions = (children) =>
-    React.Children.toArray(children)
+  
+  // Helper function for the Select component
+  const toOptions = (children) => {
+    const React = require("react");
+    return React.Children.toArray(children)
       .map((child, idx) => {
         if (!React.isValidElement(child)) return null;
         if (child.props && "value" in child.props) {
@@ -51,50 +57,81 @@ jest.mock("@mui/material", () => {
         return null;
       })
       .filter(Boolean);
+  };
 
   return {
     ...actual,
-    Button: ({ children, onClick, disabled, ...rest }) => (
-      <button onClick={onClick} disabled={disabled} {...rest}>
-        {children}
-      </button>
-    ),
-    IconButton: ({ children, onClick, disabled, "aria-label": ariaLabel, ...rest }) => (
-      <button onClick={onClick} disabled={disabled} aria-label={ariaLabel} {...rest}>
-        {children}
-      </button>
-    ),
-    Dialog: ({ open, children }) => (open ? <div role="dialog">{children}</div> : null),
-    DialogTitle: ({ children }) => <h2>{children}</h2>,
-    DialogContent: ({ children }) => <div>{children}</div>,
-    DialogActions: ({ children }) => <div>{children}</div>,
-    Menu: ({ open, children }) => (open ? <div role="menu">{children}</div> : null),
-    MenuItem: ({ onClick, children }) => (
-      <div role="menuitem" onClick={onClick}>
-        {children}
-      </div>
-    ),
-    Select: ({ name, value, onChange, label, children }) => (
-      <select
-        aria-label={label || name}
-        name={name}
-        value={value || ""}
-        onChange={(e) =>
-          onChange &&
-          onChange({
-            target: { name: name, value: e.target.value },
-          })
-        }
-        data-testid={`select-${name || label || "unnamed"}`}
-      >
-        {toOptions(children)}
-      </select>
-    ),
-    Chip: ({ label, color, ...rest }) => (
-      <span role="status" data-color={color} {...rest}>
-        {label}
-      </span>
-    ),
+    Button: ({ children, onClick, disabled, ...rest }) => {
+      const React = require("react");
+      return (
+        <button onClick={onClick} disabled={disabled} {...rest}>
+          {children}
+        </button>
+      );
+    },
+    IconButton: ({ children, onClick, disabled, "aria-label": ariaLabel, ...rest }) => {
+      const React = require("react");
+      return (
+        <button onClick={onClick} disabled={disabled} aria-label={ariaLabel} {...rest}>
+          {children}
+        </button>
+      );
+    },
+    Dialog: ({ open, children }) => {
+      const React = require("react");
+      return open ? <div role="dialog">{children}</div> : null;
+    },
+    DialogTitle: ({ children }) => {
+      const React = require("react");
+      return <h2>{children}</h2>;
+    },
+    DialogContent: ({ children }) => {
+      const React = require("react");
+      return <div>{children}</div>;
+    },
+    DialogActions: ({ children }) => {
+      const React = require("react");
+      return <div>{children}</div>;
+    },
+    Menu: ({ open, children }) => {
+      const React = require("react");
+      return open ? <div role="menu">{children}</div> : null;
+    },
+    MenuItem: ({ onClick, children }) => {
+      const React = require("react");
+      return (
+        <div role="menuitem" onClick={onClick}>
+          {children}
+        </div>
+      );
+    },
+    Select: ({ name, value, onChange, label, children }) => {
+      const React = require("react");
+      return (
+        <select
+          aria-label={label || name}
+          name={name}
+          value={value || ""}
+          onChange={(e) =>
+            onChange &&
+            onChange({
+              target: { name: name, value: e.target.value },
+            })
+          }
+          data-testid={`select-${name || label || "unnamed"}`}
+        >
+          {toOptions(children)}
+        </select>
+      );
+    },
+    Chip: ({ label, color, ...rest }) => {
+      const React = require("react");
+      return (
+        <span role="status" data-color={color} {...rest}>
+          {label}
+        </span>
+      );
+    },
   };
 });
 
