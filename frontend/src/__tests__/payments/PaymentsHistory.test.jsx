@@ -4,7 +4,7 @@ import { getInputByName, getSelectByName } from 'src/test/utils/muiTestUtils';
 import { MemoryRouter } from 'react-router-dom';
 import PayPortal from '../../pages/PayPortal';
 import axios from 'axios';
-import PaymentsHistory from '../../pages/PaymentsHistory';
+import PaymentsHistory from '../../pages/payments/PaymentsHistory';
 
 jest.mock('axios');
 
