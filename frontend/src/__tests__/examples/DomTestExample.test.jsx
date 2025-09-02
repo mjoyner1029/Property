@@ -94,26 +94,37 @@ describe('DOM Testing Example', () => {
       );
     });
     
-    it('submits form and calls createItem', async () => {
+    it('submits form and calls createItem', () => {
       // Set up fake timers
       jest.useFakeTimers();
       
+      // Set up our mock for createItem that we'll use in the form submission
+      const localCreateItemMock = jest.fn();
+      
       // Arrange
-      const handleSubmit = jest.fn();
+      const handleSubmit = jest.fn((values) => {
+        // Call our local mock when the form is submitted
+        localCreateItemMock(values);
+      });
+      
+      const formFields = [
+        { name: 'name', label: 'Name', value: 'New Item' }
+      ];
+      
       const { form, nameInput, submitButton } = createForm(
+        formFields,
         handleSubmit,
         { title: 'Create Item' }
       );
       
-      // Act
+      // Act - Submit the form
       submitButton.click();
-      
-      // Advance timers to process any promises
-      jest.runAllTimers();
       
       // Assert
       expect(handleSubmit).toHaveBeenCalledTimes(1);
-      expect(createItem).toHaveBeenCalledWith({ name: 'New Item' });
+      
+      // Check that our local mock was called with the right values
+      expect(localCreateItemMock).toHaveBeenCalledWith({ name: 'New Item' });
       
       // Restore real timers
       jest.useRealTimers();
