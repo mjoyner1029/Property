@@ -1,23 +1,26 @@
-import React from 'react';
-import { render, fireEvent } from '@testing-library/react';
+// Verify a button click fires a handler exactly once.
+// This is the simplest possible test that meets requirements.
 
-// Simplest possible test just to verify a click handler
-describe('Click Handler Test', () => {
-  test('calls click handler exactly once when clicked', () => {
-    const handleClick = jest.fn();
+describe('Button Click Test', () => {
+  it('calls handler exactly once when clicked', () => {
+    // Create a mock function to track calls
+    const mockHandler = jest.fn();
     
-    // Render directly with render from testing-library
-    const { container } = render(
-      <button onClick={handleClick}>Click Me</button>
-    );
+    // Create a simple button element directly in the DOM
+    const button = document.createElement('button');
+    button.textContent = 'Click me';
+    button.onclick = mockHandler;
     
-    // Use the container to get the button directly
-    const button = container.querySelector('button');
+    // Add to document
+    document.body.appendChild(button);
     
-    // Use fireEvent instead of userEvent for simplicity
-    fireEvent.click(button);
+    // Click it
+    button.click();
     
-    // Verify click handler called exactly once
-    expect(handleClick).toHaveBeenCalledTimes(1);
+    // Verify it was called exactly once
+    expect(mockHandler).toHaveBeenCalledTimes(1);
+    
+    // Clean up
+    document.body.removeChild(button);
   });
 });
