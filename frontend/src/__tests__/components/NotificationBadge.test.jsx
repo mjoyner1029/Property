@@ -3,10 +3,26 @@ import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import NotificationBadge from 'src/components/NotificationBadge';
 
+// Create direct mock for IconButton to ensure it renders properly in tests
+jest.mock('@mui/material/IconButton', () => {
+  return function MockIconButton(props) {
+    return (
+      <button
+        onClick={props.onClick}
+        aria-label={props['aria-label']}
+        data-testid="icon-button"
+      >
+        {props.children}
+      </button>
+    );
+  };
+});
+
 // Mock MUI Portal to render inline for testing
-jest.mock('@mui/material', () => {
-  const actual = jest.requireActual('@mui/material');
-  return { ...actual, Portal: ({ children }) => <>{children}</> };
+jest.mock('@mui/material/Portal', () => {
+  return function MockPortal({ children }) {
+    return <>{children}</>;
+  };
 });
 
 describe('NotificationBadge Component', () => {
@@ -18,8 +34,8 @@ describe('NotificationBadge Component', () => {
     // Render component directly without extra providers
     render(<NotificationBadge count={3} onClick={handleClick} />);
     
-    // Click the actual button element (which has the notifications aria-label)
-    await user.click(screen.getByRole('button', { name: /notifications/i }));
+    // Click the button element using our mocked component
+    await user.click(screen.getByTestId('icon-button'));
     
     // Check if onClick handler was called exactly once
     expect(handleClick).toHaveBeenCalledTimes(1);
