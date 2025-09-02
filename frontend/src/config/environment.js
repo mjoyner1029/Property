@@ -12,15 +12,20 @@
  */
 
 // Helper function to get environment variables from different sources
-const getEnv = (key, defaultValue) => {
+const getEnv = (key, defaultValue, required = false) => {
   // Check for runtime injected environment variables (highest priority)
-  if (typeof window !== 'undefined' && window.__ENV && window.__ENV[key] !== undefined) {
+  if (typeof window !== 'undefined' && window.__ENV && window.__ENV[key] !== undefined && window.__ENV[key] !== '') {
     return window.__ENV[key];
   }
   
   // Check for CRA environment variables
-  if (process.env[`REACT_APP_${key}`] !== undefined) {
+  if (process.env[`REACT_APP_${key}`] !== undefined && process.env[`REACT_APP_${key}`] !== '') {
     return process.env[`REACT_APP_${key}`];
+  }
+  
+  // In production, throw an error if required vars are missing
+  if (required && process.env.NODE_ENV === 'production') {
+    throw new Error(`Required environment variable ${key} is missing`);
   }
   
   // Return default value
@@ -47,7 +52,7 @@ export const IS_DEVELOPMENT = ENVIRONMENT === 'development';
 export const IS_TEST = ENVIRONMENT === 'test';
 
 // API URLs
-export const API_URL = getEnv('API_URL', IS_DEVELOPMENT ? 'http://localhost:5050/api' : '/api');
+export const API_URL = getEnv('API_URL', IS_DEVELOPMENT ? 'http://localhost:5050/api' : '/api', IS_PRODUCTION);
 export const SOCKET_URL = getEnv('SOCKET_URL', IS_DEVELOPMENT ? 'http://localhost:5050' : '');
 
 // Auth settings

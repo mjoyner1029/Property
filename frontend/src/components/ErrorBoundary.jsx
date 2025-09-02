@@ -5,7 +5,8 @@ import {
   Button, Typography, Box, Paper, Container, CircularProgress,
   Accordion, AccordionSummary, AccordionDetails, Divider, Alert
 } from '@mui/material';
-import { API_URL, ENVIRONMENT, IS_DEVELOPMENT, SENTRY_DSN } from '../config/environment';
+import { API_URL, ENVIRONMENT, IS_DEVELOPMENT } from '../config/environment';
+import { captureException } from '../observability/sentry';
 import ErrorIcon from '@mui/icons-material/Error';
 import WifiOffIcon from '@mui/icons-material/WifiOff';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
@@ -130,13 +131,10 @@ export default class ErrorBoundary extends React.Component {
       };
       
       // Send to monitoring service if available
-      if (typeof window !== 'undefined' && window.Sentry && SENTRY_DSN) {
-        window.Sentry.withScope((scope) => {
-          scope.setExtras(errorContext);
-          scope.setTag('errorType', this.state.errorType);
-          window.Sentry.captureException(error);
-        });
-      }
+      captureException(error, {
+        errorContext,
+        errorType: this.state.errorType
+      });
       
       // Send to backend error log endpoint
       await axios.post(`${API_URL}/log/frontend-error`, errorContext);

@@ -1,9 +1,10 @@
-import React, { Suspense } from 'react';
+import React, { Suspense, useEffect } from 'react';
 import { ThemeProvider as MuiThemeProvider } from '@mui/material/styles';
 import { CssBaseline } from '@mui/material';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { CombinedProviders } from './context/index';
 import theme from './theme';
+import { initSentry } from './observability/sentry';
 
 // Layouts
 import MainLayout from './layouts/MainLayout';
@@ -12,7 +13,6 @@ import MainLayout from './layouts/MainLayout';
 import { ProtectedRoute, PublicOnlyRoute as PublicRoute, RoleRoute } from './routing/guards';
 
 // Loading Fallback
-
 import LoadingFallback from './components/LoadingFallback';
 import ErrorBoundary from './components/ErrorBoundary';
 import Toast from './components/Toast';
@@ -60,6 +60,11 @@ const RoutesIndex = React.lazy(() => import('./pages').then(m => ({ default: m.R
 
 
 export default function App() {
+  // Initialize Sentry for error tracking
+  useEffect(() => {
+    initSentry();
+  }, []);
+  
   return (
     <BrowserRouter>
       <ErrorBoundary>
