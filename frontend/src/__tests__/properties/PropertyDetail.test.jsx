@@ -1,3 +1,13 @@
+// Mock useNavigate and useParams
+jest.mock('react-router-dom', () => ({
+  ...jest.requireActual('react-router-dom'),
+  useNavigate: () => mockNavigate,
+  useParams: () => mockParams
+}));
+
+// Mock axios
+jest.mock('axios');
+
 import React from 'react';
 import { screen, within, waitFor, fireEvent } from '@testing-library/react';
 import { getInputByName, getSelectByName } from 'src/test/utils/muiTestUtils';
@@ -10,13 +20,6 @@ import axios from 'axios';
 const mockNavigate = jest.fn();
 const mockParams = { id: '123' };
 const mockUpdatePageTitle = jest.fn();
-
-// Mock useNavigate and useParams
-jest.mock('react-router-dom', () => ({
-  ...jest.requireActual('react-router-dom'),
-  useNavigate: () => mockNavigate,
-  useParams: () => mockParams
-}));
 
 // Mock useApp
 jest.spyOn(AppContext, 'useApp').mockReturnValue({
@@ -43,9 +46,6 @@ const defaultMockPropertyContext = {
   error: null,
   fetchPropertyById: jest.fn()
 };
-
-// Mock axios
-jest.mock('axios');
 
 beforeEach(() => {
   jest.clearAllMocks();

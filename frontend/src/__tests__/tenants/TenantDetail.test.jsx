@@ -79,16 +79,20 @@ describe("TenantDetail", () => {
 
     renderAtRoute();
 
-    // Wait for API call to be made
-    await waitFor(() => expect(api.get).toHaveBeenCalled());
+    // First, wait for API call to be made
+    await waitFor(() => {
+      expect(api.get).toHaveBeenCalled();
+    });
     
     // Then verify the getTenant mock was called with expected ID
-    await waitFor(() => expect(getTenantMock).toHaveBeenCalledWith("1"));
+    expect(getTenantMock).toHaveBeenCalledWith("1");
     
-    // Then verify the tenant details are displayed
-    await waitFor(() => expect(screen.getByText("Alice")).toBeInTheDocument());
-    expect(screen.getByText("alice@example.com")).toBeInTheDocument();
-    expect(screen.getByText(/555-1234/i)).toBeInTheDocument();
+    // Then wait for the tenant details to be displayed
+    // Using findBy instead of getBy for async rendering
+    const nameElement = await screen.findByText("Alice");
+    expect(nameElement).toBeInTheDocument();
+    expect(await screen.findByText("alice@example.com")).toBeInTheDocument();
+    expect(await screen.findByText(/555-1234/i)).toBeInTheDocument();
 
     // Page title update called
     expect(updatePageTitleMock).toHaveBeenCalledWith("Tenant: Alice");

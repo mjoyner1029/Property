@@ -42,6 +42,9 @@ describe('VerifyEmail Component', () => {
   });
 
   test('shows loading state initially', () => {
+    // Use fake timers
+    jest.useFakeTimers();
+    
     // Mock axios to delay response
     axios.get.mockImplementationOnce(() => new Promise(resolve => setTimeout(resolve, 1000)));
     
@@ -50,6 +53,9 @@ describe('VerifyEmail Component', () => {
     // Should show loading state initially
     expect(screen.getByRole('progressbar')).toBeInTheDocument();
     expect(screen.getByText(/verifying your email/i)).toBeInTheDocument();
+    
+    // Cleanup
+    jest.useRealTimers();
   });
 
   test('shows success message on successful verification', async () => {
@@ -58,13 +64,14 @@ describe('VerifyEmail Component', () => {
     
     renderWithProviders(<VerifyEmail />);
     
-    // Wait for success message
+    // Wait for API call to be made first
     await waitFor(() => {
-      expect(screen.getByText(/email verified successfully/i)).toBeInTheDocument();
+      expect(axios.get).toHaveBeenCalledWith(`/api/verify/valid-verification-token`);
     });
     
-    // Check for API call with correct token (uses get not post)
-    expect(axios.get).toHaveBeenCalledWith(`/api/verify/valid-verification-token`);
+    // Then wait for success message using findBy for async rendering
+    const successMessage = await screen.findByText(/email verified successfully/i);
+    expect(successMessage).toBeInTheDocument();
   });
 
   test('shows error message on verification failure', async () => {
@@ -75,12 +82,16 @@ describe('VerifyEmail Component', () => {
     
     renderWithProviders(<VerifyEmail />);
     
-    // Wait for error message
+    // Wait for API call to be attempted
     await waitFor(() => {
-      expect(screen.getByText(/verification failed/i)).toBeInTheDocument();
+      expect(axios.get).toHaveBeenCalled();
     });
     
-    // Should show resend verification link
+    // Then wait for error message to appear using findBy
+    const errorMessage = await screen.findByText(/verification failed/i);
+    expect(errorMessage).toBeInTheDocument();
+    
+    // Should show resend verification link - can use getBy since it should be in the DOM now
     expect(screen.getByRole('link', { name: /resend verification/i })).toBeInTheDocument();
   });
 
@@ -93,10 +104,14 @@ describe('VerifyEmail Component', () => {
     
     renderWithProviders(<VerifyEmail />);
     
-    // Wait for error state
+    // Wait for API call to be attempted
     await waitFor(() => {
-      expect(screen.getByText(/verification failed/i)).toBeInTheDocument();
+      expect(axios.get).toHaveBeenCalled();
     });
+    
+    // Wait for error state using findBy
+    const errorElement = await screen.findByText(/verification failed/i);
+    expect(errorElement).toBeInTheDocument();
     
     // Check that the resend link exists and links to the correct page
     const resendLink = screen.getByRole('link', { name: /resend verification/i });
@@ -111,13 +126,17 @@ describe('VerifyEmail Component', () => {
     
     renderWithProviders(<VerifyEmail />);
     
-    // Wait for error state
+    // Wait for API call to be attempted first
     await waitFor(() => {
-      expect(screen.getByText(/verification failed/i)).toBeInTheDocument();
+      expect(axios.get).toHaveBeenCalled();
     });
     
+    // Wait for error state using findBy
+    const errorElement = await screen.findByText(/verification failed/i);
+    expect(errorElement).toBeInTheDocument();
+    
     // Check that the login link exists and links to the correct page
-    const loginLink = screen.getByRole('link', { name: /back to login/i });
+    const loginLink = await screen.findByRole('link', { name: /back to login/i });
     expect(loginLink).toHaveAttribute('href', '/login');
   });
 
@@ -127,10 +146,14 @@ describe('VerifyEmail Component', () => {
     
     renderWithProviders(<VerifyEmail />);
     
-    // Wait for success message
+    // Wait for API call to be attempted first
     await waitFor(() => {
-      expect(screen.getByText('Email Verified!')).toBeInTheDocument();
+      expect(axios.get).toHaveBeenCalled();
     });
+    
+    // Wait for success message using findBy
+    const successHeading = await screen.findByText('Email Verified!');
+    expect(successHeading).toBeInTheDocument();
     
     // Check login link
     const loginLink = screen.getByRole('link', { name: /log in/i });

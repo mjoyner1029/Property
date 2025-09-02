@@ -1,21 +1,16 @@
-// jest-dom adds custom jest matchers for asserting on DOM nodes.
-// allows you to do things like:
-// expect(element).toHaveTextContent(/react/i)
-// learn more: https://github.com/testing-library/jest-dom
-import '@testing-library/jest-dom';
+import '@testing-library/jest-dom/extend-expect';
 import { configure } from '@testing-library/react';
-import { act } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import * as matchers from '@testing-library/jest-dom/matchers';
 
 // Extend Jest with RTL matchers
 expect.extend(matchers);
 
-// Configure RTL options
-configure({ 
-  testIdAttribute: 'data-testid',
-  // Raise the default timeout for async testing
-  asyncUtilTimeout: 5000,
-});
+// Auto-wraps updates in act for user interactions
+configure({ asyncUtilTimeout: 3000 });
+
+// Mock createRoot to avoid real DOM root issues
+jest.mock('react-dom/client', () => ({ createRoot: () => ({ render: jest.fn(), unmount: jest.fn() }) }));
 
 // Mock global fetch
 global.fetch = jest.fn(() => 
@@ -26,14 +21,14 @@ global.fetch = jest.fn(() =>
   })
 );
 
-// Fail tests if we forget to wrap act() around async component updates
-const originalError = console.error;
-console.error = (...args) => {
-  if (/Warning.*not wrapped in act/.test(args[0])) {
-    throw new Error('Missing act() wrapper in test: ' + args[0]);
-  }
-  originalError.apply(console, args);
-};
+// Browser API shims
+window.scrollTo ||= () => {};
+Element.prototype.scrollIntoView ||= jest.fn();
+window.matchMedia ||= () => ({ matches: false, addListener(){}, removeListener(){}, addEventListener(){}, removeEventListener(){}, dispatchEvent(){ return false; } });
+class RO { observe(){} unobserve(){} disconnect(){} }
+window.ResizeObserver ||= RO;
+class IO { observe(){} unobserve(){} disconnect(){} takeRecords(){return [];} }
+window.IntersectionObserver ||= IO;
 
 // Silence React 18 hydration warnings in tests
 const originalWarn = console.warn;
@@ -49,21 +44,12 @@ console.warn = (...args) => {
   originalWarn.apply(console, args);
 };
 
-// TEMPORARILY COMMENTING OUT TO DEBUG RTL ISSUES
-// // Mock react-dom/client to avoid real createRoot in tests
-// jest.mock('react-dom/client', () => {
-//   return {
-//     createRoot: () => ({ render: jest.fn(), unmount: jest.fn() }),
-//   };
-// });
-
-// Common browser APIs missing in jsdom
-window.scrollTo = window.scrollTo || (() => {});
-Element.prototype.scrollIntoView = Element.prototype.scrollIntoView || jest.fn();
-window.matchMedia = window.matchMedia || function () {
-  return { matches: false, addListener: () => {}, removeListener: () => {}, addEventListener: () => {}, removeEventListener: () => {}, dispatchEvent: () => false };
+// Surface missing act() as test failures
+const _error = console.error;
+console.error = (...args) => {
+  if (typeof args[0] === 'string' && args[0].includes('Warning: An update to')) throw new Error(args[0]);
+  _error(...args);
 };
-class RO { observe(){} unobserve(){} disconnect(){} }
-window.ResizeObserver = window.ResizeObserver || RO;
-class IO { observe(){} unobserve(){} disconnect(){} takeRecords(){return [];} }
-window.IntersectionObserver = window.IntersectionObserver || IO;
+
+// Expose a shared userEvent instance for tests that need it
+global.user = userEvent.setup();

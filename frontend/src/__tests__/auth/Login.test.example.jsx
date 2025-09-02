@@ -25,6 +25,9 @@ describe("Login page", () => {
   });
 
   it("handles login submission with loading state and navigation", async () => {
+    // Use fake timers for predictable test behavior
+    jest.useFakeTimers();
+    
     // Create mock login function that sets loading state then resolves
     const mockLogin = jest.fn().mockImplementation(async () => {
       return new Promise(resolve => {
@@ -81,15 +84,23 @@ describe("Login page", () => {
     // Verify button is disabled during loading
     expect(submit).toBeDisabled();
     
-    // Wait for navigation to happen after login completes
-    await waitFor(() => expect(mockNavigate).toHaveBeenCalledWith('/dashboard'));
-    
-    // Verify login was called with the correct parameters
+    // First verify login was called with correct parameters
     expect(mockLogin).toHaveBeenCalledWith({
       email: 'test@example.com',
       password: 'secret123',
       role: 'tenant' // Default portal type
     });
+    
+    // Run the timer to complete the setTimeout
+    jest.runAllTimers();
+    
+    // Wait for navigation to happen after login completes
+    await waitFor(() => {
+      expect(mockNavigate).toHaveBeenCalledWith('/dashboard');
+    });
+    
+    // Reset to real timers after the test
+    jest.useRealTimers();
   });
 
   it("shows error message when login fails", async () => {
@@ -120,9 +131,13 @@ describe("Login page", () => {
     const submit = screen.getByRole('button', { name: /(log in|sign in|login)/i });
     await user.click(submit);
     
-    // Verify error is displayed
+    // First wait for the login function to be called
     await waitFor(() => {
-      expect(screen.getByText(/Failed to login/i)).toBeInTheDocument();
+      expect(mockLoginError).toHaveBeenCalled();
     });
+    
+    // Then wait for error to be displayed using findBy
+    const errorMessage = await screen.findByText(/Failed to login/i);
+    expect(errorMessage).toBeInTheDocument();
   });
 });

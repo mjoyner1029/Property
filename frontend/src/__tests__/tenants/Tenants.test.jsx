@@ -28,11 +28,16 @@ describe('Tenants Component', () => {
     renderWithProviders(<Tenants />);
     
     // First verify that API client call was made
-    await waitFor(() => expect(api.get).toHaveBeenCalled());
+    await waitFor(() => {
+      expect(api.get).toHaveBeenCalled();
+    });
     
-    // Then check for tenant names
-    await waitFor(() => expect(screen.getByText("John Smith")).toBeInTheDocument());
-    expect(screen.getByText("Sarah Johnson")).toBeInTheDocument();
+    // Then check for tenant names using findBy for async rendering
+    const johnElement = await screen.findByText("John Smith");
+    expect(johnElement).toBeInTheDocument();
+    
+    // Once one element is found, the others should be there too
+    expect(await screen.findByText("Sarah Johnson")).toBeInTheDocument();
     expect(screen.getByText("Tenants")).toBeInTheDocument();
   });
 });

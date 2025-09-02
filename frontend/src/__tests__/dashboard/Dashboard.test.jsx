@@ -1,13 +1,4 @@
 // frontend/src/__tests__/dashboard/Dashboard.test.jsx
-import React from "react";
-import { screen, waitFor, fireEvent } from "@testing-library/react";
-
-// Import shared mocks with absolute paths
-import { fetchRequestsMock, fetchPaymentsMock } from "src/test/mocks/services";
-import { renderWithProviders } from 'src/test/utils/renderWithProviders';
-
-// Import the real component AFTER mocks with absolute path
-import Dashboard from "src/pages/Dashboard";
 
 // ---- Stub heavy visual components to keep tests fast/stable ----
 jest.mock("src/components/ChartCard", () => ({
@@ -51,7 +42,7 @@ jest.mock("../../context/MaintenanceContext", () => ({
     maintenanceRequests: [],
     loading: false,
     error: null,
-    fetchRequests: require('src/test/mocks/services').fetchRequestsMock
+    fetchRequests: jest.fn()
   }),
 }));
 
@@ -61,9 +52,15 @@ jest.mock("../../context/PaymentContext", () => ({
     payments: [],
     loading: false,
     error: null,
-    fetchPayments: require('src/test/mocks/services').fetchPaymentsMock
+    fetchPayments: jest.fn()
   }),
 }));
+
+import React from "react";
+import { screen, waitFor, fireEvent } from "@testing-library/react";
+import { renderWithProviders } from 'src/test/utils/renderWithProviders';
+import Dashboard from "src/pages/Dashboard";
+import { fetchRequestsMock, fetchPaymentsMock } from "src/test/mocks/services";
 
 describe("Dashboard", () => {
   beforeEach(() => {

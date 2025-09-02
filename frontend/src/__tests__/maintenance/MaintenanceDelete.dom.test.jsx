@@ -27,6 +27,16 @@ describe('MaintenanceDelete - DOM only', () => {
   // Set up mock functions
   const mockDeleteRequest = jest.fn(() => Promise.resolve(true));
   const mockNavigate = jest.fn();
+  
+  beforeEach(() => {
+    // Use fake timers for predictable test behavior
+    jest.useFakeTimers();
+  });
+  
+  afterEach(() => {
+    // Reset to real timers after each test
+    jest.useRealTimers();
+  });
 
   // Set up DOM elements before each test
   beforeEach(() => {
@@ -130,8 +140,11 @@ describe('MaintenanceDelete - DOM only', () => {
     const confirmButton = document.querySelector('[data-testid="confirm-button"]');
     confirmButton.click();
     
-    // Wait for async operations
-    await new Promise(resolve => setTimeout(resolve, 10));
+    // Run any pending timers
+    jest.runAllTimers();
+    
+    // Wait for promises to resolve - use fake timers with Promise resolution
+    await Promise.resolve();
     
     // Verify the delete request was called with the correct ID
     expect(mockDeleteRequest).toHaveBeenCalledWith('request123');
