@@ -9,8 +9,21 @@ expect.extend(matchers);
 // Auto-wraps updates in act for user interactions
 configure({ asyncUtilTimeout: 3000 });
 
+// Set up userEvent for all tests
+global.user = userEvent.setup();
+
 // Mock createRoot to avoid real DOM root issues
-jest.mock('react-dom/client', () => ({ createRoot: () => ({ render: jest.fn(), unmount: jest.fn() }) }));
+jest.mock('react-dom/client', () => ({
+  createRoot: (container) => {
+    if (!container) {
+      console.error('Target container is not a DOM element');
+    }
+    return {
+      render: jest.fn(),
+      unmount: jest.fn()
+    };
+  }
+}));
 
 // Mock global fetch
 global.fetch = jest.fn(() => 
@@ -22,13 +35,38 @@ global.fetch = jest.fn(() =>
 );
 
 // Browser API shims
-window.scrollTo ||= () => {};
-Element.prototype.scrollIntoView ||= jest.fn();
-window.matchMedia ||= () => ({ matches: false, addListener(){}, removeListener(){}, addEventListener(){}, removeEventListener(){}, dispatchEvent(){ return false; } });
-class RO { observe(){} unobserve(){} disconnect(){} }
-window.ResizeObserver ||= RO;
-class IO { observe(){} unobserve(){} disconnect(){} takeRecords(){return [];} }
-window.IntersectionObserver ||= IO;
+window.scrollTo = jest.fn();
+Element.prototype.scrollIntoView = jest.fn();
+window.matchMedia = window.matchMedia || function() {
+  return {
+    matches: false,
+    addListener: function() {},
+    removeListener: function() {},
+    addEventListener: function() {},
+    removeEventListener: function() {},
+    dispatchEvent: function() { return false; }
+  };
+};
+
+// Resize Observer Mock
+class ResizeObserverMock {
+  observe() {}
+  unobserve() {}
+  disconnect() {}
+}
+window.ResizeObserver = window.ResizeObserver || ResizeObserverMock;
+
+// Intersection Observer Mock
+class IntersectionObserverMock {
+  constructor(callback) {
+    this.callback = callback;
+  }
+  observe() {}
+  unobserve() {}
+  disconnect() {}
+  takeRecords() { return []; }
+}
+window.IntersectionObserver = window.IntersectionObserver || IntersectionObserverMock;
 
 // Silence React 18 hydration warnings in tests
 const originalWarn = console.warn;
