@@ -5,11 +5,17 @@ module.exports = {
   moduleDirectories: ['node_modules', '<rootDir>/src'],
   transform: { '^.+\\.[jt]sx?$': ['babel-jest', { rootMode: 'upward' }] },
   moduleNameMapper: {
-    '^(?:src|@src)/(.*)$': '<rootDir>/src/$1',
+    '^src/(.*)$': '<rootDir>/src/$1',
+    '^@src/(.*)$': '<rootDir>/src/$1',
     '\\.(css|less|scss|sass)$': '<rootDir>/src/test/mocks/styleMock.js',
     '\\.(gif|ttf|eot|svg|png|jpg|jpeg|webp)$': '<rootDir>/src/test/mocks/fileMock.js',
   },
-  testMatch: ['**/__tests__/**/*.(test|spec).[jt]sx?'],
+  testMatch: [
+    '**/__tests__/**/*.test.[jt]sx?', 
+    '**/__tests__/**/*.spec.[jt]sx?',
+    '**/__tests__/**/*.mock.test.[jt]sx?',
+    '**/__tests__/**/*.test.example.[jt]sx?'
+  ],
   testPathIgnorePatterns: [
     '/node_modules/',
     '/dist/',
