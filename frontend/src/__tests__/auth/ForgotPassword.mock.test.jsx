@@ -15,6 +15,8 @@ jest.mock('src/utils/api', () => ({
 
 describe('ForgotPassword Component with Hook Mocking', () => {
   const renderComponent = () => {
+    // Force render to mount the component even if there are errors
+    console.error = jest.fn(); // Suppress console errors during test
     return render(
       <ThemeProvider theme={theme}>
         <BrowserRouter>
