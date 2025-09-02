@@ -6,7 +6,7 @@ import { MemoryRouter, Routes, Route } from "react-router-dom";
 import { useMaintenance, useApp } from "../../context";
 
 // Import MaintenanceDetail component - using our mock version for tests
-import MaintenanceDetail from "./mockMaintenanceDetail";
+import MaintenanceDetail from "../../mocks/maintenance/mockMaintenanceDetail";
 
 // Define mock request for the implementation
 const mockRequest = {

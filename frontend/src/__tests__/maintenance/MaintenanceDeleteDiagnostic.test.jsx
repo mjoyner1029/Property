@@ -3,7 +3,7 @@ import { screen, fireEvent, waitFor } from "@testing-library/react";
 import { renderWithProviders } from "../../test/utils/renderWithProviders";
 
 // Import our fixed mock MaintenanceDetail component
-import MaintenanceDetail from "./mockMaintenanceDetailFixed";
+import MaintenanceDetail from "../../mocks/maintenance/mockMaintenanceDetailFixed";
 
 // Define mock request for the implementation
 const mockRequest = {

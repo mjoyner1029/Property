@@ -7,7 +7,7 @@ import { renderWithProviders } from "../../test/utils/renderWithProviders";
 import { useMaintenance, useApp } from "../../context";
 
 // Import our mock MaintenanceDetail component
-import MaintenanceDetail from "./mockMaintenanceDetail";
+import MaintenanceDetail from "../../mocks/maintenance/mockMaintenanceDetail";
 
 // Define mock request for the implementation
 const mockRequest = {
