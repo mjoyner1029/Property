@@ -5,7 +5,7 @@ import userEvent from '@testing-library/user-event';
 import { act } from 'react-dom/test-utils';
 import { BrowserRouter } from 'react-router-dom';
 import theme from '../../theme';
-import ForgotPassword from '../../pages/auth/ForgotPassword';
+import ForgotPassword from 'src/pages/auth/ForgotPassword';
 
 // Mock Auth context hook
 // Mock API service
