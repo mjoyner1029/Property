@@ -2,6 +2,7 @@ import React from "react";
 import { screen } from "@testing-library/react";
 import { Routes, Route } from "react-router-dom";
 import { renderWithAuth } from "../../test/simpleAuthHarness"; // Using the simple auth harness
+import { mockNavigate, waitForLoaded } from "../../test/utils/test-helpers";
 import Unauthorized from "../../pages/Unauthorized";
 
 // Import the mock guards for testing
@@ -153,16 +154,16 @@ describe("Routing guards", () => {
     expect(screen.queryByText(/admin panel/i)).not.toBeInTheDocument();
   });
   
-  test("ProtectedRoute shows loading marker when auth is loading", async () => {
+  test("ProtectedRoute shows loading indicator when auth is loading", async () => {
     // Use our new renderWithAuth function
     renderWithAuth(
       <Routes>
         <Route
           path="/admin"
           element={
-            <RoleRoute roles={['admin']}>
+            <ProtectedRoute>
               <AdminPage />
-            </RoleRoute>
+            </ProtectedRoute>
           }
         />
       </Routes>,
@@ -179,8 +180,11 @@ describe("Routing guards", () => {
 
     // Check for loading indicator using the test IDs from our mocks
     expect(screen.getByTestId("loading-spinner")).toBeInTheDocument();
+    
+    // We could use waitForLoaded here when the loading state changes:
+    // await waitForLoaded("loading-spinner");
+    
     expect(screen.queryByText(/admin panel/i)).not.toBeInTheDocument();
-  });
   
   test("ProtectedRoute with roles=[admin, landlord] allows landlord", async () => {
     // Use our new renderWithAuth function

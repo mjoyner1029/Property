@@ -1,16 +1,4 @@
 // frontend/src/__tests__/auth/Login.test.jsx
-import React from "react";
-import { screen, within, waitFor, act } from "@testing-library/react";
-import userEvent from "@testing-library/user-event";
-import { getInputByName, getSelectByName } from 'src/test/utils/muiTestUtils';
-
-// Import from shared mocks with absolute paths
-import { navigateMock as mockNavigate } from "src/test/mocks/router";
-import { loginMock, isAuthenticatedMock, AuthContextMock } from "src/test/mocks/auth";
-import { renderWithProviders } from "src/test/utils/renderWithProviders";
-
-// Import after mocks with absolute path
-import Login from "src/pages/Login";
 
 // Using mockImplementation instead of inline arrow function to avoid Jest's variable reference issues
 jest.mock("src/context/AuthContext", () => {
@@ -33,6 +21,22 @@ jest.mock("src/pages/utils/errorHandler", () => ({
     }))
   }
 }));
+
+import React from "react";
+import { screen, within, waitFor, act } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
+import { getInputByName, getSelectByName } from 'src/test/utils/muiTestUtils';
+import { mockNavigate, waitForLoaded } from 'src/test/utils/test-helpers';
+
+// Import from shared mocks with absolute paths
+import { loginMock, isAuthenticatedMock, AuthContextMock } from "src/test/mocks/auth";
+
+// Create the mock navigate function
+const navigate = mockNavigate();
+import { renderWithProviders } from "src/test/utils/renderWithProviders";
+
+// Import after mocks with absolute path
+import Login from "src/pages/Login";
 
 // Helper: find the submit button regardless of label variants
 const getSubmitButton = () =>
@@ -80,7 +84,7 @@ describe("Login page", () => {
 
     // Verify the Login page is rendered
     expect(screen.getByText('Sign In')).toBeInTheDocument();
-    expect(mockNavigate).not.toHaveBeenCalled();
+    expect(navigate).not.toHaveBeenCalled();
   });
 
   test("renders email and password fields and a submit button", async () => {
@@ -217,7 +221,7 @@ describe("Login page", () => {
     });
 
     // Should not navigate on error
-    expect(mockNavigate).not.toHaveBeenCalled();
+    expect(navigate).not.toHaveBeenCalled();
   });
 
   test("disables submit button while loading (if component binds to loading)", async () => {
