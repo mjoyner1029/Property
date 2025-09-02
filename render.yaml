@@ -46,7 +46,7 @@ services:
 
       # ==== OPTIONAL (only if using S3 for uploads) ====
       - key: S3_BUCKET
-        value: "<YOUR_S3_BUCKET_NAME>"
+        value: "<YOUR_S3_BUCKET_NAME>"ne
       - key: S3_REGION
         value: "<YOUR_S3_REGION>"
       - key: AWS_ACCESS_KEY_ID

@@ -1,14 +1,26 @@
 /**
  * Sentry initialization and error tracking configuration
  * This module initializes Sentry for error tracking in production environments
+ * with enhanced features for comprehensive error monitoring and performance tracking
  */
 import * as Sentry from '@sentry/react';
+import { BrowserTracing, Replay } from '@sentry/react';
 import { SENTRY_DSN, SENTRY_ENVIRONMENT, SENTRY_RELEASE, IS_PRODUCTION } from '../config/environment';
 
+// User-centric performance metrics for monitoring
+const VITAL_METRICS = {
+  FP: 'first-paint',
+  FCP: 'first-contentful-paint',
+  LCP: 'largest-contentful-paint',
+  FID: 'first-input-delay',
+  CLS: 'cumulative-layout-shift',
+  TTFB: 'time-to-first-byte',
+  INP: 'interaction-to-next-paint'
+};
+
 /**
- * Initialize Sentry for error tracking
- * This function is safe to call in all environments but will only
- * actually initialize Sentry if SENTRY_DSN is provided
+ * Initialize Sentry for comprehensive error tracking and performance monitoring
+ * This function implements advanced features for better debugging and user experience insights
  * 
  * @returns {boolean} Whether Sentry was initialized
  */
@@ -28,8 +40,43 @@ export const initSentry = () => {
       // Only send errors in production by default
       enabled: IS_PRODUCTION,
       
-      // Capture 10% of transactions for performance monitoring
-      tracesSampleRate: 0.1,
+      // Performance monitoring configuration
+      integrations: [
+        // Browser performance tracking
+        new BrowserTracing({
+          // Trace all navigation and fetch requests by default
+          tracingOrigins: ['localhost', /^\//],
+          
+          // Track route changes in React Router
+          routingInstrumentation: Sentry.reactRouterV6Instrumentation(
+            history => {
+              let { pathname, search } = window.location;
+              return { pathname, search };
+            }
+          ),
+        }),
+        
+        // Session replay for critical errors (limited sample)
+        new Replay({
+          // Capture 10% of sessions plus any with errors
+          sessionSampleRate: 0.1,
+          errorSampleRate: 1.0,
+          
+          // Privacy controls to exclude sensitive elements
+          maskAllText: true,
+          blockAllMedia: true,
+          blockClass: 'sentry-block', // Add this class to sensitive elements
+        }),
+      ],
+      
+      // Web Vitals and Performance Monitoring
+      // Capture 15% of transactions to keep overhead low but get meaningful data
+      tracesSampleRate: 0.15,
+      replaysSessionSampleRate: 0.05, // Sample 5% of sessions for UX analysis
+      replaysOnErrorSampleRate: 1.0,  // Always record sessions with errors
+      
+      // Enhanced Context for better debugging
+      attachStacktrace: true,
       
       // Don't send personally identifiable information
       sendDefaultPii: false,
@@ -37,6 +84,11 @@ export const initSentry = () => {
       // Prevent collecting IP addresses
       initialScope: {
         user: { ip_address: '0.0.0.0' },
+        // Add build information for better debugging context
+        tags: {
+          'app.version': SENTRY_RELEASE || 'dev',
+          'app.environment': SENTRY_ENVIRONMENT || 'development'
+        }
       },
       
       // Ignore specific errors that are not actionable
@@ -47,10 +99,16 @@ export const initSentry = () => {
         // Network errors that are not our fault
         /Network request failed/,
         /Failed to fetch/,
+        /ChunkLoadError/,
+        /Loading CSS chunk/,
         // User actions during page unload
         /AbortError/,
+        /Cancel/,
         // Third-party script errors
         /Script error/,
+        // Ad blockers
+        /getadblock/,
+        /adsbygoogle/,
       ],
       
       // Prevent collecting URLs that might contain sensitive data
@@ -58,15 +116,95 @@ export const initSentry = () => {
         // Don't capture URL breadcrumbs for routes that might contain sensitive data
         if (breadcrumb.category === 'navigation' && breadcrumb.data?.to) {
           const url = breadcrumb.data.to;
-          if (url.includes('reset-password') || url.includes('token=')) {
+          // Filter out sensitive URLs
+          if (url.includes('reset-password') || url.includes('token=') || 
+              url.includes('auth') || url.includes('payment')) {
             return null;
           }
+          
+          // Remove query params from URLs to avoid capturing sensitive data
+          try {
+            const urlObj = new URL(url, window.location.origin);
+            if (urlObj.search) {
+              urlObj.search = ''; // Remove query params
+              breadcrumb.data.to = urlObj.toString();
+            }
+          } catch (e) {
+            // URL parsing failed, just continue
+          }
         }
+        
+        // Filter out sensitive data from XHR/fetch requests
+        if (breadcrumb.category === 'xhr' || breadcrumb.category === 'fetch') {
+          if (breadcrumb.data && breadcrumb.data.url) {
+            // Remove auth headers
+            if (breadcrumb.data.headers && breadcrumb.data.headers.Authorization) {
+              breadcrumb.data.headers = { ...breadcrumb.data.headers, Authorization: '[FILTERED]' };
+            }
+            
+            // Remove request/response bodies for sensitive endpoints
+            if (/auth|login|payment|user|profile|password/.test(breadcrumb.data.url)) {
+              if (breadcrumb.data.body) breadcrumb.data.body = '[FILTERED]';
+              if (breadcrumb.data.response) breadcrumb.data.response = '[FILTERED]';
+            }
+          }
+        }
+        
         return breadcrumb;
+      },
+      
+      // Hooks into React component lifecycle for better context
+      beforeSend(event, hint) {
+        // Add performance metrics to error events
+        if (window.performance && window.performance.getEntriesByType) {
+          const perfEntries = {};
+          
+          // Gather vital metrics if available
+          Object.entries(VITAL_METRICS).forEach(([key, metric]) => {
+            const entries = window.performance.getEntriesByType('paint')
+              .filter(entry => entry.name === metric);
+            
+            if (entries.length > 0) {
+              perfEntries[key] = entries[0].startTime;
+            }
+          });
+          
+          // Add metrics to event
+          if (Object.keys(perfEntries).length) {
+            event.contexts = {
+              ...event.contexts,
+              performance: perfEntries
+            };
+          }
+        }
+        
+        // Remove sensitive stack frames (e.g., eval, inline scripts)
+        if (event.exception && event.exception.values) {
+          event.exception.values.forEach(exception => {
+            if (exception.stacktrace && exception.stacktrace.frames) {
+              exception.stacktrace.frames = exception.stacktrace.frames.filter(frame => {
+                return !frame.filename || !(
+                  frame.filename.includes('eval') || 
+                  frame.filename.includes('<anonymous>')
+                );
+              });
+            }
+          });
+        }
+        
+        return event;
       },
     });
 
-    console.debug('[Sentry] Initialized successfully');
+    // Add React error boundary monitoring
+    Sentry.withErrorBoundary = Sentry.withErrorBoundary;
+    
+    // Add React profiler for performance monitoring
+    if (IS_PRODUCTION) {
+      Sentry.ReactProfiler.wrap = Sentry.withProfiler;
+    }
+
+    console.debug('[Sentry] Initialized successfully with enhanced monitoring');
     return true;
   } catch (err) {
     console.error('[Sentry] Initialization failed:', err);

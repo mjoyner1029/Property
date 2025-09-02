@@ -1,10 +1,11 @@
 import React, { Suspense, useEffect } from 'react';
 import { ThemeProvider as MuiThemeProvider } from '@mui/material/styles';
 import { CssBaseline } from '@mui/material';
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { CombinedProviders } from './context/index';
 import theme from './theme';
 import { initSentry } from './observability/sentry';
+import PerformanceMonitor from './observability/PerformanceMonitor';
 
 // Layouts
 import MainLayout from './layouts/MainLayout';
@@ -14,7 +15,7 @@ import { ProtectedRoute, PublicOnlyRoute as PublicRoute, RoleRoute } from './rou
 
 // Loading Fallback
 import LoadingFallback from './components/LoadingFallback';
-import ErrorBoundary from './components/ErrorBoundary';
+import ErrorBoundary from './components/ErrorBoundary'; // We'll keep using the original ErrorBoundary for now
 import Toast from './components/Toast';
 
 // lazy pages - import from barrel index
@@ -60,9 +61,33 @@ const RoutesIndex = React.lazy(() => import('./pages').then(m => ({ default: m.R
 
 
 export default function App() {
-  // Initialize Sentry for error tracking
+  // Initialize Sentry for error tracking and performance monitoring
   useEffect(() => {
     initSentry();
+    
+    // Mark navigation start for performance measurement
+    if (window.performance && window.performance.mark) {
+      window.performance.mark('app-init');
+    }
+    
+    // Preload critical resources on idle
+    if (typeof requestIdleCallback === 'function') {
+      requestIdleCallback(() => {
+        // Add preload/prefetch links for critical resources
+        const preconnectUrls = [
+          window.location.origin,
+          'https://fonts.googleapis.com',
+          'https://fonts.gstatic.com'
+        ];
+        
+        preconnectUrls.forEach(url => {
+          const link = document.createElement('link');
+          link.rel = 'preconnect';
+          link.href = url;
+          document.head.appendChild(link);
+        });
+      });
+    }
   }, []);
   
   return (
@@ -72,6 +97,7 @@ export default function App() {
           <MuiThemeProvider theme={theme}>
             <CssBaseline />
             <Toast />
+            <PerformanceMonitor />
             <Suspense fallback={<LoadingFallback />}>
               <Routes>
                 <Route element={<PublicRoute />}>

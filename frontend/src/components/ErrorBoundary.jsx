@@ -1,11 +1,12 @@
 // frontend/src/components/ErrorBoundary.jsx
 import React from "react";
-import axios from "axios";
+import * as Sentry from '@sentry/react';
 import { 
   Button, Typography, Box, Paper, Container, CircularProgress,
-  Accordion, AccordionSummary, AccordionDetails, Divider, Alert
+  Accordion, AccordionSummary, AccordionDetails, Divider, Alert,
+  Stack, Link, Chip
 } from '@mui/material';
-import { API_URL, ENVIRONMENT, IS_DEVELOPMENT } from '../config/environment';
+import { API_URL, ENVIRONMENT, IS_DEVELOPMENT, APP_VERSION } from '../config/environment';
 import { captureException } from '../observability/sentry';
 import ErrorIcon from '@mui/icons-material/Error';
 import WifiOffIcon from '@mui/icons-material/WifiOff';
@@ -14,6 +15,7 @@ import WarningIcon from '@mui/icons-material/Warning';
 import RestoreIcon from '@mui/icons-material/Restore';
 import HomeIcon from '@mui/icons-material/Home';
 import RefreshIcon from '@mui/icons-material/Refresh';
+import BugReportIcon from '@mui/icons-material/BugReport';
 
 /**
  * ErrorBoundary captures React component errors and provides fallback UI
@@ -64,6 +66,65 @@ export default class ErrorBoundary extends React.Component {
       this.handleReset();
     }
   }
+  
+  /**
+   * Collect performance metrics to help debug issues
+   */
+  collectPerformanceData = () => {
+    const data = {
+      timestamp: new Date().toISOString(),
+      memory: {},
+      navigation: {},
+      resources: [],
+      connection: {}
+    };
+
+    // Memory usage if available
+    if (window.performance && window.performance.memory) {
+      data.memory = {
+        jsHeapSizeLimit: window.performance.memory.jsHeapSizeLimit,
+        totalJSHeapSize: window.performance.memory.totalJSHeapSize,
+        usedJSHeapSize: window.performance.memory.usedJSHeapSize
+      };
+    }
+
+    // Navigation timing
+    if (window.performance && window.performance.timing) {
+      const timing = window.performance.timing;
+      data.navigation = {
+        loadTime: timing.loadEventEnd - timing.navigationStart,
+        domReady: timing.domComplete - timing.domLoading,
+        firstByte: timing.responseStart - timing.navigationStart,
+        dns: timing.domainLookupEnd - timing.domainLookupStart,
+        tcp: timing.connectEnd - timing.connectStart
+      };
+    }
+
+    // Resource timing
+    if (window.performance && window.performance.getEntriesByType) {
+      data.resources = window.performance.getEntriesByType('resource')
+        .slice(-10) // Only get the last 10 resources
+        .map(entry => ({
+          name: entry.name.substring(entry.name.lastIndexOf('/') + 1),
+          duration: entry.duration,
+          size: entry.encodedBodySize || 0,
+          startTime: entry.startTime
+        }));
+    }
+
+    // Network information
+    if (navigator.connection) {
+      const conn = navigator.connection;
+      data.connection = {
+        downlink: conn.downlink,
+        effectiveType: conn.effectiveType,
+        rtt: conn.rtt,
+        saveData: conn.saveData
+      };
+    }
+
+    return data;
+  }
 
   static getDerivedStateFromError(error) {
     // Categorize the error based on its type
@@ -93,11 +154,42 @@ export default class ErrorBoundary extends React.Component {
   }
 
   componentDidCatch(error, errorInfo) {
+    // Collect performance data
+    const performanceData = this.collectPerformanceData();
+    
+    // Create component stack trace
+    const componentStack = errorInfo?.componentStack 
+      ? errorInfo.componentStack
+          .split('\n')
+          .filter(line => line.trim().length > 0)
+          .map(line => line.trim())
+      : [];
+      
     // Import the logger directly here since we're in a class component
     const { logger } = require('../utils/logger');
-    logger.error("ErrorBoundary caught:", error, { errorInfo, errorType: this.state.errorType });
+    logger.error("ErrorBoundary caught:", error, { 
+      errorInfo, 
+      errorType: this.state.errorType,
+      performanceData
+    });
+    
+    // Report to Sentry with enhanced context
+    const eventId = captureException(error, {
+      extra: {
+        componentStack,
+        errorType: this.state.errorType,
+        performanceData,
+        environment: ENVIRONMENT,
+        appVersion: APP_VERSION || 'unknown',
+        userAgent: navigator.userAgent
+      }
+    });
     
     this.setState({
+      errorInfo: errorInfo,
+      performanceData: performanceData,
+      componentStack: componentStack,
+      errorEventId: eventId
       errorInfo,
       isReporting: true
     });
@@ -170,6 +262,26 @@ export default class ErrorBoundary extends React.Component {
   // Navigate home
   handleGoHome = () => {
     window.location.href = '/';
+  }
+  
+  /**
+   * Let user report feedback directly to Sentry
+   */
+  handleReportFeedback = () => {
+    if (this.state.errorEventId) {
+      Sentry.showReportDialog({
+        eventId: this.state.errorEventId,
+        title: 'Report a Problem',
+        subtitle: 'Our development team has been notified.',
+        subtitle2: 'If you would like to help, please tell us what happened:',
+        labelName: 'Name',
+        labelEmail: 'Email',
+        labelComments: 'What happened?',
+        labelClose: 'Close',
+        labelSubmit: 'Submit',
+        successMessage: 'Thank you for your feedback!'
+      });
+    }
   }
   
   // Clear cache and reload (for chunk load errors)

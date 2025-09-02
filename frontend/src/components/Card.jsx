@@ -9,7 +9,8 @@ const Card = ({
   action, 
   variant = "default", 
   className = "", 
-  elevation = 1 
+  elevation = 1,
+  ...rest
 }) => {
   // Set color scheme based on variant
   const getVariantStyles = () => {
@@ -41,41 +42,56 @@ const Card = ({
         ...getVariantStyles()
       }}
       className={className}
+      data-testid={`card-${variant}`}
+      {...rest}
     >
       {(title || icon || action) && (
-        <Box sx={{ 
-          display: 'flex', 
-          alignItems: 'center', 
-          justifyContent: 'space-between',
-          mb: 2
-        }}>
+        <Box 
+          sx={{ 
+            display: 'flex', 
+            alignItems: 'center', 
+            justifyContent: 'space-between',
+            mb: 2
+          }}
+          data-testid="card-header"
+        >
           <Box sx={{ display: 'flex', alignItems: 'center' }}>
             {icon && (
-              <Box sx={{ mr: 1, color: 'primary.main' }}>
+              <Box sx={{ mr: 1, color: 'primary.main' }} data-testid="card-icon">
                 {icon}
               </Box>
             )}
             <Box>
               {title && (
-                <Typography variant="h6" component="h2" sx={{ fontWeight: 'medium' }}>
+                <Typography 
+                  variant="h6" 
+                  component="h2" 
+                  sx={{ fontWeight: 'medium' }} 
+                  data-testid="card-title"
+                >
                   {title}
                 </Typography>
               )}
               {subtitle && (
-                <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
+                <Typography 
+                  variant="body2" 
+                  color="text.secondary" 
+                  sx={{ mt: 0.5 }}
+                  data-testid="card-subtitle"
+                >
                   {subtitle}
                 </Typography>
               )}
             </Box>
           </Box>
           {action && (
-            <Box>
+            <Box data-testid="card-action">
               {action}
             </Box>
           )}
         </Box>
       )}
-      <Box>
+      <Box data-testid="card-content">
         {children}
       </Box>
     </Paper>
