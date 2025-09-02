@@ -6,10 +6,17 @@ import NotificationBadge from 'src/components/NotificationBadge';
 import { renderWithProviders } from 'src/test/utils/renderWithProviders';
 
 // Mock MUI Portal to render inline for testing
+// Also keep the original Badge and IconButton implementations intact
 jest.mock('@mui/material', () => {
   const actual = jest.requireActual('@mui/material');
-  return { ...actual, Portal: ({ children }) => <>{children}</> };
+  return { 
+    ...actual, 
+    Portal: ({ children }) => <>{children}</>,
+  };
 });
+
+// Use global.user for consistent test setup
+const user = userEvent.setup();
 
 describe('NotificationBadge Component', () => {
   test('renders with correct count for multiple notifications', () => {
@@ -36,11 +43,11 @@ describe('NotificationBadge Component', () => {
   
   test('handles click event', async () => {
     const handleClick = jest.fn();
-    const user = userEvent.setup();
     renderWithProviders(<NotificationBadge count={3} onClick={handleClick} />);
     
     // Click the actual button element instead of the badge wrapper
-    await user.click(screen.getByRole('button', { name: /notifications/i }));
+    // Use a more specific query that matches the exact aria-label in the component
+    await user.click(screen.getByRole('button', { name: /open notifications \(3 unread\)/i }));
     
     // Check if onClick handler was called exactly once
     expect(handleClick).toHaveBeenCalledTimes(1);
