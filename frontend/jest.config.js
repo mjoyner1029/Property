@@ -10,19 +10,16 @@ module.exports = {
     '\\.(css|less|scss|sass)$': '<rootDir>/src/test/mocks/styleMock.js',
     '\\.(gif|ttf|eot|svg|png|jpg|jpeg|webp)$': '<rootDir>/src/test/mocks/fileMock.js',
   },
-  testMatch: [
-    '**/__tests__/**/*.test.[jt]sx?', 
-    '**/__tests__/**/*.spec.[jt]sx?',
-    '**/__tests__/**/*.mock.test.[jt]sx?',
-    '**/__tests__/**/*.test.example.[jt]sx?'
-  ],
+  testRegex: '(/__tests__/.*|(\\.|/)(test|spec))\\.jsx?$',
   testPathIgnorePatterns: [
     '/node_modules/',
     '/dist/',
     '/build/',
     '/__tests__/components/__mocks__/',
     '/__tests__/maintenance/mock',
-    '/src/mocks/'
+    '/src/mocks/',
+    '/__tests__/__mocks__/',
+    '/__mocks__/'
   ],
   clearMocks: true,
   restoreMocks: true,
