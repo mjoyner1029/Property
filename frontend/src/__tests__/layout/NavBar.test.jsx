@@ -5,13 +5,14 @@ import userEvent from '@testing-library/user-event';
 import { renderWithProviders } from 'src/test/utils/renderWithProviders';
 import NavBar from 'src/components/NavBar';
 
-// Import the AuthContext mocks but don't override them
-import { useAuth } from 'src/context/AuthContext';
-
-jest.mock('src/context/AuthContext', () => ({
-  useAuth: jest.fn(),
-  AuthContext: { Provider: ({ children }) => children }
-}));
+// Mock the Auth context
+jest.mock('src/context/AuthContext', () => {
+  const actual = jest.requireActual('src/context/AuthContext');
+  return {
+    ...actual,
+    useAuth: () => ({ user: { id: '123', role: 'admin' }, isAuthenticated: true, logout: jest.fn(), loading: false, error: null }),
+  };
+});
 
 describe('NavBar Component', () => {
   const mockLogout = jest.fn();
@@ -21,16 +22,16 @@ describe('NavBar Component', () => {
   });
   
   test('admin user sees admin links in navbar', async () => {
-    // Set up auth context values for admin user
-    const authValue = {
-      isAuthenticated: true,
-      user: { role: 'admin', first_name: 'Admin', last_name: 'User' },
-      logout: mockLogout
-    };
-    
-    // Inject auth values through our provider wrapper
+    // Use renderWithProviders with withRouter:false since NavBar uses useNavigate internally
     renderWithProviders(<NavBar />, {
-      providerProps: { value: authValue }
+      withRouter: false, // Don't wrap in router since component expects to be in a Router already
+      auth: { // Override default auth context
+        user: { id: '123', role: 'admin', first_name: 'Admin', last_name: 'User' },
+        isAuthenticated: true,
+        logout: mockLogout,
+        loading: false,
+        error: null
+      }
     });
     
     // Admin should see dashboard link
@@ -41,16 +42,16 @@ describe('NavBar Component', () => {
   });
   
   test('tenant user only sees relevant links in navbar', async () => {
-    // Set up auth context values for tenant user
-    const authValue = {
-      isAuthenticated: true,
-      user: { role: 'tenant', first_name: 'Tenant', last_name: 'User' },
-      logout: mockLogout
-    };
-    
-    // Inject auth values through our provider wrapper
+    // Use renderWithProviders with withRouter:false since NavBar uses useNavigate internally
     renderWithProviders(<NavBar />, {
-      providerProps: { value: authValue }
+      withRouter: false, // Don't wrap in router since component expects to be in a Router already
+      auth: { // Override default auth context
+        user: { id: '123', role: 'tenant', first_name: 'Tenant', last_name: 'User' },
+        isAuthenticated: true,
+        logout: mockLogout,
+        loading: false,
+        error: null
+      }
     });
     
     // Tenant should see payments link
@@ -63,16 +64,16 @@ describe('NavBar Component', () => {
   test('logs out when logout button is clicked', async () => {
     const user = userEvent.setup();
     
-    // Set up auth context values for owner user
-    const authValue = {
-      isAuthenticated: true,
-      user: { role: 'owner', first_name: 'Property', last_name: 'Owner' },
-      logout: mockLogout
-    };
-    
-    // Inject auth values through our provider wrapper
+    // Use renderWithProviders with withRouter:false since NavBar uses useNavigate internally
     renderWithProviders(<NavBar />, {
-      providerProps: { value: authValue }
+      withRouter: false, // Don't wrap in router since component expects to be in a Router already
+      auth: { // Override default auth context
+        user: { id: '123', role: 'owner', first_name: 'Property', last_name: 'Owner' },
+        isAuthenticated: true,
+        logout: mockLogout,
+        loading: false,
+        error: null
+      }
     });
     
     // Open user menu
