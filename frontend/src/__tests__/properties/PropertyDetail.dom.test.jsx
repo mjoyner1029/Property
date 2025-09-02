@@ -130,6 +130,9 @@ describe('PropertyDetail - DOM only', () => {
   });
 
   test('deletes property and navigates', async () => {
+    // Set up fake timers
+    jest.useFakeTimers();
+    
     // Set up the property detail view
     const container = document.createElement('div');
     container.innerHTML = `
@@ -186,8 +189,8 @@ describe('PropertyDetail - DOM only', () => {
     const confirmButton = document.querySelector('[data-testid="confirm-button"]');
     confirmButton.click();
     
-    // Wait for async operations
-    await new Promise(resolve => setTimeout(resolve, 10));
+    // Advance timers to handle any pending promises
+    jest.runAllTimers();
     
     // Verify the delete request was called with the correct ID
     expect(mockDeleteProperty).toHaveBeenCalledWith(mockPropertyData.id);
@@ -197,5 +200,8 @@ describe('PropertyDetail - DOM only', () => {
     
     // Verify navigation was called
     expect(mockNavigate).toHaveBeenCalledWith('/properties');
+    
+    // Restore real timers
+    jest.useRealTimers();
   });
 });

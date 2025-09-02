@@ -94,19 +94,13 @@ describe('DOM Testing Example', () => {
       );
     });
     
-    test('can integrate form with API call', async () => {
+    it('submits form and calls createItem', async () => {
+      // Set up fake timers
+      jest.useFakeTimers();
+      
       // Arrange
-      const fields = [
-        { name: 'name', label: 'Name', value: 'New Item' }
-      ];
-      
-      const handleSubmit = jest.fn(async (data) => {
-        await createItem(data);
-        return true;
-      });
-      
-      const { submitButton } = createForm(
-        fields, 
+      const handleSubmit = jest.fn();
+      const { form, nameInput, submitButton } = createForm(
         handleSubmit,
         { title: 'Create Item' }
       );
@@ -114,12 +108,15 @@ describe('DOM Testing Example', () => {
       // Act
       submitButton.click();
       
-      // Wait for promise to resolve
-      await new Promise(resolve => setTimeout(resolve, 0));
+      // Advance timers to process any promises
+      jest.runAllTimers();
       
       // Assert
       expect(handleSubmit).toHaveBeenCalledTimes(1);
       expect(createItem).toHaveBeenCalledWith({ name: 'New Item' });
+      
+      // Restore real timers
+      jest.useRealTimers();
     });
   });
   
@@ -191,6 +188,9 @@ describe('DOM Testing Example', () => {
 
   describe('Async operations', () => {
     test('handles async delete operation with confirmation', async () => {
+      // Set up fake timers
+      jest.useFakeTimers();
+      
       // Arrange
       const itemId = '123';
       let dialogConfirmFn;
@@ -212,11 +212,14 @@ describe('DOM Testing Example', () => {
       const confirmButton = dialog.querySelector('[data-testid="confirm-button"]');
       confirmButton.click();
       
-      // Wait for promise to resolve
-      await new Promise(resolve => setTimeout(resolve, 0));
+      // Advance timers to process any promises
+      jest.runAllTimers();
       
       // Assert
       expect(deleteItem).toHaveBeenCalledWith(itemId);
+      
+      // Restore real timers
+      jest.useRealTimers();
     });
   });
 });
