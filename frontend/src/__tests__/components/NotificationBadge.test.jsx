@@ -5,6 +5,12 @@ import userEvent from '@testing-library/user-event';
 import NotificationBadge from 'src/components/NotificationBadge';
 import { renderWithProviders } from 'src/test/utils/renderWithProviders';
 
+// Mock MUI Portal to render inline for testing
+jest.mock('@mui/material', () => {
+  const actual = jest.requireActual('@mui/material');
+  return { ...actual, Portal: ({ children }) => <>{children}</> };
+});
+
 describe('NotificationBadge Component', () => {
   test('renders with correct count for multiple notifications', () => {
     renderWithProviders(<NotificationBadge count={5} />);
@@ -30,13 +36,13 @@ describe('NotificationBadge Component', () => {
   
   test('handles click event', async () => {
     const handleClick = jest.fn();
+    const user = userEvent.setup();
     renderWithProviders(<NotificationBadge count={3} onClick={handleClick} />);
     
-    // Click the badge using userEvent for more realistic interaction
-    const badge = screen.getByTestId('notification-badge');
-    await userEvent.click(badge);
+    // Click the actual button element instead of the badge wrapper
+    await user.click(screen.getByRole('button', { name: /notifications/i }));
     
-    // Check if onClick handler was called
+    // Check if onClick handler was called exactly once
     expect(handleClick).toHaveBeenCalledTimes(1);
   });
   
