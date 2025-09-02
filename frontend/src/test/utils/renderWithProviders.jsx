@@ -26,7 +26,7 @@ const defaultAuthContext = {
   isAuthenticated: true,
   login: jest.fn().mockResolvedValue(true),
   logout: jest.fn().mockResolvedValue(true),
-  register: jest.fn().mockResolvedValue(true),
+  refresh: jest.fn().mockResolvedValue(true),
   loading: false,
   error: null,
 };
@@ -137,9 +137,10 @@ export function makeMockProvider(Context, value) {
  * @param {React.ReactElement} ui - The component to render
  * @param {Object} options - Configuration options
  * @param {string} [options.route='/'] - Initial route for MemoryRouter
- * @param {boolean} [options.withRouter=true] - Whether to wrap with MemoryRouter
+ * @param {boolean} [options.withRouter=true] - Whether to wrap with MemoryRouter (set to false to disable router)
  * @param {Object} [options.theme] - Custom theme object to override default theme
  * @param {Object} [options.auth] - Custom auth context values to override defaults
+ *                               Auth shape: { user, isAuthenticated, loading, error, login, logout, refresh }
  * @param {Object} [options.app] - Custom app context values to override defaults
  * @param {Object} [options.notification] - Custom notification context values to override defaults
  * @param {Object} [options.property] - Custom property context values to override defaults
@@ -171,37 +172,35 @@ export function renderWithProviders(ui, options = {}) {
   } = options;
 
   function Wrapper({ children }) {
-    // Create the content to be wrapped with or without router
+    // Stack all providers in the correct order
     const content = (
       <ThemeProvider theme={customTheme}>
-        <AppContext.Provider value={app}>
-          <AuthContext.Provider value={auth}>
-            <PropertyContext.Provider value={property}>
+        <ThemeContext.Provider value={themeContext}>
+          <AppContext.Provider value={app}>
+            <AuthContext.Provider value={auth}>
               <NotificationContext.Provider value={notification}>
-                <MaintenanceContext.Provider value={maintenance}>
-                  <TenantContext.Provider value={tenant}>
-                    <PaymentContext.Provider value={payment}>
-                      <MessageContext.Provider value={message}>
-                        <ThemeContext.Provider value={themeContext}>
+                <PropertyContext.Provider value={property}>
+                  <MaintenanceContext.Provider value={maintenance}>
+                    <TenantContext.Provider value={tenant}>
+                      <PaymentContext.Provider value={payment}>
+                        <MessageContext.Provider value={message}>
                           {children}
-                        </ThemeContext.Provider>
-                      </MessageContext.Provider>
-                    </PaymentContext.Provider>
-                  </TenantContext.Provider>
-                </MaintenanceContext.Provider>
+                        </MessageContext.Provider>
+                      </PaymentContext.Provider>
+                    </TenantContext.Provider>
+                  </MaintenanceContext.Provider>
+                </PropertyContext.Provider>
               </NotificationContext.Provider>
-            </PropertyContext.Provider>
-          </AuthContext.Provider>
-        </AppContext.Provider>
+            </AuthContext.Provider>
+          </AppContext.Provider>
+        </ThemeContext.Provider>
       </ThemeProvider>
     );
 
     // Only add the MemoryRouter if withRouter is true
     return withRouter ? (
       <MemoryRouter initialEntries={[route]}>
-        <Routes>
-          <Route path={route} element={content} />
-        </Routes>
+        {content}
       </MemoryRouter>
     ) : content;
   }
