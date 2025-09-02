@@ -5,6 +5,7 @@ import { MemoryRouter } from 'react-router-dom';
 import PayPortal from '../../pages/PayPortal';
 import axios from 'axios';
 import PaymentsHistory from '../../pages/payments/PaymentsHistory';
+import { renderWithProviders } from 'src/test/utils/renderWithProviders';
 
 jest.mock('axios');
 
