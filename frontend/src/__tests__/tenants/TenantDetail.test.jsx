@@ -4,6 +4,15 @@ import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { MemoryRouter, Routes, Route } from "react-router-dom";
 
+// Mock the app's axios client module
+jest.mock('src/utils/api', () => ({
+  get: jest.fn(),
+  post: jest.fn(),
+  put: jest.fn(),
+  delete: jest.fn(),
+}));
+import api from 'src/utils/api';
+
 // Import shared mocks
 import { updatePageTitleMock } from "../../test/mocks/pageTitle";
 import { getTenantMock, updateTenantMock, deleteTenantMock } from "../../test/mocks/services";
@@ -49,6 +58,9 @@ const sampleTenant = {
 describe("TenantDetail", () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    
+    // Setup API mock with mock data
+    api.get.mockResolvedValueOnce({ data: mockTenant });
   });
 
   function renderAtRoute() {
@@ -63,18 +75,20 @@ describe("TenantDetail", () => {
 
   test("renders tenant details after fetch", async () => {
     getTenantMock.mockResolvedValueOnce(sampleTenant);
+    api.get.mockResolvedValueOnce({ data: sampleTenant });
 
     renderAtRoute();
 
-    // Wait for fetched data to render
-    await waitFor(() => {
-  // TODO: Fix multiple assertions in waitFor - split into separate waitFor calls
-  
-      expect(getTenantMock).toHaveBeenCalledWith("1");
-      expect(screen.getByText("Alice")).toBeInTheDocument();
-      expect(screen.getByText("alice@example.com")).toBeInTheDocument();
-      expect(screen.getByText(/555-1234/i)).toBeInTheDocument();
-    });
+    // Wait for API call to be made
+    await waitFor(() => expect(api.get).toHaveBeenCalled());
+    
+    // Then verify the getTenant mock was called with expected ID
+    await waitFor(() => expect(getTenantMock).toHaveBeenCalledWith("1"));
+    
+    // Then verify the tenant details are displayed
+    await waitFor(() => expect(screen.getByText("Alice")).toBeInTheDocument());
+    expect(screen.getByText("alice@example.com")).toBeInTheDocument();
+    expect(screen.getByText(/555-1234/i)).toBeInTheDocument();
 
     // Page title update called
     expect(updatePageTitleMock).toHaveBeenCalledWith("Tenant: Alice");

@@ -2,10 +2,16 @@
 import React from 'react';
 import { screen, within, waitFor } from "@testing-library/react";
 import Tenants from "src/pages/Tenants";
-import axios from "axios";
 import { renderWithProviders } from 'src/test-utils/renderWithProviders';
 
-jest.mock("axios");
+// Mock the app's axios client module
+jest.mock('src/utils/api', () => ({
+  get: jest.fn(),
+  post: jest.fn(),
+  put: jest.fn(),
+  delete: jest.fn(),
+}));
+import api from 'src/utils/api';
 
 describe('Tenants Component', () => {
   const mockTenants = [
@@ -14,26 +20,19 @@ describe('Tenants Component', () => {
   ];
 
   beforeEach(() => {
-    axios.get.mockResolvedValue({ data: mockTenants });
+    jest.clearAllMocks();
+    api.get.mockResolvedValueOnce({ data: mockTenants });
   });
 
   test("renders tenant list", async () => {
     renderWithProviders(<Tenants />);
     
-    // First verify that some API call was made
-    await waitFor(() => {
-      expect(axios.get).toHaveBeenCalled();
-    });
+    // First verify that API client call was made
+    await waitFor(() => expect(api.get).toHaveBeenCalled());
     
-    // Then just check that the tenants header is there
-    await waitFor(() => {
-  // TODO: Fix multiple assertions in waitFor - split into separate waitFor calls
-  
-      expect(screen.getByText("Tenants")).toBeInTheDocument();
-      
-      // Either we show the tenant list or the "No tenants found" message
-      const content = screen.queryByText("John Smith") || screen.queryByText("No tenants found");
-      expect(content).toBeInTheDocument();
-    });
+    // Then check for tenant names
+    await waitFor(() => expect(screen.getByText("John Smith")).toBeInTheDocument());
+    expect(screen.getByText("Sarah Johnson")).toBeInTheDocument();
+    expect(screen.getByText("Tenants")).toBeInTheDocument();
   });
 });

@@ -6,6 +6,15 @@ import TenantDetail from 'src/pages/TenantDetail';
 import { Routes, Route } from 'react-router-dom';
 import { useTenant, useApp } from 'src/context';
 
+// Mock the app's axios client module
+jest.mock('src/utils/api', () => ({
+  get: jest.fn(),
+  post: jest.fn(),
+  put: jest.fn(),
+  delete: jest.fn(),
+}));
+import api from 'src/utils/api';
+
 // ---- Router mocks ----
 const mockNavigate = jest.fn();
 jest.mock('react-router-dom', () => ({
@@ -47,6 +56,11 @@ const renderDetail = () =>
 
 beforeEach(() => {
   jest.clearAllMocks();
+
+  // Mock API client with mock data
+  api.get.mockResolvedValueOnce({ data: tenant });
+  api.put.mockResolvedValueOnce({ data: tenant });
+  api.delete.mockResolvedValueOnce({ data: {} });
 
   // Mock getTenant to return the tenant object immediately
   mockGetTenant.mockImplementation(() => Promise.resolve(tenant));
