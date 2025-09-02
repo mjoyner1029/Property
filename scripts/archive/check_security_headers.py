@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# DEPRECATED: Use verify_security_headers.py instead for more comprehensive checking
 # Security header check script for RC builds
 # Verifies the presence and configuration of critical security headers
 

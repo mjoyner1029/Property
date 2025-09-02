@@ -69,6 +69,7 @@
     "test": "NODE_OPTIONS=--max-old-space-size=4096 jest",
     "test:ci": "NODE_OPTIONS=--max-old-space-size=4096 jest --ci --runInBand --coverage",
     "test:changed": "NODE_OPTIONS=--max-old-space-size=4096 jest -o",
+    "test:flaky": "NODE_OPTIONS=--max-old-space-size=4096 jest --watchAll=false && jest --watchAll=false && jest --watchAll=false",
     "test:routes": "react-scripts test routes.spec.jsx guards.spec.jsx --watchAll=false",
     "test:a11y": "node scripts/run-a11y-tests.js",
     "list-routes": "node scripts/verifyRoutes.mjs",

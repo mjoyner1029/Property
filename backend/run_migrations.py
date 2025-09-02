@@ -1,30 +1,25 @@
-"""
-Merge all head revisions of the database migrations
-"""
+#!/usr/bin/env python
 import os
 import sys
-from pathlib import Path
-
-# Add the parent directory to the path so we can import from src
-backend_dir = Path(__file__).resolve().parent
-sys.path.insert(0, str(backend_dir))
-sys.path.insert(0, str(backend_dir.parent))
-
-# Set Flask app environment variable
-os.environ['FLASK_APP'] = 'wsgi.py'
-
-# Use existing environment or default to development
-os.environ.setdefault('APP_ENV', 'development')
-
-# Import required modules
+from src.app import create_app
+from src.extensions import db
 from flask_migrate import upgrade
 
-# Import the app
-from src import create_app
+def run_migrations():
+    """Run database migrations directly"""
+    try:
+        app = create_app()
+        with app.app_context():
+            # Print the database URI for debugging
+            print(f"Using database URI: {app.config['SQLALCHEMY_DATABASE_URI']}")
+            
+            # Run migrations with 'heads' to apply all migrations
+            upgrade(revision='heads')
+            
+            print("Migrations complete!")
+    except Exception as e:
+        print(f"Error running migrations: {e}")
+        sys.exit(1)
 
-app = create_app()
-
-print("Running all migration heads...")
-with app.app_context():
-    upgrade(revision='heads')
-print("All migrations applied!")
+if __name__ == "__main__":
+    run_migrations()

@@ -1,20 +1,16 @@
-import React from "react";
-import { screen, fireEvent, waitFor } from "@testing-library/react";
-import { renderWithProviders } from "../../test/utils/renderWithProviders";
+// Import the mock navigate helper
+import { mockNavigate } from '../../test/utils/test-helpers';
 
-// Import our fixed mock MaintenanceDetail component
-import MaintenanceDetail from "./mockMaintenanceDetailFixed";
+// Create the mock navigate function
+const navigate = mockNavigate();
 
-// Define mock request for the implementation
+// Define mock request for implementation
 const mockRequest = {
   id: "request123",
   title: "Test Request",
   description: "Test description",
   status: "pending"
 };
-
-// Mock navigate function
-const mockNavigate = jest.fn();
 
 // Mock context hooks
 const mockFetchRequests = jest.fn().mockImplementation(() => Promise.resolve());
@@ -24,12 +20,6 @@ const mockDeleteRequest = jest.fn().mockImplementation((id) => {
   return Promise.resolve(true);
 });
 const mockUpdatePageTitle = jest.fn();
-
-// Mock react-router-dom
-jest.mock('react-router-dom', () => ({
-  ...jest.requireActual('react-router-dom'),
-  useNavigate: () => mockNavigate
-}));
 
 // Create the context mocks
 jest.mock("../../context", () => ({
@@ -45,6 +35,13 @@ jest.mock("../../context", () => ({
     updatePageTitle: mockUpdatePageTitle
   }))
 }));
+
+import React from "react";
+import { screen, fireEvent, waitFor } from "@testing-library/react";
+import { renderWithProviders } from "../../test/utils/renderWithProviders";
+
+// Import our fixed mock MaintenanceDetail component
+import MaintenanceDetail from "../../mocks/maintenance/mockMaintenanceDetailFixed";
 
 // Mock the components
 jest.mock("../../components", () => ({
@@ -73,7 +70,7 @@ jest.mock("../../components", () => ({
   )
 }));
 
-describe("MaintenanceDeleteFinal", () => {
+describe("MaintenanceDeleteTest", () => {
   // Reset mocks before each test
   beforeEach(() => {
     jest.clearAllMocks();
@@ -145,7 +142,7 @@ describe("MaintenanceDeleteFinal", () => {
     
     // Should have attempted to navigate back to the list
     await waitFor(() => {
-      expect(mockNavigate).toHaveBeenCalledWith("/maintenance");
+      expect(navigate).toHaveBeenCalledWith("/maintenance");
     });
   });
 });

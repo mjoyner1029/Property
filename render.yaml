@@ -39,25 +39,26 @@ services:
       - key: STRIPE_SECRET_KEY
         value: "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"
       - key: STRIPE_WEBHOOK_SECRET
-        value: "<PASTE_YOUR_STRIPE_WEBHOOK_SECRET>"
+        value: "whsec_BZ1BnegM1hKulG4kKiUbGj2tgDNYV7GI"
 
       - key: EMAIL_API_KEY
         value: "<PASTE_YOUR_POSTMARK_API_KEY>"
 
       # ==== OPTIONAL (only if using S3 for uploads) ====
       - key: S3_BUCKET
-        value: "<YOUR_S3_BUCKET_NAME>"ne
+        value: "asset-anchor"
       - key: S3_REGION
-        value: "<YOUR_S3_REGION>"
+        value: "us-west-1"
       - key: AWS_ACCESS_KEY_ID
-        value: "<YOUR_AWS_ACCESS_KEY_ID>"
+        value: "AKIAZ2W4LM2UELSWCUCG"
       - key: AWS_SECRET_ACCESS_KEY
-        value: "<YOUR_AWS_SECRET_ACCESS_KEY>"
+        value: "AKIAZ2W4LM2UELSWCUCG"
 
       # ==== OPTIONAL (monitoring/logging) ====
       - key: SENTRY_DSN
-        value: "<YOUR_SENTRY_DSN>"
-
+        value: "https://5a77b5fb4326e998df3ae7a2ad62f316@o4509951555731456.ingest.us.sentry.io/4509951683985408"
+      - key: REACT_APP_SENTRY_DSN
+        value: "https://e3a1bb54c5add061cdced610c0f39f19@o4509951555731456.ingest.us.sentry.io/4509951885312000"
       # ==== CORS / Frontend ====
       - key: CORS_ORIGINS
         value: https://assetanchor.io,https://www.assetanchor.io,https://assetanchor.vercel.app

@@ -48,6 +48,7 @@ const getNumEnv = (key, defaultValue) => {
 // Environment name
 export const ENVIRONMENT = process.env.NODE_ENV || 'development';
 export const IS_PRODUCTION = ENVIRONMENT === 'production';
+export const APP_VERSION = process.env.REACT_APP_VERSION || getEnv('VERSION', '1.0.0');
 export const IS_DEVELOPMENT = ENVIRONMENT === 'development';
 export const IS_TEST = ENVIRONMENT === 'test';
 
@@ -188,6 +189,7 @@ export default {
   
   // Environment info
   ENVIRONMENT,
+  APP_VERSION,
   IS_PRODUCTION,
   IS_DEVELOPMENT,
   IS_TEST,

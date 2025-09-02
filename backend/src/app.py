@@ -157,6 +157,14 @@ def create_app(config_name: Optional[str] = None) -> Flask:
     if app.config.get("ENV") == "production":
         app.config['PREFERRED_URL_SCHEME'] = 'https'
 
+    # Add test route for Sentry verification (only in development)
+    if app.config.get("ENV") != "production":
+        @app.route("/debug-sentry")
+        def debug_sentry():
+            app.logger.info("Testing Sentry integration - intentional error")
+            division_by_zero = 1 / 0  # This will trigger a ZeroDivisionError
+            return "This won't be reached"
+
     return app
 
 
@@ -866,16 +874,11 @@ def configure_sentry(app: Flask) -> None:
             release=git_sha,
             integrations=integrations,
             traces_sample_rate=traces_sample_rate,
-            # Don't include sensitive data in reports
-            send_default_pii=False,
+            # Add data like request headers and IP for users
+            send_default_pii=True,
             # Performance monitoring
             _experiments={
                 "profiles_sample_rate": app.config.get('SENTRY_PROFILES_SAMPLE_RATE', 0.05),
-            },
-            # Add custom tags
-            tags={
-                'app_name': 'asset_anchor_api',
-                'version': app.config.get('VERSION', '1.0.0')
             },
             # Add before_send hook to scrub sensitive data
             before_send=_sentry_before_send,
@@ -884,6 +887,11 @@ def configure_sentry(app: Flask) -> None:
             # Use in-app packages to filter stacktraces
             in_app_include=['src']
         )
+        
+        # Add custom tags
+        with sentry_sdk.configure_scope() as scope:
+            scope.set_tag('app_name', 'asset_anchor_api')
+            scope.set_tag('version', app.config.get('VERSION', '1.0.0'))
         
         # Set up Flask-specific error handling
         @app.before_request
@@ -896,7 +904,7 @@ def configure_sentry(app: Flask) -> None:
             with sentry_sdk.configure_scope() as scope:
                 scope.set_tag("trace_id", request.trace_id)
                 scope.set_tag("endpoint", request.endpoint)
-                # Don't add user PII data to Sentry
+                # User data will be captured automatically with send_default_pii=True
         
         app.logger.info(f"Sentry initialized for {environment} environment with {traces_sample_rate*100}% trace sampling")
     else:

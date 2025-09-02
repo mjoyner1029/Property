@@ -1,6 +1,7 @@
 // frontend/src/components/ErrorBoundary.jsx
 import React from "react";
 import * as Sentry from '@sentry/react';
+import axios from 'axios';
 import { 
   Button, Typography, Box, Paper, Container, CircularProgress,
   Accordion, AccordionSummary, AccordionDetails, Divider, Alert,
@@ -189,8 +190,7 @@ export default class ErrorBoundary extends React.Component {
       errorInfo: errorInfo,
       performanceData: performanceData,
       componentStack: componentStack,
-      errorEventId: eventId
-      errorInfo,
+      errorEventId: eventId,
       isReporting: true
     });
 

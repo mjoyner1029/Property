@@ -40,7 +40,6 @@ logs/
 *.log
 
 # --- Packaging / Bundles ---
-*.egg-info/
 *.zip
 
 # --- CI / IDE ---

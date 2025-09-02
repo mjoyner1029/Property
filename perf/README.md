@@ -91,12 +91,40 @@ export const options = {
 
 Scripts write k6-summary.json and k6-summary.html which can be used for comparison.
 
-To establish a baseline:
+### Using the Helper Script
+
+The easiest way to run tests and manage baselines is with the helper script:
+
+```bash
+# Run a smoke test
+node scripts/run-perf.js smoke
+
+# Compare results with baseline
+node scripts/run-perf.js smoke --baseline
+
+# Update the baseline after a successful test
+node scripts/run-perf.js smoke --update-baseline
+
+# Target a specific API URL
+node scripts/run-perf.js smoke --api-url=https://api-staging.assetanchor.io
+```
+
+### Manual Process
+
+To establish a baseline manually:
 1. Run a successful smoke/load test
 2. Copy the k6-summary.json to perf/baselines/[smoke|load]/
 3. Commit the baseline to the repository
 
 Future tests will automatically compare against this baseline.
+
+### Regression Detection
+
+The helper script will automatically detect performance regressions by comparing:
+- Response time p95 (fails if increases by more than 100ms)
+- Error rates
+
+You can adjust the regression thresholds in `scripts/run-perf.js`.
 
 ## Environment Variables
 

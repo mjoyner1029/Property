@@ -4,7 +4,7 @@
  * with enhanced features for comprehensive error monitoring and performance tracking
  */
 import * as Sentry from '@sentry/react';
-import { BrowserTracing, Replay } from '@sentry/react';
+import { BrowserTracing } from '@sentry/react';
 import { SENTRY_DSN, SENTRY_ENVIRONMENT, SENTRY_RELEASE, IS_PRODUCTION } from '../config/environment';
 
 // User-centric performance metrics for monitoring
@@ -56,34 +56,21 @@ export const initSentry = () => {
           ),
         }),
         
-        // Session replay for critical errors (limited sample)
-        new Replay({
-          // Capture 10% of sessions plus any with errors
-          sessionSampleRate: 0.1,
-          errorSampleRate: 1.0,
-          
-          // Privacy controls to exclude sensitive elements
-          maskAllText: true,
-          blockAllMedia: true,
-          blockClass: 'sentry-block', // Add this class to sensitive elements
-        }),
+        // Session replay functionality removed due to compatibility issues
       ],
       
       // Web Vitals and Performance Monitoring
       // Capture 15% of transactions to keep overhead low but get meaningful data
       tracesSampleRate: 0.15,
-      replaysSessionSampleRate: 0.05, // Sample 5% of sessions for UX analysis
-      replaysOnErrorSampleRate: 1.0,  // Always record sessions with errors
       
       // Enhanced Context for better debugging
       attachStacktrace: true,
       
-      // Don't send personally identifiable information
-      sendDefaultPii: false,
+      // Send default PII data to Sentry for better debugging
+      sendDefaultPii: true,
       
-      // Prevent collecting IP addresses
+      // Include user context information
       initialScope: {
-        user: { ip_address: '0.0.0.0' },
         // Add build information for better debugging context
         tags: {
           'app.version': SENTRY_RELEASE || 'dev',
@@ -199,10 +186,7 @@ export const initSentry = () => {
     // Add React error boundary monitoring
     Sentry.withErrorBoundary = Sentry.withErrorBoundary;
     
-    // Add React profiler for performance monitoring
-    if (IS_PRODUCTION) {
-      Sentry.ReactProfiler.wrap = Sentry.withProfiler;
-    }
+    // React profiler support removed due to compatibility issues
 
     console.debug('[Sentry] Initialized successfully with enhanced monitoring');
     return true;
