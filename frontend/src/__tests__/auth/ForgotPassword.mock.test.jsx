@@ -9,7 +9,7 @@ import ForgotPassword from 'src/pages/auth/ForgotPassword';
 
 // Mock Auth context hook
 // Mock API service
-jest.mock('../../services/api', () => ({
+jest.mock('src/utils/api', () => ({
   forgotPassword: jest.fn().mockResolvedValue({}),
 }));
 
