@@ -49,12 +49,13 @@ console.warn = (...args) => {
   originalWarn.apply(console, args);
 };
 
-// Mock react-dom/client to avoid real createRoot in tests
-jest.mock('react-dom/client', () => {
-  return {
-    createRoot: () => ({ render: jest.fn(), unmount: jest.fn() }),
-  };
-});
+// TEMPORARILY COMMENTING OUT TO DEBUG RTL ISSUES
+// // Mock react-dom/client to avoid real createRoot in tests
+// jest.mock('react-dom/client', () => {
+//   return {
+//     createRoot: () => ({ render: jest.fn(), unmount: jest.fn() }),
+//   };
+// });
 
 // Common browser APIs missing in jsdom
 window.scrollTo = window.scrollTo || (() => {});

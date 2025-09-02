@@ -1,13 +1,16 @@
 // frontend/src/__tests__/properties/PropertyEdit.test.jsx
 import React from "react";
 import { render, screen, fireEvent, waitFor } from "@testing-library/react";
+import { renderWithProviders } from 'src/test/utils/renderWithProviders';
+import { getInputByName } from 'src/test/utils/muiTestUtils';
 import { MemoryRouter } from "react-router-dom";
 
 // Import from shared mocks for direct assertions
 import { fetchPropertyByIdMock, updatePropertyMock, createPropertyMock } from "../../test/mocks/services";
 import { updatePageTitleMock } from "../../test/mocks/pageTitle";
 
-const mockNavigate = jest.fn();
+// Import the navigateMock from our mock file
+import { navigateMock as mockNavigate } from "src/test/mocks/router";
 
 import PropertyForm from "src/pages/PropertyForm";
 import { useProperty } from "../../context";
@@ -46,10 +49,7 @@ jest.mock("react-router-dom", () => {
   return {
     ...actual,
     useParams: () => ({ id: "123" }),
-    useNavigate: () => {
-      const mock = require('src/test/mocks/router');
-      return mock.mockNavigate;
-    },
+    useNavigate: () => mockNavigate,
   };
 });
 
@@ -109,17 +109,17 @@ describe("PropertyForm (Edit Mode)", () => {
     renderWithCtx({ selectedProperty: sampleProperty });
 
     // Basic fields
-    expect(getInputByName(/property name/i)).toHaveValue("Sunset Apartments");
-    expect(getInputByName(/description/i)).toHaveValue("Great place with a view");
-    expect(getInputByName(/street address/i)).toHaveValue("123 Main St");
-    expect(getInputByName(/city/i)).toHaveValue("Springfield");
-    expect(getInputByName(/state/i)).toHaveValue("CA");
-    expect(getInputByName(/zip code/i)).toHaveValue("90210");
+    expect(getInputByName(screen, /property name/i)).toHaveValue("Sunset Apartments");
+    expect(getInputByName(screen, /description/i)).toHaveValue("Great place with a view");
+    expect(getInputByName(screen, /street address/i)).toHaveValue("123 Main St");
+    expect(getInputByName(screen, /city/i)).toHaveValue("Springfield");
+    expect(getInputByName(screen, /state/i)).toHaveValue("CA");
+    expect(getInputByName(screen, /zip code/i)).toHaveValue("90210");
 
     // Optional details
-    expect(getInputByName(/year built/i)).toHaveValue(1990);
-    expect(getInputByName(/square footage/i)).toHaveValue(12000);
-    expect(getInputByName(/amenities/i)).toHaveValue("Pool, Gym");
+    expect(getInputByName(screen, /year built/i)).toHaveValue("1990");
+    expect(getInputByName(screen, /square footage/i)).toHaveValue("12000");
+    expect(getInputByName(screen, /amenities/i)).toHaveValue("Pool, Gym");
 
     // Image preview hint (from stubbed previews)
     expect(screen.getByTestId("file-upload")).toBeInTheDocument();
@@ -131,11 +131,11 @@ describe("PropertyForm (Edit Mode)", () => {
     renderWithCtx({ selectedProperty: sampleProperty });
 
     // Change the property name
-    const nameInput = getInputByName(/property name/i);
+    const nameInput = getInputByName(screen, /property name/i);
     fireEvent.change(nameInput, { target: { value: "Edited Name" } });
 
     // Click Save Changes (submit button)
-    const saveBtn = screen.getByRole("button", { name: /save changes/i });
+    const saveBtn = screen.getByRole("button", { name: /save property details/i });
     fireEvent.click(saveBtn);
 
     await waitFor(() => {
@@ -161,7 +161,7 @@ describe("PropertyForm (Edit Mode)", () => {
     renderWithCtx({ selectedProperty: sampleProperty });
 
     // Trigger submit without changing anything
-    fireEvent.click(screen.getByRole("button", { name: /save changes/i }));
+    fireEvent.click(screen.getByRole("button", { name: /save property details/i }));
 
     // Error alert should appear
     await waitFor(() => {

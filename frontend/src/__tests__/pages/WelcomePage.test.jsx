@@ -7,7 +7,8 @@ import { renderWithProviders } from 'src/test/utils/renderWithProviders';
 
 // Mock the auth context
 jest.mock('src/context/AuthContext', () => ({
-  useAuth: jest.fn()
+  useAuth: jest.fn(),
+  AuthContext: { Provider: ({ children }) => children }
 }));
 
 describe('WelcomePage', () => {

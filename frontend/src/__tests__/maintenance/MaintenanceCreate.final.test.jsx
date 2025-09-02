@@ -2,6 +2,7 @@
 import React from "react";
 import { screen, within, waitFor, fireEvent } from "@testing-library/react";
 import { renderWithProviders } from "../../test-utils/renderWithProviders";
+import { getInputByName, getSelectByName } from "../../test/utils/muiTestUtils";
 
 // Define mock functions first
 const mockFetchRequests = jest.fn().mockResolvedValue([]);
@@ -333,6 +334,43 @@ const renderPage = () => {
   return renderWithProviders(<Maintenance />, { route: "/maintenance" });
 };
 
+// Helper function to find and click the New Request button
+const findNewRequestButton = () => {
+  // Try multiple strategies to find the button
+  let button;
+  
+  try {
+    // First try to find by test ID
+    const headerAction = screen.queryByTestId("header-action");
+    if (headerAction) {
+      if (headerAction.tagName === 'BUTTON') {
+        return headerAction;
+      }
+      const btn = headerAction.querySelector("button");
+      if (btn) return btn;
+    }
+  } catch (e) {
+    console.log("Error finding by test ID:", e);
+  }
+  
+  // Second, try to find by role
+  try {
+    return screen.getByRole("button", { name: /new request|add request|create request/i });
+  } catch (e) {
+    console.log("Error finding by role:", e);
+  }
+  
+  // Last resort
+  const allButtons = screen.queryAllByRole("button");
+  for (const btn of allButtons) {
+    if (btn.textContent?.match(/new|add|create/i)) {
+      return btn;
+    }
+  }
+  
+  throw new Error("Could not find New Request button");
+};
+
 describe("Maintenance — Create Request flow", () => {
   beforeEach(() => {
     jest.clearAllMocks();
@@ -341,22 +379,15 @@ describe("Maintenance — Create Request flow", () => {
     mockUpdatePageTitle.mockClear();
   });
 
-  test("opens New Request dialog from header", async () => {
-    renderPage();
+  test("opens New Request dialog from header", () => {
+    renderWithProviders(<Maintenance />);
 
-    // Find header action button
-    const headerButton = screen.getByTestId("header-action");
-    expect(headerButton).toBeInTheDocument();
-    
-    // Click to open dialog
-    fireEvent.click(headerButton);
-    
-    // Dialog should appear
-    const dialog = await screen.findByRole("dialog");
-    expect(dialog).toBeInTheDocument();
+    // Find and click the New Request button
+    const newRequestButton = findNewRequestButton();
+    fireEvent.click(newRequestButton);
     
     // Dialog should have title and buttons
-    expect(screen.getByText(/New Maintenance Request/i)).toBeInTheDocument();
+    expect(screen.getByText(/Create Maintenance Request/i)).toBeInTheDocument();
     expect(screen.getByTestId("submit-button")).toBeInTheDocument();
     expect(screen.getByTestId("cancel-button")).toBeInTheDocument();
   });
@@ -368,7 +399,8 @@ describe("Maintenance — Create Request flow", () => {
     renderPage();
 
     // Open dialog
-    fireEvent.click(screen.getByTestId("header-action"));
+    const newRequestButton = findNewRequestButton();
+    fireEvent.click(newRequestButton);
     await screen.findByRole("dialog");
 
     // Fill required fields

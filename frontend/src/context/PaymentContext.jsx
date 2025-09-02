@@ -3,8 +3,7 @@ import axios from 'axios';
 import { useAuth } from './AuthContext';
 
 // Create context
-const PaymentContext = createContext();
-export { PaymentContext };
+export const PaymentContext = createContext();
 
 export const PaymentProvider = ({ children }) => {
   const [payments, setPayments] = useState([]);

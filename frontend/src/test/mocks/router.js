@@ -2,6 +2,7 @@
 
 // Create mock variables
 const navigateMock = jest.fn();
+const mockNavigate = jest.fn();
 // Use let instead of const for variables that will be modified
 let paramsMock = { id: "123" };
 let searchMock = "?q=foo";
@@ -39,6 +40,7 @@ const setSearch = (queryString) => {
 // CommonJS exports for use with require()
 module.exports = {
   navigateMock,
+  mockNavigate,  // Add this export
   paramsMock,
   searchMock,
   locationMock,

@@ -1,13 +1,21 @@
 import React from 'react';
-import { screen } from '@testing-library/react';
+import { screen, render } from '@testing-library/react';
 import { getInputByName, getSelectByName } from 'src/test/utils/muiTestUtils';
 import userEvent from '@testing-library/user-event';
 import NavBarSimple from 'src/components/NavBarSimple';
-import { renderWithProviders } from 'src/test/utils/renderWithProviders';
+import { ThemeProvider } from '@mui/material/styles';
+import { BrowserRouter } from 'react-router-dom';
+import theme from 'src/theme';
 
-// Use renderWithProviders for consistency across tests
+// Use a simplified render approach with just the necessary providers
 const renderNavBar = (ui) => {
-  return renderWithProviders(ui);
+  return render(
+    <ThemeProvider theme={theme}>
+      <BrowserRouter>
+        {ui}
+      </BrowserRouter>
+    </ThemeProvider>
+  );
 };
 
 describe('NavBarSimple Component', () => {

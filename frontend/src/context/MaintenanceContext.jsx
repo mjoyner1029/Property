@@ -4,8 +4,7 @@ import axios from "axios";
 import { useAuth } from "./AuthContext";
 
 // Create the context
-const MaintenanceContext = createContext();
-export { MaintenanceContext };
+export const MaintenanceContext = createContext();
 
 function getAuthHeaders() {
   const token = localStorage.getItem("token");

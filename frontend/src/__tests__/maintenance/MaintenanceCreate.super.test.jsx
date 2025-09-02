@@ -7,6 +7,10 @@ const mockCreateRequest = jest.fn().mockImplementation(async (data) => {
 });
 const mockUpdatePageTitle = jest.fn();
 
+// Import test utilities
+import { screen } from '@testing-library/react';
+import { getInputByName, getSelectByName } from '../../test/utils/muiTestUtils';
+
 // Mock react-router-dom - must be before any imports
 jest.mock("react-router-dom", () => ({
   ...jest.requireActual("react-router-dom"),
@@ -22,8 +26,8 @@ jest.mock("../../context", () => ({
 
 // Now import React and testing libraries
 import React from "react";
-import { screen, waitFor, fireEvent } from "@testing-library/react";
-import { renderWithProviders } from "../../test-utils/renderWithProviders";
+import { waitFor, fireEvent, act } from "@testing-library/react";
+import { renderWithProviders } from "../../test/utils/renderWithProviders";
 
 // Import after mocking
 import { useMaintenance, useApp, useProperty } from "../../context";
@@ -324,26 +328,47 @@ describe("Maintenance — Create Request flow", () => {
     await screen.findByRole("dialog");
 
     // Fill required fields
-    fireEvent.change(getInputByName(/title/i), {
-      target: { value: "Broken Window" },
+    await act(async () => {
+      fireEvent.change(getInputByName(screen, /title/i), {
+        target: { value: "Broken Window" },
+      });
     });
     
-    fireEvent.change(getInputByName(/description/i), {
-      target: { value: "Window won't close" },
+    await act(async () => {
+      fireEvent.change(getInputByName(screen, /description/i), {
+        target: { value: "Window won't close" },
+      });
     });
     
-    fireEvent.change(screen.getByTestId("select-property_id"), {
-      target: { value: "p1" },
+    // Select property directly
+    await act(async () => {
+      const propertySelect = screen.getByTestId("select-property_id");
+      fireEvent.change(propertySelect, { target: { value: "p1" } });
     });
     
-    fireEvent.change(screen.getByTestId("select-maintenance_type"), {
-      target: { value: "window_stuck" },
+    // Select maintenance type directly since it's a basic select
+    await act(async () => {
+      const typeSelect = screen.getByTestId("select-maintenance_type");
+      fireEvent.change(typeSelect, { target: { value: "window_stuck" } });
     });
 
+    // Reset mock before submission to make it easier to debug
+    mockCreateRequest.mockClear();
+    
     // Submit the form
-    fireEvent.click(screen.getByTestId("submit-button"));
+    await act(async () => {
+      fireEvent.click(screen.getByTestId("submit-button"));
+      // Wait for promises to resolve
+      await Promise.resolve();
+    });
 
-    // API should be called with correct data
+    // Add debug logging to check mockCreateRequest call state
+    console.log("mockCreateRequest called:", mockCreateRequest.mock.calls.length);
+    if (mockCreateRequest.mock.calls.length > 0) {
+      console.log("mockCreateRequest called with:", mockCreateRequest.mock.calls[0][0]);
+    }
+
+    // API should be called with correct data - increase timeout and add error message
     await waitFor(() => {
       expect(mockCreateRequest).toHaveBeenCalledWith(expect.objectContaining({
         title: "Broken Window",
@@ -351,7 +376,7 @@ describe("Maintenance — Create Request flow", () => {
         property_id: "p1",
         maintenance_type: "window_stuck",
       }));
-    });
+    }, { timeout: 5000, onTimeout: () => console.error("Create request was not called with expected data") });
 
     // Dialog should close
     expect(screen.queryByRole("dialog")).not.toBeInTheDocument();

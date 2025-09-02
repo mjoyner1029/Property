@@ -1,6 +1,7 @@
 // frontend/src/__tests__/framer-motion.test.jsx
 import React from 'react';
 import { render } from '@testing-library/react';
+import { getInputByName, getSelectByName } from 'src/test/utils/muiTestUtils';
 
 // Import our mock version of framer-motion
 const framerMotion = require('../test/__mocks__/framer-motion');

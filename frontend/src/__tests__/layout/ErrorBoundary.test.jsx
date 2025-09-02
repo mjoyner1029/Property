@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { screen, waitFor } from '@testing-library/react';
+import { render, screen, waitFor } from '@testing-library/react';
 import { getInputByName, getSelectByName } from 'src/test/utils/muiTestUtils';
 import { act } from 'react-dom/test-utils';
 import { Routes, Route } from "react-router-dom";
@@ -95,7 +95,7 @@ test('shows fallback UI when API call fails', () => {
 });
 
 test('renders children when there is no error', () => {
-  render(
+  renderWithProviders(
     <ErrorBoundary>
       <div data-testid="child">Everything is fine</div>
     </ErrorBoundary>

@@ -4,7 +4,7 @@ import api, { backendUrl } from '../utils/api';
 import { logger } from '../utils/logger';
 import { getAccessToken, setAccessToken, clearAccessToken } from '../utils/tokenStore';
 
-const AuthContext = createContext(null);
+export const AuthContext = createContext(null);
 
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);

@@ -73,7 +73,7 @@ jest.mock("../../components", () => ({
   )
 }));
 
-describe("MaintenanceDeleteFinal", () => {
+describe("MaintenanceDiagnosticTest", () => {
   // Reset mocks before each test
   beforeEach(() => {
     jest.clearAllMocks();

@@ -8,7 +8,10 @@ import NavBar from 'src/components/NavBar';
 // Import the AuthContext mocks but don't override them
 import { useAuth } from 'src/context/AuthContext';
 
-jest.mock('src/context/AuthContext');
+jest.mock('src/context/AuthContext', () => ({
+  useAuth: jest.fn(),
+  AuthContext: { Provider: ({ children }) => children }
+}));
 
 describe('NavBar Component', () => {
   const mockLogout = jest.fn();

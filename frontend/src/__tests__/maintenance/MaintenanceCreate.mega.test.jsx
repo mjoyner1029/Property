@@ -11,25 +11,41 @@ jest.mock("@mui/material", () => {
   const actual = jest.requireActual("@mui/material");
   return {
     ...actual,
-    Dialog: ({ open, children, ...props }) => (
-      open ? <div role="dialog" data-testid="dialog" {...props}>{children}</div> : null
-    ),
-    DialogTitle: ({ children }) => <div data-testid="dialog-title">{children}</div>,
-    DialogContent: ({ children }) => <div data-testid="dialog-content">{children}</div>,
-    DialogActions: ({ children }) => <div data-testid="dialog-actions">{children}</div>,
-    Select: ({ value, onChange, children, ...rest }) => (
-      <select 
-        data-testid="mui-select"
-        value={value || ""}
-        onChange={onChange}
-        {...rest}
-      >
-        {children}
-      </select>
-    ),
-    MenuItem: ({ value, children }) => (
-      <option value={value}>{children}</option>
-    ),
+    Dialog: ({ open, children, ...props }) => {
+      const React = require('react');
+      return open ? <div role="dialog" data-testid="dialog" {...props}>{children}</div> : null;
+    },
+    DialogTitle: ({ children }) => {
+      const React = require('react');
+      return <div data-testid="dialog-title">{children}</div>;
+    },
+    DialogContent: ({ children }) => {
+      const React = require('react');
+      return <div data-testid="dialog-content">{children}</div>;
+    },
+    DialogActions: ({ children }) => {
+      const React = require('react');
+      return <div data-testid="dialog-actions">{children}</div>;
+    },
+    Select: ({ value, onChange, children, ...rest }) => {
+      const React = require('react');
+      return (
+        <select 
+          data-testid="mui-select"
+          value={value || ""}
+          onChange={onChange}
+          {...rest}
+        >
+          {children}
+        </select>
+      );
+    },
+    MenuItem: ({ value, children }) => {
+      const React = require('react');
+      return (
+        <option value={value}>{children}</option>
+      );
+    },
   };
 });
 

@@ -1,0 +1,4 @@
+**/__mocks__/**
+**/*.mock.js
+**/*.mock.jsx
+**/*.d.ts

@@ -1,6 +1,6 @@
 import React from 'react';
 import { render } from '@testing-library/react';
-import { MemoryRouter } from 'react-router-dom';
+import { MemoryRouter, Routes, Route } from 'react-router-dom';
 import { ThemeProvider, createTheme } from '@mui/material/styles';
 import { AppContext } from 'src/context/AppContext';
 import { PropertyContext } from 'src/context/PropertyContext';
@@ -199,7 +199,9 @@ export function renderWithProviders(ui, options = {}) {
     // Only add the MemoryRouter if withRouter is true
     return withRouter ? (
       <MemoryRouter initialEntries={[route]}>
-        {content}
+        <Routes>
+          <Route path={route} element={content} />
+        </Routes>
       </MemoryRouter>
     ) : content;
   }

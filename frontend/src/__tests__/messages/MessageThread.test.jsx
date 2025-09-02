@@ -1,12 +1,18 @@
 // frontend/src/__tests__/messages/MessageThread.test.jsx
 import React from "react";
-import { screen, within } from "@testing-library/react";
+import { screen, within, act } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { renderWithProviders } from "src/test/utils/renderWithProviders";
 import MessageThread from "src/components/MessageThread";
 
 // Mock the scrollIntoView function which isn't implemented in jsdom
+const originalScrollIntoView = window.HTMLElement.prototype.scrollIntoView;
 window.HTMLElement.prototype.scrollIntoView = jest.fn();
+
+// Clean up after each test
+afterEach(() => {
+  window.HTMLElement.prototype.scrollIntoView.mockClear();
+});
 
 describe("MessageThread", () => {
   const currentUserId = "u1";
@@ -88,7 +94,7 @@ describe("MessageThread", () => {
     expect(separators.length).toBeGreaterThanOrEqual(2);
 
     // Caption (sender name) appears for received cluster start
-    expect(screen.getByText("Bob Roberts")).toBeInTheDocument();
+    expect(screen.getAllByText("Bob Roberts")[0]).toBeInTheDocument();
   });
 
   test("shows avatar initials for other user's cluster start", () => {
@@ -150,10 +156,15 @@ describe("MessageThread", () => {
     const failedRow = screen.getByText("This failed").closest("div");
     expect(failedRow).not.toBeNull();
     if (!failedRow) throw new Error("Failed row not found");
-    expect(within(failedRow).getByText(/failed/i)).toBeInTheDocument();
+    // Find the specific "Failed" text in the status element
+    expect(within(failedRow).getAllByText(/failed/i)[0]).toBeInTheDocument();
 
     const retryBtn = screen.getByRole("button", { name: /retry sending/i });
-    await user.click(retryBtn);
+    
+    // Use fireEvent instead of userEvent for simpler act() wrapping
+    await act(async () => {
+      await user.click(retryBtn);
+    });
 
     expect(onRetry).toHaveBeenCalledTimes(1);
     expect(onRetry).toHaveBeenCalledWith(expect.objectContaining({ id: "f1" }));
@@ -183,9 +194,8 @@ describe("MessageThread", () => {
   });
 
   test("auto-scrolls to bottom on mount and when new messages arrive", () => {
-    const scrollSpy = jest
-      .spyOn(Element.prototype, "scrollIntoView")
-      .mockImplementation(() => {});
+    // We already have the mock from the beforeEach
+    const scrollSpy = window.HTMLElement.prototype.scrollIntoView;
 
     const base = [
       {

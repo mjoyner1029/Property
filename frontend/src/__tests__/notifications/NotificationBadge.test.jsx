@@ -49,8 +49,8 @@ describe("NotificationBadge", () => {
   test("handles keyboard and mouse interaction", () => {
     const onClick = jest.fn();
 
-    render(
-      <NotificationBadge count={2} onClick={onClick} />
+    renderWithProviders(
+      <NotificationBadge count={2} onClick={onClick} />, { withRouter: false }
     );
 
     // Find the badge container
@@ -83,13 +83,13 @@ describe("NotificationBadge", () => {
   test("accepts className and sx without breaking behavior", () => {
     const onClick = jest.fn();
 
-    render(
+    renderWithProviders(
       <NotificationBadge
         count={3}
         onClick={onClick}
         className="custom-class"
         sx={{ ml: 1 }}
-      />
+      />, { withRouter: false }
     );
 
     // Find badge container and verify it has the custom class

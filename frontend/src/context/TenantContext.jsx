@@ -3,8 +3,7 @@ import axios from 'axios';
 import { useAuth } from './AuthContext';
 
 // Create context
-const TenantContext = createContext();
-export { TenantContext };
+export const TenantContext = createContext();
 
 export const TenantProvider = ({ children }) => {
   const [tenants, setTenants] = useState([]);

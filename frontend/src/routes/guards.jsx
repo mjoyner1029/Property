@@ -25,7 +25,17 @@ export function RoleRoute({ role }) {
   // Handle null auth context gracefully (in case tests don't mock it properly)
   if (!auth || auth.loading) return null;
   if (!auth.isAuthenticated) return <Navigate to="/login" replace state={{ from: loc }} />;
-  if (!auth.isRole || !auth.isRole(role)) return <Navigate to="/forbidden" replace />;
+  
+  // Handle array of roles
+  if (Array.isArray(role)) {
+    const hasRole = role.some(r => auth.user && auth.user.role === r);
+    if (!hasRole) return <Navigate to="/forbidden" replace />;
+  } else {
+    // Handle single role
+    if (!auth.isRole && (!auth.user || auth.user.role !== role)) return <Navigate to="/forbidden" replace />;
+    if (auth.isRole && !auth.isRole(role)) return <Navigate to="/forbidden" replace />;
+  }
+  
   return <Outlet />;
 }
 

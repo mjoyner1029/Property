@@ -2,6 +2,7 @@
 import React from 'react';
 import { render, screen, fireEvent, waitFor, within, act } from '@testing-library/react';
 import { getInputByName, getSelectByName } from 'src/test/utils/muiTestUtils';
+import { renderWithProviders } from 'src/test/utils/renderWithProviders';
 import { MemoryRouter } from 'react-router-dom';
 
 import { useProperty } from 'src/context/PropertyContext';
@@ -26,10 +27,12 @@ const mockUpdatePageTitle = jest.fn();
 
 jest.mock('../../context/PropertyContext', () => ({
   useProperty: jest.fn(),
+  PropertyContext: { Provider: ({ children }) => children }
 }));
 
 jest.mock('../../context/AppContext', () => ({
   useApp: jest.fn(),
+  AppContext: { Provider: ({ children }) => children }
 }));
 
 // ---- Mock lightweight MUI pieces used by the page (keep interactions simple) ----
@@ -185,8 +188,8 @@ describe('Properties Component', () => {
     renderWithProviders(<Properties />);
 
     screen.getByTestId('add-property-button').click();
-    // NOTE: If your app uses "/properties/new", swap below accordingly.
-    expect(mockNavigate).toHaveBeenCalledWith('/properties/add');
+    // Match the actual path used in the component
+    expect(mockNavigate).toHaveBeenCalledWith('/properties/new');
   });
 
   test('renders loading state', () => {
@@ -230,8 +233,8 @@ describe('Properties Component', () => {
 
     expect(screen.getByTestId('empty-state')).toBeInTheDocument();
     screen.getByTestId('empty-add-button').click();
-    // NOTE: If your app uses "/properties/new", swap below accordingly.
-    expect(mockNavigate).toHaveBeenCalledWith('/properties/add');
+    // Match the actual path used in the component
+    expect(mockNavigate).toHaveBeenCalledWith('/properties/new');
   });
 
   test('filters properties by name', () => {
@@ -282,10 +285,10 @@ describe('Properties Component', () => {
     const dialogActions = screen.getByTestId('dialog-actions');
     const deleteBtn = within(dialogActions).getByText('Delete');
 
-    await 
+    await act(async () => {
       fireEvent.click(deleteBtn);
       await Promise.resolve();
-    ;
+    });
 
     expect(mockDeleteProperty).toHaveBeenCalledWith('2');
   });
@@ -294,24 +297,33 @@ describe('Properties Component', () => {
     renderWithProviders(<Properties />);
 
     // Open filter menu
-    fireEvent.click(screen.getByText('Filter'));
+    await act(async () => {
+      fireEvent.click(screen.getByText('Filter'));
+    });
 
     await waitFor(() => {
       expect(screen.getByTestId('menu')).toBeInTheDocument();
     });
 
     // Filter by "Apartments"
-    const apartmentsOption = screen.getByTestId('menu-item-apartments');
-    fireEvent.click(apartmentsOption);
+    await act(async () => {
+      const apartmentsOption = screen.getByTestId('menu-item-apartments');
+      fireEvent.click(apartmentsOption);
+    });
 
     // Both mocks are apartments; both remain visible
     expect(screen.getByText('Sunset Apartments')).toBeInTheDocument();
     expect(screen.getByText('Ocean View Condos')).toBeInTheDocument();
 
     // Reopen, then sort
-    fireEvent.click(screen.getByText('Filter'));
-    const sortByUnits = screen.getByTestId('menu-item-number-of-units');
-    fireEvent.click(sortByUnits);
+    await act(async () => {
+      fireEvent.click(screen.getByText('Filter'));
+    });
+    
+    await act(async () => {
+      const sortByUnits = screen.getByTestId('menu-item-number-of-units');
+      fireEvent.click(sortByUnits);
+    });
 
     // Still visible (we don’t depend on exact order)
     expect(screen.getByText('Sunset Apartments')).toBeInTheDocument();

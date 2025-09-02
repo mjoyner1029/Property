@@ -12,6 +12,19 @@ import { renderWithProviders } from 'src/test/utils/renderWithProviders';
 // Mock axios since the component uses axios
 jest.mock('axios');
 
+// Mock Auth context hook
+jest.mock('src/context/AuthContext', () => {
+  const actual = jest.requireActual('src/context/AuthContext');
+  return {
+    ...actual,
+    useAuth: () => ({
+      forgotPassword: jest.fn().mockResolvedValue({}),
+      loading: false,
+      error: null,
+    }),
+  };
+});
+
 // Use renderWithProviders with withRouter=true for ForgotPassword
 // since it doesn't include its own router
 

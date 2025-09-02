@@ -1,6 +1,6 @@
 // frontend/src/__tests__/payments/PaymentRefund.test.jsx
 import React from "react";
-import { screen, within, waitFor, fireEvent, within } from "@testing-library/react";
+import { screen, within, waitFor, fireEvent } from "@testing-library/react";
 import { Routes, Route } from "react-router-dom";
 import { renderWithProviders } from "src/test/utils/renderWithProviders";
 import PaymentDetail from "src/pages/PaymentDetail";

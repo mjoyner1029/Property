@@ -47,18 +47,21 @@ export default function ForgotPassword() {
           margin="normal"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
+          inputProps={{ "aria-label": "email" }}
+          error={!!error && !email}
+          helperText={error && !email ? "Email is required" : ""}
         />
         <Button type="submit" variant="contained" fullWidth sx={{ mt: 2 }}>
           Reset Password
         </Button>
       </form>
       {submitted && (
-        <Alert severity="success" sx={{ mt: 2 }}>
+        <Alert severity="success" sx={{ mt: 2 }} role="alert">
           If your email is registered, a reset link has been sent.
         </Alert>
       )}
       {error && (
-        <Alert severity="error" sx={{ mt: 2 }}>
+        <Alert severity="error" sx={{ mt: 2 }} role="alert">
           {error}
         </Alert>
       )}

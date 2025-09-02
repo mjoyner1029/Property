@@ -1,5 +1,5 @@
 import React from "react";
-import { screen, within, fireEvent, waitFor } from "@testing-library/react";
+import { screen, fireEvent, waitFor } from "@testing-library/react";
 import { renderWithProviders } from "../../test/utils/renderWithProviders";
 
 // Mock the hooks first
@@ -30,17 +30,8 @@ const mockNavigate = jest.fn();
 
 // Create the context mocks
 jest.mock("../../context", () => ({
-  useMaintenance: jest.fn().mockImplementation(() => ({
-    maintenanceRequests: [mockRequest],
-    loading: false,
-    error: null,
-    fetchRequests: mockFetchRequests,
-    updateRequest: mockUpdateRequest,
-    deleteRequest: mockDeleteRequest
-  })),
-  useApp: jest.fn().mockImplementation(() => ({
-    updatePageTitle: mockUpdatePageTitle
-  }))
+  useMaintenance: jest.fn(),
+  useApp: jest.fn()
 }));
 
 // Mock react-router-dom
@@ -76,6 +67,27 @@ jest.mock("../../components", () => ({
   )
 }));
 
+// Global beforeEach hook
+beforeEach(() => {
+  // Reset all mocks
+  jest.clearAllMocks();
+  
+  // Setup the maintenance context mock
+  useMaintenance.mockReturnValue({
+    maintenanceRequests: [mockRequest],
+    loading: false,
+    error: null,
+    fetchRequests: mockFetchRequests,
+    updateRequest: mockUpdateRequest,
+    deleteRequest: mockDeleteRequest
+  });
+  
+  // Setup the app context mock
+  useApp.mockReturnValue({
+    updatePageTitle: mockUpdatePageTitle
+  });
+});
+
 // Define a basic test to ensure test setup is working
 test("basic test", () => {
   expect(true).toBe(true);
@@ -109,7 +121,7 @@ test("shows delete confirmation dialog when delete button is clicked", async () 
 test("closes the dialog when cancel is clicked", async () => {
   renderWithProviders(
     <MaintenanceDetail />,
-    {
+    { 
       route: `/maintenance/${mockRequest.id}`,
       maintenance: {
         maintenanceRequests: [mockRequest],

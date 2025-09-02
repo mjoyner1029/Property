@@ -11,8 +11,7 @@ import React, {
 import axios from "axios";
 import { useAuth } from "./AuthContext";
 
-const MessageContext = createContext();
-export { MessageContext };
+export const MessageContext = createContext();
 
 function getAuthHeaders() {
   const token = localStorage.getItem("token");

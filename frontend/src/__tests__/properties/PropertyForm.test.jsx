@@ -1,6 +1,7 @@
 import React from 'react';
 import { render, screen, fireEvent, waitFor, act } from '@testing-library/react';
 import { getInputByName, getSelectByName } from 'src/test/utils/muiTestUtils';
+import { renderWithProviders } from 'src/test/utils/renderWithProviders';
 import { MemoryRouter } from 'react-router-dom';
 import PropertyForm from 'src/pages/PropertyForm';
 import { useProperty } from 'src/context/PropertyContext';
