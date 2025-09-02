@@ -22,26 +22,29 @@ describe('PaymentsHistory', () => {
       ]
     });
 
-    renderWithProviders(<PaymentsHistory />);
+    render(<PaymentsHistory />);
 
-    expect(await screen.findByText('2200')).toBeInTheDocument();
-    expect(screen.getByText('2025-01-01')).toBeInTheDocument();
-    expect(screen.getByText('paid')).toBeInTheDocument();
+    expect(await screen.findByTestId('payment-p1')).toBeInTheDocument();
+    expect(screen.getByTestId('payment-amount')).toHaveTextContent('2200');
+    expect(screen.getByTestId('payment-date')).toHaveTextContent('2025-01-01');
+    expect(screen.getByTestId('payment-status')).toHaveTextContent('paid');
   });
 
   test('shows empty state when no payments', async () => {
     axios.get.mockResolvedValueOnce({ data: [] });
 
-    renderWithProviders(<PaymentsHistory />);
+    render(<PaymentsHistory />);
 
-    expect(await screen.findByText('No payments')).toBeInTheDocument();
+    expect(await screen.findByTestId('empty-message')).toBeInTheDocument();
+    expect(screen.getByTestId('empty-message')).toHaveTextContent('No payments');
   });
 
   test('shows error UI on failure', async () => {
     axios.get.mockRejectedValueOnce(new Error('network'));
 
-    renderWithProviders(<PaymentsHistory />);
+    render(<PaymentsHistory />);
 
-    expect(await screen.findByText('Error loading payments')).toBeInTheDocument();
+    expect(await screen.findByTestId('error-message')).toBeInTheDocument();
+    expect(screen.getByTestId('error-message')).toHaveTextContent('Error loading payments');
   });
 });
