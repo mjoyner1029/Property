@@ -1,17 +1,26 @@
 module.exports = {
   testEnvironment: 'jsdom',
   setupFilesAfterEnv: ['<rootDir>/src/test/setup/jest.setup.js'],
+  roots: ['<rootDir>/src'],
+  moduleDirectories: ['node_modules', '<rootDir>/src'],
   transform: { '^.+\\.[jt]sx?$': ['babel-jest', { rootMode: 'upward' }] },
   moduleNameMapper: {
-    '^src/(.*)$': '<rootDir>/src/$1',
+    '^(?:src|@src)/(.*)$': '<rootDir>/src/$1',
     '\\.(css|less|scss|sass)$': '<rootDir>/src/test/mocks/styleMock.js',
-    '\\.(gif|ttf|eot|svg|png|jpg|jpeg|webp)$': '<rootDir>/src/test/mocks/fileMock.js'
+    '\\.(gif|ttf|eot|svg|png|jpg|jpeg|webp)$': '<rootDir>/src/test/mocks/fileMock.js',
   },
-  moduleDirectories: ['node_modules', '<rootDir>/src'],
+  testMatch: ['**/__tests__/**/*.(test|spec).[jt]sx?'],
+  testPathIgnorePatterns: [
+    '/node_modules/',
+    '/dist/',
+    '/build/',
+    '/__tests__/components/__mocks__/',
+    '/__tests__/maintenance/mock',
+    '/src/mocks/'
+  ],
   clearMocks: true,
   restoreMocks: true,
   testTimeout: 15000,
   maxWorkers: '50%',
-  modulePathIgnorePatterns: ['<rootDir>/dist/', '<rootDir>/build/'],
-  watchPathIgnorePatterns: ['<rootDir>/node_modules/', '<rootDir>/.cache/'],
+  watchPathIgnorePatterns: ['<rootDir>/.cache/'],
 };
