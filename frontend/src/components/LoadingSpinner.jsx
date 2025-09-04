@@ -7,6 +7,7 @@ import {
   LinearProgress,
   Backdrop,
 } from "@mui/material";
+import { useTheme } from "@mui/material/styles";
 
 /**
  * LoadingSpinner

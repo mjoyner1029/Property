@@ -1,22 +1,43 @@
 import React, { Suspense, useEffect } from 'react';
 import { ThemeProvider as MuiThemeProvider } from '@mui/material/styles';
 import { CssBaseline } from '@mui/material';
-import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { Routes, Route } from 'react-router-dom';
+
+// Local imports
 import { CombinedProviders } from './context/index';
 import theme from './theme';
 import { initSentry } from './observability/sentry';
 import PerformanceMonitor from './observability/PerformanceMonitor';
-
 // Layouts
 import MainLayout from './layouts/MainLayout';
-
 // Route Guards
 import { ProtectedRoute, PublicOnlyRoute as PublicRoute, RoleRoute } from './routing/guards';
-
 // Loading Fallback
 import LoadingFallback from './components/LoadingFallback';
 import ErrorBoundary from './components/ErrorBoundary'; // We'll keep using the original ErrorBoundary for now
 import Toast from './components/Toast';
+
+// Determine if we're in demo mode
+const isDemoMode = process.env.REACT_APP_DEMO_MODE === '1';
+
+// Demo mode wrapper to inject demo auth context or use regular context
+const DemoModeWrapper = ({ children }) => {
+  console.log('DemoModeWrapper - isDemoMode:', isDemoMode);
+  
+  // In demo mode, the DemoAuthProvider is already provided at the root level
+  if (isDemoMode) {
+    // Log that we're using demo auth provider
+    console.log('🔮 Using demo auth provider - skipping CombinedProviders');
+    
+    // Note: We'll only return non-auth related providers from CombinedProviders
+    // since DemoAuthProvider is already provided at the root level
+    return <>{children}</>;
+  } else {
+    // In normal mode, use the CombinedProviders
+    console.log('Using regular auth provider via CombinedProviders');
+    return <CombinedProviders>{children}</CombinedProviders>;
+  }
+};
 
 // lazy pages - import from barrel index
 const WelcomePage = React.lazy(() => import('./pages').then(m => ({ default: m.WelcomePage })));
@@ -90,17 +111,21 @@ export default function App() {
         });
       });
     }
+    
+    // Add a demo mode indicator to the console
+    if (isDemoMode) {
+      console.log('%c🔮 DEMO MODE ACTIVE', 'background: #6366f1; color: white; padding: 2px 5px; border-radius: 3px; font-weight: bold;');
+    }
   }, []);
   
   return (
-    <BrowserRouter>
-      <ErrorBoundary>
-        <CombinedProviders>
-          <MuiThemeProvider theme={theme}>
-            <CssBaseline />
-            <Toast />
-            <PerformanceMonitor />
-            <Suspense fallback={<LoadingFallback />}>
+    <ErrorBoundary>
+      <DemoModeWrapper>
+        <MuiThemeProvider theme={theme}>
+          <CssBaseline />
+          <Toast />
+          <PerformanceMonitor />
+          <Suspense fallback={<LoadingFallback />}>
               <Routes>
                 <Route element={<PublicRoute />}>
                   <Route path="/" element={<WelcomePage />} />
@@ -266,8 +291,7 @@ export default function App() {
               </Routes>
             </Suspense>
           </MuiThemeProvider>
-        </CombinedProviders>
+        </DemoModeWrapper>
       </ErrorBoundary>
-    </BrowserRouter>
   );
 }

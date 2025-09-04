@@ -3,8 +3,11 @@ import { createRoot } from "react-dom/client";
 import "./index.css"; // Import CSS
 import App from "./App";
 
-// Check if we should use the development entry point
-if (process.env.REACT_APP_ENTRY === 'dev') {
+// Check which entry point to use
+if (process.env.REACT_APP_DEMO_MODE === '1') {
+  // Import the demo entry point
+  import('./demo-entry');
+} else if (process.env.REACT_APP_ENTRY === 'dev') {
   // Import the development entry point
   import('./dev');
 } else {

@@ -1,5 +1,6 @@
 // frontend/src/pages/MessagesPage.jsx
 import React, { useState, useEffect } from "react";
+import axios from "axios";
 import {
   Box,
   Typography,
@@ -18,13 +19,12 @@ import {
   InputAdornment,
   Button
 } from "@mui/material";
-import { useParams } from "react-router-dom";
-import { useAuth, useApp } from "../context";
-import Messages from "./Messages";
 import SearchIcon from "@mui/icons-material/Search";
 import PersonIcon from "@mui/icons-material/Person";
 import GroupIcon from "@mui/icons-material/Group";
-import axios from "axios";
+import { useParams, useNavigate } from "react-router-dom";
+import { useAuth, useApp } from "../context";
+import Messages from "./Messages";
 
 const MessagesPage = () => {
   const navigate = useNavigate();
