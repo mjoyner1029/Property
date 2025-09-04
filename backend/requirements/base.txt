@@ -38,7 +38,7 @@ PyQRCode==1.2.1
 pyotp==2.9.0
 
 # ---- SMS/Communication ----
-twilio==8.15.0
+twilio==8.13.0
 
 # ---- MFA / QR Code ----
 qrcode>=7.4
