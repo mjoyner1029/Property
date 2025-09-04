@@ -63,3 +63,5 @@ monitoring/tmp/
 *~
 .*.swp
 .*.swo
+test_venv/
+test_plans/
