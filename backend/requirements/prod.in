@@ -1,0 +1,9 @@
+# Production dependencies
+-r base.in
+
+# Web server
+gunicorn==21.2.0
+gevent==23.9.1
+
+# Payment processing
+stripe==6.5.0
