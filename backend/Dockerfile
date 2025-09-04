@@ -10,8 +10,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     && rm -rf /var/lib/apt/lists/*
 
 # Copy requirements first for better layer caching
-COPY requirements.txt ./
-RUN pip install --no-cache-dir -r requirements.txt
+COPY requirements/ ./requirements/
+RUN pip install --no-cache-dir -r requirements/prod.txt -c requirements/constraints.txt
 
 # Copy application code
 COPY ./src ./src
@@ -31,7 +31,7 @@ EXPOSE 5050
 
 # Health check
 HEALTHCHECK --interval=30s --timeout=30s --start-period=5s --retries=3 \
-  CMD curl -f http://localhost:5050/api/status || exit 1
+  CMD curl -f http://localhost:5050/api/health || exit 1
 
-# Use gunicorn for production
-CMD ["gunicorn", "--bind", "0.0.0.0:5050", "--worker-class", "eventlet", "--workers", "4", "--timeout", "120", "wsgi:app"]
+# Use gunicorn with gevent worker for production
+CMD ["gunicorn", "--bind", "0.0.0.0:5050", "--worker-class", "gevent", "--workers", "4", "--timeout", "120", "wsgi:app"]

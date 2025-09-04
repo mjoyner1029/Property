@@ -7,13 +7,18 @@ services:
     repo: https://github.com/mjoyner1029/Property.git
     branch: main
     rootDir: backend
-    buildCommand: pip install -r requirements.txt
+    buildCommand: pip install -r requirements/prod.txt -c requirements/constraints.txt
+    # Run migrations before deployment - this happens before the new instance starts serving traffic
     preDeployCommand: bash ../scripts/run_migrations.sh
+    
+    # Start the application with Gunicorn + gevent for better concurrency
     startCommand: >
-      gunicorn -k gevent --workers 3 --bind 0.0.0.0:$PORT
-      "src.app:create_app()" --timeout 120
+      gunicorn -k gevent -w 4 -b 0.0.0.0:$PORT
+      wsgi:app --timeout 120
       --max-requests 2000 --max-requests-jitter 200
-    healthCheckPath: /healthz
+    
+    # Health check for liveness probes - quick check that doesn't depend on DB
+    healthCheckPath: /api/health
     healthCheckTimeout: 10
     healthCheckInterval: 30
     dependsOn:
@@ -63,8 +68,8 @@ services:
       # ==== CORS / Frontend ====
       - key: CORS_ORIGINS
         value: https://assetanchor.io,https://www.assetanchor.io,https://assetanchor.vercel.app
-      - key: CORS_ALLOW_ORIGINS
-        value: https://assetanchor.io,https://www.assetanchor.io,https://assetanchor.vercel.app
+      # - key: CORS_ALLOW_ORIGINS - Removed duplicate CORS configuration
+      #   value: https://assetanchor.io,https://www.assetanchor.io,https://assetanchor.vercel.app
       - key: FRONTEND_URL
         value: https://assetanchor.vercel.app
 

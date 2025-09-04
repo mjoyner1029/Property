@@ -55,6 +55,10 @@ def create_app(config_name: Optional[str] = None) -> Flask:
     # Disable strict slashes to avoid 308 redirects when URLs differ only by trailing slash
     app.url_map.strict_slashes = False
 
+    # Ensure instance directory exists
+    from pathlib import Path
+    Path(app.instance_path).mkdir(parents=True, exist_ok=True)
+
     # Load configuration based on APP_ENV if config_name not specified
     if config_name is None:
         config_name = os.environ.get("APP_ENV", "development")
@@ -66,6 +70,11 @@ def create_app(config_name: Optional[str] = None) -> Flask:
     try:
         config_obj = get_config(config_name)
         app.config.from_object(config_obj)
+
+        # If DATABASE_URL is not set, use SQLite database in the Flask app's instance folder
+        if not app.config.get("SQLALCHEMY_DATABASE_URI"):
+            app.config["SQLALCHEMY_DATABASE_URI"] = f"sqlite:///{os.path.join(app.instance_path, 'dev.db')}"
+            
     except ValueError as e:
         app.logger.critical(f"Configuration error: {str(e)}")
         raise  # Re-raise to fail fast in production
@@ -116,7 +125,7 @@ def create_app(config_name: Optional[str] = None) -> Flask:
         app.logger.info(f"Rate limiting configured with default limits: {default_limits}")
     
     # Initialize extensions with the app
-    init_extensions(app)
+    app = init_extensions(app)
     
     # Ensure rate limiter is fully disabled in test mode
     if app.config.get("TESTING", False):
@@ -387,46 +396,28 @@ def register_blueprints(app: Flask) -> None:
     # Health check routes - Always enabled and at root level for monitoring
     try:
         from .routes.health_routes import health_bp
-        # Register at API prefix with trailing slash for backwards compatibility
+        # Register at API prefix for health management endpoints
         blueprints.append((health_bp, f'{API_PREFIX}/health'))
         
-        # Register a separate instance at root level for Render health checks
-        from flask import Blueprint, jsonify
-        from sqlalchemy import text
+        # Also register the same blueprint at root level for API-level health endpoints
+        from flask import Blueprint
         
+        # Create root-level health blueprint that maps to required API endpoints
         health_root_bp = Blueprint('health_root', __name__)
         
-        @health_root_bp.route('/healthz')
-        @limiter.exempt
-        def healthz():
-            """Simple health check endpoint for Render - never depends on DB"""
-            return jsonify({"status": "ok"}), 200
-            
-        @health_root_bp.route('/readyz')
-        @limiter.exempt
-        def readyz():
-            """Readiness probe that checks database connectivity"""
-            try:
-                # Check the database connection
-                db.session.execute(text("SELECT 1"))
-                return jsonify({"status": "ready", "db": "connected"}), 200
-            except Exception as e:
-                app.logger.warning(f"Database health check failed: {str(e)}")
-                return jsonify({"status": "degraded", "message": "Database connection failed"}), 503
+        # Import the routes from health_routes.py that we want to re-use
+        from .routes.health_routes import health_check, readyz
         
-        # Add the API health endpoint with trailing slash for compatibility
-        @health_root_bp.route('/api/health/')
-        @limiter.exempt
-        def api_health_trailing_slash():
-            """Health check endpoint with trailing slash for compatibility"""
-            git_sha = os.environ.get('GIT_SHA', 'unknown')
-            return jsonify({
-                'status': 'ok',
-                'version': app.config.get('VERSION', '1.0.0'),
-                'git_sha': git_sha,
-                'environment': app.config.get('ENV', 'development')
-            })
-                
+        # Map the health check endpoint to /api/health
+        health_root_bp.route('/api/health')(health_check)
+        
+        # Map the readiness probe to /api/ready 
+        health_root_bp.route('/api/ready')(readyz)
+        
+        # Add a trailing slash version for compatibility
+        health_root_bp.route('/api/health/')(health_check)
+        
+        # Register the root blueprint with no prefix
         blueprints.append((health_root_bp, ''))
     except Exception as e:
         app.logger.error(f"Failed to load health_bp: {str(e)}")
