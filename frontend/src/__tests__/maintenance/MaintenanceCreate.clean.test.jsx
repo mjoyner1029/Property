@@ -3,6 +3,10 @@ import React from "react";
 import { screen, within, waitFor, fireEvent } from "@testing-library/react";
 import { renderWithProviders } from "../../test-utils/renderWithProviders";
 
+// Import after mocking
+import { useMaintenance, useApp, useProperty } from "../../context";
+import Maintenance from "../../pages/Maintenance";
+
 // Define mock functions first, at the top level
 const mockFetchRequests = jest.fn().mockResolvedValue([]);
 const mockCreateRequest = jest.fn().mockImplementation(async (data) => {
@@ -23,10 +27,6 @@ jest.mock("../../context", () => ({
   useApp: jest.fn(),
   useProperty: jest.fn()
 }));
-
-// Import after mocking
-import { useMaintenance, useApp, useProperty } from "../../context";
-import Maintenance from "../../pages/Maintenance";
 
 // Setup context values using the mock functions defined above
 const maintenanceContextValue = {
@@ -284,7 +284,7 @@ describe("Maintenance — Create Request flow", () => {
     fireEvent.click(submitButton);
 
     // Expect no API call due to validation errors
-    await waitFor(() => {
+    await waitFor(() => { // TODO: Fix multiple assertions - extract into separate waitFor calls
       expect(mockCreateRequest).not.toHaveBeenCalled();
     });
     
@@ -321,7 +321,7 @@ describe("Maintenance — Create Request flow", () => {
     fireEvent.click(submitButton);
 
     // Wait for the API call
-    await waitFor(() => {
+    await waitFor(() => { // TODO: Fix multiple assertions - extract into separate waitFor calls
       expect(mockCreateRequest).toHaveBeenCalledWith(expect.objectContaining({
         title: "Broken Window",
         description: "Bedroom window won't close properly",

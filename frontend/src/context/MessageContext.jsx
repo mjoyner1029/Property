@@ -101,6 +101,7 @@ export const MessageProvider = ({ children }) => {
 
   // Core state
   const [threads, setThreads] = useState([]);
+  const [error, setError] = useState(null);
   const [messagesByThread, setMessagesByThread] = useState({});
   const [cursorsByThread, setCursorsByThread] = useState({}); // { [threadId]: { nextCursor, prevCursor } }
   const [activeThreadId, setActiveThreadId] = useState(null);
@@ -108,7 +109,6 @@ export const MessageProvider = ({ children }) => {
   const [loading, setLoading] = useState(false);
   const [loadingThreads, setLoadingThreads] = useState(false);
   const [loadingByThread, setLoadingByThread] = useState({}); // per-thread loading flag
-  const [error, setError] = useState(null);
 
   // Typing indicators (ephemeral)
   const [typingByThread, setTypingByThread] = useState({}); // { [threadId]: Set(userId) }

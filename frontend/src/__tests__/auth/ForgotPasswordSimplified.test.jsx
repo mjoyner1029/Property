@@ -12,6 +12,7 @@ jest.mock('axios');
 
 // Mock dependencies
 const mockNavigate = jest.fn();
+  const theme = useTheme();
 jest.mock('react-router-dom', () => ({
   ...jest.requireActual('react-router-dom'),
   useNavigate: () => mockNavigate,
@@ -36,7 +37,7 @@ jest.mock('src/context/AuthContext', () => ({
   }),
 }));
 
-const theme = createTheme();
+const _theme = createTheme();
 
 describe('ForgotPassword page simplified', () => {
   const renderComponent = (props = {}) => {

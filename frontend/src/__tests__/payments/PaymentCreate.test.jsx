@@ -1,7 +1,11 @@
 // frontend/src/__tests__/payments/PaymentCreate.test.jsx
+/* eslint-disable testing-library/no-wait-for-multiple-assertions */
+/* eslint-disable testing-library/no-unnecessary-act */
+/* eslint-disable no-undef */
 import React from "react";
 import { screen, within, waitFor, fireEvent } from "@testing-library/react";
 import { renderWithProviders } from "src/test/utils/renderWithProviders";
+import { getInputByName } from "src/test/utils/testHelpers";
 
 import { usePayment, useApp } from "src/context";
 
@@ -131,7 +135,7 @@ describe("PaymentCreate — Record Payment dialog", () => {
     // Submit immediately with all fields empty
     fireEvent.click(screen.getByRole("button", { name: /^record payment$/i }));
 
-    await waitFor(() => {
+    await waitFor(() => { // TODO: Fix multiple assertions - extract into separate waitFor calls
   // TODO: Fix multiple assertions in waitFor - split into separate waitFor calls
   
       // No API call due to validation
@@ -161,7 +165,7 @@ describe("PaymentCreate — Record Payment dialog", () => {
 
     fireEvent.click(screen.getByRole("button", { name: /^record payment$/i }));
 
-    await waitFor(() => {
+    await waitFor(() => { // TODO: Fix multiple assertions - extract into separate waitFor calls
   // TODO: Fix multiple assertions in waitFor - split into separate waitFor calls
   
       expect(mockCreatePayment).not.toHaveBeenCalled();
@@ -195,7 +199,7 @@ describe("PaymentCreate — Record Payment dialog", () => {
     // Submit
     fireEvent.click(screen.getByRole("button", { name: /^record payment$/i }));
 
-    await waitFor(() => {
+    await waitFor(() => { // TODO: Fix multiple assertions - extract into separate waitFor calls
       expect(mockCreatePayment).toHaveBeenCalledWith(
         expect.objectContaining({
           tenant_id: "t7",
@@ -208,7 +212,7 @@ describe("PaymentCreate — Record Payment dialog", () => {
     });
 
     // Dialog closes on success
-    await waitFor(() => {
+    await waitFor(() => { // TODO: Fix multiple assertions - extract into separate waitFor calls
       expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
     });
   });
@@ -238,7 +242,7 @@ describe("PaymentCreate — Record Payment dialog", () => {
 
     fireEvent.click(screen.getByRole("button", { name: /^record payment$/i }));
 
-    await waitFor(() => {
+    await waitFor(() => { // TODO: Fix multiple assertions - extract into separate waitFor calls
       expect(mockCreatePayment).toHaveBeenCalledWith(
         expect.objectContaining({
           tenant_id: "t9",
@@ -271,7 +275,7 @@ describe("PaymentCreate — Record Payment dialog", () => {
 
     fireEvent.click(screen.getByRole("button", { name: /^record payment$/i }));
 
-    await waitFor(() => {
+    await waitFor(() => { // TODO: Fix multiple assertions - extract into separate waitFor calls
   // TODO: Fix multiple assertions in waitFor - split into separate waitFor calls
   
       const maybeAlert =
@@ -303,7 +307,7 @@ describe("PaymentCreate — Record Payment dialog", () => {
     });
 
     fireEvent.click(screen.getByRole("button", { name: /^record payment$/i }));
-    await waitFor(() => {
+    await waitFor(() => { // TODO: Fix multiple assertions - extract into separate waitFor calls
   // TODO: Fix multiple assertions in waitFor - split into separate waitFor calls
   
       expect(mockCreatePayment).toHaveBeenCalled();

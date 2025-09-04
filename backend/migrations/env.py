@@ -1,4 +1,5 @@
 import logging
+import os
 from logging.config import fileConfig
 
 from alembic import context
@@ -12,6 +13,13 @@ config = context.config
 # Set up logging from config file
 fileConfig(config.config_file_name)
 logger = logging.getLogger("alembic.env")
+
+# Check for direct DATABASE_URL override from environment
+# This allows running migrations without loading the full Flask app
+database_url_override = os.environ.get("DATABASE_URL")
+if database_url_override:
+    logger.info("Using DATABASE_URL from environment: %s", database_url_override.split("@")[0] + "@***")
+    config.set_main_option("sqlalchemy.url", database_url_override)
 
 # Import models to detect schema
 from src.models import *

@@ -13,10 +13,9 @@ import {
   Typography,
   TextField,
   InputAdornment,
-  IconButton
+  _IconButton
 } from '@mui/material';
 import SearchIcon from '@mui/icons-material/Search';
-import FilterListIcon from '@mui/icons-material/FilterList';
 
 function descendingComparator(a, b, orderBy) {
   if (b[orderBy] < a[orderBy]) return -1;

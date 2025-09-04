@@ -8,6 +8,7 @@ import theme from 'src/theme';
 
 // Simple render helper that only includes necessary context
 const renderButton = (ui) => {
+  const theme = useTheme();
   return render(
     <ThemeProvider theme={theme}>
       {ui}

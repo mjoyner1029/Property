@@ -1,11 +1,9 @@
 import os
-
-def create_app():
-  # import your factory here; adjust path if different
-  from src.app import create_app as factory
-  return factory()
+from src.app import create_app
 
 if __name__ == "__main__":
   app = create_app()
   port = int(os.getenv("PORT", "5050"))
-  app.run(host="0.0.0.0", port=port)
+  host = os.getenv("HOST", "0.0.0.0")
+  print(f"Serving on {host}:{port}")
+  app.run(host=host, port=port, debug=True)

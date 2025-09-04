@@ -10,7 +10,7 @@ import sqlalchemy as sa  # noqa: F401  # needed for Alembic autogenerate to run
 
 # Revision identifiers, used by Alembic.
 revision = "20250820_noop"
-down_revision = "42fd63a85b12"
+down_revision = '42fd63a85b12'
 branch_labels = None
 depends_on = None
 

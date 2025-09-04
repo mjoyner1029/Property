@@ -1,7 +1,7 @@
 // frontend/src/utils/authApi.js
 
 import api from './api';
-import { API_URL } from '../config/environment';
+// No need to import API_URL as we're using the api instance
 
 /**
  * Authentication API service

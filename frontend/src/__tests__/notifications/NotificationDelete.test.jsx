@@ -9,7 +9,7 @@ import NotificationsPage from "src/pages/Notifications";
 import NotificationDetail from "src/pages/NotificationDetail";
 
 // ---- Router mocks ----
-import { useNavigate, useParams } from 'react-router-dom';
+import { useParams } from 'react-router-dom';
 
 // Import mock hooks with absolute paths
 import { mockNotificationHook, mockAppHook } from 'src/__tests__/__mocks__/contextHooks';

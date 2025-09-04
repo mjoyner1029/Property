@@ -1,13 +1,4 @@
 // Mock useNavigate and useParams
-jest.mock('react-router-dom', () => ({
-  ...jest.requireActual('react-router-dom'),
-  useNavigate: () => mockNavigate,
-  useParams: () => mockParams
-}));
-
-// Mock axios
-jest.mock('axios');
-
 import React from 'react';
 import { screen, within, waitFor, fireEvent } from '@testing-library/react';
 import { getInputByName, getSelectByName } from 'src/test/utils/muiTestUtils';
@@ -16,6 +7,15 @@ import PropertyDetail from 'src/pages/PropertyDetail';
 import * as PropertyContext from 'src/context/PropertyContext';
 import * as AppContext from 'src/context/AppContext';
 import axios from 'axios';
+
+jest.mock('react-router-dom', () => ({
+  ...jest.requireActual('react-router-dom'),
+  useNavigate: () => mockNavigate,
+  useParams: () => mockParams
+}));
+
+// Mock axios
+jest.mock('axios');
 
 const mockNavigate = jest.fn();
 const mockParams = { id: '123' };
@@ -84,7 +84,7 @@ describe('PropertyDetail', () => {
     });
 
     // First verify that fetchPropertyById was called with the correct ID
-    await waitFor(() => {
+    await waitFor(() => { // TODO: Fix multiple assertions - extract into separate waitFor calls
       expect(PropertyContext.useProperty().fetchPropertyById).toHaveBeenCalledWith(mockParams.id);
     });
 
@@ -117,7 +117,7 @@ describe('PropertyDetail', () => {
     });
 
     // Wait for the property data to be displayed
-    await waitFor(() => {
+    await waitFor(() => { // TODO: Fix multiple assertions - extract into separate waitFor calls
       expect(screen.getAllByText(mockPropertyData.address)[0]).toBeInTheDocument();
     });
 
@@ -134,7 +134,7 @@ describe('PropertyDetail', () => {
     fireEvent.click(confirmButton);
 
     // Verify delete API was called
-    await waitFor(() => {
+    await waitFor(() => { // TODO: Fix multiple assertions - extract into separate waitFor calls
   // TODO: Fix multiple assertions in waitFor - split into separate waitFor calls
   
       expect(axios.delete).toHaveBeenCalledWith(`/api/properties/${mockPropertyData.id}`);
@@ -142,7 +142,7 @@ describe('PropertyDetail', () => {
     });
 
     // Verify successful navigation
-    await waitFor(() => {
+    await waitFor(() => { // TODO: Fix multiple assertions - extract into separate waitFor calls
       expect(mockNavigate).toHaveBeenCalledWith('/properties');
     });
   });
@@ -184,7 +184,7 @@ describe('PropertyDetail', () => {
     });
 
     // Use waitFor to wait for the alert to appear
-    await waitFor(() => {
+    await waitFor(() => { // TODO: Fix multiple assertions - extract into separate waitFor calls
       const errorAlert = screen.getByRole('alert');
       expect(errorAlert).toBeInTheDocument();
       expect(errorAlert).toHaveTextContent('Failed to load property');

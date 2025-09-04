@@ -1,5 +1,6 @@
 // frontend/src/pages/MaintenanceDetail.jsx
 import React, { useEffect, useMemo, useState } from "react";
+import { useParams, useNavigate } from "react-router-dom";
 import {
   Box,
   Typography,
@@ -39,7 +40,6 @@ import {
   Warning as WarningIcon,
   HomeRepairService as HomeRepairServiceIcon,
 } from "@mui/icons-material";
-import { useNavigate, useParams } from "react-router-dom";
 import { Layout, PageHeader } from "../components";
 import { useMaintenance, useApp } from "../context";
 

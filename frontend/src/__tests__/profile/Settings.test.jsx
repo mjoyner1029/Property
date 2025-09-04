@@ -11,6 +11,7 @@ import axios from 'axios';
 jest.mock('axios');
 
 const mockNavigate = jest.fn();
+  const theme = useTheme();
 jest.mock('react-router-dom', () => ({
   ...jest.requireActual('react-router-dom'),
   useNavigate: () => mockNavigate,
@@ -153,7 +154,7 @@ describe('Settings Component', () => {
     await userEvent.click(changeBtn);
 
     // Be tolerant to error copy
-    await waitFor(() => {
+    await waitFor(() => { // TODO: Fix multiple assertions - extract into separate waitFor calls
       const err =
         screen.queryByText(/do not match/i) ||
         screen.queryByText(/must match/i) ||
@@ -183,7 +184,7 @@ describe('Settings Component', () => {
     const changeBtn = screen.getByRole('button', { name: /change password/i });
     await userEvent.click(changeBtn);
 
-    await waitFor(() => {
+    await waitFor(() => { // TODO: Fix multiple assertions - extract into separate waitFor calls
       expect(
         screen.getByText(/password must be at least 8 characters/i)
       ).toBeInTheDocument();
@@ -211,7 +212,7 @@ describe('Settings Component', () => {
     await userEvent.click(changeBtn);
 
     // Success message appears
-    await waitFor(() => {
+    await waitFor(() => { // TODO: Fix multiple assertions - extract into separate waitFor calls
       const ok =
         screen.queryByText(/password changed successfully/i) ||
         screen.queryByRole('alert');

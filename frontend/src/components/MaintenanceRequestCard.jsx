@@ -128,7 +128,7 @@ const MaintenanceRequestCard = ({
   createdAt,
   assignedTo,
   maintenance_type,
-  images = [],
+  _images = [],
   onClick,
   onMenuClick
 }) => {

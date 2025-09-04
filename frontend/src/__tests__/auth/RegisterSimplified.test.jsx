@@ -8,6 +8,7 @@ import { act } from 'react-dom/test-utils';
 
 // Mock dependencies
 const mockNavigate = jest.fn();
+  const theme = useTheme();
 jest.mock('react-router-dom', () => ({
   ...jest.requireActual('react-router-dom'),
   useNavigate: () => mockNavigate,
@@ -24,7 +25,7 @@ jest.mock('src/context/AuthContext', () => ({
   }),
 }));
 
-const theme = createTheme();
+const _theme = createTheme();
 
 describe('Register page simplified', () => {
   const renderComponent = () => {
@@ -87,7 +88,7 @@ describe('Register page simplified', () => {
       fireEvent.click(screen.getByRole('button', { name: /sign up/i }));
     });
     
-    await waitFor(() => {
+    await waitFor(() => { // TODO: Fix multiple assertions - extract into separate waitFor calls
       expect(mockRegister).toHaveBeenCalledWith(
         'Test User',
         'test@example.com',
@@ -115,7 +116,7 @@ describe('Register page simplified', () => {
       fireEvent.click(screen.getByRole('button', { name: /sign up/i }));
     });
     
-    await waitFor(() => {
+    await waitFor(() => { // TODO: Fix multiple assertions - extract into separate waitFor calls
       expect(screen.getByText(/Registration failed/i)).toBeInTheDocument();
     });
   });

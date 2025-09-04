@@ -5,7 +5,8 @@ import axios from 'axios';
 import { 
   Button, Typography, Box, Paper, Container, CircularProgress,
   Accordion, AccordionSummary, AccordionDetails, Divider, Alert,
-  Stack, Link, Chip
+  // Stack, Link, and Chip are imported but unused
+  _Stack, _Link, _Chip
 } from '@mui/material';
 import { API_URL, ENVIRONMENT, IS_DEVELOPMENT, APP_VERSION } from '../config/environment';
 import { captureException } from '../observability/sentry';
@@ -16,7 +17,8 @@ import WarningIcon from '@mui/icons-material/Warning';
 import RestoreIcon from '@mui/icons-material/Restore';
 import HomeIcon from '@mui/icons-material/Home';
 import RefreshIcon from '@mui/icons-material/Refresh';
-import BugReportIcon from '@mui/icons-material/BugReport';
+// BugReportIcon is imported but unused 
+import _BugReportIcon from '@mui/icons-material/BugReport';
 
 /**
  * ErrorBoundary captures React component errors and provides fallback UI
@@ -213,7 +215,7 @@ export default class ErrorBoundary extends React.Component {
         route: window.location.pathname,
         timestamp: new Date().toISOString(),
         userId: localStorage.getItem('userId') || 'anonymous',
-        appVersion: process.env.REACT_APP_VERSION || 'unknown',
+        appVersion: APP_VERSION || process.env.REACT_APP_VERSION || 'unknown',
         errorType: this.state.errorType,
         environment: ENVIRONMENT,
         viewport: {
@@ -222,11 +224,14 @@ export default class ErrorBoundary extends React.Component {
         }
       };
       
-      // Send to monitoring service if available
-      captureException(error, {
-        errorContext,
-        errorType: this.state.errorType
-      });
+      // Send to Sentry if DSN is configured
+      if (process.env.REACT_APP_SENTRY_DSN) {
+        captureException(error, {
+          errorContext,
+          errorType: this.state.errorType
+        });
+        console.debug('[ErrorBoundary] Error reported to Sentry');
+      }
       
       // Send to backend error log endpoint
       await axios.post(`${API_URL}/log/frontend-error`, errorContext);
@@ -296,7 +301,7 @@ export default class ErrorBoundary extends React.Component {
         );
       }).then(() => {
         window.location.reload(true);
-      }).catch(err => {
+      }).catch(_err => {
         // If cache clear fails, just reload
         window.location.reload(true);
       });

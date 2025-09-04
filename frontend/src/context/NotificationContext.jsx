@@ -35,9 +35,9 @@ export const NotificationProvider = ({ children }) => {
   const isAuthenticated = auth?.isAuthenticated || false;
 
   const [notifications, setNotifications] = useState([]);
+  const [error, setError] = useState(null);
   const [unreadCount, setUnreadCount] = useState(0);
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(null);
 
   // socket ref (avoid re-connecting on re-renders)
   const socketRef = useRef(null);
@@ -136,7 +136,7 @@ export const NotificationProvider = ({ children }) => {
     if (!authHeaders) return;
 
     const prev = notifications;
-    const toRemove = prev.find((n) => n.id === notificationId);
+    const _toRemove = prev.find((n) => n.id === notificationId);
     const next = prev.filter((n) => n.id !== notificationId);
     setNotifications(next);
     refreshDerived(next);

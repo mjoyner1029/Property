@@ -222,7 +222,7 @@ describe("Maintenance — Create Request flow", () => {
     fireEvent.click(screen.getByRole("button", { name: /create request/i }));
 
     // Expect no API call due to validation errors
-    await waitFor(() => {
+    await waitFor(() => { // TODO: Fix multiple assertions - extract into separate waitFor calls
       expect(mockCreateRequest).not.toHaveBeenCalled();
     });
   });
@@ -259,7 +259,7 @@ describe("Maintenance — Create Request flow", () => {
     // Submit
     fireEvent.click(screen.getByRole("button", { name: /create request/i }));
 
-    await waitFor(() => {
+    await waitFor(() => { // TODO: Fix multiple assertions - extract into separate waitFor calls
       expect(mockCreateRequest).toHaveBeenCalledWith(
         expect.objectContaining({
           title: "Broken disposal",
@@ -273,7 +273,7 @@ describe("Maintenance — Create Request flow", () => {
     });
 
     // Dialog closes on success
-    await waitFor(() => {
+    await waitFor(() => { // TODO: Fix multiple assertions - extract into separate waitFor calls
       expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
     });
   });
@@ -305,7 +305,7 @@ describe("Maintenance — Create Request flow", () => {
     fireEvent.click(screen.getByRole("button", { name: /create request/i }));
 
     // Error message (Alert or inline error)
-    await waitFor(() => {
+    await waitFor(() => { // TODO: Fix multiple assertions - extract into separate waitFor calls
       const maybeAlert =
         screen.queryByRole("alert") || screen.queryByText(/failed to create request/i);
       expect(maybeAlert).toBeInTheDocument();
@@ -339,12 +339,12 @@ describe("Maintenance — Create Request flow", () => {
     });
     fireEvent.click(screen.getByRole("button", { name: /create request/i }));
 
-    await waitFor(() => {
+    await waitFor(() => { // TODO: Fix multiple assertions - extract into separate waitFor calls
       expect(mockCreateRequest).toHaveBeenCalled();
     });
 
     // Dialog should close
-    await waitFor(() => {
+    await waitFor(() => { // TODO: Fix multiple assertions - extract into separate waitFor calls
       expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
     });
 

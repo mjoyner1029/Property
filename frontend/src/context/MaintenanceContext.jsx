@@ -31,8 +31,8 @@ function extractRequestsPayload(data) {
 
 export const MaintenanceProvider = ({ children }) => {
   const [maintenanceRequests, setMaintenanceRequests] = useState([]);
-  const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+  const [loading, setLoading] = useState(false);
   const [stats, setStats] = useState({
     open: 0,
     inProgress: 0,

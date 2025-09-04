@@ -24,10 +24,11 @@ import {
 import { formatDistanceToNow } from "date-fns";
 
 const ActivityFeed = () => {
+  const theme = useTheme();
   const [activities, setActivities] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
-  const theme = useTheme();
+  const _theme = useTheme();
 
   useEffect(() => {
     // Fetch activity data

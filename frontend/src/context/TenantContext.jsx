@@ -7,8 +7,8 @@ export const TenantContext = createContext();
 
 export const TenantProvider = ({ children }) => {
   const [tenants, setTenants] = useState([]);
-  const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+  const [loading, setLoading] = useState(false);
   const { isAuthenticated } = useAuth();
 
   // Fetch all tenants

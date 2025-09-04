@@ -141,7 +141,7 @@ test("closes the dialog when cancel is clicked", async () => {
   fireEvent.click(cancelButton);
   
   // Check that the dialog is no longer in the document
-  await waitFor(() => {
+  await waitFor(() => { // TODO: Fix multiple assertions - extract into separate waitFor calls
     expect(screen.queryByTestId("confirm-dialog")).not.toBeInTheDocument();
   });
 });
@@ -171,17 +171,17 @@ test("deletes the request and navigates back when confirmed", async () => {
   fireEvent.click(confirmButton);
   
   // Check that deleteRequest was called with the correct ID
-  await waitFor(() => {
+  await waitFor(() => { // TODO: Fix multiple assertions - extract into separate waitFor calls
     expect(mockDeleteRequest).toHaveBeenCalledWith(mockRequest.id);
   });
   
   // Dialog should close
-  await waitFor(() => {
+  await waitFor(() => { // TODO: Fix multiple assertions - extract into separate waitFor calls
     expect(screen.queryByTestId("confirm-dialog")).not.toBeInTheDocument();
   });
   
   // Should have attempted to navigate back to the list
-  await waitFor(() => {
+  await waitFor(() => { // TODO: Fix multiple assertions - extract into separate waitFor calls
     expect(mockNavigate).toHaveBeenCalledWith("/maintenance");
   });
 });

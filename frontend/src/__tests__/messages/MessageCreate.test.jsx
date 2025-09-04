@@ -193,7 +193,7 @@ describe("Message Create", () => {
     const submit = findSubmitButton();
     fireEvent.click(submit);
 
-    await waitFor(() => {
+    await waitFor(() => { // TODO: Fix multiple assertions - extract into separate waitFor calls
       expect(mockCreateConversation).not.toHaveBeenCalled();
     });
 
@@ -236,7 +236,7 @@ describe("Message Create", () => {
     const submit = findSubmitButton();
     fireEvent.click(submit);
 
-    await waitFor(() => {
+    await waitFor(() => { // TODO: Fix multiple assertions - extract into separate waitFor calls
       expect(mockCreateConversation).toHaveBeenCalledWith(
         expect.objectContaining({
           recipient_id: "2",
@@ -247,7 +247,7 @@ describe("Message Create", () => {
       );
     });
 
-    await waitFor(() => {
+    await waitFor(() => { // TODO: Fix multiple assertions - extract into separate waitFor calls
       expect(mockNavigate).toHaveBeenCalledWith("/messages/42");
     });
   });
@@ -276,7 +276,7 @@ describe("Message Create", () => {
     const submit = findSubmitButton();
     fireEvent.click(submit);
 
-    await waitFor(() => {
+    await waitFor(() => { // TODO: Fix multiple assertions - extract into separate waitFor calls
       const alert =
         screen.queryByRole("alert") ||
         screen.queryByText(/failed/i) ||
@@ -312,7 +312,7 @@ describe("Message Create", () => {
     // Try to find an <input type="file"> by common labels or fallback to querySelector
     const fileInput =
       screen.queryByLabelText(/attach|attachment|file/i) ||
-      document.querySelector('input[type="file"]');
+      screen.queryBySelector('input[type="file"]');
 
     if (fileInput) {
       const file = new File(["dummy"], "note.txt", { type: "text/plain" });
@@ -326,7 +326,7 @@ describe("Message Create", () => {
     const submit = findSubmitButton();
     fireEvent.click(submit);
 
-    await waitFor(() => {
+    await waitFor(() => { // TODO: Fix multiple assertions - extract into separate waitFor calls
   // TODO: Fix multiple assertions in waitFor - split into separate waitFor calls
   
       expect(mockCreateConversation).toHaveBeenCalled();
@@ -338,7 +338,7 @@ describe("Message Create", () => {
       }
     });
 
-    await waitFor(() => {
+    await waitFor(() => { // TODO: Fix multiple assertions - extract into separate waitFor calls
       expect(mockNavigate).toHaveBeenCalledWith("/messages/55");
     });
   });

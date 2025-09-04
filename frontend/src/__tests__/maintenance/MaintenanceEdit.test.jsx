@@ -211,7 +211,7 @@ const renderDetail = async () => {
   );
   
   // Wait for the component to load fully (past the loading state)
-  await waitFor(() => {
+  await waitFor(() => { // TODO: Fix multiple assertions - extract into separate waitFor calls
     expect(screen.queryByTestId("loading-spinner")).not.toBeInTheDocument();
   });
   
@@ -237,13 +237,13 @@ describe("MaintenanceDetail — Edit flow", () => {
     await renderDetail();
     
     // Wait for the component to load
-    await waitFor(() => {
+    await waitFor(() => { // TODO: Fix multiple assertions - extract into separate waitFor calls
       // Use a more specific selector to avoid duplicate matches
       expect(screen.getByRole('heading', { name: /Leaky faucet/i })).toBeInTheDocument();
     });
 
     // Header + request details visible
-    await waitFor(() => {
+    await waitFor(() => { // TODO: Fix multiple assertions - extract into separate waitFor calls
       expect(screen.getByText("Bathroom sink leaking under cabinet")).toBeInTheDocument();
     });
 
@@ -284,7 +284,7 @@ describe("MaintenanceDetail — Edit flow", () => {
     const saveBtn = screen.getByRole("button", { name: /save changes/i });
     fireEvent.click(saveBtn);
 
-    await waitFor(() => {
+    await waitFor(() => { // TODO: Fix multiple assertions - extract into separate waitFor calls
       expect(mockUpdateRequest).toHaveBeenCalledWith("1", {
         title: "Leaky kitchen faucet",
         description: "Kitchen faucet leaking at the base",
@@ -295,7 +295,7 @@ describe("MaintenanceDetail — Edit flow", () => {
     });
 
     // Dialog should close on success
-    await waitFor(() => {
+    await waitFor(() => { // TODO: Fix multiple assertions - extract into separate waitFor calls
       expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
     });
   });
@@ -316,7 +316,7 @@ describe("MaintenanceDetail — Edit flow", () => {
     fireEvent.click(screen.getByRole("button", { name: /save changes/i }));
 
     // Expect no API call (validation prevented submission)
-    await waitFor(() => {
+    await waitFor(() => { // TODO: Fix multiple assertions - extract into separate waitFor calls
       expect(mockUpdateRequest).not.toHaveBeenCalled();
     });
   });
@@ -330,7 +330,7 @@ describe("MaintenanceDetail — Edit flow", () => {
     const startBtn = screen.getByRole("button", { name: /start work/i });
     fireEvent.click(startBtn);
 
-    await waitFor(() => {
+    await waitFor(() => { // TODO: Fix multiple assertions - extract into separate waitFor calls
       expect(mockUpdateRequest).toHaveBeenCalledWith("1", expect.objectContaining({ status: "in_progress" }));
     });
   });
@@ -343,7 +343,7 @@ describe("MaintenanceDetail — Edit flow", () => {
     const completeBtn = screen.getByRole("button", { name: /mark as complete/i });
     fireEvent.click(completeBtn);
 
-    await waitFor(() => {
+    await waitFor(() => { // TODO: Fix multiple assertions - extract into separate waitFor calls
       expect(mockUpdateRequest).toHaveBeenCalledWith("1", expect.objectContaining({ status: "completed" }));
     });
   });
@@ -364,7 +364,7 @@ describe("MaintenanceDetail — Edit flow", () => {
     fireEvent.click(screen.getByRole("button", { name: /save changes/i }));
 
     // Error surfaced and dialog remains
-    await waitFor(() => {
+    await waitFor(() => { // TODO: Fix multiple assertions - extract into separate waitFor calls
   // TODO: Fix multiple assertions in waitFor - split into separate waitFor calls
   
       const maybeAlert =

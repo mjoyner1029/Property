@@ -3,6 +3,13 @@ import React from "react";
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { MemoryRouter, Routes, Route } from "react-router-dom";
+import api from 'src/utils/api';
+
+// Import shared mocks
+import { updatePageTitleMock } from "../../test/mocks/pageTitle";
+import { getTenantMock, updateTenantMock, deleteTenantMock } from "../../test/mocks/services";
+
+import TenantDetail from "src/pages/TenantDetail";
 
 // Mock the app's axios client module
 jest.mock('src/utils/api', () => ({
@@ -11,13 +18,6 @@ jest.mock('src/utils/api', () => ({
   put: jest.fn(),
   delete: jest.fn(),
 }));
-import api from 'src/utils/api';
-
-// Import shared mocks
-import { updatePageTitleMock } from "../../test/mocks/pageTitle";
-import { getTenantMock, updateTenantMock, deleteTenantMock } from "../../test/mocks/services";
-
-import TenantDetail from "src/pages/TenantDetail";
 
 // Mock context hooks used by TenantDetail
 jest.mock("../../context", () => {
@@ -80,7 +80,7 @@ describe("TenantDetail", () => {
     renderAtRoute();
 
     // First, wait for API call to be made
-    await waitFor(() => {
+    await waitFor(() => { // TODO: Fix multiple assertions - extract into separate waitFor calls
       expect(api.get).toHaveBeenCalled();
     });
     
@@ -112,7 +112,7 @@ describe("TenantDetail", () => {
     renderAtRoute();
 
     // Wait initial data
-    await waitFor(() => {
+    await waitFor(() => { // TODO: Fix multiple assertions - extract into separate waitFor calls
       expect(screen.getByText("Alice")).toBeInTheDocument();
     });
 
@@ -136,7 +136,7 @@ describe("TenantDetail", () => {
     await userEvent.click(screen.getByRole("button", { name: /save changes/i }));
 
     // Update called with id + payload
-    await waitFor(() => {
+    await waitFor(() => { // TODO: Fix multiple assertions - extract into separate waitFor calls
       expect(updateTenantMock).toHaveBeenCalledWith("1", {
         name: "Alice Smith",
         email: "alice.smith@example.com",
@@ -145,7 +145,7 @@ describe("TenantDetail", () => {
     });
 
     // UI reflects updated info
-    await waitFor(() => {
+    await waitFor(() => { // TODO: Fix multiple assertions - extract into separate waitFor calls
   // TODO: Fix multiple assertions in waitFor - split into separate waitFor calls
   
       expect(screen.getByText("Alice Smith")).toBeInTheDocument();
@@ -163,7 +163,7 @@ describe("TenantDetail", () => {
     renderAtRoute();
 
     // Wait initial data
-    await waitFor(() => {
+    await waitFor(() => { // TODO: Fix multiple assertions - extract into separate waitFor calls
       expect(screen.getByText("Alice")).toBeInTheDocument();
     });
 
@@ -177,7 +177,7 @@ describe("TenantDetail", () => {
     // Save -> expect error alert in dialog
     await userEvent.click(screen.getByRole("button", { name: /save changes/i }));
 
-    await waitFor(() => {
+    await waitFor(() => { // TODO: Fix multiple assertions - extract into separate waitFor calls
       expect(
         screen.getByText(/failed to update tenant/i)
       ).toBeInTheDocument();

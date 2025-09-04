@@ -84,7 +84,7 @@ describe("Dashboard Overview page", () => {
     renderOverview();
 
     // Some implementations may async-load small bits; give it a tick.
-    await waitFor(() => {
+    await waitFor(() => { // TODO: Fix multiple assertions - extract into separate waitFor calls
       // With PageHeader mocked, title should be exact. If you don't use PageHeader,
       // we still look loosely for an h1 or text containing 'Overview'.
       expect(
@@ -96,7 +96,7 @@ describe("Dashboard Overview page", () => {
   test("shows optional subtitle if provided by the page", async () => {
     renderOverview();
     // Only assert softly; not all implementations have a subtitle.
-    await waitFor(() => {
+    await waitFor(() => { // TODO: Fix multiple assertions - extract into separate waitFor calls
       const maybeSubtitle = screen.queryByText(/(summary|at a glance|insights)/i);
       // No failure if absent—kept as a smoke check for teams that include one.
       if (maybeSubtitle) {
@@ -110,7 +110,7 @@ describe("Dashboard Overview page", () => {
 
     // We stubbed ChartCard/StatsCard; only assert presence if they’re used.
     // This keeps the test compatible even if Overview only uses one of them.
-    await waitFor(() => {
+    await waitFor(() => { // TODO: Fix multiple assertions - extract into separate waitFor calls
   // TODO: Fix multiple assertions in waitFor - split into separate waitFor calls
   
       const charts = screen.queryAllByTestId("chart-card");

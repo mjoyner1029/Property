@@ -144,7 +144,7 @@ describe("PaymentDetail Page", () => {
     resolveGet(payment);
 
     // Details appear
-    await waitFor(() => {
+    await waitFor(() => { // TODO: Fix multiple assertions - extract into separate waitFor calls
   // TODO: Fix multiple assertions in waitFor - split into separate waitFor calls
   
       // Title/name/tenant present
@@ -211,7 +211,7 @@ describe("PaymentDetail Page", () => {
     // Save
     fireEvent.click(screen.getByRole("button", { name: /save/i }));
 
-    await waitFor(() => {
+    await waitFor(() => { // TODO: Fix multiple assertions - extract into separate waitFor calls
       expect(mockUpdatePayment).toHaveBeenCalledWith("1", {
         amount: 1250.5,
         status: "paid",
@@ -221,7 +221,7 @@ describe("PaymentDetail Page", () => {
     });
 
     // Dialog should close on success
-    await waitFor(() => {
+    await waitFor(() => { // TODO: Fix multiple assertions - extract into separate waitFor calls
       expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
     });
 
@@ -250,7 +250,7 @@ describe("PaymentDetail Page", () => {
 
     fireEvent.click(screen.getByRole("button", { name: /save/i }));
 
-    await waitFor(() => {
+    await waitFor(() => { // TODO: Fix multiple assertions - extract into separate waitFor calls
   // TODO: Fix multiple assertions in waitFor - split into separate waitFor calls
   
       const maybeAlert =
@@ -278,7 +278,7 @@ describe("PaymentDetail Page", () => {
       (await screen.findByRole("button", { name: /delete/i }));
     fireEvent.click(confirmBtn);
 
-    await waitFor(() => {
+    await waitFor(() => { // TODO: Fix multiple assertions - extract into separate waitFor calls
   // TODO: Fix multiple assertions in waitFor - split into separate waitFor calls
   
       expect(mockDeletePayment).toHaveBeenCalledWith("1");
@@ -302,7 +302,7 @@ describe("PaymentDetail Page", () => {
       (await screen.findByRole("button", { name: /delete/i }));
     fireEvent.click(confirmBtn);
 
-    await waitFor(() => {
+    await waitFor(() => { // TODO: Fix multiple assertions - extract into separate waitFor calls
       const err =
         screen.queryByRole("alert") ||
         screen.queryByText(/failed to delete/i) ||

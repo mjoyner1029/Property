@@ -17,11 +17,11 @@ describe('JSDOM Test', () => {
     console.log('JSDOM document.body:', document.body.innerHTML);
     
     // Test if the content is there
-    expect(document.body.textContent).toBe('JSDOM Test Content');
+    expect(document.body).toHaveTextContent('JSDOM Test Content');
     
     // Test querySelector
-    const span = document.querySelector('span');
+    const span = screen.queryBySelector('span');
     expect(span).not.toBeNull();
-    expect(span.textContent).toBe('JSDOM Test Content');
+    expect(span).toHaveTextContent('JSDOM Test Content');
   });
 });

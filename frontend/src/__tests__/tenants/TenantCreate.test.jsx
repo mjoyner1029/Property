@@ -131,7 +131,7 @@ describe("TenantForm (Create mode)", () => {
     fireEvent.click(submitBtn);
 
     // verify payload
-    await waitFor(() => {
+    await waitFor(() => { // TODO: Fix multiple assertions - extract into separate waitFor calls
       expect(mockCreateTenant).toHaveBeenCalledWith(
         expect.objectContaining({
           name: "Alice Tenant",
@@ -142,7 +142,7 @@ describe("TenantForm (Create mode)", () => {
     });
 
     // navigates to list
-    await waitFor(() => {
+    await waitFor(() => { // TODO: Fix multiple assertions - extract into separate waitFor calls
       expect(mockNavigate).toHaveBeenCalledWith("/tenants");
     });
   });
@@ -166,7 +166,7 @@ describe("TenantForm (Create mode)", () => {
     fireEvent.click(submitBtn);
 
     // error surface (alert or inline helper)
-    await waitFor(() => {
+    await waitFor(() => { // TODO: Fix multiple assertions - extract into separate waitFor calls
       const maybeAlert = screen.queryByRole("alert") || screen.queryByText(/api fail/i);
       expect(maybeAlert).toBeInTheDocument();
     });
@@ -185,7 +185,7 @@ describe("TenantForm (Create mode)", () => {
     fireEvent.click(submitBtn);
 
     // Your form likely sets helper text like "Name is required" / "Email is required"
-    await waitFor(() => {
+    await waitFor(() => { // TODO: Fix multiple assertions - extract into separate waitFor calls
       const nameErr =
         screen.queryByText(/name is required/i) ||
         screen.queryByText(/full name is required/i);

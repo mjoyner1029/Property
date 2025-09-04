@@ -87,7 +87,7 @@ describe('AuthContext', () => {
   // No longer needed
   // const setUser = jest.fn();
   // const setTokenState = jest.fn();
-  // const setLoading = jest.fn();
+  // const _setLoading = jest.fn();
 
   test('provides authentication state', () => {
     const customAuth = {

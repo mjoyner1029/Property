@@ -82,8 +82,11 @@ def init_extensions(app: Flask) -> None:
     Args:
         app: Flask application instance
     """
-    # Initialize database
-    db.init_app(app)
+    # Initialize database - using correct initialization for the SQLAlchemy version
+    with app.app_context():
+        # Fix for 'db' not defined error in init_app method
+        app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+        db.init_app(app)
     
     # Initialize migrations
     migrate.init_app(app, db)
@@ -175,33 +178,40 @@ def init_extensions(app: Flask) -> None:
 def _get_cors_config(app: Flask) -> Dict[str, Any]:
     """Get configuration for CORS extension."""
     
-    # Parse CORS origins from config
+    # Use the CORS_ORIGINS that has already been parsed in config.py
     origins = app.config.get("CORS_ORIGINS", "*")
-    if isinstance(origins, str) and origins != "*":
-        # Split by comma and strip whitespace
-        origins = [origin.strip() for origin in origins.split(",")]
+    
+    # Ensure proper format for CORS origins
+    if not isinstance(origins, list) and origins != "*":
+        # If somehow the config value wasn't properly parsed yet
+        if isinstance(origins, str):
+            # Split by comma and strip whitespace
+            origins = [origin.strip() for origin in origins.split(",") if origin.strip()]
+        else:
+            # Fallback to safe default
+            origins = ["http://localhost:3000"]
     
     # Ensure localhost origins are included for development
     env = app.config.get("ENV", "development")
     if env != "production":
         localhost_origins = [
             "http://localhost:3000",
-            "http://localhost:3001",
+            "http://localhost:3001", 
             "http://localhost:3002",
             "http://localhost:5000",
             "http://127.0.0.1:3000",
             "http://127.0.0.1:5000"
         ]
         
-        # If origins is a list, extend it; if it's "*", replace it with the localhost list
+        # If origins is a list, extend it; if it's "*", keep it as wildcard for development
         if isinstance(origins, list):
             # Add localhost origins only if they're not already in the list
             for origin in localhost_origins:
                 if origin not in origins:
                     origins.append(origin)
+        # Keep "*" as-is for development testing, but log a warning
         elif origins == "*" and env != "testing":
-            # In development, replace "*" with explicit localhost origins
-            origins = localhost_origins
+            app.logger.warning("Using wildcard CORS origin '*' in development. Consider using explicit origins.")
     
     # Expose additional headers for auth and rate limiting
     expose_headers = [
@@ -218,9 +228,11 @@ def _get_cors_config(app: Flask) -> Dict[str, Any]:
         "origins": origins,
         "methods": ["GET", "HEAD", "POST", "OPTIONS", "PUT", "PATCH", "DELETE"],
         "expose_headers": expose_headers,
-        "allow_headers": ["Content-Type", "Authorization", "X-Requested-With", "Accept"],
+        "allow_headers": ["Content-Type", "Authorization", "X-Requested-With", "Accept", "Origin", "Cache-Control"],
         "supports_credentials": True,
-        "vary_header": True
+        "vary_header": True,
+        "send_wildcard": False,  # Don't send '*' in Access-Control-Allow-Origin
+        "always_send": True      # Always send CORS headers for allowed origins
     }
 
 

@@ -22,7 +22,7 @@ describe('Basic Render Test', () => {
     div.textContent = 'DOM Test';
     document.body.appendChild(div);
     console.log('Direct DOM:', document.body.innerHTML);
-    expect(document.body.textContent).toContain('DOM Test');
+    expect(document.body).toHaveTextContent(/DOM Test/);
     document.body.removeChild(div);
   });
   
@@ -33,7 +33,7 @@ describe('Basic Render Test', () => {
     
     ReactDOM.render(<div>React Test</div>, container);
     console.log('ReactDOM result:', document.body.innerHTML);
-    expect(container.textContent).toBe('React Test');
+    expect(container).toHaveTextContent('React Test');
     
     document.body.removeChild(container);
   });
@@ -43,6 +43,6 @@ describe('Basic Render Test', () => {
     const { container } = render(<div>RTL Test</div>);
     console.log('RTL container:', container.outerHTML);
     console.log('RTL body:', document.body.innerHTML);
-    expect(container.textContent).toBe('RTL Test');
+    expect(container).toHaveTextContent('RTL Test');
   });
 });

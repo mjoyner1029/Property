@@ -15,6 +15,9 @@ import { getInputByName, getSelectByName } from "../../test/utils/muiTestUtils";
 // Use our test double instead of the real component
 import PaymentsTestDouble from './PaymentsTestDouble';
 
+import Payments from "src/pages/Payments";
+import { usePayment } from "../../context";
+
 // Mock the Payments component with our test double
 jest.mock("src/pages/Payments", () => {
   return {
@@ -22,9 +25,6 @@ jest.mock("src/pages/Payments", () => {
     default: require('./PaymentsTestDouble').default
   };
 });
-
-import Payments from "src/pages/Payments";
-import { usePayment } from "../../context";
 
 jest.mock("../../context", () => {
   return {

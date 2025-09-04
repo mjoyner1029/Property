@@ -1,6 +1,7 @@
 // src/test/mocks/pageTitle.js
 // Create mock variables
 const updatePageTitleMock = jest.fn();
+// Don't use hooks at the top level
 const toggleDarkModeMock = jest.fn();
 const isDarkModeMock = false;
 const isMobileMock = false;

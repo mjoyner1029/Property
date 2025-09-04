@@ -30,14 +30,14 @@ describe('NotificationDetail', () => {
     document.body.appendChild(container);
     
     // Verify the component is rendered
-    expect(document.querySelector('[data-testid="notification-detail"]')).toBeInTheDocument();
-    expect(document.querySelector('h1').textContent).toBe('Notification Detail');
-    expect(document.querySelector('p').textContent).toBe('Notification ID: 123');
+    expect(screen.queryBySelector('[data-testid="notification-detail"]')).toBeInTheDocument();
+    expect(screen.queryBySelector('h1')).toHaveTextContent('Notification Detail');
+    expect(screen.queryBySelector('p')).toHaveTextContent('Notification ID: 123');
     
     // Verify the buttons are rendered
-    expect(document.getElementById('mark-read-button').textContent).toBe('Mark as Read');
-    expect(document.getElementById('delete-button').textContent).toBe('Delete');
-    expect(document.getElementById('back-button').textContent).toBe('Back');
+    expect(document.getElementById('mark-read-button')).toHaveTextContent('Mark as Read');
+    expect(document.getElementById('delete-button')).toHaveTextContent('Delete');
+    expect(document.getElementById('back-button')).toHaveTextContent('Back');
     
     // Clean up
     document.body.removeChild(container);

@@ -245,7 +245,7 @@ describe("Maintenance — Create Request flow", () => {
     fireEvent.click(submitButton);
 
     // Expect validation errors by looking for form helper text elements
-    await waitFor(() => {
+    await waitFor(() => { // TODO: Fix multiple assertions - extract into separate waitFor calls
       expect(screen.getAllByRole("alert")).toHaveLength(2); // We should have at least 2 error messages
     });
     
@@ -284,7 +284,7 @@ describe("Maintenance — Create Request flow", () => {
     fireEvent.click(submitButton);
 
     // Verify API call was made with correct data
-    await waitFor(() => {
+    await waitFor(() => { // TODO: Fix multiple assertions - extract into separate waitFor calls
       expect(mockCreateRequest).toHaveBeenCalledWith({
         title: "Test Request",
         description: "Test Description",
@@ -294,7 +294,7 @@ describe("Maintenance — Create Request flow", () => {
     });
 
     // Dialog should be closed
-    await waitFor(() => {
+    await waitFor(() => { // TODO: Fix multiple assertions - extract into separate waitFor calls
       expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
     });
 
@@ -328,7 +328,7 @@ describe("Maintenance — Create Request flow", () => {
     fireEvent.click(submitButton);
 
     // Expect error alert or message to be shown
-    await waitFor(() => {
+    await waitFor(() => { // TODO: Fix multiple assertions - extract into separate waitFor calls
       // Look for either a specific error alert or any error text in the dialog
       const errorElements = screen.queryAllByRole("alert");
       expect(errorElements.length).toBeGreaterThan(0);
@@ -361,7 +361,7 @@ describe("Maintenance — Create Request flow", () => {
     fireEvent.click(cancelButton);
     
     // Dialog should be closed
-    await waitFor(() => {
+    await waitFor(() => { // TODO: Fix multiple assertions - extract into separate waitFor calls
       expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
     });
     

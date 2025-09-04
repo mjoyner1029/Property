@@ -138,7 +138,7 @@ describe("PropertyForm (Edit Mode)", () => {
     const saveBtn = screen.getByRole("button", { name: /save property details/i });
     fireEvent.click(saveBtn);
 
-    await waitFor(() => {
+    await waitFor(() => { // TODO: Fix multiple assertions - extract into separate waitFor calls
       expect(updatePropertyMock).toHaveBeenCalledTimes(1);
     });
 
@@ -150,7 +150,7 @@ describe("PropertyForm (Edit Mode)", () => {
     }));
 
     // After success, navigate back to /properties
-    await waitFor(() => {
+    await waitFor(() => { // TODO: Fix multiple assertions - extract into separate waitFor calls
       expect(mockNavigate).toHaveBeenCalledWith("/properties");
     });
   });
@@ -164,7 +164,7 @@ describe("PropertyForm (Edit Mode)", () => {
     fireEvent.click(screen.getByRole("button", { name: /save property details/i }));
 
     // Error alert should appear
-    await waitFor(() => {
+    await waitFor(() => { // TODO: Fix multiple assertions - extract into separate waitFor calls
       expect(screen.getByText(/failed to save property/i)).toBeInTheDocument();
     });
   });

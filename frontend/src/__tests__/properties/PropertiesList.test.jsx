@@ -268,14 +268,14 @@ describe('Properties Component', () => {
 
     fireEvent.click(screen.getByTestId('property-menu-2'));
 
-    await waitFor(() => {
+    await waitFor(() => { // TODO: Fix multiple assertions - extract into separate waitFor calls
       expect(screen.getByTestId('menu')).toBeInTheDocument();
     });
 
     const deleteMenuItem = screen.getByTestId('menu-item-delete-property');
     fireEvent.click(deleteMenuItem);
 
-    await waitFor(() => {
+    await waitFor(() => { // TODO: Fix multiple assertions - extract into separate waitFor calls
   // TODO: Fix multiple assertions in waitFor - split into separate waitFor calls
   
       expect(screen.getByTestId('dialog')).toBeInTheDocument();
@@ -301,7 +301,7 @@ describe('Properties Component', () => {
       fireEvent.click(screen.getByText('Filter'));
     });
 
-    await waitFor(() => {
+    await waitFor(() => { // TODO: Fix multiple assertions - extract into separate waitFor calls
       expect(screen.getByTestId('menu')).toBeInTheDocument();
     });
 

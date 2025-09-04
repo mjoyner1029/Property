@@ -95,7 +95,7 @@ describe("Login page", () => {
     jest.runAllTimers();
     
     // Wait for navigation to happen after login completes
-    await waitFor(() => {
+    await waitFor(() => { // TODO: Fix multiple assertions - extract into separate waitFor calls
       expect(mockNavigate).toHaveBeenCalledWith('/dashboard');
     });
     
@@ -132,7 +132,7 @@ describe("Login page", () => {
     await user.click(submit);
     
     // First wait for the login function to be called
-    await waitFor(() => {
+    await waitFor(() => { // TODO: Fix multiple assertions - extract into separate waitFor calls
       expect(mockLoginError).toHaveBeenCalled();
     });
     

@@ -1,6 +1,19 @@
 // frontend/src/__tests__/auth/Login.test.jsx
 
 // Using mockImplementation instead of inline arrow function to avoid Jest's variable reference issues
+import React from "react";
+import { screen, within, waitFor, act } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
+import { getInputByName, getSelectByName } from 'src/test/utils/muiTestUtils';
+import { mockNavigate, waitForLoaded } from 'src/test/utils/test-helpers';
+
+// Import from shared mocks with absolute paths
+import { loginMock, isAuthenticatedMock, AuthContextMock } from "src/test/mocks/auth";
+import { renderWithProviders } from "src/test/utils/renderWithProviders";
+
+// Import after mocks with absolute path
+import Login from "src/pages/Login";
+
 jest.mock("src/context/AuthContext", () => {
   const mockUseAuth = jest.fn();
   // Create a mock context that has a Provider property
@@ -22,21 +35,8 @@ jest.mock("src/pages/utils/errorHandler", () => ({
   }
 }));
 
-import React from "react";
-import { screen, within, waitFor, act } from "@testing-library/react";
-import userEvent from "@testing-library/user-event";
-import { getInputByName, getSelectByName } from 'src/test/utils/muiTestUtils';
-import { mockNavigate, waitForLoaded } from 'src/test/utils/test-helpers';
-
-// Import from shared mocks with absolute paths
-import { loginMock, isAuthenticatedMock, AuthContextMock } from "src/test/mocks/auth";
-
 // Create the mock navigate function
 const navigate = mockNavigate();
-import { renderWithProviders } from "src/test/utils/renderWithProviders";
-
-// Import after mocks with absolute path
-import Login from "src/pages/Login";
 
 // Helper: find the submit button regardless of label variants
 const getSubmitButton = () =>
@@ -122,11 +122,11 @@ describe("Login page", () => {
     const submitButton = getSubmitButton();
     
     // Click the submit button using waitFor to handle act() warnings
-    await waitFor(() => {
+    await waitFor(() => { // TODO: Fix multiple assertions - extract into separate waitFor calls
       userEvent.click(submitButton);
     });
 
-    await waitFor(() => {
+    await waitFor(() => { // TODO: Fix multiple assertions - extract into separate waitFor calls
       expect(loginMock).toHaveBeenCalled();
     });
 
@@ -151,7 +151,7 @@ describe("Login page", () => {
     renderAtLogin();
 
     // Use waitFor to ensure elements are found
-    await waitFor(() => {
+    await waitFor(() => { // TODO: Fix multiple assertions - extract into separate waitFor calls
       expect(screen.getByRole('textbox', { name: /email/i })).toBeInTheDocument();
     });
     
@@ -173,7 +173,7 @@ describe("Login page", () => {
       await userEvent.keyboard("{Enter}");
     });
 
-    await waitFor(() => {
+    await waitFor(() => { // TODO: Fix multiple assertions - extract into separate waitFor calls
       expect(loginMock).toHaveBeenCalled();
     });
   });
@@ -184,7 +184,7 @@ describe("Login page", () => {
     renderAtLogin();
 
     // Wait for elements to be rendered
-    await waitFor(() => {
+    await waitFor(() => { // TODO: Fix multiple assertions - extract into separate waitFor calls
       expect(screen.getByRole('textbox', { name: /email/i })).toBeInTheDocument();
     });
     
@@ -230,7 +230,7 @@ describe("Login page", () => {
     
     // Wait for elements to be rendered and find the submit button
     let btn;
-    await waitFor(() => {
+    await waitFor(() => { // TODO: Fix multiple assertions - extract into separate waitFor calls
       expect(screen.getByRole('textbox', { name: /email/i })).toBeInTheDocument();
       
       // Find all buttons and then identify the submit button by its text content
@@ -262,7 +262,7 @@ describe("Login page", () => {
     // Depending on implementation, the button may be disabled when loading
     // If your Login doesn't reflect loading on the button, feel free to remove this check.
     // We use a soft assertion pattern:
-    await waitFor(() => {
+    await waitFor(() => { // TODO: Fix multiple assertions - extract into separate waitFor calls
       try {
         expect(btn).toBeDisabled();
       } catch {

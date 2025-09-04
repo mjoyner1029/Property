@@ -70,7 +70,7 @@ export const withMuiErrorHandling = (queryFn, ...args) => {
   } catch (error) {
     // Add more helpful debug information for MUI components
     console.error('Failed to find MUI component with query:', args);
-    console.error('Current DOM structure:', screen.debug());
+    console.error('Current DOM structure:', defaultScreen.debug());
     throw error;
   }
 };

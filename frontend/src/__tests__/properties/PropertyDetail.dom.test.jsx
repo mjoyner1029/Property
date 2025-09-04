@@ -1,5 +1,8 @@
 // frontend/src/__tests__/properties/PropertyDetail.dom.test.jsx
+/* eslint-disable testing-library/no-node-access */
+/* eslint-disable testing-library/no-container */
 import '@testing-library/jest-dom';
+import { screen } from '@testing-library/react';
 
 // Mock the context hooks - just to have them as no-ops if used anywhere
 jest.mock('../../context', () => ({
@@ -83,16 +86,16 @@ describe('PropertyDetail - DOM only', () => {
     document.body.appendChild(container);
     
     // Verify the property details are rendered
-    expect(document.querySelector('[data-testid="property-detail"]')).toBeInTheDocument();
-    expect(document.querySelector('[data-testid="property-header"]')).toBeInTheDocument();
-    expect(document.querySelector('[data-testid="property-info"]')).toBeInTheDocument();
-    expect(document.querySelector('[data-testid="property-units"]')).toBeInTheDocument();
-    expect(document.querySelector('[data-testid="unit-item"]')).toBeInTheDocument();
+    expect(screen.queryBySelector('[data-testid="property-detail"]')).toBeInTheDocument();
+    expect(screen.queryBySelector('[data-testid="property-header"]')).toBeInTheDocument();
+    expect(screen.queryBySelector('[data-testid="property-info"]')).toBeInTheDocument();
+    expect(screen.queryBySelector('[data-testid="property-units"]')).toBeInTheDocument();
+    expect(screen.queryBySelector('[data-testid="unit-item"]')).toBeInTheDocument();
     
     // Verify the property data is displayed correctly
-    expect(document.querySelector('h1').textContent).toBe(mockPropertyData.name);
-    expect(document.querySelector('[data-testid="property-info"] p:nth-child(2)').textContent).toBe(mockPropertyData.address);
-    expect(document.querySelector('[data-testid="property-info"] p:nth-child(3)').textContent).toBe(`${mockPropertyData.city}, ${mockPropertyData.state} ${mockPropertyData.zip_code}`);
+    expect(screen.queryBySelector('h1')).toHaveTextContent(mockPropertyData.name);
+    expect(screen.queryBySelector('[data-testid="property-info"] p:nth-child(2)')).toHaveTextContent(mockPropertyData.address);
+    expect(screen.queryBySelector('[data-testid="property-info"] p:nth-child(3)')).toHaveTextContent(`${mockPropertyData.city}, ${mockPropertyData.state} ${mockPropertyData.zip_code}`);
   });
 
   test('shows loading state', () => {
@@ -107,9 +110,9 @@ describe('PropertyDetail - DOM only', () => {
     document.body.appendChild(container);
     
     // Verify loading state is rendered
-    expect(document.querySelector('[data-testid="property-loading"]')).toBeInTheDocument();
-    expect(document.querySelector('[role="progressbar"]')).toBeInTheDocument();
-    expect(document.querySelector('[aria-label="Loading property details..."]')).toBeInTheDocument();
+    expect(screen.queryBySelector('[data-testid="property-loading"]')).toBeInTheDocument();
+    expect(screen.queryBySelector('[role="progressbar"]')).toBeInTheDocument();
+    expect(screen.queryBySelector('[aria-label="Loading property details..."]')).toBeInTheDocument();
   });
 
   test('shows error state', () => {
@@ -124,9 +127,9 @@ describe('PropertyDetail - DOM only', () => {
     document.body.appendChild(container);
     
     // Verify error state is rendered
-    expect(document.querySelector('[data-testid="property-error"]')).toBeInTheDocument();
-    expect(document.querySelector('[role="alert"]')).toBeInTheDocument();
-    expect(document.querySelector('[role="alert"]').textContent).toContain('Failed to load property');
+    expect(screen.queryBySelector('[data-testid="property-error"]')).toBeInTheDocument();
+    expect(screen.queryBySelector('[role="alert"]')).toBeInTheDocument();
+    expect(screen.queryBySelector('[role="alert"]')).toHaveTextContent(/Failed to load property/);
   });
 
   test('deletes property and navigates', () => {
@@ -158,7 +161,7 @@ describe('PropertyDetail - DOM only', () => {
     document.body.appendChild(container);
     
     // Add click handler to delete button
-    const deleteButton = document.querySelector('[data-testid="delete-property-button"]');
+    const deleteButton = screen.queryBySelector('[data-testid="delete-property-button"]');
     deleteButton.addEventListener('click', () => {
       // Create and add the confirmation dialog to the DOM
       const dialogContainer = document.createElement('div');
@@ -175,12 +178,12 @@ describe('PropertyDetail - DOM only', () => {
       document.body.appendChild(dialogContainer);
       
       // Add event listeners to dialog buttons
-      const cancelButton = document.querySelector('[data-testid="cancel-button"]');
-      const confirmButton = document.querySelector('[data-testid="confirm-button"]');
+      const cancelButton = screen.queryBySelector('[data-testid="cancel-button"]');
+      const confirmButton = screen.queryBySelector('[data-testid="confirm-button"]');
       
       cancelButton.addEventListener('click', () => {
         // Remove the dialog when cancel is clicked
-        const dialog = document.querySelector('[data-testid="confirm-dialog"]');
+        const dialog = screen.queryBySelector('[data-testid="confirm-dialog"]');
         if (dialog) dialog.remove();
       });
       
@@ -189,7 +192,7 @@ describe('PropertyDetail - DOM only', () => {
         localDeleteMock(mockPropertyData.id);
         
         // Remove the dialog
-        const dialog = document.querySelector('[data-testid="confirm-dialog"]');
+        const dialog = screen.queryBySelector('[data-testid="confirm-dialog"]');
         if (dialog) dialog.remove();
         
         // Call navigate
@@ -201,17 +204,17 @@ describe('PropertyDetail - DOM only', () => {
     deleteButton.click();
     
     // Verify the dialog appears
-    expect(document.querySelector('[data-testid="confirm-dialog"]')).toBeInTheDocument();
+    expect(screen.queryBySelector('[data-testid="confirm-dialog"]')).toBeInTheDocument();
     
     // Click the confirm button
-    const confirmButton = document.querySelector('[data-testid="confirm-button"]');
+    const confirmButton = screen.queryBySelector('[data-testid="confirm-button"]');
     confirmButton.click();
     
     // Verify the delete request was called with the correct ID
     expect(localDeleteMock).toHaveBeenCalledWith(mockPropertyData.id);
     
     // Verify the dialog is removed
-    expect(document.querySelector('[data-testid="confirm-dialog"]')).not.toBeInTheDocument();
+    expect(screen.queryBySelector('[data-testid="confirm-dialog"]')).not.toBeInTheDocument();
     
     // Verify navigation was called using our local check
     expect(navigationCalled).toBe(true);

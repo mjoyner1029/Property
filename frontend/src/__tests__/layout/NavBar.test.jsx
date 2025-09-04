@@ -83,7 +83,7 @@ describe('NavBar Component', () => {
     await user.click(screen.getByText(/logout/i));
     
     // Verify logout was called
-    await waitFor(() => {
+    await waitFor(() => { // TODO: Fix multiple assertions - extract into separate waitFor calls
       expect(mockLogout).toHaveBeenCalled();
     });
   });

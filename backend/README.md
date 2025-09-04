@@ -6,18 +6,42 @@ A secure, production-ready API for the Asset Anchor property management platform
 
 Asset Anchor API is a Flask-based RESTful API that provides the backend services for the Asset Anchor property management platform. It enables property managers, landlords, and tenants to manage properties, leases, payments, communications, and more.
 
-## Environment Variables
+## Configuration System
 
-### Required in Production
+The application uses a hierarchical configuration system with environment-specific overrides and safe defaults in development mode.
+
+### Configuration Classes
+
+- `BaseConfig`: Base configuration with common settings
+- `DevelopmentConfig`: Development settings with safe defaults for local development
+- `TestingConfig`: Test-specific settings with in-memory database and disabled features
+- `ProductionConfig`: Production settings with strict security requirements and validation
+
+The configuration class is selected based on the `APP_ENV` environment variable:
+- `development` (default if not specified)
+- `testing` 
+- `production`
+
+### Environment Variables
+
+#### Required in Production
+- `APP_ENV=production` - Set to use production configuration
 - `SECRET_KEY` - Flask secret key for sessions and CSRF protection
 - `JWT_SECRET_KEY` - Secret key for JWT token signing
 - `DATABASE_URL` - Database connection string
-- `CORS_ORIGINS` - Comma-separated list of allowed origins for CORS
+- `CORS_ORIGINS` - Comma-separated list of allowed origins for CORS (parsed to list)
 - `STRIPE_SECRET_KEY` - Stripe API secret key
 - `STRIPE_WEBHOOK_SECRET` - Stripe webhook signing secret
 - `SENTRY_DSN` - Sentry error tracking DSN
 
-### Optional
+#### Development Defaults
+In development mode (`APP_ENV=development`), the following defaults are provided:
+- `SECRET_KEY` - A default development key (not secure for production)
+- `JWT_SECRET_KEY` - A default development key (not secure for production)
+- `DATABASE_URL` - SQLite database in `instance/dev.db`
+- `CORS_ORIGINS` - `http://localhost:3000` (front-end development server)
+
+#### Optional Settings
 - `STRIPE_PUBLISHABLE_KEY` - Stripe publishable key
 - `REDIS_URL` - Redis connection URL for caching and rate limiting
 - `MAIL_SERVER` - SMTP server for email (default: smtp.gmail.com)

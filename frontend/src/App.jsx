@@ -63,7 +63,9 @@ const RoutesIndex = React.lazy(() => import('./pages').then(m => ({ default: m.R
 export default function App() {
   // Initialize Sentry for error tracking and performance monitoring
   useEffect(() => {
-    initSentry();
+    // Initialize Sentry early in the app lifecycle, only if REACT_APP_SENTRY_DSN is set
+    const sentryInitialized = initSentry();
+    console.debug(`Sentry initialization ${sentryInitialized ? 'successful' : 'skipped'}`);
     
     // Mark navigation start for performance measurement
     if (window.performance && window.performance.mark) {

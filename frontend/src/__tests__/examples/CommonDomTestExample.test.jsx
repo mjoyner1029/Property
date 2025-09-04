@@ -15,6 +15,9 @@ import {
   setupMaintenanceTest
 } from '../../test/utils/commonDomTestCases';
 
+// Import the mocked API after jest.mock
+import { login, logout, getNotifications, markNotificationAsRead } from '../../services/api';
+
 // Mock any API or service functions
 jest.mock('../../services/api', () => ({
   login: jest.fn().mockResolvedValue({ id: 'user1', name: 'John Doe', email: 'john@example.com' }),
@@ -26,9 +29,6 @@ jest.mock('../../services/api', () => ({
   ]),
   markNotificationAsRead: jest.fn().mockResolvedValue(true)
 }));
-
-// Import the mocked API after jest.mock
-import { login, logout, getNotifications, markNotificationAsRead } from '../../services/api';
 
 describe('Common DOM Test Cases Examples', () => {
   // Clear the body after each test
@@ -74,7 +74,7 @@ describe('Common DOM Test Cases Examples', () => {
       
       // Assert
       expect(badge).not.toBeNull();
-      expect(badge.textContent).toBe('3');
+      expect(badge).toHaveTextContent('3');
     });
     
     test('toggles dropdown when clicking notification button', () => {
@@ -83,21 +83,21 @@ describe('Common DOM Test Cases Examples', () => {
       const { clickToggle, dropdown } = setupNotificationTest({ onClick });
       
       // Initially hidden
-      expect(dropdown.style.display).toBe('none');
+      expect(dropdown).toHaveStyle({display:'none'});
       
       // Act - show dropdown
       clickToggle();
       
       // Assert
       expect(onClick).toHaveBeenCalledWith(true);
-      expect(dropdown.style.display).toBe('block');
+      expect(dropdown).toHaveStyle({display:'block'});
       
       // Act - hide dropdown
       clickToggle();
       
       // Assert
       expect(onClick).toHaveBeenCalledWith(false);
-      expect(dropdown.style.display).toBe('none');
+      expect(dropdown).toHaveStyle({display:'none'});
     });
     
     test('marks notification as read', () => {
@@ -136,8 +136,8 @@ describe('Common DOM Test Cases Examples', () => {
       });
       
       // Assert
-      expect(container.textContent).toContain('Welcome, John Doe');
-      expect(container.textContent).toContain('john@example.com');
+      expect(container).toHaveTextContent(/Welcome, John Doe/);
+      expect(container).toHaveTextContent(/john@example\.com/);
       expect(logoutButton).not.toBeNull();
     });
     
@@ -168,7 +168,7 @@ describe('Common DOM Test Cases Examples', () => {
       
       // Assert
       expect(loginError).not.toBeNull();
-      expect(loginError.textContent).toBe('Invalid email or password');
+      expect(loginError).toHaveTextContent('Invalid email or password');
     });
   });
   
@@ -183,8 +183,8 @@ describe('Common DOM Test Cases Examples', () => {
       const { container, list } = setupPropertyTest({ properties });
       
       // Assert
-      expect(container.textContent).toContain('Beach House');
-      expect(container.textContent).toContain('Downtown Loft');
+      expect(container).toHaveTextContent(/Beach House/);
+      expect(container).toHaveTextContent(/Downtown Loft/);
       expect(list.children.length).toBe(2);
     });
     
@@ -243,9 +243,9 @@ describe('Common DOM Test Cases Examples', () => {
       const { container, list } = setupMaintenanceTest({ requests, properties });
       
       // Assert
-      expect(container.textContent).toContain('Broken Faucet');
-      expect(container.textContent).toContain('AC Not Working');
-      expect(container.textContent).toContain('Beach House');
+      expect(container).toHaveTextContent(/Broken Faucet/);
+      expect(container).toHaveTextContent(/AC Not Working/);
+      expect(container).toHaveTextContent(/Beach House/);
       expect(list.children.length).toBe(2);
     });
     

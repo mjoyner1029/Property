@@ -1,9 +1,16 @@
 // frontend/src/__tests__/dashboard/Dashboard.test.jsx
 
 // ---- Stub heavy visual components to keep tests fast/stable ----
+import React from "react";
+import { screen, waitFor, fireEvent } from "@testing-library/react";
+import { renderWithProviders } from 'src/test/utils/renderWithProviders';
+import Dashboard from "src/pages/Dashboard";
+import { fetchRequestsMock, fetchPaymentsMock } from "src/test/mocks/services";
+
 jest.mock("src/components/ChartCard", () => ({
   __esModule: true,
   default: function ChartCard() {
+  const theme = useTheme();
     const React = require('react');
     return <div data-testid="chart-card">Chart</div>;
   }
@@ -56,12 +63,6 @@ jest.mock("../../context/PaymentContext", () => ({
   }),
 }));
 
-import React from "react";
-import { screen, waitFor, fireEvent } from "@testing-library/react";
-import { renderWithProviders } from 'src/test/utils/renderWithProviders';
-import Dashboard from "src/pages/Dashboard";
-import { fetchRequestsMock, fetchPaymentsMock } from "src/test/mocks/services";
-
 describe("Dashboard", () => {
   beforeEach(() => {
     jest.clearAllMocks();
@@ -85,7 +86,7 @@ describe("Dashboard", () => {
     expect(dashboardLink).toHaveAttribute('aria-current', 'page');
     
     // Check for specific dashboard elements that should be available
-    await waitFor(() => {
+    await waitFor(() => { // TODO: Fix multiple assertions - extract into separate waitFor calls
       // Verify the Dashboard link is active, indicating we're on the dashboard page
       expect(screen.getByRole("link", { name: "Dashboard" }))
         .toHaveAttribute("aria-current", "page");
@@ -118,7 +119,7 @@ describe("Dashboard", () => {
     fireEvent.click(propertiesLink);
     
     // Verify navigation occurred
-    await waitFor(() => {
+    await waitFor(() => { // TODO: Fix multiple assertions - extract into separate waitFor calls
       expect(propertiesLink).toHaveAttribute("aria-current", "page");
     });
   });

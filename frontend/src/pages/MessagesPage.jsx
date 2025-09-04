@@ -18,7 +18,7 @@ import {
   InputAdornment,
   Button
 } from "@mui/material";
-import { useNavigate, useParams } from "react-router-dom";
+import { useParams } from "react-router-dom";
 import { useAuth, useApp } from "../context";
 import Messages from "./Messages";
 import SearchIcon from "@mui/icons-material/Search";

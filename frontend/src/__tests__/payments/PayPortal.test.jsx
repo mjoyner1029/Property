@@ -67,7 +67,7 @@ describe('PayPortal', () => {
     fireEvent.click(payButton);
 
     // Verify axios.post was called
-    await waitFor(() => {
+    await waitFor(() => { // TODO: Fix multiple assertions - extract into separate waitFor calls
       expect(axios.post).toHaveBeenCalled();
     });
     

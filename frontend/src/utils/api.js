@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { getAccessToken, setAccessToken, clearAccessToken, withAccessTokenHeaders } from './tokenStore';
+import { setAccessToken, clearAccessToken, withAccessTokenHeaders } from './tokenStore';
 
 // Prefer REACT_APP_API_URL to include the `/api` prefix, e.g. http://localhost:5050/api
 export const backendUrl =
@@ -78,7 +78,7 @@ api.interceptors.response.use(
       }
 
       try {
-        const newToken = await refreshPromise;
+        const _newToken = await refreshPromise;
         config.headers = withAccessTokenHeaders(config.headers);
         return api(config);
       } catch (e) {

@@ -150,7 +150,7 @@ describe("PropertyForm (Create)", () => {
     fireEvent.click(submitBtn);
 
     // The form calls createProperty with the current formData
-    await waitFor(() => {
+    await waitFor(() => { // TODO: Fix multiple assertions - extract into separate waitFor calls
       expect(mockCreateProperty).toHaveBeenCalledWith(
         expect.objectContaining({
           name: "Sunset Apartments",
@@ -165,7 +165,7 @@ describe("PropertyForm (Create)", () => {
     });
 
     // And navigates back to properties list
-    await waitFor(() => {
+    await waitFor(() => { // TODO: Fix multiple assertions - extract into separate waitFor calls
       expect(mockNavigate).toHaveBeenCalledWith("/properties");
     });
   });
@@ -200,7 +200,7 @@ describe("PropertyForm (Create)", () => {
     );
 
     // Error alert from submitError should display
-    await waitFor(() => {
+    await waitFor(() => { // TODO: Fix multiple assertions - extract into separate waitFor calls
       expect(screen.getByText(/api fail/i)).toBeInTheDocument();
     });
 
@@ -220,7 +220,7 @@ describe("PropertyForm (Create)", () => {
     fireEvent.click(screen.getByRole("button", { name: /upload files/i }));
 
     // Placeholder should disappear after images are added
-    await waitFor(() => {
+    await waitFor(() => { // TODO: Fix multiple assertions - extract into separate waitFor calls
       expect(
         screen.queryByText(/no images uploaded yet/i)
       ).not.toBeInTheDocument();

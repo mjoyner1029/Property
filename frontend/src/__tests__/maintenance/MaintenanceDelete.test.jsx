@@ -1,6 +1,13 @@
 // Import the mock navigate helper
 import { mockNavigate } from '../../test/utils/test-helpers';
 
+import React from "react";
+import { screen, fireEvent, waitFor } from "@testing-library/react";
+import { renderWithProviders } from "../../test/utils/renderWithProviders";
+
+// Import our fixed mock MaintenanceDetail component
+import MaintenanceDetail from "../../mocks/maintenance/mockMaintenanceDetailFixed";
+
 // Create the mock navigate function
 const navigate = mockNavigate();
 
@@ -35,13 +42,6 @@ jest.mock("../../context", () => ({
     updatePageTitle: mockUpdatePageTitle
   }))
 }));
-
-import React from "react";
-import { screen, fireEvent, waitFor } from "@testing-library/react";
-import { renderWithProviders } from "../../test/utils/renderWithProviders";
-
-// Import our fixed mock MaintenanceDetail component
-import MaintenanceDetail from "../../mocks/maintenance/mockMaintenanceDetailFixed";
 
 // Mock the components
 jest.mock("../../components", () => ({
@@ -111,7 +111,7 @@ describe("MaintenanceDeleteTest", () => {
     fireEvent.click(cancelButton);
     
     // Check that the dialog is no longer in the document
-    await waitFor(() => {
+    await waitFor(() => { // TODO: Fix multiple assertions - extract into separate waitFor calls
       expect(screen.queryByTestId("confirm-dialog")).not.toBeInTheDocument();
     });
   });
@@ -131,17 +131,17 @@ describe("MaintenanceDeleteTest", () => {
     fireEvent.click(confirmButton);
     
     // Check that deleteRequest was called with the correct ID
-    await waitFor(() => {
+    await waitFor(() => { // TODO: Fix multiple assertions - extract into separate waitFor calls
       expect(mockDeleteRequest).toHaveBeenCalledWith(mockRequest.id);
     });
     
     // Dialog should close
-    await waitFor(() => {
+    await waitFor(() => { // TODO: Fix multiple assertions - extract into separate waitFor calls
       expect(screen.queryByTestId("confirm-dialog")).not.toBeInTheDocument();
     });
     
     // Should have attempted to navigate back to the list
-    await waitFor(() => {
+    await waitFor(() => { // TODO: Fix multiple assertions - extract into separate waitFor calls
       expect(navigate).toHaveBeenCalledWith("/maintenance");
     });
   });

@@ -92,7 +92,7 @@ describe("TenantForm (Edit mode)", () => {
     expect(titleArg.toLowerCase()).toMatch(/edit|tenant/);
 
     // Ensure fetch by id was attempted
-    await waitFor(() => {
+    await waitFor(() => { // TODO: Fix multiple assertions - extract into separate waitFor calls
       expect(mockFetchTenantById).toHaveBeenCalledWith("1");
     });
 
@@ -153,7 +153,7 @@ describe("TenantForm (Edit mode)", () => {
     fireEvent.click(saveBtn);
 
     // Verify updateTenant called with id and payload
-    await waitFor(() => {
+    await waitFor(() => { // TODO: Fix multiple assertions - extract into separate waitFor calls
       expect(mockUpdateTenant).toHaveBeenCalledWith(
         "1",
         expect.objectContaining({
@@ -165,7 +165,7 @@ describe("TenantForm (Edit mode)", () => {
     });
 
     // Navigation afterwards (destination might be /tenants or /tenants/1)
-    await waitFor(() => {
+    await waitFor(() => { // TODO: Fix multiple assertions - extract into separate waitFor calls
   // TODO: Fix multiple assertions in waitFor - split into separate waitFor calls
   
       expect(mockNavigate).toHaveBeenCalled();
@@ -192,7 +192,7 @@ describe("TenantForm (Edit mode)", () => {
     fireEvent.click(saveBtn);
 
     // Error appears (Alert or inline error)
-    await waitFor(() => {
+    await waitFor(() => { // TODO: Fix multiple assertions - extract into separate waitFor calls
       const maybeAlert =
         screen.queryByRole("alert") || screen.queryByText(/update failed/i);
       expect(maybeAlert).toBeInTheDocument();
@@ -222,7 +222,7 @@ describe("TenantForm (Edit mode)", () => {
     fireEvent.click(saveBtn);
 
     // Expect some validation messaging (don't be overly strict)
-    await waitFor(() => {
+    await waitFor(() => { // TODO: Fix multiple assertions - extract into separate waitFor calls
       const nameErr =
         screen.queryByText(/name is required/i) ||
         screen.queryByText(/full name is required/i);

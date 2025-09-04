@@ -9,6 +9,7 @@ import NotificationDropdown from 'src/components/NotificationDropdown';
 // Mock the Heroicons v1 BellIcon component
 jest.mock('@heroicons/react/outline', () => ({
   BellIcon: function BellIcon(props) {
+  const theme = useTheme();
     return (
       <div data-testid="notification-bell" {...props}>
         Bell Icon Mock

@@ -40,6 +40,7 @@ const LoadingSpinner = ({
   spinnerProps,
   ...boxProps
 }) => {
+  const theme = useTheme();
   const [visible, setVisible] = useState(delayMs === 0);
 
   useEffect(() => {

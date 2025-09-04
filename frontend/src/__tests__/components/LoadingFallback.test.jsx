@@ -9,7 +9,7 @@ describe('LoadingFallback component', () => {
     const { container } = renderWithProviders(<LoadingFallback />);
     
     // Check that the CircularProgress component is rendered
-    const spinnerElement = container.querySelector('.MuiCircularProgress-root');
+    const spinnerElement = screen.queryBySelector('.MuiCircularProgress-root');
     expect(spinnerElement).toBeInTheDocument();
   });
   

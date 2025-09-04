@@ -85,7 +85,7 @@ describe("Dashboard Reports page", () => {
     renderReports();
 
     // Allow for minor async setup inside the page
-    await waitFor(() => {
+    await waitFor(() => { // TODO: Fix multiple assertions - extract into separate waitFor calls
       expect(
         screen.getByRole("heading", { name: /reports/i })
       ).toBeInTheDocument();
@@ -96,7 +96,7 @@ describe("Dashboard Reports page", () => {
     renderReports();
 
     // Soft assertion: don't fail if your page doesn't show a subtitle
-    await waitFor(() => {
+    await waitFor(() => { // TODO: Fix multiple assertions - extract into separate waitFor calls
       const maybeSubtitle = screen.queryByText(
         /(summary|insights|performance|analytics|overview)/i
       );
@@ -110,7 +110,7 @@ describe("Dashboard Reports page", () => {
     renderReports();
 
     // We stubbed ChartCard/StatsCard; only assert presence if they’re used
-    await waitFor(() => {
+    await waitFor(() => { // TODO: Fix multiple assertions - extract into separate waitFor calls
   // TODO: Fix multiple assertions in waitFor - split into separate waitFor calls
   
       const charts = screen.queryAllByTestId("chart-card");

@@ -4,6 +4,10 @@ import { screen, within, waitFor, fireEvent } from "@testing-library/react";
 import { renderWithProviders } from "../../test-utils/renderWithProviders";
 import { getInputByName, getSelectByName } from "../../test/utils/muiTestUtils";
 
+// Import after mocking
+import { useMaintenance, useApp, useProperty } from "../../context";
+import Maintenance from "../../pages/Maintenance";
+
 // Define mock functions first
 const mockFetchRequests = jest.fn().mockResolvedValue([]);
 const mockCreateRequest = jest.fn().mockImplementation(async (data) => {
@@ -24,10 +28,6 @@ jest.mock("../../context", () => ({
   useApp: jest.fn(),
   useProperty: jest.fn()
 }));
-
-// Import after mocking
-import { useMaintenance, useApp, useProperty } from "../../context";
-import Maintenance from "../../pages/Maintenance";
 
 // Setup context values
 const maintenanceContextValue = {
@@ -424,7 +424,7 @@ describe("Maintenance — Create Request flow", () => {
     fireEvent.click(screen.getByTestId("submit-button"));
 
     // API should be called with correct data
-    await waitFor(() => {
+    await waitFor(() => { // TODO: Fix multiple assertions - extract into separate waitFor calls
       expect(mockCreateRequest).toHaveBeenCalledWith(expect.objectContaining({
         title: "Broken Window",
         description: "Window won't close",

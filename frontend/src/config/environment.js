@@ -182,7 +182,7 @@ export const validateEnvironment = () => {
 };
 
 // Export all environment variables as a single object
-export default {
+const environmentConfig = {
   // API settings
   API_URL,
   SOCKET_URL,
@@ -230,3 +230,5 @@ export default {
   getEnvironmentConfig,
   validateEnvironment,
 };
+
+export default environmentConfig;

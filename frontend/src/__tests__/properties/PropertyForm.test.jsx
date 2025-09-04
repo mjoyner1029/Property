@@ -2,7 +2,7 @@ import React from 'react';
 import { render, screen, fireEvent, waitFor, act } from '@testing-library/react';
 import { getInputByName, getSelectByName } from 'src/test/utils/muiTestUtils';
 import { renderWithProviders } from 'src/test/utils/renderWithProviders';
-import { MemoryRouter } from 'react-router-dom';
+import { useParams, MemoryRouter } from 'react-router-dom';
 import PropertyForm from 'src/pages/PropertyForm';
 import { useProperty } from 'src/context/PropertyContext';
 import { useApp } from 'src/context/AppContext';
@@ -69,7 +69,7 @@ describe('PropertyForm Component', () => {
     const submitButton = screen.getByRole('button', { name: /save property details/i });
     fireEvent.click(submitButton);
 
-    await waitFor(() => {
+    await waitFor(() => { // TODO: Fix multiple assertions - extract into separate waitFor calls
       expect(mockCreateProperty).toHaveBeenCalledWith(
         expect.objectContaining({
           name: 'Loft 9',
@@ -94,7 +94,7 @@ describe('PropertyForm Component', () => {
 
     fireEvent.click(screen.getByRole('button', { name: /save property details/i }));
 
-    await waitFor(() => {
+    await waitFor(() => { // TODO: Fix multiple assertions - extract into separate waitFor calls
       expect(screen.getByTestId('alert-error')).toBeInTheDocument();
     });
   });
@@ -125,7 +125,7 @@ describe('PropertyForm Component', () => {
 
     await 
     fireEvent.click(screen.getByRole("button", { name: /save property details/i }));
-    await waitFor(() => {
+    await waitFor(() => { // TODO: Fix multiple assertions - extract into separate waitFor calls
       expect(mockCreateProperty).toHaveBeenCalledWith(
         expect.objectContaining({
           rent: '3000'

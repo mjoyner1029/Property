@@ -222,7 +222,7 @@ describe("Maintenance List Page", () => {
     expect(mockFetchRequests).toHaveBeenCalled();
 
     // All three requests visible initially
-    await waitFor(() => {
+    await waitFor(() => { // TODO: Fix multiple assertions - extract into separate waitFor calls
   // TODO: Fix multiple assertions in waitFor - split into separate waitFor calls
   
       expect(screen.getByText("Leaky faucet")).toBeInTheDocument();
@@ -235,7 +235,7 @@ describe("Maintenance List Page", () => {
     fireEvent.change(search, { target: { value: "electrical" } });
 
     // Only "Electrical outlet" should remain
-    await waitFor(() => {
+    await waitFor(() => { // TODO: Fix multiple assertions - extract into separate waitFor calls
   // TODO: Fix multiple assertions in waitFor - split into separate waitFor calls
   
       expect(screen.getByText("Electrical outlet")).toBeInTheDocument();
@@ -292,7 +292,7 @@ describe("Maintenance List Page", () => {
     // Validation errors should show; minimal assertion: there is some text for required field(s)
     // (We keep it flexible; your UI uses helper text.)
     // To keep test robust across UI changes, assert we didn't call create
-    await waitFor(() => {
+    await waitFor(() => { // TODO: Fix multiple assertions - extract into separate waitFor calls
       expect(mockCreateRequest).not.toHaveBeenCalled();
     });
   });
@@ -319,7 +319,7 @@ describe("Maintenance List Page", () => {
     fireEvent.click(bathroomItem);
 
     // Now only "Leaky faucet" (bathroom) should remain
-    await waitFor(() => {
+    await waitFor(() => { // TODO: Fix multiple assertions - extract into separate waitFor calls
   // TODO: Fix multiple assertions in waitFor - split into separate waitFor calls
   
       expect(screen.getByText("Leaky faucet")).toBeInTheDocument();
@@ -342,7 +342,7 @@ describe("Maintenance List Page", () => {
     // Click "View Details"
     fireEvent.click(screen.getByRole("menuitem", { name: /view details/i }));
 
-    await waitFor(() => {
+    await waitFor(() => { // TODO: Fix multiple assertions - extract into separate waitFor calls
       expect(mockNavigate).toHaveBeenCalledWith("/maintenance/1");
     });
   });

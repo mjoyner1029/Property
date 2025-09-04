@@ -75,7 +75,7 @@ describe('ForgotPassword Component', () => {
     });
     
     // Check if axios was called with correct data
-    await waitFor(() => {
+    await waitFor(() => { // TODO: Fix multiple assertions - extract into separate waitFor calls
       expect(axios.post).toHaveBeenCalledWith(
         '/api/auth/forgot-password',
         { email: 'test@example.com' }
@@ -83,7 +83,7 @@ describe('ForgotPassword Component', () => {
     });
     
     // Check for success message
-    await waitFor(() => {
+    await waitFor(() => { // TODO: Fix multiple assertions - extract into separate waitFor calls
       expect(screen.getByText(/Password reset email sent/i)).toBeInTheDocument();
     });
   });
@@ -122,7 +122,7 @@ describe('ForgotPassword Component', () => {
     });
     
     // Check for error message
-    await waitFor(() => {
+    await waitFor(() => { // TODO: Fix multiple assertions - extract into separate waitFor calls
       expect(screen.getByText(errorMessage)).toBeInTheDocument();
     });
   });
@@ -155,7 +155,7 @@ describe('ForgotPassword Component', () => {
     
     // Since the component doesn't prevent submission of empty emails,
     // verify that axios was called with an empty email string
-    await waitFor(() => {
+    await waitFor(() => { // TODO: Fix multiple assertions - extract into separate waitFor calls
       expect(axios.post).toHaveBeenCalledWith(
         '/api/auth/forgot-password',
         { email: '' }
@@ -163,7 +163,7 @@ describe('ForgotPassword Component', () => {
     });
     
     // Check for error message
-    await waitFor(() => {
+    await waitFor(() => { // TODO: Fix multiple assertions - extract into separate waitFor calls
       expect(screen.getByText(errorMessage)).toBeInTheDocument();
     });
   });

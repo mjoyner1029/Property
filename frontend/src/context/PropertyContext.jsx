@@ -7,9 +7,9 @@ export const PropertyContext = createContext();
 
 export const PropertyProvider = ({ children }) => {
   const [properties, setProperties] = useState([]);
+  const [error, setError] = useState(null);
   const [selectedProperty, setSelectedProperty] = useState(null);
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(null);
   const [stats, setStats] = useState({
     totalProperties: 0,
     totalUnits: 0,

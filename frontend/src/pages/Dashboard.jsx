@@ -88,6 +88,7 @@ const FALLBACK_ACTIVITY = [
 
 // Helpers
 function formatActivityTime(isoLike) {
+  const theme = useTheme();
   if (!isoLike) return "";
   const date = new Date(isoLike);
   if (Number.isNaN(date.getTime())) return "";
@@ -119,7 +120,7 @@ function getActivityIcon(type, theme) {
 }
 
 export default function Dashboard() {
-  const theme = useTheme();
+  const _theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
   const navigate = useNavigate();
 

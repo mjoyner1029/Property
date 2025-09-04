@@ -136,11 +136,11 @@ describe("Property deletion (PropertyDetail)", () => {
     }
 
     // Expect context deletion and navigation
-    await waitFor(() => {
+    await waitFor(() => { // TODO: Fix multiple assertions - extract into separate waitFor calls
       expect(deleteMock).toHaveBeenCalledWith(123);
     });
 
-    await waitFor(() => {
+    await waitFor(() => { // TODO: Fix multiple assertions - extract into separate waitFor calls
       expect(mockNavigate).toHaveBeenCalledWith("/properties");
     });
   });
@@ -171,7 +171,7 @@ describe("Property deletion (PropertyDetail)", () => {
     }
 
     // Ensure delete was not called and no navigation happened
-    await waitFor(() => {
+    await waitFor(() => { // TODO: Fix multiple assertions - extract into separate waitFor calls
       expect(deleteMock).not.toHaveBeenCalled();
     });
     expect(mockNavigate).not.toHaveBeenCalledWith("/properties");
@@ -203,7 +203,7 @@ describe("Property deletion (PropertyDetail)", () => {
     }
 
     // Context delete attempted
-    await waitFor(() => {
+    await waitFor(() => { // TODO: Fix multiple assertions - extract into separate waitFor calls
       expect(deleteMock).toHaveBeenCalledWith(123);
     });
 

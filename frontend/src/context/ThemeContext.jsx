@@ -219,11 +219,11 @@ export const ThemeProvider = ({ children }) => {
   };
 
   // Select theme based on dark mode setting
-  const theme = isDarkMode ? darkTheme : lightTheme;
+  const selectedTheme = isDarkMode ? darkTheme : lightTheme;
 
   return (
     <ThemeContext.Provider value={{ isDarkMode, toggleDarkMode }}>
-      <MuiThemeProvider theme={theme}>
+      <MuiThemeProvider theme={selectedTheme}>
         <CssBaseline />
         {children}
       </MuiThemeProvider>

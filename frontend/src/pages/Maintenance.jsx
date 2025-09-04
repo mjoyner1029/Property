@@ -36,7 +36,7 @@ import {
 } from "../components";
 import { useMaintenance, useApp, useProperty } from "../context";
 
-const STATUS_TABS = ["all", "open", "in_progress", "completed"];
+const _STATUS_TABS = ["all", "open", "in_progress", "completed"];
 
 // Centralized maintenance type catalogue for consistency across UI/back-end
 const MAINTENANCE_CATALOG = [

@@ -83,7 +83,7 @@ describe('MaintenanceRequestCard Component', () => {
     
     // The component uses a PriorityHighIcon with a color, not text
     // We can verify the component renders without errors
-    expect(document.querySelector('svg')).toBeInTheDocument();
+    expect(screen.queryBySelector('svg')).toBeInTheDocument();
   });
 
   test('navigates to detail view when clicked', async () => {
@@ -114,7 +114,7 @@ describe('MaintenanceRequestCard Component', () => {
     
     // The component imports a StatusBadge, not directly renders the status text
     // We can check that it renders properly
-    expect(document.querySelector('div')).toBeInTheDocument();
+    expect(screen.queryBySelector('div')).toBeInTheDocument();
   });
 
   test('renders with different status and priority', () => {

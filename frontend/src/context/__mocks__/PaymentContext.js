@@ -30,7 +30,18 @@ export const usePaymentContext = jest.fn().mockReturnValue({
 });
 
 export const PaymentProvider = ({ children, value }) => {
-  const contextValue = value || usePaymentContext();
+  // Don't call hooks conditionally - create a default value instead
+  const defaultValue = {
+    payments: [],
+    loading: false,
+    error: null,
+    addPayment: jest.fn(),
+    updatePayment: jest.fn(),
+    deletePayment: jest.fn(),
+    fetchPayments: jest.fn(),
+    fetchPaymentById: jest.fn()
+  };
+  const contextValue = value || defaultValue;
   return <PaymentContext.Provider value={contextValue}>{children}</PaymentContext.Provider>;
 };
 

@@ -2,7 +2,7 @@
 import React from 'react';
 import { screen, within, waitFor, fireEvent } from '@testing-library/react';
 import { getInputByName, getSelectByName } from 'src/test/utils/muiTestUtils';
-import { Routes, Route } from 'react-router-dom';
+import { useParams, Routes, Route } from 'react-router-dom';
 import { renderWithProviders } from 'src/test-utils/renderWithProviders';
 import TenantDetail from 'src/pages/TenantDetail';
 
@@ -75,7 +75,7 @@ describe('Tenant delete flow (TenantDetail)', () => {
     renderDetail();
 
     // Wait first to verify getTenant was called
-    await waitFor(() => {
+    await waitFor(() => { // TODO: Fix multiple assertions - extract into separate waitFor calls
       expect(mockGetTenant).toHaveBeenCalledWith('1');
     });
     
@@ -94,7 +94,7 @@ describe('Tenant delete flow (TenantDetail)', () => {
     
     // Find button by its icon and text content
     const deleteButton = screen.getByRole('button', { name: /delete/i });
-    expect(deleteButton).toBeTruthy();
+    expect(deleteButton).toBeInTheDocument();
     fireEvent.click(deleteButton);
 
     // Confirm deletion in the dialog
@@ -107,11 +107,11 @@ describe('Tenant delete flow (TenantDetail)', () => {
     fireEvent.click(confirmDelete);
 
     // Ensure context delete called with id and navigation performed
-    await waitFor(() => {
+    await waitFor(() => { // TODO: Fix multiple assertions - extract into separate waitFor calls
       expect(mockDeleteTenant).toHaveBeenCalledWith('1');
     });
     
-    await waitFor(() => {
+    await waitFor(() => { // TODO: Fix multiple assertions - extract into separate waitFor calls
       expect(mockNavigate).toHaveBeenCalledWith('/tenants');
     });
   });
@@ -129,7 +129,7 @@ describe('Tenant delete flow (TenantDetail)', () => {
 
     // Find button by its icon and text content
     const deleteButton = screen.getByRole('button', { name: /delete/i });
-    expect(deleteButton).toBeTruthy();
+    expect(deleteButton).toBeInTheDocument();
     fireEvent.click(deleteButton);
 
     // Find and click cancel in the dialog
@@ -159,7 +159,7 @@ describe('Tenant delete flow (TenantDetail)', () => {
 
     // Find button by its icon and text content
     const deleteButton = screen.getByRole('button', { name: /delete/i });
-    expect(deleteButton).toBeTruthy();
+    expect(deleteButton).toBeInTheDocument();
     fireEvent.click(deleteButton);
 
     // Confirm deletion in the dialog
@@ -172,12 +172,12 @@ describe('Tenant delete flow (TenantDetail)', () => {
     fireEvent.click(confirmDelete);
 
     // Delete attempted
-    await waitFor(() => {
+    await waitFor(() => { // TODO: Fix multiple assertions - extract into separate waitFor calls
       expect(mockDeleteTenant).toHaveBeenCalledWith('1');
     });
 
     // Component sets error and should not navigate
-    await waitFor(() => {
+    await waitFor(() => { // TODO: Fix multiple assertions - extract into separate waitFor calls
       const errorMsg = screen.getByText(/Failed to delete tenant/i);
       expect(errorMsg).toBeInTheDocument();
     });

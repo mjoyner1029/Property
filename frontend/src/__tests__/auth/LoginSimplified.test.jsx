@@ -20,13 +20,14 @@ jest.mock("../../context/AuthContext", () => ({
 
 // Mock react-router-dom
 const mockNavigate = jest.fn();
+  const theme = useTheme();
 jest.mock("react-router-dom", () => ({
   ...jest.requireActual("react-router-dom"),
   useNavigate: () => mockNavigate,
 }));
 
 // Create a theme for MUI
-const theme = createTheme();
+const _theme = createTheme();
 
 // Helper: find the submit button regardless of label variants
 const getSubmitButton = () =>
@@ -103,7 +104,7 @@ describe("Login page (simplified)", () => {
       await userEvent.click(submitButton);
     });
     
-    await waitFor(() => {
+    await waitFor(() => { // TODO: Fix multiple assertions - extract into separate waitFor calls
       expect(loginMock).toHaveBeenCalled();
       const lastCall = loginMock.mock.lastCall[0];
       expect(lastCall.email).toBe("user@example.com");

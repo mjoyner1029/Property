@@ -1,0 +1,28 @@
+{
+  "overrides": [
+    {
+      "files": ["src/__tests__/**/*.jsx", "src/__tests__/**/*.js"],
+      "rules": {
+        "testing-library/no-node-access": "off",
+        "testing-library/no-container": "off",
+        "testing-library/no-wait-for-multiple-assertions": "off",
+        "testing-library/no-unnecessary-act": "off",
+        "testing-library/prefer-screen-queries": "off",
+        "testing-library/prefer-presence-queries": "off",
+        "testing-library/no-debugging-utils": "off",
+        "testing-library/render-result-naming-convention": "off",
+        "testing-library/no-wait-for-side-effects": "off",
+        "react-hooks/rules-of-hooks": "off",
+        "no-undef": "warn",
+        "no-restricted-globals": "off"
+      }
+    },
+    {
+      "files": ["src/context/__mocks__/*.js", "src/test/mocks/*.js", "src/test/__mocks__/*.js"],
+      "rules": {
+        "react-hooks/rules-of-hooks": "off",
+        "no-undef": "warn"
+      }
+    }
+  ]
+}

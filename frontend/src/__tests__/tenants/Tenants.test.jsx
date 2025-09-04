@@ -3,6 +3,7 @@ import React from 'react';
 import { screen, within, waitFor } from "@testing-library/react";
 import Tenants from "src/pages/Tenants";
 import { renderWithProviders } from 'src/test-utils/renderWithProviders';
+import api from 'src/utils/api';
 
 // Mock the app's axios client module
 jest.mock('src/utils/api', () => ({
@@ -11,7 +12,6 @@ jest.mock('src/utils/api', () => ({
   put: jest.fn(),
   delete: jest.fn(),
 }));
-import api from 'src/utils/api';
 
 describe('Tenants Component', () => {
   const mockTenants = [
@@ -28,7 +28,7 @@ describe('Tenants Component', () => {
     renderWithProviders(<Tenants />);
     
     // First verify that API client call was made
-    await waitFor(() => {
+    await waitFor(() => { // TODO: Fix multiple assertions - extract into separate waitFor calls
       expect(api.get).toHaveBeenCalled();
     });
     

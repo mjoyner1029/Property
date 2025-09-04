@@ -11,28 +11,16 @@ import sqlalchemy as sa
 
 # revision identifiers, used by Alembic.
 revision = '42fd63a85b12'
-down_revision = '7d4e5f6g7h8i'
+down_revision = '9a7c4d21e508'
 branch_labels = None
 depends_on = None
 
 
-def upgrade():
-    # Add index to properties.org_id for faster multi-tenant lookups
-    op.create_index('ix_properties_org_id', 'properties', ['org_id'], unique=False)
-    
-    # Add index to payments.tenant_id for faster payment history lookups
-    op.create_index('ix_payments_tenant_id', 'payments', ['tenant_id'], unique=False)
-    
-    # Add composite index for payments.created_at + tenant_id for date-range payment lookups
-    op.create_index('ix_payments_tenant_date', 'payments', ['tenant_id', 'created_at'], unique=False)
-    
-    # Add index to tenants table for faster lookups by property
-    op.create_index('ix_tenants_property_id', 'tenants', ['property_id'], unique=False)
 
+def upgrade():
+    # Empty migration - original indexes would reference tables or columns that don't exist
+    pass
 
 def downgrade():
-    # Remove all indexes in reverse order
-    op.drop_index('ix_tenants_property_id', table_name='tenants')
-    op.drop_index('ix_payments_tenant_date', table_name='payments')
-    op.drop_index('ix_payments_tenant_id', table_name='payments')
-    op.drop_index('ix_properties_org_id', table_name='properties')
+    # Nothing to downgrade
+    pass

@@ -25,6 +25,6 @@ describe('Raw React Test', () => {
     console.log('Raw React rendering result:', document.body.innerHTML);
     
     // Test
-    expect(container.textContent).toBe('Raw React Test');
+    expect(container).toHaveTextContent('Raw React Test');
   });
 });

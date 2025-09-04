@@ -33,7 +33,7 @@ function useAuth() {
 // Stateful provider used only for this test file.
 // Simulates typical auth behavior without external I/O.
 function MockAuthProvider({ children, onLoginCall, onLogoutCall, onRefreshCall }) {
-  const [user, setUser] = useState(null);
+  const [_user, setUser] = useState(null);
 
   const value = useMemo(() => {
     return {

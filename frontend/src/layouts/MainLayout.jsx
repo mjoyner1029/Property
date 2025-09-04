@@ -40,10 +40,11 @@ import logo from '../assets/logo.png';
 const drawerWidth = 260;
 
 export default function MainLayout({ children }) {
+  const theme = useTheme();
   const { user, logout } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
-  const theme = useTheme();
+  const _theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
   
   const [mobileOpen, setMobileOpen] = useState(false);

@@ -16,14 +16,15 @@ import {
   createErrorMessage
 } from '../../test/utils/domTestUtils';
 
+// Import the mocked API after jest.mock
+import { createItem, deleteItem } from '../../services/api';
+import { screen } from '@testing-library/react';
+
 // Mock any API or service functions
 jest.mock('../../services/api', () => ({
   createItem: jest.fn().mockResolvedValue({ id: '123', name: 'New Item' }),
   deleteItem: jest.fn().mockResolvedValue(true),
 }));
-
-// Import the mocked API after jest.mock
-import { createItem, deleteItem } from '../../services/api';
 
 describe('DOM Testing Example', () => {
   // Clear the body after each test
@@ -59,11 +60,11 @@ describe('DOM Testing Example', () => {
       `);
       
       // Act
-      const element = document.querySelector('[data-testid="message"]');
+      const element = screen.queryBySelector('[data-testid="message"]');
       
       // Assert
       expect(element).not.toBeNull();
-      expect(element.textContent).toBe('Hello world');
+      expect(element).toHaveTextContent('Hello world');
     });
   });
   
@@ -144,8 +145,8 @@ describe('DOM Testing Example', () => {
         handleCancel
       );
       
-      const confirmButton = document.querySelector('[data-testid="confirm-button"]');
-      const cancelButton = document.querySelector('[data-testid="cancel-button"]');
+      const confirmButton = screen.queryBySelector('[data-testid="confirm-button"]');
+      const cancelButton = screen.queryBySelector('[data-testid="cancel-button"]');
       
       // Act & Assert - Cancel
       cancelButton.click();
@@ -161,7 +162,7 @@ describe('DOM Testing Example', () => {
       );
       
       // Get new reference to confirm button
-      const newConfirmButton = document.querySelector('[data-testid="confirm-button"]');
+      const newConfirmButton = screen.queryBySelector('[data-testid="confirm-button"]');
       
       // Act & Assert - Confirm
       newConfirmButton.click();
@@ -174,12 +175,12 @@ describe('DOM Testing Example', () => {
       
       createErrorMessage('Failed to load data', handleRetry);
       
-      const errorElement = document.querySelector('[data-testid="error-message"]');
-      const retryButton = document.querySelector('[data-testid="retry-button"]');
+      const errorElement = screen.queryBySelector('[data-testid="error-message"]');
+      const retryButton = screen.queryBySelector('[data-testid="retry-button"]');
       
       // Assert - Error message
       expect(errorElement).not.toBeNull();
-      expect(errorElement.textContent).toContain('Failed to load data');
+      expect(errorElement).toHaveTextContent(/Failed to load data/);
       
       // Act & Assert - Retry action
       retryButton.click();
@@ -191,9 +192,9 @@ describe('DOM Testing Example', () => {
       createLoadingIndicator('Loading items...');
       
       // Assert
-      const loadingElement = document.querySelector('[data-testid="loading-indicator"]');
+      const loadingElement = screen.queryBySelector('[data-testid="loading-indicator"]');
       expect(loadingElement).not.toBeNull();
-      expect(loadingElement.textContent).toContain('Loading items...');
+      expect(loadingElement).toHaveTextContent(/Loading items\.\.\./);
     });
   });
 

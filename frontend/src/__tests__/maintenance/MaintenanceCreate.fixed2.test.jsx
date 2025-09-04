@@ -2,6 +2,11 @@
 import React from "react";
 import { screen, waitFor, fireEvent } from "@testing-library/react";
 
+// Import after mocking
+import { renderWithProviders } from "../../test/utils/renderWithProviders";
+import Maintenance from "../../pages/Maintenance";
+import { useMaintenance, useApp, useProperty } from "../../context";
+
 // Define mock functions first, at the top level
 const mockFetchRequests = jest.fn().mockResolvedValue([]);
 const mockCreateRequest = jest.fn().mockImplementation(async (data) => {
@@ -22,11 +27,6 @@ jest.mock("../../context", () => ({
   useApp: jest.fn(),
   useProperty: jest.fn()
 }));
-
-// Import after mocking
-import { renderWithProviders } from "../../test/utils/renderWithProviders";
-import Maintenance from "../../pages/Maintenance";
-import { useMaintenance, useApp, useProperty } from "../../context";
 
 // Setup context values using the mock functions defined above
 const maintenanceContextValue = {
@@ -262,7 +262,7 @@ describe("Maintenance — Create Request flow", () => {
     fireEvent.click(submitButton);
 
     // Expect validation errors (at least one alert with error message)
-    await waitFor(() => {
+    await waitFor(() => { // TODO: Fix multiple assertions - extract into separate waitFor calls
       const errorMessages = screen.getAllByRole("alert");
       expect(errorMessages.length).toBeGreaterThan(0);
     });
@@ -302,7 +302,7 @@ describe("Maintenance — Create Request flow", () => {
     fireEvent.click(submitButton);
 
     // Verify API was called with correct data
-    await waitFor(() => {
+    await waitFor(() => { // TODO: Fix multiple assertions - extract into separate waitFor calls
       expect(mockCreateRequest).toHaveBeenCalledWith(expect.objectContaining({
         title: "Test Request",
         description: "Test Description",
@@ -312,7 +312,7 @@ describe("Maintenance — Create Request flow", () => {
     });
 
     // Dialog should close
-    await waitFor(() => {
+    await waitFor(() => { // TODO: Fix multiple assertions - extract into separate waitFor calls
       expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
     });
   });
@@ -344,7 +344,7 @@ describe("Maintenance — Create Request flow", () => {
     fireEvent.click(submitButton);
 
     // Expect error message
-    await waitFor(() => {
+    await waitFor(() => { // TODO: Fix multiple assertions - extract into separate waitFor calls
       const errorMessages = screen.getAllByRole("alert");
       expect(errorMessages.length).toBeGreaterThan(0);
     });
@@ -372,7 +372,7 @@ describe("Maintenance — Create Request flow", () => {
     fireEvent.click(cancelButton);
     
     // Dialog should close
-    await waitFor(() => {
+    await waitFor(() => { // TODO: Fix multiple assertions - extract into separate waitFor calls
       expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
     });
     

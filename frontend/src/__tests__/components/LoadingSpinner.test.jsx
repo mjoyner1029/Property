@@ -10,14 +10,14 @@ describe('LoadingSpinner component', () => {
     
     // Check that the CircularProgress component is rendered
     // We can check for the class that's typically applied to MUI CircularProgress
-    const spinnerElement = container.querySelector('.MuiCircularProgress-root');
+    const spinnerElement = screen.queryBySelector('.MuiCircularProgress-root');
     expect(spinnerElement).toBeInTheDocument();
   });
   
   test('renders with default size', () => {
     const { container } = renderWithProviders(<LoadingSpinner />);
     
-    const spinnerElement = container.querySelector('.MuiCircularProgress-root');
+    const spinnerElement = screen.queryBySelector('.MuiCircularProgress-root');
     // Default MUI CircularProgress size is 40px if not specified
     expect(spinnerElement).toBeInTheDocument();
   });

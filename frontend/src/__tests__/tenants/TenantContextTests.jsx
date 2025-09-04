@@ -1,10 +1,11 @@
 // frontend/src/__tests__/tenants/TenantContextTests.jsx
 import React from 'react';
-import { screen, waitFor } from '@testing-library/react';
-import { renderWithProviders } from 'src/test-utils/renderWithProviders';
+import { useParams,  /* screen, */ waitFor } from '@testing-library/react';
+import { useParams,  renderWithProviders } from 'src/test-utils/renderWithProviders';
 import TenantDetail from 'src/pages/TenantDetail';
-import { Routes, Route } from 'react-router-dom';
-import { useTenant, useApp } from 'src/context';
+import { useParams,  Routes, Route } from 'react-router-dom';
+import { useParams,  useTenant, useApp } from 'src/context';
+import api from 'src/utils/api';
 
 // Mock the app's axios client module
 jest.mock('src/utils/api', () => ({
@@ -13,7 +14,6 @@ jest.mock('src/utils/api', () => ({
   put: jest.fn(),
   delete: jest.fn(),
 }));
-import api from 'src/utils/api';
 
 // ---- Router mocks ----
 const mockNavigate = jest.fn();
@@ -83,12 +83,12 @@ describe('Tenant Context API Tests', () => {
     renderDetail();
 
     // Verify API was called with expected parameters
-    await waitFor(() => {
+    await waitFor(() => { // TODO: Fix multiple assertions - extract into separate waitFor calls
       expect(mockGetTenant).toHaveBeenCalledWith('1');
     });
     
     // Verify page title was updated based on tenant data
-    await waitFor(() => {
+    await waitFor(() => { // TODO: Fix multiple assertions - extract into separate waitFor calls
       expect(mockUpdatePageTitle).toHaveBeenCalledWith(expect.stringContaining('Alice'));
     }, { timeout: 3000 });
   });
@@ -111,7 +111,7 @@ describe('Tenant Context API Tests', () => {
     // Test the delete function directly
     try {
       await mockDeleteTenant('1');
-      fail('Should have thrown an error');
+      expect(true).toBe(false); // This line should never execute
     } catch (error) {
       expect(error.message).toBe(errorMessage);
     }

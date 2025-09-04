@@ -1,12 +1,11 @@
 import React from "react";
-import { screen } from "@testing-library/react";
+import { screen, render, waitFor } from "../../test-utils";
 import { Routes, Route } from "react-router-dom";
-import { renderWithAuth } from "../../test/simpleAuthHarness"; // Using the simple auth harness
 import { mockNavigate, waitForLoaded } from "../../test/utils/test-helpers";
 import Unauthorized from "../../pages/Unauthorized";
 
-// Import the mock guards for testing
-import { RoleRoute, ProtectedRoute, PublicOnlyRoute } from "../../test/mocks/guards";
+// Import the updated mock guards for testing
+import { RoleRoute, ProtectedRoute, PublicOnlyRoute } from "../../test/mocks/updated-guards";
 
 // Mock the Unauthorized component 
 jest.mock("../../pages/Unauthorized", () => function MockUnauthorized() {
@@ -37,8 +36,8 @@ describe("Routing guards", () => {
   });
 
   test("ProtectedRoute allows admin to access /admin", async () => {
-    // Set up auth for admin user using our new TestAuthProvider
-    renderWithAuth(
+    // Set up auth for admin user using our new render function
+    render(
       <Routes>
         <Route
           path="/admin"
@@ -54,8 +53,7 @@ describe("Routing guards", () => {
           isAuthenticated: true,
           loading: false,
           user: { role: 'admin' },
-          roles: ['admin'],
-          isRole: (role) => role === 'admin'
+          roles: ['admin']
         },
         route: "/admin"
       }
@@ -65,8 +63,8 @@ describe("Routing guards", () => {
   });
 
   test("ProtectedRoute blocks tenant from /admin", async () => {
-    // Set up auth for tenant user using our new TestAuthProvider
-    renderWithAuth(
+    // Set up auth for tenant user using our new render function
+    render(
       <Routes>
         <Route
           path="/admin"
@@ -95,8 +93,8 @@ describe("Routing guards", () => {
   });
 
   test("PublicRoute hides /login for authenticated users", async () => {
-    // Use our new renderWithAuth function
-    renderWithAuth(
+    // Use our new render function
+    render(
       <Routes>
         <Route
           path="/login"
@@ -125,8 +123,8 @@ describe("Routing guards", () => {
   });
   
   test("ProtectedRoute redirects unauthenticated users to /login", async () => {
-    // Use our new renderWithAuth function
-    renderWithAuth(
+    // Use our new render function
+    render(
       <Routes>
         <Route
           path="/admin"
@@ -155,8 +153,8 @@ describe("Routing guards", () => {
   });
   
   test("ProtectedRoute shows loading indicator when auth is loading", async () => {
-    // Use our new renderWithAuth function
-    renderWithAuth(
+    // Use our new render function
+    render(
       <Routes>
         <Route
           path="/admin"
@@ -185,10 +183,11 @@ describe("Routing guards", () => {
     // await waitForLoaded("loading-spinner");
     
     expect(screen.queryByText(/admin panel/i)).not.toBeInTheDocument();
+  });
   
   test("ProtectedRoute with roles=[admin, landlord] allows landlord", async () => {
-    // Use our new renderWithAuth function
-    renderWithAuth(
+    // Use our new render function
+    render(
       <Routes>
         <Route
           path="/property"
@@ -215,8 +214,8 @@ describe("Routing guards", () => {
   });
   
   test("ProtectedRoute with roles=[admin, landlord] blocks tenant and redirects", async () => {
-    // Use our new renderWithAuth function
-    renderWithAuth(
+    // Use our new render function
+    render(
       <Routes>
         <Route
           path="/property"
@@ -226,7 +225,7 @@ describe("Routing guards", () => {
             </RoleRoute>
           }
         />
-        <Route path="/forbidden" element={<Unauthorized />} />
+        <Route path="/unauthorized" element={<Unauthorized />} />
       </Routes>,
       {
         auth: {
@@ -245,8 +244,8 @@ describe("Routing guards", () => {
   });
   
   test("PublicRoute shows login for unauthenticated users", async () => {
-    // Use our new renderWithAuth function
-    renderWithAuth(
+    // Use our new render function
+    render(
       <Routes>
         <Route
           path="/login"
@@ -273,8 +272,8 @@ describe("Routing guards", () => {
   });
   
   test("PublicRoute shows loading indicator when auth is loading", async () => {
-    // Use our new renderWithAuth function
-    renderWithAuth(
+    // Use our new render function
+    render(
       <Routes>
         <Route
           path="/login"
@@ -302,8 +301,8 @@ describe("Routing guards", () => {
   });
 
   test("PrivateRoute shows loading indicator when auth is loading", async () => {
-    // Use our new renderWithAuth function
-    renderWithAuth(
+    // Use our new render function
+    render(
       <Routes>
         <Route
           path="/dashboard"

@@ -215,12 +215,12 @@ describe("Message Delete", () => {
       within(dialog).getByRole("button");
     fireEvent.click(confirm);
 
-    await waitFor(() => {
+    await waitFor(() => { // TODO: Fix multiple assertions - extract into separate waitFor calls
       expect(mockDeleteConversation).toHaveBeenCalledWith(2);
     });
 
     // Dialog closes
-    await waitFor(() => {
+    await waitFor(() => { // TODO: Fix multiple assertions - extract into separate waitFor calls
       expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
     });
   });
@@ -241,7 +241,7 @@ describe("Message Delete", () => {
     expect(cancel).toBeInTheDocument();
     fireEvent.click(cancel);
 
-    await waitFor(() => {
+    await waitFor(() => { // TODO: Fix multiple assertions - extract into separate waitFor calls
       expect(mockDeleteConversation).not.toHaveBeenCalled();
     });
 
@@ -271,11 +271,11 @@ describe("Message Delete", () => {
       within(dialog).getByRole("button");
     fireEvent.click(confirm);
 
-    await waitFor(() => {
+    await waitFor(() => { // TODO: Fix multiple assertions - extract into separate waitFor calls
       expect(mockDeleteConversation).toHaveBeenCalledWith(1);
     });
 
-    await waitFor(() => {
+    await waitFor(() => { // TODO: Fix multiple assertions - extract into separate waitFor calls
       expect(mockNavigate).toHaveBeenCalledWith("/messages");
     });
   });
@@ -298,7 +298,7 @@ describe("Message Delete", () => {
     expect(cancel).toBeInTheDocument();
     fireEvent.click(cancel);
 
-    await waitFor(() => {
+    await waitFor(() => { // TODO: Fix multiple assertions - extract into separate waitFor calls
       expect(mockDeleteConversation).not.toHaveBeenCalled();
     });
 
@@ -322,7 +322,7 @@ describe("Message Delete", () => {
     fireEvent.click(confirm);
 
     // Expect error surfaced by the UI
-    await waitFor(() => {
+    await waitFor(() => { // TODO: Fix multiple assertions - extract into separate waitFor calls
       const err =
         screen.queryByRole("alert") ||
         screen.queryByText(/failed/i) ||
@@ -351,7 +351,7 @@ describe("Message Delete", () => {
       within(dialog).getByRole("button");
     fireEvent.click(confirm);
 
-    await waitFor(() => {
+    await waitFor(() => { // TODO: Fix multiple assertions - extract into separate waitFor calls
       const err =
         screen.queryByRole("alert") ||
         screen.queryByText(/failed/i) ||

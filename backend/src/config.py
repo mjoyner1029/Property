@@ -82,7 +82,12 @@ class BaseConfig:
     VERSION = os.environ.get("VERSION", "1.0.0")
     
     # CORS
-    CORS_ORIGINS = os.environ.get("CORS_ORIGINS", "*")
+    # Parse CORS_ORIGINS from comma-separated string to list
+    _cors_origins_str = os.environ.get("CORS_ORIGINS", "*")
+    if _cors_origins_str == "*":
+        CORS_ORIGINS = _cors_origins_str  # Keep as "*" for wildcard
+    else:
+        CORS_ORIGINS = [origin.strip() for origin in _cors_origins_str.split(",") if origin.strip()]
     
     # Database
     import pathlib
@@ -150,6 +155,17 @@ class DevelopmentConfig(BaseConfig):
     # Security settings relaxed for development
     FORCE_HTTPS = False
     SESSION_COOKIE_SECURE = False
+    
+    # Defensive defaults for development
+    SECRET_KEY = os.environ.get("SECRET_KEY", "dev-secret-key-change-in-production")
+    JWT_SECRET_KEY = os.environ.get("JWT_SECRET_KEY", "dev-jwt-key-change-in-production")
+    
+    # Default to localhost:3000 for frontend in development
+    _cors_origins_str = os.environ.get("CORS_ORIGINS", "http://localhost:3000")
+    if _cors_origins_str == "*":
+        CORS_ORIGINS = _cors_origins_str  # Keep as "*" for wildcard
+    else:
+        CORS_ORIGINS = [origin.strip() for origin in _cors_origins_str.split(",") if origin.strip()]
     
     # Use absolute path for SQLite database to avoid path issues
     SQLALCHEMY_DATABASE_URI = os.environ.get(
@@ -298,7 +314,11 @@ class ProductionConfig(BaseConfig):
     # Security settings
     FORCE_HTTPS = True
     SESSION_COOKIE_SECURE = True
-    CORS_ORIGINS = os.environ.get("CORS_ORIGINS", "https://assetanchor.io,https://www.assetanchor.io")
+    _cors_origins_str = os.environ.get("CORS_ORIGINS", "https://assetanchor.io,https://www.assetanchor.io")
+    if _cors_origins_str == "*":
+        CORS_ORIGINS = _cors_origins_str  # Keep as "*" for wildcard, though not recommended in prod
+    else:
+        CORS_ORIGINS = [origin.strip() for origin in _cors_origins_str.split(",") if origin.strip()]
     CSP_ENFORCE = get_env_bool("CSP_ENFORCE", True)
     CSP_REPORT_URI = get_env("CSP_REPORT_URI", "")
     
@@ -360,8 +380,15 @@ def get_config(config_name: Optional[str] = None) -> BaseConfig:
     if config_name is None:
         config_name = os.environ.get("APP_ENV", "development")
     
+    # Log which configuration is being used
+    import logging
+    logger = logging.getLogger(__name__)
+    logger.info(f"Loading configuration: {config_name}")
+    
     # Get config class from dictionary, default to development
     config_class = config_dict.get(config_name, config_dict["default"])
+    if config_name != config_class.__name__.replace("Config", "").lower():
+        logger.warning(f"Requested config '{config_name}' not found, using {config_class.__name__}")
     
     # For production configs, we need to instantiate to trigger validation
     if config_name == "production":

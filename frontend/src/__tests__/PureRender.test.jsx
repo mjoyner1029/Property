@@ -12,6 +12,6 @@ describe('Pure Render Test', () => {
     console.log('Pure container HTML:', container.innerHTML);
     
     // Check content
-    expect(container.textContent).toBe('Pure test');
+    expect(container).toHaveTextContent('Pure test');
   });
 });

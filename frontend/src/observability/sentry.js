@@ -1,11 +1,11 @@
 /**
  * Sentry initialization and error tracking configuration
  * This module initializes Sentry for error tracking in production environments
- * with enhanced features for comprehensive error monitoring and performance tracking
+ * Simplified for compatibility and only enabled when REACT_APP_SENTRY_DSN is provided
  */
 import * as Sentry from '@sentry/react';
 import { BrowserTracing } from '@sentry/react';
-import { SENTRY_DSN, SENTRY_ENVIRONMENT, SENTRY_RELEASE, IS_PRODUCTION } from '../config/environment';
+import { SENTRY_ENVIRONMENT, SENTRY_RELEASE, IS_PRODUCTION } from '../config/environment';
 
 // User-centric performance metrics for monitoring
 const VITAL_METRICS = {
@@ -14,37 +14,37 @@ const VITAL_METRICS = {
   LCP: 'largest-contentful-paint',
   FID: 'first-input-delay',
   CLS: 'cumulative-layout-shift',
-  TTFB: 'time-to-first-byte',
-  INP: 'interaction-to-next-paint'
+  TTFB: 'time-to-first-byte'
 };
 
 /**
- * Initialize Sentry for comprehensive error tracking and performance monitoring
- * This function implements advanced features for better debugging and user experience insights
+ * Initialize Sentry for error tracking and basic performance monitoring
+ * Only initializes when REACT_APP_SENTRY_DSN environment variable is set
+ * Simplified implementation for better compatibility with React 18+
  * 
  * @returns {boolean} Whether Sentry was initialized
  */
 export const initSentry = () => {
-  // Only initialize Sentry if DSN is provided
-  if (!SENTRY_DSN) {
-    console.debug('[Sentry] Skipping initialization - no DSN provided');
+  // Only initialize Sentry if REACT_APP_SENTRY_DSN is provided
+  if (!process.env.REACT_APP_SENTRY_DSN) {
+    console.debug('[Sentry] Skipping initialization - no REACT_APP_SENTRY_DSN provided');
     return false;
   }
 
   try {
     Sentry.init({
-      dsn: SENTRY_DSN,
+      dsn: process.env.REACT_APP_SENTRY_DSN,
       environment: SENTRY_ENVIRONMENT,
       release: SENTRY_RELEASE || undefined,
       
       // Only send errors in production by default
-      enabled: IS_PRODUCTION,
+      enabled: IS_PRODUCTION || process.env.REACT_APP_ENABLE_SENTRY === 'true',
       
       // Performance monitoring configuration
       integrations: [
         // Browser performance tracking
         new BrowserTracing({
-          // Trace all navigation and fetch requests by default
+          // Trace navigation and fetch requests
           tracingOrigins: ['localhost', /^\//],
           
           // Track route changes in React Router
@@ -55,13 +55,14 @@ export const initSentry = () => {
             }
           ),
         }),
-        
-        // Session replay functionality removed due to compatibility issues
+        // No Replay/Profiler integrations for better compatibility
       ],
       
       // Web Vitals and Performance Monitoring
-      // Capture 15% of transactions to keep overhead low but get meaningful data
-      tracesSampleRate: 0.15,
+      // Use very low sampling rate to minimize overhead (0.1 = 10% of transactions)
+      tracesSampleRate: process.env.REACT_APP_SENTRY_SAMPLE_RATE 
+        ? parseFloat(process.env.REACT_APP_SENTRY_SAMPLE_RATE) 
+        : 0.1,
       
       // Enhanced Context for better debugging
       attachStacktrace: true,
@@ -183,15 +184,15 @@ export const initSentry = () => {
       },
     });
 
-    // Add React error boundary monitoring
-    Sentry.withErrorBoundary = Sentry.withErrorBoundary;
+    // Error boundary monitoring is already available from Sentry React
     
-    // React profiler support removed due to compatibility issues
+    // No ReactProfiler or Replay initialization - removed for compatibility
 
-    console.debug('[Sentry] Initialized successfully with enhanced monitoring');
+    console.debug('[Sentry] Initialized successfully with basic monitoring');
     return true;
   } catch (err) {
     console.error('[Sentry] Initialization failed:', err);
+    // Fail gracefully - application should work without Sentry
     return false;
   }
 };
@@ -205,7 +206,7 @@ export const initSentry = () => {
  * @param {string} [user.email] User email (optional)
  */
 export const setSentryUser = (user) => {
-  if (!SENTRY_DSN || !user?.id) return;
+  if (!process.env.REACT_APP_SENTRY_DSN || !user?.id) return;
   
   Sentry.setUser({
     id: user.id,
@@ -219,7 +220,7 @@ export const setSentryUser = (user) => {
  * Should be called on logout
  */
 export const clearSentryUser = () => {
-  if (!SENTRY_DSN) return;
+  if (!process.env.REACT_APP_SENTRY_DSN) return;
   Sentry.setUser(null);
 };
 
@@ -231,6 +232,6 @@ export const clearSentryUser = () => {
  * @returns {string|null} The Sentry event ID or null if Sentry is not initialized
  */
 export const captureException = (error, context = {}) => {
-  if (!SENTRY_DSN) return null;
+  if (!process.env.REACT_APP_SENTRY_DSN) return null;
   return Sentry.captureException(error, { extra: context });
 };

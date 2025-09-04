@@ -1,9 +1,9 @@
 import React from 'react';
 import { screen, render, act } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { MemoryRouter, Routes, Route } from 'react-router-dom';
+import { useParams, MemoryRouter, Routes, Route } from 'react-router-dom';
 import { ThemeProvider } from '@mui/material/styles';
-import theme from 'src/theme';
+import muiTheme from 'src/theme';
 import NotificationDetail from 'src/pages/NotificationDetail';
 
 // Mock the notification hook directly
@@ -61,7 +61,7 @@ jest.mock('react-router-dom', () => ({
 describe('NotificationDetail with hook mocks', () => {
   const renderDetailPage = () => {
     return render(
-      <ThemeProvider theme={theme}>
+      <ThemeProvider theme={muiTheme}>
         <MemoryRouter initialEntries={['/notifications/123']}>
           <Routes>
             <Route path="/notifications/:id" element={<NotificationDetail />} />

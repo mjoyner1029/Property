@@ -30,7 +30,18 @@ export const useTenantContext = jest.fn().mockReturnValue({
 });
 
 export const TenantProvider = ({ children, value }) => {
-  const contextValue = value || useTenantContext();
+  // Don't call hooks conditionally - create a default value instead
+  const defaultValue = {
+    tenants: [],
+    loading: false,
+    error: null,
+    addTenant: jest.fn(),
+    updateTenant: jest.fn(),
+    deleteTenant: jest.fn(),
+    fetchTenants: jest.fn(),
+    fetchTenantById: jest.fn()
+  };
+  const contextValue = value || defaultValue;
   return <TenantContext.Provider value={contextValue}>{children}</TenantContext.Provider>;
 };
 

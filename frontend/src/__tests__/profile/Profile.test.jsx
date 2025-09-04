@@ -86,7 +86,7 @@ describe('Profile Component', () => {
     jest.runAllTimers();
 
     // Success alert appears and button returns to normal
-    await waitFor(() => {
+    await waitFor(() => { // TODO: Fix multiple assertions - extract into separate waitFor calls
       expect(screen.getByText(/Profile updated successfully/i)).toBeInTheDocument();
     });
     expect(screen.getByRole('button')).toHaveTextContent(/Save Changes/i);

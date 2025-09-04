@@ -1,304 +1,111 @@
-import React, { useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
-import { 
-  AppBar, 
-  Toolbar, 
-  Typography, 
-  Button, 
-  IconButton, 
-  Box, 
-  Menu, 
-  MenuItem,
-  Avatar,
-  Badge,
-  useMediaQuery,
-  useTheme
+import React from 'react';
+import {
+  AppBar, Toolbar, IconButton, Typography, Box,
+  Avatar, Button, Tooltip
 } from '@mui/material';
+import { useTheme } from '@mui/material/styles';
 import MenuIcon from '@mui/icons-material/Menu';
-import NotificationsIcon from '@mui/icons-material/Notifications';
-import AccountCircleIcon from '@mui/icons-material/AccountCircle';
-import { useAuth } from '../context/AuthContext';
+import { useNavigate } from 'react-router-dom';
+import NotificationDropdown from './NotificationDropdown';
+// import UserMenu from './UserMenu';
+import { useAuth, useApp } from '../context';
+import Logo from './Logo';
 
-const NavBar = () => {
-  const { user, logout } = useAuth();
-  const navigate = useNavigate();
+/**
+ * Top navigation bar component with responsive design
+ * Features app title/logo, navigation toggle, notification dropdown & user menu
+ */
+export default function NavBar({ onDrawerToggle }) {
+  const { user } = useAuth();
+  const { toggleDarkMode, setAppState } = useApp();
   const theme = useTheme();
-  const isMobile = useMediaQuery(theme.breakpoints.down('md'));
-  
-  const [anchorEl, setAnchorEl] = useState(null);
-  const [mobileMenuAnchor, setMobileMenuAnchor] = useState(null);
-  const [notifAnchor, setNotifAnchor] = useState(null);
-  
-  const handleMenuOpen = (event) => {
-    setAnchorEl(event.currentTarget);
-  };
-  
-  const handleMenuClose = () => {
-    setAnchorEl(null);
-  };
-  
-  const handleMobileMenuOpen = (event) => {
-    setMobileMenuAnchor(event.currentTarget);
-  };
-  
-  const handleMobileMenuClose = () => {
-    setMobileMenuAnchor(null);
-  };
-  
-  const handleNotificationsOpen = (event) => {
-    setNotifAnchor(event.currentTarget);
-  };
-  
-  const handleNotificationsClose = () => {
-    setNotifAnchor(null);
-  };
-  
-  const handleLogout = () => {
-    logout();
-    navigate('/login');
-  };
+  const navigate = useNavigate();
 
   return (
-    <AppBar 
-      position="fixed" 
-      sx={{ 
-        backgroundColor: 'background.paper', 
-        color: 'text.primary',
-        boxShadow: '0px 2px 8px rgba(0,0,0,0.05)',
-        zIndex: (theme) => theme.zIndex.drawer + 1 
+    <AppBar
+      position="fixed"
+      elevation={0}
+      sx={{
+        zIndex: (theme) => theme.zIndex.drawer + 1,
+        backgroundColor: theme.palette.background.paper,
+        color: theme.palette.text.primary,
+        borderBottom: `1px solid ${theme.palette.divider}`
       }}
     >
-      <Toolbar>
-        {isMobile && (
+      <Toolbar
+        sx={{
+          display: 'flex',
+          justifyContent: 'space-between',
+          height: 64
+        }}
+      >
+        {/* Left side - Logo and menu toggle */}
+        <Box sx={{ display: 'flex', alignItems: 'center' }}>
           <IconButton
-            edge="start"
             color="inherit"
-            aria-label="menu"
-            onClick={handleMobileMenuOpen}
-            sx={{ mr: 2 }}
+            aria-label="open drawer"
+            onClick={onDrawerToggle}
+            edge="start"
+            sx={{ mr: 2, display: { lg: 'none' } }}
           >
             <MenuIcon />
           </IconButton>
-        )}
-        
-        <Typography 
-          variant="h6" 
-          component={Link} 
-          to="/" 
-          sx={{ 
-            flexGrow: 1, 
-            textDecoration: 'none', 
-            color: 'inherit',
-            fontWeight: 600
-          }}
-        >
-          Asset Anchor
-        </Typography>
-        
-        {!isMobile && (
-          <Box sx={{ display: 'flex', alignItems: 'center' }}>
-            <Button 
-              component={Link} 
-              to="/dashboard" 
-              color="inherit"
-              sx={{ mx: 1 }}
+
+          <Box
+            sx={{
+              display: 'flex',
+              alignItems: 'center',
+              cursor: 'pointer'
+            }}
+            onClick={() => navigate('/dashboard')}
+          >
+            <Logo sx={{ height: 32, mr: 1 }} />
+            <Typography
+              variant="h6"
+              noWrap
+              component="div"
+              sx={{ 
+                display: { xs: 'none', sm: 'block' },
+                fontWeight: 600
+              }}
             >
-              Dashboard
-            </Button>
-            {user?.role === 'landlord' && (
-              <>
-                <Button 
-                  component={Link} 
-                  to="/properties" 
-                  color="inherit"
-                  sx={{ mx: 1 }}
-                >
-                  Properties
-                </Button>
-                <Button 
-                  component={Link} 
-                  to="/tenants" 
-                  color="inherit"
-                  sx={{ mx: 1 }}
-                >
-                  Tenants
-                </Button>
-              </>
-            )}
-            <Button 
-              component={Link} 
-              to="/maintenance" 
-              color="inherit"
-              sx={{ mx: 1 }}
-            >
-              Maintenance
-            </Button>
-            <Button 
-              component={Link} 
-              to="/payments" 
-              color="inherit"
-              sx={{ mx: 1 }}
-              data-testid="payments-link"
-              aria-label="Payments"
-            >
-              Payments
-            </Button>
+              AssetAnchor
+            </Typography>
           </Box>
-        )}
-        
-        <Box sx={{ display: 'flex', alignItems: 'center' }}>
-          <IconButton 
-            color="inherit" 
-            onClick={handleNotificationsOpen}
-            sx={{ mx: 1 }}
-            data-testid="notification-icon"
-            aria-label="Show notifications"
-          >
-            <Badge badgeContent={3} color="error">
-              <NotificationsIcon />
-            </Badge>
-          </IconButton>
-          
-          <IconButton 
-            color="inherit"
-            onClick={handleMenuOpen}
-            sx={{ ml: 1 }}
-            aria-label="Account of current user"
-            aria-controls="menu-appbar"
-            aria-haspopup="true"
-          >
-            {user?.avatar ? (
-              <Avatar 
-                src={user.avatar} 
-                alt={user.name || "User"} 
-                sx={{ width: 32, height: 32 }}
-              />
-            ) : (
-              <AccountCircleIcon />
-            )}
-          </IconButton>
         </Box>
-        
-        <Menu
-          anchorEl={anchorEl}
-          open={Boolean(anchorEl)}
-          onClose={handleMenuClose}
-          sx={{ mt: '45px' }}
-        >
-          <MenuItem 
-            component={Link} 
-            to="/profile" 
-            onClick={handleMenuClose}
-          >
-            Profile
-          </MenuItem>
-          <MenuItem 
-            component={Link} 
-            to="/settings" 
-            onClick={handleMenuClose}
-          >
-            Settings
-          </MenuItem>
-          <MenuItem 
-            onClick={handleLogout}
-          >
-            Logout
-          </MenuItem>
-        </Menu>
-        
-        {isMobile && (
-          <Menu
-            anchorEl={mobileMenuAnchor}
-            open={Boolean(mobileMenuAnchor)}
-            onClose={handleMobileMenuClose}
-            sx={{ mt: '45px' }}
-          >
-            <MenuItem 
-              component={Link} 
-              to="/dashboard" 
-              onClick={handleMobileMenuClose}
-            >
-              Dashboard
-            </MenuItem>
-            {user?.role === 'landlord' && (
-              <>
-                <MenuItem 
-                  component={Link} 
-                  to="/properties" 
-                  onClick={handleMobileMenuClose}
-                >
-                  Properties
-                </MenuItem>
-                <MenuItem 
-                  component={Link} 
-                  to="/tenants" 
-                  onClick={handleMobileMenuClose}
-                >
-                  Tenants
-                </MenuItem>
-              </>
-            )}
-            <MenuItem 
-              component={Link} 
-              to="/maintenance" 
-              onClick={handleMobileMenuClose}
-            >
-              Maintenance
-            </MenuItem>
-            <MenuItem 
-              component={Link} 
-              to="/payments" 
-              onClick={handleMobileMenuClose}
-              data-testid="payments-menu-item"
-            >
-              Payments
-            </MenuItem>
-            <MenuItem 
-              component={Link} 
-              to="/profile" 
-              onClick={handleMobileMenuClose}
-            >
-              Profile
-            </MenuItem>
-            <MenuItem 
-              component={Link} 
-              to="/settings" 
-              onClick={handleMobileMenuClose}
-            >
-              Settings
-            </MenuItem>
-            <MenuItem 
-              component={Link} 
-              to="/support" 
-              onClick={handleMobileMenuClose}
-            >
-              Support
-            </MenuItem>
-            <MenuItem onClick={handleLogout}>
-              Logout
-            </MenuItem>
-          </Menu>
-        )}
-        
-        <Menu
-          anchorEl={notifAnchor}
-          open={Boolean(notifAnchor)}
-          onClose={handleNotificationsClose}
-          sx={{ mt: '45px' }}
-        >
-          <MenuItem onClick={handleNotificationsClose}>
-            Notification 1
-          </MenuItem>
-          <MenuItem onClick={handleNotificationsClose}>
-            Notification 2
-          </MenuItem>
-          <MenuItem onClick={handleNotificationsClose}>
-            Notification 3
-          </MenuItem>
-        </Menu>
+
+        {/* Right side - Actions and user menu */}
+        <Box sx={{ display: 'flex', alignItems: 'center' }}>
+          {user && (
+            <>
+              <NotificationDropdown />
+              {/* <UserMenu /> */}
+            </>
+          )}
+          
+          {!user && (
+            <Box>
+              <Button
+                color="primary"
+                variant="outlined"
+                size="small"
+                onClick={() => navigate('/login')}
+                sx={{ mr: 1 }}
+              >
+                Sign In
+              </Button>
+              <Button
+                color="primary"
+                variant="contained"
+                size="small"
+                onClick={() => navigate('/register')}
+              >
+                Sign Up
+              </Button>
+            </Box>
+          )}
+        </Box>
       </Toolbar>
     </AppBar>
   );
-};
-
-export default NavBar;
+}

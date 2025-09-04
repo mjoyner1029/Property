@@ -6,6 +6,7 @@ export const AppContext = createContext();
 
 export const AppProvider = ({ children }) => {
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
+  const [error, setError] = useState(null);
   const [isMobile, setIsMobile] = useState(window.innerWidth < 960);
   const [pageTitle, setPageTitle] = useState('');
   const [appReady, setAppReady] = useState(false);

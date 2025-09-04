@@ -9,6 +9,7 @@ import theme from 'src/theme';
 
 // Use a simplified render approach with just the necessary providers
 const renderNavBar = (ui) => {
+  const theme = useTheme();
   return render(
     <ThemeProvider theme={theme}>
       <BrowserRouter>

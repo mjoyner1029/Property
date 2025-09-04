@@ -1,6 +1,9 @@
 module.exports = {
   testEnvironment: 'jsdom',
-  setupFilesAfterEnv: ['<rootDir>/src/test/setup/jest.setup.js'],
+  setupFilesAfterEnv: [
+    '<rootDir>/src/test/setup/jest.setup.js',
+    '<rootDir>/jest.setup.js'
+  ],
   roots: ['<rootDir>/src'],
   moduleDirectories: ['node_modules', '<rootDir>/src'],
   transform: { '^.+\\.[jt]sx?$': ['babel-jest', { rootMode: 'upward' }] },

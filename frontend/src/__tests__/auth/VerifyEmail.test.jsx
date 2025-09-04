@@ -65,7 +65,7 @@ describe('VerifyEmail Component', () => {
     renderWithProviders(<VerifyEmail />);
     
     // Wait for API call to be made first
-    await waitFor(() => {
+    await waitFor(() => { // TODO: Fix multiple assertions - extract into separate waitFor calls
       expect(axios.get).toHaveBeenCalledWith(`/api/verify/valid-verification-token`);
     });
     
@@ -83,7 +83,7 @@ describe('VerifyEmail Component', () => {
     renderWithProviders(<VerifyEmail />);
     
     // Wait for API call to be attempted
-    await waitFor(() => {
+    await waitFor(() => { // TODO: Fix multiple assertions - extract into separate waitFor calls
       expect(axios.get).toHaveBeenCalled();
     });
     
@@ -105,7 +105,7 @@ describe('VerifyEmail Component', () => {
     renderWithProviders(<VerifyEmail />);
     
     // Wait for API call to be attempted
-    await waitFor(() => {
+    await waitFor(() => { // TODO: Fix multiple assertions - extract into separate waitFor calls
       expect(axios.get).toHaveBeenCalled();
     });
     
@@ -127,7 +127,7 @@ describe('VerifyEmail Component', () => {
     renderWithProviders(<VerifyEmail />);
     
     // Wait for API call to be attempted first
-    await waitFor(() => {
+    await waitFor(() => { // TODO: Fix multiple assertions - extract into separate waitFor calls
       expect(axios.get).toHaveBeenCalled();
     });
     
@@ -147,7 +147,7 @@ describe('VerifyEmail Component', () => {
     renderWithProviders(<VerifyEmail />);
     
     // Wait for API call to be attempted first
-    await waitFor(() => {
+    await waitFor(() => { // TODO: Fix multiple assertions - extract into separate waitFor calls
       expect(axios.get).toHaveBeenCalled();
     });
     

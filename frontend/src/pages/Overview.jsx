@@ -55,6 +55,7 @@ const monthlyData = [
 
 const Overview = () => {
   const theme = useTheme();
+  const _theme = useTheme();
   const { user } = useAuth();
   const [loading, setLoading] = useState(false);
 

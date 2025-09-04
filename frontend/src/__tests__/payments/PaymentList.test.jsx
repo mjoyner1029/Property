@@ -140,7 +140,7 @@ describe("Payments List Page", () => {
     expect(mockFetchPayments).not.toHaveBeenCalled();
 
     // Table header/title
-    await waitFor(() => {
+    await waitFor(() => { // TODO: Fix multiple assertions - extract into separate waitFor calls
       expect(screen.getByText(/Payment History/i)).toBeInTheDocument();
     });
 
@@ -205,7 +205,7 @@ describe("Payments List Page", () => {
     fireEvent.click(screen.getByRole("button", { name: /record payment/i }));
 
     // Because our form has required fields, creation should not be called
-    await waitFor(() => {
+    await waitFor(() => { // TODO: Fix multiple assertions - extract into separate waitFor calls
       expect(mockCreatePayment).not.toHaveBeenCalled();
     });
   });
@@ -239,7 +239,7 @@ describe("Payments List Page", () => {
     fireEvent.click(screen.getByRole("button", { name: /^record payment$/i }));
 
     // Verify payload – amount is parsed to float in component
-    await waitFor(() => {
+    await waitFor(() => { // TODO: Fix multiple assertions - extract into separate waitFor calls
       expect(mockCreatePayment).toHaveBeenCalledWith(
         expect.objectContaining({
           tenant_id: "t7",
@@ -252,7 +252,7 @@ describe("Payments List Page", () => {
     });
 
     // Dialog closes
-    await waitFor(() => {
+    await waitFor(() => { // TODO: Fix multiple assertions - extract into separate waitFor calls
       expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
     });
   });
@@ -281,7 +281,7 @@ describe("Payments List Page", () => {
     fireEvent.click(screen.getByRole("button", { name: /^record payment$/i }));
 
     // Error message (Alert or inline)
-    await waitFor(() => {
+    await waitFor(() => { // TODO: Fix multiple assertions - extract into separate waitFor calls
       const maybeAlert =
         screen.queryByRole("alert") ||
         screen.queryByText(/failed to create payment/i);

@@ -109,7 +109,7 @@ describe("MaintenanceDeleteFresh", () => {
     fireEvent.click(cancelButton);
     
     // Check that the dialog is no longer in the document
-    await waitFor(() => {
+    await waitFor(() => { // TODO: Fix multiple assertions - extract into separate waitFor calls
       expect(screen.queryByTestId("confirm-dialog")).not.toBeInTheDocument();
     });
   });

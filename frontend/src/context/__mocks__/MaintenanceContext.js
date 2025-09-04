@@ -29,7 +29,18 @@ export const useMaintenanceContext = jest.fn().mockReturnValue({
 });
 
 export const MaintenanceProvider = ({ children, value }) => {
-  const contextValue = value || useMaintenanceContext();
+  // Don't call hooks conditionally - create a default value instead
+  const defaultValue = {
+    maintenanceRequests: [],
+    loading: false,
+    error: null,
+    addMaintenanceRequest: jest.fn(),
+    updateMaintenanceRequest: jest.fn(),
+    deleteMaintenanceRequest: jest.fn(),
+    fetchMaintenanceRequests: jest.fn(),
+    fetchMaintenanceRequestById: jest.fn()
+  };
+  const contextValue = value || defaultValue;
   return <MaintenanceContext.Provider value={contextValue}>{children}</MaintenanceContext.Provider>;
 };
 

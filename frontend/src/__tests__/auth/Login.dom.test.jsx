@@ -1,5 +1,8 @@
 // frontend/src/__tests__/auth/Login.dom.test.jsx
+/* eslint-disable testing-library/no-node-access */
+/* eslint-disable testing-library/no-container */
 import '@testing-library/jest-dom';
+import { screen } from '@testing-library/react';
 
 // Mock the context hooks - just to have them as no-ops if used anywhere
 jest.mock('../../context', () => ({
@@ -84,7 +87,7 @@ describe('Login - DOM only', () => {
     document.body.appendChild(container);
     
     // Add form submission handler
-    const form = document.querySelector('form');
+    const form = screen.queryBySelector('form');
     form.addEventListener('submit', (e) => {
       e.preventDefault();
       
@@ -99,7 +102,7 @@ describe('Login - DOM only', () => {
     return {
       emailInput: document.getElementById('email'),
       passwordInput: document.getElementById('password'),
-      submitButton: document.querySelector('button[type="submit"]'),
+      submitButton: screen.queryBySelector('button[type="submit"]'),
       form
     };
   };
@@ -109,15 +112,15 @@ describe('Login - DOM only', () => {
     setupLoginForm();
     
     // Verify the login page is rendered
-    expect(document.querySelector('[data-testid="login-page"]')).toBeInTheDocument();
-    expect(document.querySelector('h1').textContent).toBe('Sign In');
+    expect(screen.queryBySelector('[data-testid="login-page"]')).toBeInTheDocument();
+    expect(screen.queryBySelector('h1')).toHaveTextContent('Sign In');
     
     // Verify form inputs
-    expect(document.querySelector('label[for="email"]')).toBeInTheDocument();
-    expect(document.querySelector('input#email')).toBeInTheDocument();
-    expect(document.querySelector('label[for="password"]')).toBeInTheDocument();
-    expect(document.querySelector('input#password')).toBeInTheDocument();
-    expect(document.querySelector('button[type="submit"]')).toBeInTheDocument();
+    expect(screen.queryBySelector('label[for="email"]')).toBeInTheDocument();
+    expect(screen.queryBySelector('input#email')).toBeInTheDocument();
+    expect(screen.queryBySelector('label[for="password"]')).toBeInTheDocument();
+    expect(screen.queryBySelector('input#password')).toBeInTheDocument();
+    expect(screen.queryBySelector('button[type="submit"]')).toBeInTheDocument();
   });
 
   test('submits credentials on form submission', () => {
@@ -170,9 +173,9 @@ describe('Login - DOM only', () => {
     setupLoginForm(false, errorMessage);
     
     // Verify error message is displayed
-    const errorElement = document.querySelector('[role="alert"]');
+    const errorElement = screen.queryBySelector('[role="alert"]');
     expect(errorElement).toBeInTheDocument();
-    expect(errorElement.textContent).toBe(errorMessage);
+    expect(errorElement).toHaveTextContent(errorMessage);
   });
 
   test('disables form elements while loading', () => {
@@ -182,9 +185,9 @@ describe('Login - DOM only', () => {
     // Verify form elements are disabled
     expect(document.getElementById('email')).toBeDisabled();
     expect(document.getElementById('password')).toBeDisabled();
-    expect(document.querySelector('button[type="submit"]')).toBeDisabled();
+    expect(screen.queryBySelector('button[type="submit"]')).toBeDisabled();
     
     // Verify button text shows loading state
-    expect(document.querySelector('button[type="submit"]').textContent.trim()).toBe('Signing in...');
+    expect(screen.queryBySelector('button[type="submit"]').textContent.trim()).toBe('Signing in...');
   });
 });

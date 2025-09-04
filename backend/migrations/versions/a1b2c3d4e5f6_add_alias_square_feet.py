@@ -1,7 +1,7 @@
 """Add alias square_feet to Property and Unit models
 
-Revision ID: a1b2c3d4e5f6
-Revises: (use your latest revision id here)
+Revision ID: a1b2c3d4e5f6_alias
+Revises: 9a7c4d21e508
 Create Date: 2025-08-29 15:55:00.000000
 
 """
@@ -10,8 +10,8 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision = 'a1b2c3d4e5f6'
-down_revision = None  # Replace with your actual down_revision
+revision = 'a1b2c3d4e5f6_alias'
+down_revision = '20250831_add_field_aliases'  # Replace with your actual down_revision
 branch_labels = None
 depends_on = None
 

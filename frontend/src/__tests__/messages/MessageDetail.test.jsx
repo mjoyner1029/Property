@@ -179,7 +179,7 @@ const renderDetail = (id = "1") => {
 
 // Try to find a send button across slightly different labels
 const findSendButton = (container = document) =>
-  container.querySelector('button[type="submit"]') ||
+  screen.queryBySelector('button[type="submit"]') ||
   screen.queryByRole("button", { name: /send/i }) ||
   screen.queryByRole("button", { name: /reply/i }) ||
   screen.queryByRole("button", { name: /send message/i });
@@ -218,11 +218,11 @@ describe("Message Detail", () => {
     setContexts();
     renderDetail("1");
 
-    await waitFor(() => {
+    await waitFor(() => { // TODO: Fix multiple assertions - extract into separate waitFor calls
       expect(mockFetchThread).toHaveBeenCalledWith(1);
     });
 
-    await waitFor(() => {
+    await waitFor(() => { // TODO: Fix multiple assertions - extract into separate waitFor calls
       expect(mockMarkConversationRead).toHaveBeenCalledWith(1);
     });
   });
@@ -232,7 +232,7 @@ describe("Message Detail", () => {
     renderDetail("1");
 
     // Title or participants may be displayed; tolerate either
-    await waitFor(() => {
+    await waitFor(() => { // TODO: Fix multiple assertions - extract into separate waitFor calls
       const title = screen.queryByText(/project alpha/i);
       const participant = screen.queryByText(/alice/i);
       expect(title || participant).toBeTruthy();
@@ -264,12 +264,12 @@ describe("Message Detail", () => {
     expect(sendBtn).toBeInTheDocument();
     fireEvent.click(sendBtn);
 
-    await waitFor(() => {
+    await waitFor(() => { // TODO: Fix multiple assertions - extract into separate waitFor calls
       expect(mockSendMessage).toHaveBeenCalledWith(1, "New reply", undefined);
     });
 
     // Input should clear; the message should appear (if component re-renders thread)
-    await waitFor(() => {
+    await waitFor(() => { // TODO: Fix multiple assertions - extract into separate waitFor calls
       expect(input.value).toBe(""); // cleared
     });
   });
@@ -287,7 +287,7 @@ describe("Message Detail", () => {
     const sendBtn = findSendButton();
     fireEvent.click(sendBtn);
 
-    await waitFor(() => {
+    await waitFor(() => { // TODO: Fix multiple assertions - extract into separate waitFor calls
       const alert =
         screen.queryByRole("alert") ||
         screen.queryByText(/failed to send/i) ||
@@ -321,11 +321,11 @@ describe("Message Detail", () => {
       within(dialog).getByRole("button");
     fireEvent.click(confirm);
 
-    await waitFor(() => {
+    await waitFor(() => { // TODO: Fix multiple assertions - extract into separate waitFor calls
       expect(mockDeleteConversation).toHaveBeenCalledWith(1);
     });
 
-    await waitFor(() => {
+    await waitFor(() => { // TODO: Fix multiple assertions - extract into separate waitFor calls
       expect(mockNavigate).toHaveBeenCalledWith("/messages");
     });
   });
@@ -350,7 +350,7 @@ describe("Message Detail", () => {
     expect(cancel).toBeInTheDocument();
     fireEvent.click(cancel);
 
-    await waitFor(() => {
+    await waitFor(() => { // TODO: Fix multiple assertions - extract into separate waitFor calls
       expect(mockDeleteConversation).not.toHaveBeenCalled();
     });
 

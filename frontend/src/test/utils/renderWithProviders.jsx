@@ -124,6 +124,7 @@ const defaultThemeContext = {
  * @returns {React.FC} A provider component that injects the given value
  */
 export function makeMockProvider(Context, value) {
+  const theme = useTheme();
   return ({ children }) => (
     <Context.Provider value={value}>
       {children}

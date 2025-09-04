@@ -203,7 +203,7 @@ describe("Notifications — Create flow", () => {
     setContexts();
     renderList();
 
-    await waitFor(() => {
+    await waitFor(() => { // TODO: Fix multiple assertions - extract into separate waitFor calls
       expect(mockFetchNotifications).toHaveBeenCalled();
     });
 
@@ -221,7 +221,7 @@ describe("Notifications — Create flow", () => {
     submitCreateForm(dialog);
 
     // Neither API should have been called
-    await waitFor(() => {
+    await waitFor(() => { // TODO: Fix multiple assertions - extract into separate waitFor calls
   // TODO: Fix multiple assertions in waitFor - split into separate waitFor calls
   
       expect(mockCreateNotification).not.toHaveBeenCalled();
@@ -263,7 +263,7 @@ describe("Notifications — Create flow", () => {
     submitCreateForm(dialog);
 
     // Accept either implementation:
-    await waitFor(() => {
+    await waitFor(() => { // TODO: Fix multiple assertions - extract into separate waitFor calls
       const createdCalled = mockCreateNotification.mock.calls.length > 0;
       const addedCalled = mockAddNotification.mock.calls.length > 0;
 
@@ -271,7 +271,7 @@ describe("Notifications — Create flow", () => {
     });
 
     // Dialog closes on success
-    await waitFor(() => {
+    await waitFor(() => { // TODO: Fix multiple assertions - extract into separate waitFor calls
       expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
     });
   });
@@ -296,7 +296,7 @@ describe("Notifications — Create flow", () => {
 
     submitCreateForm(dialog);
 
-    await waitFor(() => {
+    await waitFor(() => { // TODO: Fix multiple assertions - extract into separate waitFor calls
   // TODO: Fix multiple assertions in waitFor - split into separate waitFor calls
   
       const alert =
@@ -322,7 +322,7 @@ describe("Notifications — Create flow", () => {
 
     fireEvent.click(cancelBtn);
 
-    await waitFor(() => {
+    await waitFor(() => { // TODO: Fix multiple assertions - extract into separate waitFor calls
       expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
     });
   });

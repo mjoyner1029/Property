@@ -1,4 +1,4 @@
-.PHONY: setup install migrate-init migrate upgrade format lint test test-backend test-backend-verbose test-frontend test-coverage check-env generate-secrets health-check list-routes check-security run dev-server backend-clean monitoring-start monitoring-stop monitoring-restart monitoring-logs monitoring-backup perf-smoke perf-load perf-smoke-baseline perf-load-baseline perf-smoke-api perf-load-api
+.PHONY: setup install migrate-init migrate upgrade test-migrations run-migrations format lint test test-backend test-backend-verbose test-frontend test-coverage check-env generate-secrets health-check list-routes check-security run dev-server backend-clean monitoring-start monitoring-stop monitoring-restart monitoring-logs monitoring-backup perf-smoke perf-load perf-smoke-baseline perf-load-baseline perf-smoke-api perf-load-api
 
 # Default target
 all: setup
@@ -11,6 +11,8 @@ help:
 	@echo "  migrate-init    : Initialize database migrations"
 	@echo "  migrate         : Create migration (use with message='your message')"
 	@echo "  upgrade         : Apply migrations"
+	@echo "  run-migrations  : Run migrations using robust migration script"
+	@echo "  test-migrations : Test migrations from a clean database state"
 	@echo "  format          : Format code"
 	@echo "  lint            : Lint code"
 	@echo "  test            : Run all tests"
@@ -65,6 +67,16 @@ migrate:
 upgrade:
 	@echo "Applying migrations..."
 	cd backend && flask db upgrade
+	
+# Run migrations using robust migration script
+run-migrations:
+	@echo "Running migrations with robust script..."
+	./scripts/run_migrations.sh
+	
+# Test migrations from clean database
+test-migrations:
+	@echo "Testing migrations from clean database..."
+	./scripts/test_migrations.sh
 
 # Format code
 format:

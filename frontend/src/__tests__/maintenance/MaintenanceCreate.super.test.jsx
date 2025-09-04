@@ -1,15 +1,24 @@
 // frontend/src/__tests__/maintenance/MaintenanceCreate.super.test.jsx
 // Define mock functions first at the top level before any imports
+// Import test utilities
+import { screen } from '@testing-library/react';
+import { getInputByName, getSelectByName } from '../../test/utils/muiTestUtils';
+
+// Now import React and testing libraries
+import React from "react";
+import { waitFor, fireEvent, act } from "@testing-library/react";
+import { renderWithProviders } from "../../test/utils/renderWithProviders";
+
+// Import after mocking
+import { useMaintenance, useApp, useProperty } from "../../context";
+import Maintenance from "../../pages/Maintenance";
+
 const mockNavigate = jest.fn();
 const mockFetchRequests = jest.fn().mockResolvedValue([]);
 const mockCreateRequest = jest.fn().mockImplementation(async (data) => {
   return { id: "new-id", ...data };
 });
 const mockUpdatePageTitle = jest.fn();
-
-// Import test utilities
-import { screen } from '@testing-library/react';
-import { getInputByName, getSelectByName } from '../../test/utils/muiTestUtils';
 
 // Mock react-router-dom - must be before any imports
 jest.mock("react-router-dom", () => ({
@@ -23,15 +32,6 @@ jest.mock("../../context", () => ({
   useApp: jest.fn(),
   useProperty: jest.fn()
 }));
-
-// Now import React and testing libraries
-import React from "react";
-import { waitFor, fireEvent, act } from "@testing-library/react";
-import { renderWithProviders } from "../../test/utils/renderWithProviders";
-
-// Import after mocking
-import { useMaintenance, useApp, useProperty } from "../../context";
-import Maintenance from "../../pages/Maintenance";
 
 // Setup context values after all mocks and functions are defined
 const maintenanceContextValue = {
@@ -369,7 +369,7 @@ describe("Maintenance — Create Request flow", () => {
     }
 
     // API should be called with correct data - increase timeout and add error message
-    await waitFor(() => {
+    await waitFor(() => { // TODO: Fix multiple assertions - extract into separate waitFor calls
       expect(mockCreateRequest).toHaveBeenCalledWith(expect.objectContaining({
         title: "Broken Window",
         description: "Window won't close",

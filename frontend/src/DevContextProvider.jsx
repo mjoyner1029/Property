@@ -3,6 +3,7 @@ import AuthContext from './context/AuthContext';
 import { NotificationContext } from './context/NotificationContext';
 import { PropertyContext } from './context/PropertyContext';
 import { AppContext } from './context/AppContext';
+import { useTheme } from '@mui/material/styles';
 
 // Mock data and functions for authentication
 const mockAuthContext = {
@@ -101,6 +102,7 @@ const mockAppContext = {
  * Development Context Provider that wraps the application with mock context values
  */
 export function DevContextProvider({ children }) {
+  const theme = useTheme();
   return (
     <AuthContext.Provider value={mockAuthContext}>
       <NotificationContext.Provider value={mockNotificationContext}>

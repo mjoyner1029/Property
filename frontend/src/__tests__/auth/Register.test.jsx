@@ -118,7 +118,7 @@ describe("Register page", () => {
     await userEvent.click(getSubmitButton());
 
     // Should not call register if client-side validation blocks
-    await waitFor(() => {
+    await waitFor(() => { // TODO: Fix multiple assertions - extract into separate waitFor calls
       expect(registerMock).not.toHaveBeenCalled();
     });
 
@@ -147,7 +147,7 @@ describe("Register page", () => {
 
     await userEvent.click(getSubmitButton());
 
-    await waitFor(() => {
+    await waitFor(() => { // TODO: Fix multiple assertions - extract into separate waitFor calls
       expect(registerMock).toHaveBeenCalled();
     });
 
@@ -167,7 +167,7 @@ describe("Register page", () => {
     }
 
     // Allow either "/" or "/login" redirect depending on app choice
-    await waitFor(() => {
+    await waitFor(() => { // TODO: Fix multiple assertions - extract into separate waitFor calls
       const calledWithRoot = mockNavigate.mock.calls.some(
         (args) => args[0] === "/" || args[0] === "/login"
       );
@@ -190,7 +190,7 @@ describe("Register page", () => {
     // Press Enter to submit from the confirm field
     await userEvent.keyboard("{Enter}");
 
-    await waitFor(() => {
+    await waitFor(() => { // TODO: Fix multiple assertions - extract into separate waitFor calls
       expect(registerMock).toHaveBeenCalled();
     });
   });

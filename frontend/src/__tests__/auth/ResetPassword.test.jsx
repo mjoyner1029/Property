@@ -5,13 +5,13 @@ import userEvent from "@testing-library/user-event";
 import axios from "axios";
 import { renderWithProviders } from "src/test/utils/renderWithProviders";
 
+// We assume your component lives at src/pages/ResetPassword.jsx
+import ResetPassword from "src/pages/ResetPassword";
+
 // Helper function to get input by name
 const getInputByName = (name) => {
   return screen.getByLabelText(name);
 };
-
-// We assume your component lives at src/pages/ResetPassword.jsx
-import ResetPassword from "src/pages/ResetPassword";
 
 const mockNavigate = jest.fn();
 
@@ -51,7 +51,7 @@ describe("ResetPassword", () => {
     renderWithProviders(<ResetPassword />);
 
     // After validation, form should appear
-    await waitFor(() => {
+    await waitFor(() => { // TODO: Fix multiple assertions - extract into separate waitFor calls
       expect(
         screen.getByRole("heading", { name: "Reset Password" })
       ).toBeInTheDocument();
@@ -91,7 +91,7 @@ describe("ResetPassword", () => {
     );
 
     // Expect a mismatch message (flexible to different copy)
-    await waitFor(() => {
+    await waitFor(() => { // TODO: Fix multiple assertions - extract into separate waitFor calls
       expect(
         screen.getByText(/passwords.*match/i)
       ).toBeInTheDocument();
@@ -120,7 +120,7 @@ describe("ResetPassword", () => {
     );
 
     // We don't rely on exact error copy—just ensure no API call is made
-    await waitFor(() => {
+    await waitFor(() => { // TODO: Fix multiple assertions - extract into separate waitFor calls
       expect(axios.post).not.toHaveBeenCalled();
     });
   });
@@ -146,7 +146,7 @@ describe("ResetPassword", () => {
     );
 
     // API receives token + password
-    await waitFor(() => {
+    await waitFor(() => { // TODO: Fix multiple assertions - extract into separate waitFor calls
       expect(axios.post).toHaveBeenCalledWith(
         expect.stringMatching(/\/api\/auth\/reset-password\/.+/),
         { password: "ValidPass123!" }
@@ -154,7 +154,7 @@ describe("ResetPassword", () => {
     });
 
     // A success message should show
-    await waitFor(() => {
+    await waitFor(() => { // TODO: Fix multiple assertions - extract into separate waitFor calls
       expect(
         screen.getByText(/password reset successful/i)
       ).toBeInTheDocument();

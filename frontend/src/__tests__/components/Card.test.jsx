@@ -114,7 +114,7 @@ describe('Card Component', () => {
     );
     
     // Check that content is rendered
-    expect(container.querySelector('.custom-card-class')).toBeInTheDocument();
+    expect(screen.queryBySelector('.custom-card-class')).toBeInTheDocument();
     expect(screen.getByText('Card with custom class')).toBeInTheDocument();
   });
   

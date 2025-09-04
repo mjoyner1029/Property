@@ -1,12 +1,13 @@
 import React from 'react';
 import { Box, CircularProgress } from '@mui/material';
-import theme from '../theme';
+import { useTheme } from '@mui/material/styles';
 
 /**
  * LoadingFallback component
  * Used as a fallback for React.lazy loaded components
  */
 const LoadingFallback = () => {
+  const theme = useTheme();
   return (
     <Box
       sx={{

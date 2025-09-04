@@ -21,12 +21,13 @@ import {
 } from "@mui/icons-material";
 
 const AdminDashboard = () => {
+  const theme = useTheme();
   const [users, setUsers] = useState([]);
   const [properties, setProperties] = useState([]);
   const [payments, setPayments] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
-  const theme = useTheme();
+  const _theme = useTheme();
 
   const fetchData = async () => {
     setLoading(true);

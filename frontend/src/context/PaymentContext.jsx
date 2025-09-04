@@ -7,8 +7,8 @@ export const PaymentContext = createContext();
 
 export const PaymentProvider = ({ children }) => {
   const [payments, setPayments] = useState([]);
-  const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+  const [loading, setLoading] = useState(false);
   const { isAuthenticated, user } = useAuth();
 
   // Fetch all payments based on user role

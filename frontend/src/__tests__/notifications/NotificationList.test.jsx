@@ -185,7 +185,7 @@ describe("Notifications list", () => {
     setContexts();
     renderList();
 
-    await waitFor(() => {
+    await waitFor(() => { // TODO: Fix multiple assertions - extract into separate waitFor calls
       expect(mockFetchNotifications).toHaveBeenCalled();
     });
 
@@ -220,7 +220,7 @@ describe("Notifications list", () => {
       fireEvent.click(markButton);
     }
 
-    await waitFor(() => {
+    await waitFor(() => { // TODO: Fix multiple assertions - extract into separate waitFor calls
       expect(mockMarkAsRead).toHaveBeenCalledWith(1);
     });
   });
@@ -237,7 +237,7 @@ describe("Notifications list", () => {
 
     fireEvent.click(markAllBtn);
 
-    await waitFor(() => {
+    await waitFor(() => { // TODO: Fix multiple assertions - extract into separate waitFor calls
       expect(mockMarkAllAsRead).toHaveBeenCalled();
     });
   });
@@ -258,7 +258,7 @@ describe("Notifications list", () => {
     expect(deleteBtn).toBeInTheDocument();
     fireEvent.click(deleteBtn);
 
-    await waitFor(() => {
+    await waitFor(() => { // TODO: Fix multiple assertions - extract into separate waitFor calls
       expect(mockClearNotification).toHaveBeenCalledWith(2);
     });
   });
@@ -282,7 +282,7 @@ describe("Notifications list", () => {
     fireEvent.change(searchInput, { target: { value: "application" } });
 
     // Now the "New tenant application" should be present, others maybe filtered
-    await waitFor(() => {
+    await waitFor(() => { // TODO: Fix multiple assertions - extract into separate waitFor calls
       expect(screen.getByText(/new tenant application/i)).toBeInTheDocument();
     });
   });

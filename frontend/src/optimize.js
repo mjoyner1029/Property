@@ -8,6 +8,8 @@
  * @param {string} componentName - Name of the component to be lazy loaded
  * @returns {Promise<Component>} - Lazy loaded component
  */
+import React from 'react';
+
 export const lazyWithPreload = (componentName) => {
   // Create a lazily-loaded component that can be preloaded
   const Component = React.lazy(() => 

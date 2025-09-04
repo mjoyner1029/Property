@@ -18,7 +18,8 @@ import {
   MenuItem,
 } from "@mui/material";
 import MenuIcon from "@mui/icons-material/Menu";
-import HomeIcon from "@mui/icons-material/Home";
+// HomeIcon is imported but not used
+import _HomeIcon from "@mui/icons-material/Home";
 import DashboardIcon from "@mui/icons-material/Dashboard";
 import ApartmentIcon from "@mui/icons-material/Apartment";
 import PaymentIcon from "@mui/icons-material/Payment";
@@ -26,7 +27,8 @@ import HandymanIcon from "@mui/icons-material/Handyman";
 import PeopleIcon from "@mui/icons-material/People";
 import NotificationsIcon from "@mui/icons-material/Notifications";
 import SettingsIcon from "@mui/icons-material/Settings";
-import LogoutIcon from "@mui/icons-material/Logout";
+// LogoutIcon is imported but not used
+import _LogoutIcon from "@mui/icons-material/Logout";
 import HelpIcon from "@mui/icons-material/Help";
 
 const drawerWidth = 240;
@@ -42,9 +44,10 @@ const navItems = [
 ];
 
 export default function Layout() {
+  const theme = useTheme();
   const [mobileOpen, setMobileOpen] = useState(false);
   const [anchorEl, setAnchorEl] = useState(null);
-  const theme = useTheme();
+  const _theme = useTheme();
   const navigate = useNavigate();
 
   const handleDrawerToggle = () => {

@@ -9,7 +9,10 @@ services:
     rootDir: backend
     buildCommand: pip install -r requirements.txt
     preDeployCommand: bash ../scripts/run_migrations.sh
-    startCommand: gunicorn "src.app:create_app()" -w 3 -k gevent -b 0.0.0.0:10000 --timeout 120 --max-requests 2000 --max-requests-jitter 200
+    startCommand: >
+      gunicorn -k gevent --workers 3 --bind 0.0.0.0:$PORT
+      "src.app:create_app()" --timeout 120
+      --max-requests 2000 --max-requests-jitter 200
     healthCheckPath: /healthz
     healthCheckTimeout: 10
     healthCheckInterval: 30
@@ -25,40 +28,38 @@ services:
         value: wsgi.py
       - key: PYTHONUNBUFFERED
         value: "1"
-      - key: PORT
-        value: "10000"
 
       # ==== REQUIRED SECRETS ====
       - key: SECRET_KEY
-        value: "B9gnyxN7PBmS3cdOhX-uroVQeWqL6RX6VgEmpQ_ifIyqNczbXkE9SOcdUl9UTdIU"
+        sync: false
       - key: JWT_SECRET_KEY
-        value: "xDlY7V-NXV2hoGWGO5cLcuG80FvjGLdRh-IH6Bj30Wa0Ld2MscLjkxvGUTYW9oGCSCd9bdcZcc-4PcaIm1YeOA"
+        sync: false
 
       - key: STRIPE_PUBLIC_KEY
-        value: "pk_live_51RviuHRRzCooiyn90jiCw25KJRD4GXb4enFomJc2x0FKLWeChHCPoNwmXT7vaqjc2XcUuyB8Dl04ocoxo8XM0yPp00AJeM52vN"
+        sync: false
       - key: STRIPE_SECRET_KEY
-        value: "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"
+        sync: false
       - key: STRIPE_WEBHOOK_SECRET
-        value: "whsec_BZ1BnegM1hKulG4kKiUbGj2tgDNYV7GI"
+        sync: false
 
       - key: EMAIL_API_KEY
-        value: "<PASTE_YOUR_POSTMARK_API_KEY>"
+        sync: false
+        # Postmark or other email service API key
 
       # ==== OPTIONAL (only if using S3 for uploads) ====
       - key: S3_BUCKET
-        value: "asset-anchor"
+        sync: false
       - key: S3_REGION
         value: "us-west-1"
       - key: AWS_ACCESS_KEY_ID
-        value: "AKIAZ2W4LM2UELSWCUCG"
+        sync: false
       - key: AWS_SECRET_ACCESS_KEY
-        value: "AKIAZ2W4LM2UELSWCUCG"
+        sync: false
 
       # ==== OPTIONAL (monitoring/logging) ====
       - key: SENTRY_DSN
-        value: "https://5a77b5fb4326e998df3ae7a2ad62f316@o4509951555731456.ingest.us.sentry.io/4509951683985408"
-      - key: REACT_APP_SENTRY_DSN
-        value: "https://e3a1bb54c5add061cdced610c0f39f19@o4509951555731456.ingest.us.sentry.io/4509951885312000"
+        sync: false
+      
       # ==== CORS / Frontend ====
       - key: CORS_ORIGINS
         value: https://assetanchor.io,https://www.assetanchor.io,https://assetanchor.vercel.app
@@ -77,7 +78,8 @@ services:
       - key: CSP_ENFORCE
         value: "true"
 
-      # Redis (rate limiter + Socket.IO)
+      # ==== Redis (rate limiter + Socket.IO) ====
+      # Note: Only needed if using Redis for rate limiting or Socket.IO
       - key: REDIS_URL
         fromService:
           type: keyvalue
@@ -94,7 +96,7 @@ services:
           name: asset-anchor-redis
           property: connectionString
 
-      # Database URL via env group
+      # ==== Database URL ====
       - fromGroup: asset-anchor-db-env
 
   - type: keyvalue
@@ -108,6 +110,8 @@ databases:
     plan: standard
     region: oregon
     ipAllowList: []
+    # Standard PostgreSQL database for production use
+    # Adjust plan as needed based on scale requirements
 
 envVarGroups:
   - name: asset-anchor-db-env

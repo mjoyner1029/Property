@@ -198,7 +198,7 @@ describe("Message List", () => {
     setContexts();
     renderList();
 
-    await waitFor(() => {
+    await waitFor(() => { // TODO: Fix multiple assertions - extract into separate waitFor calls
       expect(mockFetchConversations).toHaveBeenCalled();
     });
 
@@ -225,7 +225,7 @@ describe("Message List", () => {
       row;
     fireEvent.click(openBtn);
 
-    await waitFor(() => {
+    await waitFor(() => { // TODO: Fix multiple assertions - extract into separate waitFor calls
       const navCalled = mockNavigate.mock.calls.some((call) =>
         /\/messages\/1/.test(call[0])
       );
@@ -254,7 +254,7 @@ describe("Message List", () => {
       fireEvent.click(markBtn);
     }
 
-    await waitFor(() => {
+    await waitFor(() => { // TODO: Fix multiple assertions - extract into separate waitFor calls
       expect(mockMarkConversationRead).toHaveBeenCalledWith(3);
     });
   });
@@ -291,12 +291,12 @@ describe("Message List", () => {
       within(dialog).getByRole("button");
     fireEvent.click(confirm);
 
-    await waitFor(() => {
+    await waitFor(() => { // TODO: Fix multiple assertions - extract into separate waitFor calls
       expect(mockDeleteConversation).toHaveBeenCalledWith(2);
     });
 
     // Dialog closed
-    await waitFor(() => {
+    await waitFor(() => { // TODO: Fix multiple assertions - extract into separate waitFor calls
       expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
     });
   });
@@ -330,7 +330,7 @@ describe("Message List", () => {
     expect(cancel).toBeInTheDocument();
     fireEvent.click(cancel);
 
-    await waitFor(() => {
+    await waitFor(() => { // TODO: Fix multiple assertions - extract into separate waitFor calls
       expect(mockDeleteConversation).not.toHaveBeenCalled();
     });
 
@@ -353,7 +353,7 @@ describe("Message List", () => {
 
     fireEvent.change(searchBox, { target: { value: "leasing" } });
 
-    await waitFor(() => {
+    await waitFor(() => { // TODO: Fix multiple assertions - extract into separate waitFor calls
   // TODO: Fix multiple assertions in waitFor - split into separate waitFor calls
   
       expect(screen.getByText(/leasing — unit 304/i)).toBeInTheDocument();

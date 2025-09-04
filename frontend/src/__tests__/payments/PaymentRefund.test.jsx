@@ -191,7 +191,7 @@ describe("PaymentDetail — Refund flow", () => {
 
     // Submit with no amount
     fireEvent.click(submitBtn);
-    await waitFor(() => {
+    await waitFor(() => { // TODO: Fix multiple assertions - extract into separate waitFor calls
       expect(mockRefundPayment).not.toHaveBeenCalled();
     });
 
@@ -202,14 +202,14 @@ describe("PaymentDetail — Refund flow", () => {
       within(dialog).getAllByRole("spinbutton")[0];
     fireEvent.change(amountInput, { target: { value: "0" } });
     fireEvent.click(submitBtn);
-    await waitFor(() => {
+    await waitFor(() => { // TODO: Fix multiple assertions - extract into separate waitFor calls
       expect(mockRefundPayment).not.toHaveBeenCalled();
     });
 
     // Over-refund (> 1200)
     fireEvent.change(amountInput, { target: { value: "1300" } });
     fireEvent.click(submitBtn);
-    await waitFor(() => {
+    await waitFor(() => { // TODO: Fix multiple assertions - extract into separate waitFor calls
   // TODO: Fix multiple assertions in waitFor - split into separate waitFor calls
   
       expect(mockRefundPayment).not.toHaveBeenCalled();
@@ -261,7 +261,7 @@ describe("PaymentDetail — Refund flow", () => {
       within(dialog).queryByRole("button", { name: /refund/i });
     fireEvent.click(submitBtn);
 
-    await waitFor(() => {
+    await waitFor(() => { // TODO: Fix multiple assertions - extract into separate waitFor calls
       expect(mockRefundPayment).toHaveBeenCalledWith("1", {
         amount: 200,
         method: "original",
@@ -270,7 +270,7 @@ describe("PaymentDetail — Refund flow", () => {
     });
 
     // Dialog closes on success
-    await waitFor(() => {
+    await waitFor(() => { // TODO: Fix multiple assertions - extract into separate waitFor calls
       expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
     });
   });
@@ -313,7 +313,7 @@ describe("PaymentDetail — Refund flow", () => {
       within(dialog).queryByRole("button", { name: /refund/i });
     fireEvent.click(submitBtn);
 
-    await waitFor(() => {
+    await waitFor(() => { // TODO: Fix multiple assertions - extract into separate waitFor calls
       expect(mockRefundPayment).toHaveBeenCalledWith("1", {
         amount: 1200,
         method: "original",
@@ -322,7 +322,7 @@ describe("PaymentDetail — Refund flow", () => {
     });
 
     // Status reflected on the page
-    await waitFor(() => {
+    await waitFor(() => { // TODO: Fix multiple assertions - extract into separate waitFor calls
       expect(screen.getByText(/refunded/i)).toBeInTheDocument();
     });
   });
@@ -361,7 +361,7 @@ describe("PaymentDetail — Refund flow", () => {
       within(dialog).queryByRole("button", { name: /refund/i });
     fireEvent.click(submitBtn);
 
-    await waitFor(() => {
+    await waitFor(() => { // TODO: Fix multiple assertions - extract into separate waitFor calls
   // TODO: Fix multiple assertions in waitFor - split into separate waitFor calls
   
       const err =

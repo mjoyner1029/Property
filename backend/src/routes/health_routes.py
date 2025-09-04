@@ -25,7 +25,7 @@ def health_check():
 @health_bp.route('/healthz', methods=['GET'])
 @limiter.exempt
 def healthz():
-    """Simple health check endpoint for Render"""
+    """Simple health check endpoint for Render - never depends on DB"""
     return jsonify({"status": "ok"}), 200
 
 @health_bp.route('/readyz', methods=['GET'])
@@ -35,6 +35,7 @@ def readyz():
     try:
         # Check the database connection
         db.session.execute(text("SELECT 1"))
-        return jsonify({"status": "ok", "db": "connected"}), 200
+        return jsonify({"status": "ready", "db": "connected"}), 200
     except Exception as e:
-        return jsonify({"status": "error", "message": str(e)}), 500
+        current_app.logger.warning(f"Database health check failed: {str(e)}")
+        return jsonify({"status": "degraded", "message": "Database connection failed"}), 503

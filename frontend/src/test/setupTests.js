@@ -1,15 +1,15 @@
 // src/test/setupTests.js
 import '@testing-library/jest-dom';
 
-// Silence noisy console during tests
-jest.spyOn(console, 'error').mockImplementation(() => {});
-jest.spyOn(console, 'warn').mockImplementation(() => {});
-
 // Import all mocks
 import './mocks/router';
 // Import our simple auth harness
 import { TestAuthProvider, useAuth, renderWithAuth, createTestAuth } from './simpleAuthHarness';
 import './mocks/pageTitle';
+
+// Silence noisy console during tests
+jest.spyOn(console, 'error').mockImplementation(() => {});
+jest.spyOn(console, 'warn').mockImplementation(() => {});
 
 // Mock both the direct import and the index import to be consistent
 jest.mock('../context/AuthContext', () => {

@@ -55,6 +55,13 @@ def create_app(config_name: Optional[str] = None) -> Flask:
     # Disable strict slashes to avoid 308 redirects when URLs differ only by trailing slash
     app.url_map.strict_slashes = False
 
+    # Load configuration based on APP_ENV if config_name not specified
+    if config_name is None:
+        config_name = os.environ.get("APP_ENV", "development")
+    
+    # Log which configuration is being used
+    print(f"Initializing app with {config_name} configuration")
+    
     # Load configuration
     try:
         config_obj = get_config(config_name)
@@ -157,13 +164,29 @@ def create_app(config_name: Optional[str] = None) -> Flask:
     if app.config.get("ENV") == "production":
         app.config['PREFERRED_URL_SCHEME'] = 'https'
 
-    # Add test route for Sentry verification (only in development)
-    if app.config.get("ENV") != "production":
-        @app.route("/debug-sentry")
-        def debug_sentry():
-            app.logger.info("Testing Sentry integration - intentional error")
+    # Add test route for Sentry verification (always available for testing)
+    @app.route("/debug-sentry")
+    def debug_sentry():
+        sentry_dsn = os.environ.get('SENTRY_DSN')
+        app.logger.info("Testing Sentry integration - intentional error")
+        
+        if not sentry_dsn:
+            return {
+                "status": "error", 
+                "message": "Sentry DSN not configured. No error will be reported.",
+                "sentry_enabled": False
+            }, 400
+        
+        try:
             division_by_zero = 1 / 0  # This will trigger a ZeroDivisionError
-            return "This won't be reached"
+        except ZeroDivisionError:
+            # Let Sentry capture this exception
+            sentry_sdk.capture_exception()
+            # Re-raise for Flask to handle
+            raise
+            
+        # This won't be reached due to the exception
+        return "This won't be reached"
 
     return app
 
@@ -364,7 +387,7 @@ def register_blueprints(app: Flask) -> None:
     # Health check routes - Always enabled and at root level for monitoring
     try:
         from .routes.health_routes import health_bp
-        # Register both at API prefix and root level for flexibility
+        # Register at API prefix with trailing slash for backwards compatibility
         blueprints.append((health_bp, f'{API_PREFIX}/health'))
         
         # Register a separate instance at root level for Render health checks
@@ -376,7 +399,7 @@ def register_blueprints(app: Flask) -> None:
         @health_root_bp.route('/healthz')
         @limiter.exempt
         def healthz():
-            """Simple health check endpoint for Render"""
+            """Simple health check endpoint for Render - never depends on DB"""
             return jsonify({"status": "ok"}), 200
             
         @health_root_bp.route('/readyz')
@@ -386,9 +409,23 @@ def register_blueprints(app: Flask) -> None:
             try:
                 # Check the database connection
                 db.session.execute(text("SELECT 1"))
-                return jsonify({"status": "ok", "db": "connected"}), 200
+                return jsonify({"status": "ready", "db": "connected"}), 200
             except Exception as e:
-                return jsonify({"status": "error", "message": str(e)}), 500
+                app.logger.warning(f"Database health check failed: {str(e)}")
+                return jsonify({"status": "degraded", "message": "Database connection failed"}), 503
+        
+        # Add the API health endpoint with trailing slash for compatibility
+        @health_root_bp.route('/api/health/')
+        @limiter.exempt
+        def api_health_trailing_slash():
+            """Health check endpoint with trailing slash for compatibility"""
+            git_sha = os.environ.get('GIT_SHA', 'unknown')
+            return jsonify({
+                'status': 'ok',
+                'version': app.config.get('VERSION', '1.0.0'),
+                'git_sha': git_sha,
+                'environment': app.config.get('ENV', 'development')
+            })
                 
         blueprints.append((health_root_bp, ''))
     except Exception as e:
@@ -827,20 +864,21 @@ def register_health_checks(app: Flask) -> None:
 def configure_sentry(app: Flask) -> None:
     """
     Configure Sentry for error tracking and performance monitoring.
-    Initializes when SENTRY_DSN is available in environment.
+    Initializes ONLY when SENTRY_DSN is explicitly provided in environment.
     """
     # Check if Sentry is explicitly disabled
     if os.environ.get('DISABLE_SENTRY') == 'True' or app.config.get('TESTING', False):
         app.logger.warning("Sentry integration disabled. Error tracking not available.")
         return
         
-    sentry_dsn = app.config.get('SENTRY_DSN') or os.environ.get('SENTRY_DSN')
+    # Only initialize if SENTRY_DSN is explicitly set in environment
+    sentry_dsn = os.environ.get('SENTRY_DSN')
     
     if sentry_dsn:
         environment = app.config.get('ENV', 'development')
         git_sha = os.environ.get('GIT_SHA', 'unknown')
         
-        # Configure Sentry integrations
+        # Configure Sentry integrations - always include FlaskIntegration
         integrations = [
             FlaskIntegration(),          # Flask integration
             SqlalchemyIntegration(),     # SQLAlchemy integration
@@ -864,8 +902,8 @@ def configure_sentry(app: Flask) -> None:
         except ImportError:
             app.logger.info("Sentry Redis integration not available")
         
-        # Set consistent traces_sample_rate of 0.1 (10%) as specified in requirements
-        traces_sample_rate = app.config.get('SENTRY_TRACES_SAMPLE_RATE', 0.1)
+        # Default traces_sample_rate to 0.0, but allow env configuration
+        traces_sample_rate = float(os.environ.get('SENTRY_TRACES_SAMPLE_RATE', 0.0))
         
         # Initialize Sentry SDK
         sentry_sdk.init(
@@ -878,7 +916,7 @@ def configure_sentry(app: Flask) -> None:
             send_default_pii=True,
             # Performance monitoring
             _experiments={
-                "profiles_sample_rate": app.config.get('SENTRY_PROFILES_SAMPLE_RATE', 0.05),
+                "profiles_sample_rate": app.config.get('SENTRY_PROFILES_SAMPLE_RATE', 0.0),
             },
             # Add before_send hook to scrub sensitive data
             before_send=_sentry_before_send,

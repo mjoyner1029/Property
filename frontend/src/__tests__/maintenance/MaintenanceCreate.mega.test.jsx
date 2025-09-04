@@ -191,7 +191,7 @@ describe("Maintenance — Create Request flow", () => {
     fireEvent.click(submitButton);
 
     // Expect validation errors
-    await waitFor(() => {
+    await waitFor(() => { // TODO: Fix multiple assertions - extract into separate waitFor calls
   // TODO: Fix multiple assertions in waitFor - split into separate waitFor calls
   
       expect(screen.getByTestId("title-error")).toBeInTheDocument();
@@ -234,7 +234,7 @@ describe("Maintenance — Create Request flow", () => {
     fireEvent.click(submitButton);
 
     // Verify API call was made with correct data
-    await waitFor(() => {
+    await waitFor(() => { // TODO: Fix multiple assertions - extract into separate waitFor calls
       expect(mockCreateRequest).toHaveBeenCalledWith({
         title: "Test Request",
         description: "Test Description",
@@ -244,7 +244,7 @@ describe("Maintenance — Create Request flow", () => {
     });
 
     // Dialog should be closed
-    await waitFor(() => {
+    await waitFor(() => { // TODO: Fix multiple assertions - extract into separate waitFor calls
       expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
     });
 
@@ -280,7 +280,7 @@ describe("Maintenance — Create Request flow", () => {
     fireEvent.click(submitButton);
 
     // Expect error alert to be shown
-    await waitFor(() => {
+    await waitFor(() => { // TODO: Fix multiple assertions - extract into separate waitFor calls
   // TODO: Fix multiple assertions in waitFor - split into separate waitFor calls
   
       expect(screen.getByTestId("error-alert")).toBeInTheDocument();
@@ -311,7 +311,7 @@ describe("Maintenance — Create Request flow", () => {
     fireEvent.click(cancelButton);
     
     // Dialog should be closed
-    await waitFor(() => {
+    await waitFor(() => { // TODO: Fix multiple assertions - extract into separate waitFor calls
       expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
     });
     

@@ -1,5 +1,6 @@
 // frontend/src/pages/TenantDetail.jsx
 import React, { useEffect, useMemo, useState } from "react";
+import { useParams, useNavigate } from "react-router-dom";
 import {
   Box,
   Typography,
@@ -28,7 +29,6 @@ import {
   Description as DescriptionIcon,
   Payment as PaymentIcon,
 } from "@mui/icons-material";
-import { useParams, useNavigate } from "react-router-dom";
 import { Layout, PageHeader, Empty } from "../components";
 import { useTenant, useApp } from "../context";
 

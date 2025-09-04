@@ -15,6 +15,7 @@ jest.mock('src/utils/api', () => ({
 
 describe('ForgotPassword Component with Hook Mocking', () => {
   const renderComponent = () => {
+  const theme = useTheme();
     // Force render to mount the component even if there are errors
     console.error = jest.fn(); // Suppress console errors during test
     return render(
@@ -57,7 +58,7 @@ describe('ForgotPassword Component with Hook Mocking', () => {
     });
     
     // Success message should appear
-    await waitFor(() => {
+    await waitFor(() => { // TODO: Fix multiple assertions - extract into separate waitFor calls
       expect(screen.getByText(/reset link has been sent/i)).toBeInTheDocument();
     });
   });

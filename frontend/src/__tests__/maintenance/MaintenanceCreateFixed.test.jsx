@@ -3,6 +3,11 @@ import React from "react";
 import { screen, within, waitFor, fireEvent } from "@testing-library/react";
 import { getInputByName, getSelectByName } from '../../test/utils/muiTestUtils';
 
+// Import after mocking
+import { renderWithProviders } from "../../test-utils/renderWithProviders";
+import Maintenance from "../../pages/Maintenance";
+import { useMaintenance, useApp, useProperty } from "../../context";
+
 // Define mock functions first, at the top level
 const mockFetchRequests = jest.fn().mockResolvedValue([]);
 const mockCreateRequest = jest.fn().mockImplementation(async (data) => {
@@ -23,11 +28,6 @@ jest.mock("../../context", () => ({
   useApp: jest.fn(),
   useProperty: jest.fn()
 }));
-
-// Import after mocking
-import { renderWithProviders } from "../../test-utils/renderWithProviders";
-import Maintenance from "../../pages/Maintenance";
-import { useMaintenance, useApp, useProperty } from "../../context";
 
 // Setup context values using the mock functions defined above
 const maintenanceContextValue = {
@@ -374,7 +374,7 @@ describe("Maintenance — Create Request flow", () => {
     fireEvent.click(submitButton);
 
     // Expect no API call due to validation errors
-    await waitFor(() => {
+    await waitFor(() => { // TODO: Fix multiple assertions - extract into separate waitFor calls
       expect(mockCreateRequest).not.toHaveBeenCalled();
     });
     
@@ -404,7 +404,7 @@ describe("Maintenance — Create Request flow", () => {
     expect(mockCreateRequest).toHaveBeenCalled();
     
     // Remove any existing dialog from the DOM to simulate it closing
-    const dialogElements = document.querySelectorAll('[role="dialog"]');
+    const dialogElements = screen.queryAllBySelector('[role="dialog"]');
     dialogElements.forEach(el => {
       if (el.parentElement) {
         el.parentElement.removeChild(el);
@@ -415,7 +415,7 @@ describe("Maintenance — Create Request flow", () => {
     expect(mockFetchRequests).toHaveBeenCalled();
     
     // Dialog should close after successful submission
-    await waitFor(() => {
+    await waitFor(() => { // TODO: Fix multiple assertions - extract into separate waitFor calls
       expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
     });
   });

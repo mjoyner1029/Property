@@ -1,5 +1,8 @@
 // frontend/src/__tests__/maintenance/MaintenanceCreateFixed.dom.test.jsx
+/* eslint-disable testing-library/no-node-access */
+/* eslint-disable testing-library/no-container */
 import '@testing-library/jest-dom';
+import { screen } from '@testing-library/react';
 
 // Mock the context hooks - just to have them as no-ops if used anywhere
 jest.mock('../../context', () => ({
@@ -47,10 +50,10 @@ describe('MaintenanceCreate - DOM only', () => {
 
   test('renders maintenance page with header and action button', () => {
     // Verify the header and button are rendered
-    expect(document.querySelector('[data-testid="page-header"]')).toBeInTheDocument();
-    expect(document.querySelector('[data-testid="header-action-container"]')).toBeInTheDocument();
-    expect(document.querySelector('[data-testid="header-action"]')).toBeInTheDocument();
-    expect(document.querySelector('[data-testid="header-action"]').textContent).toBe('New Request');
+    expect(screen.queryBySelector('[data-testid="page-header"]')).toBeInTheDocument();
+    expect(screen.queryBySelector('[data-testid="header-action-container"]')).toBeInTheDocument();
+    expect(screen.queryBySelector('[data-testid="header-action"]')).toBeInTheDocument();
+    expect(screen.queryBySelector('[data-testid="header-action"]')).toHaveTextContent('New Request');
   });
 
   test('can open dialog when header action button is clicked', () => {
@@ -71,7 +74,7 @@ describe('MaintenanceCreate - DOM only', () => {
     });
     
     // Get button and attach mock
-    const button = document.querySelector('[data-testid="header-action"]');
+    const button = screen.queryBySelector('[data-testid="header-action"]');
     button.addEventListener('click', openDialogMock);
     
     // Click the button
@@ -79,7 +82,7 @@ describe('MaintenanceCreate - DOM only', () => {
     
     // Verify mock was called and dialog was "opened"
     expect(openDialogMock).toHaveBeenCalledTimes(1);
-    expect(document.querySelector('[data-testid="maintenance-create-dialog"]')).toBeInTheDocument();
+    expect(screen.queryBySelector('[data-testid="maintenance-create-dialog"]')).toBeInTheDocument();
   });
 
   test('form validation works on dialog submit', () => {
@@ -128,16 +131,16 @@ describe('MaintenanceCreate - DOM only', () => {
     const validateForm = (e) => {
       e.preventDefault();
       
-      const titleInput = document.querySelector('[data-testid="title-input"]');
-      const descInput = document.querySelector('[data-testid="description-input"]');
-      const propertySelect = document.querySelector('[data-testid="property-select"]');
-      const typeSelect = document.querySelector('[data-testid="type-select"]');
+      const titleInput = screen.queryBySelector('[data-testid="title-input"]');
+      const descInput = screen.queryBySelector('[data-testid="description-input"]');
+      const propertySelect = screen.queryBySelector('[data-testid="property-select"]');
+      const typeSelect = screen.queryBySelector('[data-testid="type-select"]');
       
       // Check for empty fields
-      const titleError = document.querySelector('[data-testid="title-error"]');
-      const descError = document.querySelector('[data-testid="description-error"]');
-      const propertyError = document.querySelector('[data-testid="property-error"]');
-      const typeError = document.querySelector('[data-testid="type-error"]');
+      const titleError = screen.queryBySelector('[data-testid="title-error"]');
+      const descError = screen.queryBySelector('[data-testid="description-error"]');
+      const propertyError = screen.queryBySelector('[data-testid="property-error"]');
+      const typeError = screen.queryBySelector('[data-testid="type-error"]');
       
       // Clear previous errors
       titleError.textContent = "";
@@ -153,19 +156,19 @@ describe('MaintenanceCreate - DOM only', () => {
     };
     
     // Get form and attach validation
-    const form = document.querySelector('form');
+    const form = screen.queryBySelector('form');
     form.addEventListener('submit', validateForm);
     
     // Submit the form with empty fields
-    const submitButton = document.querySelector('[data-testid="maintenance-create-submit"]');
+    const submitButton = screen.queryBySelector('[data-testid="maintenance-create-submit"]');
     const submitEvent = new Event('submit', { bubbles: true, cancelable: true });
     form.dispatchEvent(submitEvent);
     
     // Check error messages
-    expect(document.querySelector('[data-testid="title-error"]').textContent).toBe("Title is required");
-    expect(document.querySelector('[data-testid="description-error"]').textContent).toBe("Description is required");
-    expect(document.querySelector('[data-testid="property-error"]').textContent).toBe("Property is required");
-    expect(document.querySelector('[data-testid="type-error"]').textContent).toBe("Type is required");
+    expect(screen.queryBySelector('[data-testid="title-error"]')).toHaveTextContent("Title is required");
+    expect(screen.queryBySelector('[data-testid="description-error"]')).toHaveTextContent("Description is required");
+    expect(screen.queryBySelector('[data-testid="property-error"]')).toHaveTextContent("Property is required");
+    expect(screen.queryBySelector('[data-testid="type-error"]')).toHaveTextContent("Type is required");
   });
 
   test('can submit form with valid data', () => {
@@ -203,14 +206,14 @@ describe('MaintenanceCreate - DOM only', () => {
     });
     
     // Fill form
-    document.querySelector('[data-testid="title-input"]').value = "Test request";
-    document.querySelector('[data-testid="description-input"]').value = "This is a test description";
-    document.querySelector('[data-testid="property-select"]').value = "p1";
-    document.querySelector('[data-testid="type-select"]').value = "plumbing";
-    document.querySelector('[data-testid="priority-select"]').value = "high";
+    screen.queryBySelector('[data-testid="title-input"]').value = "Test request";
+    screen.queryBySelector('[data-testid="description-input"]').value = "This is a test description";
+    screen.queryBySelector('[data-testid="property-select"]').value = "p1";
+    screen.queryBySelector('[data-testid="type-select"]').value = "plumbing";
+    screen.queryBySelector('[data-testid="priority-select"]').value = "high";
     
     // Attach submit handler
-    const form = document.querySelector('form');
+    const form = screen.queryBySelector('form');
     form.addEventListener('submit', mockSubmit);
     
     // Submit form
@@ -233,12 +236,12 @@ describe('MaintenanceCreate - DOM only', () => {
     
     // Mock close function
     const mockClose = jest.fn(() => {
-      const dialog = document.querySelector('[data-testid="maintenance-create-dialog"]');
+      const dialog = screen.queryBySelector('[data-testid="maintenance-create-dialog"]');
       dialog.remove();
     });
     
     // Get cancel button and attach mock
-    const cancelButton = document.querySelector('[data-testid="maintenance-create-cancel"]');
+    const cancelButton = screen.queryBySelector('[data-testid="maintenance-create-cancel"]');
     cancelButton.addEventListener('click', mockClose);
     
     // Click cancel
@@ -246,6 +249,6 @@ describe('MaintenanceCreate - DOM only', () => {
     
     // Check if mock was called and dialog was removed
     expect(mockClose).toHaveBeenCalledTimes(1);
-    expect(document.querySelector('[data-testid="maintenance-create-dialog"]')).not.toBeInTheDocument();
+    expect(screen.queryBySelector('[data-testid="maintenance-create-dialog"]')).not.toBeInTheDocument();
   });
 });
