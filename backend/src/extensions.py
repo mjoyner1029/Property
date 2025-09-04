@@ -18,10 +18,20 @@ from flask_socketio import SocketIO
 from flask_mail import Mail
 from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
+from sqlalchemy import MetaData
+
+# Define naming convention for database constraints
+naming_convention = {
+    "pk": "pk_%(table_name)s",
+    "fk": "fk_%(table_name)s_%(column_0_name)s_%(referred_table_name)s",
+    "ix": "ix_%(table_name)s_%(column_0_name)s",
+    "uq": "uq_%(table_name)s_%(column_0_name)s",
+    "ck": "ck_%(table_name)s_%(constraint_name)s",
+}
 
 # Initialize extensions without binding to an app
-db = SQLAlchemy()
-migrate = Migrate()
+db = SQLAlchemy(metadata=MetaData(naming_convention=naming_convention))
+migrate = Migrate(compare_type=True, render_as_batch=True)
 jwt = JWTManager()
 cors = CORS()
 talisman = Talisman()
@@ -75,18 +85,19 @@ else:
         strategy="fixed-window"
     )
 
-def init_extensions(app: Flask) -> None:
+def init_extensions(app: Flask) -> Flask:
     """
     Initialize all Flask extensions with the application.
 
     Args:
         app: Flask application instance
+        
+    Returns:
+        Flask application instance with initialized extensions
     """
     # Initialize database - using correct initialization for the SQLAlchemy version
-    with app.app_context():
-        # Fix for 'db' not defined error in init_app method
-        app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-        db.init_app(app)
+    app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+    db.init_app(app)
     
     # Initialize migrations
     migrate.init_app(app, db)
@@ -154,25 +165,28 @@ def init_extensions(app: Flask) -> None:
         def bypass_all_rate_limits():
             return None
             
-        return  # Skip the rest of the setup for tests
-
-    # Get limiter configuration and apply to app.config
-    limiter_config = _get_limiter_config(app)
-
-    # Initialize limiter with app
-    limiter.init_app(app)    # Register additional hooks
+        # Continue with rest of the function for non-test cases
+    else:
+        # Get limiter configuration and apply to app.config
+        limiter_config = _get_limiter_config(app)
     
-    # Disable rate limiting during tests - force disable
-    if app.config.get("TESTING"):
-        limiter.enabled = False
+        # Initialize limiter with app
+        limiter.init_app(app)    # Register additional hooks
         
-        # Add app-level handler to ensure rate limits are bypassed in tests
-        @app.before_request
-        def bypass_rate_limits_in_tests():
-            if 'flask_limiter.limits' in request.environ:
-                request.environ.pop('flask_limiter.limits', None)
-        
+        # Disable rate limiting during tests - force disable
+        if app.config.get("TESTING"):
+            limiter.enabled = False
+            
+            # Add app-level handler to ensure rate limits are bypassed in tests
+            @app.before_request
+            def bypass_rate_limits_in_tests():
+                if 'flask_limiter.limits' in request.environ:
+                    request.environ.pop('flask_limiter.limits', None)
+            
     _register_jwt_hooks(app)
+    
+    # Return the app instance
+    return app
 
 
 def _get_cors_config(app: Flask) -> Dict[str, Any]:

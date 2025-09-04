@@ -17,11 +17,32 @@ depends_on = None
 
 
 def upgrade():
-    # Simplified to avoid errors with missing tables
-    print("Skipping maintenance_type column addition - table not present in simplified migration")
-    pass
+    # Safe implementation that checks if table exists before adding column
+    bind = op.get_bind()
+    insp = sa.inspect(bind)
+    
+    # Check both possible table names (singular and plural)
+    if "maintenance_requests" in insp.get_table_names():
+        with op.batch_alter_table("maintenance_requests") as batch_op:
+            batch_op.add_column(sa.Column("maintenance_type", sa.String(100)))
+    elif "maintenance_request" in insp.get_table_names():
+        with op.batch_alter_table("maintenance_request") as batch_op:
+            batch_op.add_column(sa.Column("maintenance_type", sa.String(100)))
+    else:
+        op.get_context().impl.warn("maintenance_requests table missing; skipping maintenance_type")
 
 
 def downgrade():
-    # Simplified to avoid errors with missing tables
-    pass
+    # Safe implementation that checks if table exists before dropping column
+    bind = op.get_bind()
+    insp = sa.inspect(bind)
+    
+    # Check both possible table names (singular and plural)
+    if "maintenance_requests" in insp.get_table_names():
+        with op.batch_alter_table("maintenance_requests") as batch_op:
+            batch_op.drop_column("maintenance_type")
+    elif "maintenance_request" in insp.get_table_names():
+        with op.batch_alter_table("maintenance_request") as batch_op:
+            batch_op.drop_column("maintenance_type")
+    else:
+        op.get_context().impl.warn("maintenance_requests table missing; skipping maintenance_type removal")

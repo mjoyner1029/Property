@@ -25,9 +25,14 @@ def upgrade():
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('jti', sa.String(length=36), nullable=False),
     sa.Column('created_at', sa.DateTime(), nullable=True),
-    sa.PrimaryKeyConstraint('id'),
-    sa.UniqueConstraint('jti')
+    sa.PrimaryKeyConstraint('id')
     )
+    
+    # Add explicit unique constraint
+    op.create_unique_constraint('uq_token_blocklist_jti', 'token_blocklist', ['jti'])
+    
+    # Add index for better performance
+    op.create_index('ix_token_blocklist_jti', 'token_blocklist', ['jti'], unique=True)
     
     # Create landlord_profiles table
     op.create_table('landlord_profiles',
@@ -42,12 +47,21 @@ def upgrade():
     sa.Column('verified', sa.Boolean(), nullable=True),
     sa.Column('created_at', sa.DateTime(), nullable=True),
     sa.Column('updated_at', sa.DateTime(), nullable=True),
-    sa.ForeignKeyConstraint(['user_id'], ['user.id'], name='fk_landlord_profiles_user_id'),
     sa.PrimaryKeyConstraint('id')
     )
     
+    # Add explicit foreign key constraint
+    op.create_foreign_key(
+        'fk_landlord_profiles_user_id', 
+        'landlord_profiles', 'user',
+        ['user_id'], ['id']
+    )
+    
     # Create index on user_id
-    op.create_index(op.f('ix_landlord_profiles_user_id'), 'landlord_profiles', ['user_id'], unique=True)
+    op.create_index('ix_landlord_profiles_user_id', 'landlord_profiles', ['user_id'], unique=True)
+    
+    # Add explicit unique constraint
+    op.create_unique_constraint('uq_landlord_profiles_user_id', 'landlord_profiles', ['user_id'])
     
     # Log completion
     print("Simplified migration completed successfully")
@@ -55,6 +69,16 @@ def upgrade():
 
 def downgrade():
     # Drop the tables we created
-    op.drop_index(op.f('ix_landlord_profiles_user_id'), table_name='landlord_profiles')
+    
+    # Drop constraints and indexes for landlord_profiles
+    op.drop_constraint('uq_landlord_profiles_user_id', 'landlord_profiles', type_='unique')
+    op.drop_index('ix_landlord_profiles_user_id', table_name='landlord_profiles')
+    op.drop_constraint('fk_landlord_profiles_user_id', 'landlord_profiles', type_='foreignkey')
+    
+    # Drop constraints and indexes for token_blocklist
+    op.drop_index('ix_token_blocklist_jti', table_name='token_blocklist')
+    op.drop_constraint('uq_token_blocklist_jti', 'token_blocklist', type_='unique')
+    
+    # Drop the tables
     op.drop_table('landlord_profiles')
     op.drop_table('token_blocklist')

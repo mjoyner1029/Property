@@ -22,6 +22,18 @@ if [ -z "$DATABASE_URL" ]; then
     export DATABASE_URL="sqlite:///$DB_PATH"
 fi
 
+# Give the database time to be fully available
+if [ "$APP_ENV" = "production" ]; then
+    echo "Production environment detected, waiting for database to be ready..."
+    for i in {1..30}; do
+        python -c "from src.app import create_app; from src.services.migration_service import check_database_connection; app = create_app(); with app.app_context(): print(check_database_connection())" 2>/dev/null | grep -q "True" && break
+        echo "Waiting for database connection... ($i/30)"
+        sleep 2
+    done
+fi
+
+echo "Starting migration process..."
+
 # Fix for common migration issues
 echo "Checking for known migration issues..."
 

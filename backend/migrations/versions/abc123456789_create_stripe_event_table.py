@@ -12,8 +12,7 @@ import sqlalchemy as sa
 
 # revision identifiers, used by Alembic.
 revision = 'abc123456789'
-down_revision = 'a1b2c3d4e5f6_alias'
-down_revision = '20250825_money_and_stripe_events'  # Update with the appropriate previous revision
+down_revision = '20250825_money_and_stripe_events'  # Fixed to use the correct down revision
 branch_labels = None
 depends_on = None
 

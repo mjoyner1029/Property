@@ -21,6 +21,10 @@ if database_url_override:
     logger.info("Using DATABASE_URL from environment: %s", database_url_override.split("@")[0] + "@***")
     config.set_main_option("sqlalchemy.url", database_url_override)
 
+# Import the app to get access to its configuration
+from src import app as flask_app
+app = flask_app.create_app()
+
 # Import models to detect schema
 from src.models import *
 from src.models.user import User
@@ -39,14 +43,12 @@ def get_engine():
         # Flask-SQLAlchemy >= 3
         return current_app.extensions['migrate'].db.engine
 
-def get_engine_url():
-    try:
-        return get_engine().url.render_as_string(hide_password=False).replace('%', '%%')
-    except AttributeError:
-        return str(get_engine().url).replace('%', '%%')
+# Use database URI from Flask app's config
+db_url = app.config["SQLALCHEMY_DATABASE_URI"]
+logger.info(f"Using database URL from app config: {db_url.split('@')[0] + '@***' if '@' in db_url else db_url}")
 
 # Inject DB URL into Alembic config
-config.set_main_option('sqlalchemy.url', get_engine_url())
+config.set_main_option('sqlalchemy.url', db_url.replace('%', '%%'))
 
 # Get SQLAlchemy DB instance
 target_db = current_app.extensions['migrate'].db
@@ -59,7 +61,12 @@ def get_metadata():
 def run_migrations_offline():
     url = config.get_main_option("sqlalchemy.url")
     context.configure(
-        url=url, target_metadata=get_metadata(), literal_binds=True
+        url=url, 
+        target_metadata=get_metadata(), 
+        literal_binds=True,
+        render_as_batch=True,
+        compare_type=True,
+        compare_server_default=True
     )
 
     with context.begin_transaction():
@@ -73,9 +80,17 @@ def run_migrations_online():
                 directives[:] = []
                 logger.info('No changes in schema detected.')
 
+    # Get configuration args from Flask-Migrate
     conf_args = current_app.extensions['migrate'].configure_args
+    
+    # Only add process_revision_directives if it's not already present
     if conf_args.get("process_revision_directives") is None:
         conf_args["process_revision_directives"] = process_revision_directives
+    
+    # Remove any conflicting configuration options that we want to set explicitly
+    for key in ["render_as_batch", "compare_type", "compare_server_default"]:
+        if key in conf_args:
+            del conf_args[key]
 
     connectable = get_engine()
 
@@ -83,6 +98,9 @@ def run_migrations_online():
         context.configure(
             connection=connection,
             target_metadata=get_metadata(),
+            render_as_batch=True,
+            compare_type=True,
+            compare_server_default=True,
             **conf_args
         )
 

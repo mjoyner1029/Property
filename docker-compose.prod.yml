@@ -24,7 +24,7 @@ services:
       start_period: 10s
     # Add command to run migrations automatically on startup
     command: >
-      bash -c "flask db upgrade && gunicorn --bind 0.0.0.0:5050 wsgi:app --workers 4 --threads 2 --timeout 60"
+      bash -c "flask db upgrade && gunicorn -k gevent -w 4 -b 0.0.0.0:5050 src.wsgi:app --timeout 60"
     environment:
       - FLASK_ENV=production
       - LOG_LEVEL=INFO

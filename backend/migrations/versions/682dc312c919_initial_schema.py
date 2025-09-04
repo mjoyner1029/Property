@@ -24,9 +24,11 @@ def upgrade():
     sa.Column('email', sa.String(length=120), nullable=False),
     sa.Column('password_hash', sa.String(length=255), nullable=False),
     sa.Column('role', sa.String(length=20), nullable=False),
-    sa.PrimaryKeyConstraint('id'),
-    sa.UniqueConstraint('email')
+    sa.PrimaryKeyConstraint('id')
     )
+    
+    # Add explicit unique constraint for email
+    op.create_unique_constraint('uq_user_email', 'user', ['email'])
     op.create_table('notifications',
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('user_id', sa.Integer(), nullable=False),
@@ -34,18 +36,36 @@ def upgrade():
     sa.Column('type', sa.String(length=50), nullable=True),
     sa.Column('is_read', sa.Boolean(), nullable=True),
     sa.Column('created_at', sa.DateTime(), nullable=True),
-    sa.ForeignKeyConstraint(['user_id'], ['user.id'], ),
     sa.PrimaryKeyConstraint('id')
     )
+    
+    # Add explicit foreign key constraint
+    op.create_foreign_key(
+        'fk_notifications_user_id', 
+        'notifications', 'user',
+        ['user_id'], ['id']
+    )
+    
+    # Add index on user_id for better performance
+    op.create_index('ix_notifications_user_id', 'notifications', ['user_id'], unique=False)
     op.create_table('properties',
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('landlord_id', sa.Integer(), nullable=False),
     sa.Column('name', sa.String(length=100), nullable=False),
     sa.Column('address', sa.String(length=255), nullable=False),
     sa.Column('unit_count', sa.Integer(), nullable=True),
-    sa.ForeignKeyConstraint(['landlord_id'], ['user.id'], ),
     sa.PrimaryKeyConstraint('id')
     )
+    
+    # Add explicit foreign key constraint
+    op.create_foreign_key(
+        'fk_properties_landlord_id', 
+        'properties', 'user',
+        ['landlord_id'], ['id']
+    )
+    
+    # Add index on landlord_id for better performance
+    op.create_index('ix_properties_landlord_id', 'properties', ['landlord_id'], unique=False)
     op.create_table('messages',
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('sender_id', sa.Integer(), nullable=False),
@@ -54,31 +74,76 @@ def upgrade():
     sa.Column('content', sa.Text(), nullable=False),
     sa.Column('timestamp', sa.DateTime(), nullable=True),
     sa.Column('read', sa.Boolean(), nullable=True),
-    sa.ForeignKeyConstraint(['property_id'], ['properties.id'], ),
-    sa.ForeignKeyConstraint(['receiver_id'], ['user.id'], ),
-    sa.ForeignKeyConstraint(['sender_id'], ['user.id'], ),
     sa.PrimaryKeyConstraint('id')
     )
+    
+    # Add explicit foreign key constraints
+    op.create_foreign_key(
+        'fk_messages_property_id', 
+        'messages', 'properties',
+        ['property_id'], ['id']
+    )
+    op.create_foreign_key(
+        'fk_messages_receiver_id', 
+        'messages', 'user',
+        ['receiver_id'], ['id']
+    )
+    op.create_foreign_key(
+        'fk_messages_sender_id', 
+        'messages', 'user',
+        ['sender_id'], ['id']
+    )
+    
+    # Add indexes for better performance
+    op.create_index('ix_messages_property_id', 'messages', ['property_id'], unique=False)
+    op.create_index('ix_messages_receiver_id', 'messages', ['receiver_id'], unique=False)
+    op.create_index('ix_messages_sender_id', 'messages', ['sender_id'], unique=False)
     op.create_table('tenant_profiles',
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('user_id', sa.Integer(), nullable=False),
     sa.Column('property_id', sa.Integer(), nullable=True),
     sa.Column('lease_start', sa.Date(), nullable=True),
     sa.Column('lease_end', sa.Date(), nullable=True),
-    sa.ForeignKeyConstraint(['property_id'], ['properties.id'], ),
-    sa.ForeignKeyConstraint(['user_id'], ['user.id'], ),
-    sa.PrimaryKeyConstraint('id'),
-    sa.UniqueConstraint('user_id')
+    sa.PrimaryKeyConstraint('id')
     )
+    
+    # Add explicit foreign key constraints
+    op.create_foreign_key(
+        'fk_tenant_profiles_property_id', 
+        'tenant_profiles', 'properties',
+        ['property_id'], ['id']
+    )
+    op.create_foreign_key(
+        'fk_tenant_profiles_user_id', 
+        'tenant_profiles', 'user',
+        ['user_id'], ['id']
+    )
+    
+    # Add explicit unique constraint
+    op.create_unique_constraint('uq_tenant_profiles_user_id', 'tenant_profiles', ['user_id'])
+    
+    # Add indexes for better performance
+    op.create_index('ix_tenant_profiles_property_id', 'tenant_profiles', ['property_id'], unique=False)
+    op.create_index('ix_tenant_profiles_user_id', 'tenant_profiles', ['user_id'], unique=True)
     op.create_table('maintenance_request',
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('tenant_id', sa.Integer(), nullable=True),
     sa.Column('description', sa.Text(), nullable=False),
     sa.Column('status', sa.String(length=50), nullable=True),
     sa.Column('created_at', sa.DateTime(), server_default=sa.text('(CURRENT_TIMESTAMP)'), nullable=True),
-    sa.ForeignKeyConstraint(['tenant_id'], ['tenant_profiles.id'], ),
     sa.PrimaryKeyConstraint('id')
     )
+    
+    # Add explicit foreign key constraint
+    op.create_foreign_key(
+        'fk_maintenance_request_tenant_id', 
+        'maintenance_request', 'tenant_profiles',
+        ['tenant_id'], ['id']
+    )
+    
+    # Add index for better performance
+    op.create_index('ix_maintenance_request_tenant_id', 'maintenance_request', ['tenant_id'], unique=False)
+    op.create_index('ix_maintenance_request_status', 'maintenance_request', ['status'], unique=False)
     op.create_table('payment',
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('tenant_id', sa.Integer(), nullable=False),
@@ -86,14 +151,64 @@ def upgrade():
     sa.Column('status', sa.String(length=50), nullable=True),
     sa.Column('due_date', sa.Date(), nullable=True),
     sa.Column('paid_date', sa.Date(), nullable=True),
-    sa.ForeignKeyConstraint(['tenant_id'], ['tenant_profiles.id'], ),
     sa.PrimaryKeyConstraint('id')
     )
+    
+    # Add explicit foreign key constraint
+    op.create_foreign_key(
+        'fk_payment_tenant_id', 
+        'payment', 'tenant_profiles',
+        ['tenant_id'], ['id']
+    )
+    
+    # Add indexes for better performance
+    op.create_index('ix_payment_tenant_id', 'payment', ['tenant_id'], unique=False)
+    op.create_index('ix_payment_due_date', 'payment', ['due_date'], unique=False)
+    op.create_index('ix_payment_status', 'payment', ['status'], unique=False)
     # ### end Alembic commands ###
 
 
 def downgrade():
     # ### commands auto generated by Alembic - please adjust! ###
+    
+    # Drop indexes and foreign keys for payment table
+    op.drop_index('ix_payment_status', table_name='payment')
+    op.drop_index('ix_payment_due_date', table_name='payment')
+    op.drop_index('ix_payment_tenant_id', table_name='payment')
+    op.drop_constraint('fk_payment_tenant_id', 'payment', type_='foreignkey')
+    
+    # Drop indexes and foreign keys for maintenance_request table
+    op.drop_index('ix_maintenance_request_status', table_name='maintenance_request')
+    op.drop_index('ix_maintenance_request_tenant_id', table_name='maintenance_request')
+    op.drop_constraint('fk_maintenance_request_tenant_id', 'maintenance_request', type_='foreignkey')
+    
+    # Drop indexes, unique constraints, and foreign keys for tenant_profiles table
+    op.drop_index('ix_tenant_profiles_user_id', table_name='tenant_profiles')
+    op.drop_index('ix_tenant_profiles_property_id', table_name='tenant_profiles')
+    op.drop_constraint('uq_tenant_profiles_user_id', 'tenant_profiles', type_='unique')
+    op.drop_constraint('fk_tenant_profiles_user_id', 'tenant_profiles', type_='foreignkey')
+    op.drop_constraint('fk_tenant_profiles_property_id', 'tenant_profiles', type_='foreignkey')
+    
+    # Drop indexes and foreign keys for messages table
+    op.drop_index('ix_messages_sender_id', table_name='messages')
+    op.drop_index('ix_messages_receiver_id', table_name='messages')
+    op.drop_index('ix_messages_property_id', table_name='messages')
+    op.drop_constraint('fk_messages_sender_id', 'messages', type_='foreignkey')
+    op.drop_constraint('fk_messages_receiver_id', 'messages', type_='foreignkey')
+    op.drop_constraint('fk_messages_property_id', 'messages', type_='foreignkey')
+    
+    # Drop indexes and foreign keys for properties table
+    op.drop_index('ix_properties_landlord_id', table_name='properties')
+    op.drop_constraint('fk_properties_landlord_id', 'properties', type_='foreignkey')
+    
+    # Drop indexes and foreign keys for notifications table
+    op.drop_index('ix_notifications_user_id', table_name='notifications')
+    op.drop_constraint('fk_notifications_user_id', 'notifications', type_='foreignkey')
+    
+    # Drop unique constraint for user table
+    op.drop_constraint('uq_user_email', 'user', type_='unique')
+    
+    # Drop tables
     op.drop_table('payment')
     op.drop_table('maintenance_request')
     op.drop_table('tenant_profiles')

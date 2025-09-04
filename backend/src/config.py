@@ -95,9 +95,11 @@ class BaseConfig:
     INSTANCE_DIR = BASE_DIR / "instance"
     INSTANCE_DIR.mkdir(exist_ok=True)
 
-    SQLALCHEMY_DATABASE_URI = os.environ.get("DATABASE_URL") or (
-        f"sqlite:///{INSTANCE_DIR / 'app.db'}"
-    )
+    # SQLAlchemy database URL - will be properly set in the app factory
+    SQLALCHEMY_DATABASE_URI = os.environ.get("DATABASE_URL")
+    
+    # SQLAlchemy engine options
+    SQLALCHEMY_ENGINE_OPTIONS = {"pool_pre_ping": True}
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     
     # JWT
