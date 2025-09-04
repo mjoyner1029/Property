@@ -1,0 +1,147 @@
+name: Migration Chain Verification
+
+on:
+  pull_request:
+    paths:
+      - 'backend/migrations/**'
+      - 'backend/src/models/**'
+      - 'backend/alembic.ini'
+  push:
+    branches: [main, develop]
+    paths:
+      - 'backend/migrations/**'
+      - 'backend/src/models/**'
+      - 'backend/alembic.ini'
+  # Allow manual runs
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  verify-migrations:
+    name: Check Migration Chain Integrity
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@8ade135a41bc03ea155e62e844d188df1ea18608 # v4.1.0
+        with:
+          fetch-depth: 0
+      
+      - name: Set up Python
+        uses: actions/setup-python@82c7e631bb3cdc910f68e0081d67478d79c6982d # v5.0.0
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+      
+      - name: Install dependencies
+        working-directory: ./backend
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e .
+          pip install pytest
+          pip freeze > requirements-lock.txt
+      
+      - name: Cache pip dependencies
+        uses: actions/cache@13aacd865c20de90d75de3b17ebe84f7a17d57d2 # v4.0.0
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pip-${{ hashFiles('backend/requirements-lock.txt') }}
+          restore-keys: |
+            ${{ runner.os }}-pip-
+      
+      - name: Make scripts executable
+        run: |
+          chmod +x ./scripts/check_migrations.sh
+      
+      - name: Verify migration integrity with SQLite
+        id: sqlite-check
+        run: |
+          ./scripts/check_migrations.sh "sqlite:///:memory:" | tee migration-check.log
+        continue-on-error: true
+      
+      - name: Upload migration check logs
+        if: always()
+        uses: actions/upload-artifact@26f29941396feab9e9d8596440e50339d00fd9ae # v4.3.0
+        with:
+          name: migration-check-logs
+          path: migration-check.log
+          retention-days: 7
+      
+      - name: Check static integrity of migration files
+        run: |
+          echo "Checking for proper migration imports..."
+          grep -r "import sqlalchemy as sa" --include="*.py" backend/migrations/versions/ || echo "❌ Missing proper SQLAlchemy imports in some migration files"
+          
+          echo "Checking for proper op.create_* patterns..."
+          grep -r "op\.create_" --include="*.py" backend/migrations/versions/ || echo "❌ No explicit Alembic operations found in migrations"
+      
+      - name: Fail if SQLite verification failed
+        if: steps.sqlite-check.outcome == 'failure'
+        run: |
+          echo "::error::Migration chain verification failed with SQLite"
+          cat migration-check.log
+          exit 1
+        
+      - name: Report success
+        if: success()
+        run: |
+          echo "✅ Migration chain is valid and upgrade tests passed!"
+          
+  # Optional - only runs on workflow_dispatch
+  verify-with-postgres:
+    name: Verify migrations on PostgreSQL
+    runs-on: ubuntu-latest
+    if: github.event_name == 'workflow_dispatch'
+    
+    services:
+      postgres:
+        image: postgres:14
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: test_migrations
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@8ade135a41bc03ea155e62e844d188df1ea18608 # v4.1.0
+      
+      - name: Set up Python
+        uses: actions/setup-python@82c7e631bb3cdc910f68e0081d67478d79c6982d # v5.0.0
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+      
+      - name: Install dependencies
+        working-directory: ./backend
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e .
+          pip install "psycopg[binary]>=3.1.19"
+      
+      - name: Make scripts executable
+        run: |
+          chmod +x ./scripts/check_migrations.sh
+          
+      - name: Verify migrations with PostgreSQL
+        env:
+          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/test_migrations
+          CHECK_DOWNGRADE: "true"
+        run: |
+          ./scripts/check_migrations.sh "$DATABASE_URL" | tee migration-postgres-check.log
+          
+      - name: Upload PostgreSQL check logs
+        if: always()
+        uses: actions/upload-artifact@26f29941396feab9e9d8596440e50339d00fd9ae # v4.3.0
+        with:
+          name: migration-postgres-check-logs
+          path: migration-postgres-check.log
+          retention-days: 7

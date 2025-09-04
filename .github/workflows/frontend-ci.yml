@@ -35,10 +35,10 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8
+        uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v4.1.1
 
       - name: Setup Node
-        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.0.1
         with:
           node-version: ${{ matrix.node }}
           cache: 'npm'
@@ -60,12 +60,30 @@ jobs:
           CI: true
         run: npm run test:ci
 
+      - name: Save test logs
+        if: always()
+        run: |
+          mkdir -p frontend/test-logs
+          echo "Run date: $(date)" > frontend/test-logs/run-info.txt
+          echo "Node version: ${{ matrix.node }}" >> frontend/test-logs/run-info.txt
+          npm list --depth=0 > frontend/test-logs/npm-list.txt
+          if [ -f frontend/npm-debug.log ]; then cp frontend/npm-debug.log frontend/test-logs/; fi
+          find frontend -name '*.log' -type f -not -path '*/node_modules/*' -not -path '*/\.*' -exec cp {} frontend/test-logs/ \;
+
       - name: Upload coverage report
         if: success()
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.0.0
         with:
           name: frontend-coverage-${{ matrix.node }}
           path: frontend/coverage
+          retention-days: 7
+          
+      - name: Upload test logs
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.0.0
+        with:
+          name: frontend-test-logs-${{ matrix.node }}
+          path: frontend/test-logs/
           retention-days: 7
 
       - name: Build
@@ -73,7 +91,7 @@ jobs:
 
       - name: Upload build
         if: success()
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.0.0
         with:
           name: frontend-build-${{ matrix.node }}
           path: |

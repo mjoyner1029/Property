@@ -36,7 +36,7 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@8ade135a41bc03ea155e62e844d188df1ea18608 # v4.1.0
 
       - name: Fail if placeholder code exists
         run: |
@@ -49,7 +49,7 @@ jobs:
           fi
 
       - name: Set up Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@82c7e631bb3cdc910f68e0081d67478d79c6982d # v5.0.0
         with:
           python-version: "3.11"
 
@@ -59,7 +59,7 @@ jobs:
           sudo apt-get install -y libpq-dev build-essential
 
       - name: Cache pip
-        uses: actions/cache@v4
+        uses: actions/cache@13aacd865c20de90d75de3b17ebe84f7a17d57d2 # v4.0.0
         with:
           path: ~/.cache/pip
           key: ${{ runner.os }}-pip-${{ hashFiles('backend/requirements.txt', 'backend/requirements-dev.txt') }}
@@ -81,7 +81,7 @@ jobs:
           pytest -q --maxfail=1 --disable-warnings --cov=src --cov-report=xml:coverage.xml
 
       - name: Upload coverage report
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@26f29941396feab9e9d8596440e50339d00fd9ae # v4.3.0
         with:
           name: backend-coverage
           path: backend/coverage.xml

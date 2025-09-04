@@ -55,3 +55,11 @@ docker-compose.override.yml
 # --- Monitoring / Perf ---
 perf/results/
 monitoring/tmp/
+
+# --- Temporary Files ---
+*.bak
+*.new
+*.tmp
+*~
+.*.swp
+.*.swo

@@ -55,7 +55,7 @@ jobs:
       SMOKE_API_BASE_URL: ${{ secrets.STAGING_API_URL }}
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@8ade135a41bc03ea155e62e844d188df1ea18608 # v4.1.0
 
       # Kick Render deploy via API (preferred; gives a deploy_id we can poll)
       - name: Kick Render deploy (staging via API)
@@ -106,7 +106,7 @@ jobs:
       # Deploy FE to Vercel as a preview/proxy for staging (prod: false)
       - name: Deploy Frontend to Vercel (staging/preview)
         if: ${{ env.VERCEL_TOKEN != '' && env.VERCEL_PROJECT_ID != '' && env.VERCEL_ORG_ID != '' }}
-        uses: vercel/actions/deploy@v3
+        uses: vercel/actions/deploy@6b0a233fa5697fc11ca2515ca159ebbf5dea3fc7 # v3.0.2
         with:
           working-directory: frontend
           token: ${{ env.VERCEL_TOKEN }}

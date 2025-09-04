@@ -43,7 +43,7 @@ jobs:
 
     steps:
       - name: Checkout repo at deployed commit
-        uses: actions/checkout@v4
+        uses: actions/checkout@8ade135a41bc03ea155e62e844d188df1ea18608 # v4.1.0
         with:
           ref: ${{ github.event.workflow_run.head_sha }}
           fetch-depth: 0
@@ -58,7 +58,7 @@ jobs:
           $ok || exit 1
 
       - name: Setup Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@82c7e631bb3cdc910f68e0081d67478d79c6982d # v5.0.0
         with:
           python-version: "3.11"
 
@@ -135,7 +135,7 @@ jobs:
 
       - name: Upload Day-2 results
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@26f29941396feab9e9d8596440e50339d00fd9ae # v4.3.0
         with:
           name: day2-staging-results
           path: day2-results

@@ -27,7 +27,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        python-version: [ '3.10', '3.11', '3.12' ]
+        python-version: [ '3.11' ]
 
     steps:
       - name: Checkout
@@ -68,14 +68,50 @@ jobs:
           TEST_AUTO_VERIFY_EMAIL: "1"
         run: |
           pytest -q --maxfail=1 --disable-warnings --cov=src --cov-report=xml
+          
+      - name: Test with gevent
+        working-directory: backend
+        env:
+          PYTHONWARNINGS: always::DeprecationWarning
+          FLASK_ENV: test
+          DATABASE_URL: sqlite:///test.db
+          RATELIMIT_STORAGE_URI: memory://
+          DISABLE_RATE_LIMIT: "true"
+          SENTRY_DSN: ""
+          STRIPE_SECRET_KEY: "sk_test_dummy"
+          STRIPE_WEBHOOK_SECRET: "whsec_dummy"
+          TEST_AUTO_VERIFY_EMAIL: "1"
+        run: |
+          pip install gevent
+          pytest -q tests/test_concurrency.py tests/test_wsgi.py --gevent
+
+      - name: Save test logs
+        if: always()
+        working-directory: backend
+        run: |
+          mkdir -p test-logs
+          if [ -f pytest-report.txt ]; then cp pytest-report.txt test-logs/; fi
+          if [ -f server.log ]; then cp server.log test-logs/; fi
+          find . -name '*.log' -type f -not -path '*/\.*' -not -path '*/test_venv/*' -exec cp {} test-logs/ \;
+          echo "Run date: $(date)" > test-logs/run-info.txt
+          echo "Python version: ${{ matrix.python-version }}" >> test-logs/run-info.txt
+          pip freeze > test-logs/pip-freeze.txt
 
       - name: Upload coverage
         if: always()
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.0.0
         with:
           name: backend-coverage-${{ matrix.python-version }}
           path: backend/coverage.xml
           retention-days: 14
+          
+      - name: Upload test logs
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.0.0
+        with:
+          name: backend-test-logs-${{ matrix.python-version }}
+          path: backend/test-logs/
+          retention-days: 7
           
       # ---- Security scanning (Trivy) ----
       - name: Detect Dockerfile

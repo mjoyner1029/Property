@@ -1,0 +1,42 @@
+name: Temporary Files Check
+
+on:
+  push:
+    branches: [ main, dev, staging ]
+  pull_request:
+    branches: [ main, dev, staging ]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  check-temp-files:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@8ade135a41bc03ea155e62e844d188df1ea18608 # v4.1.0
+
+      - name: Check for temporary files
+        run: |
+          set -euo pipefail
+          
+          # Check for temp files (.bak, .new, .tmp)
+          echo "Checking for temporary files (.bak, .new, .tmp)"
+          TEMP_FILES=$(find . -type f -name "*.bak" -o -name "*.new" -o -name "*.tmp" | grep -v "node_modules" | grep -v ".git/" || true)
+          if [ -n "$TEMP_FILES" ]; then
+            echo "❌ Temporary files found:"
+            echo "$TEMP_FILES"
+            exit 1
+          fi
+          
+          # Check for editor swap files
+          echo "Checking for editor swap files"
+          SWAP_FILES=$(find . -type f -name "*.swp" -o -name "*.swo" -o -name "*~" | grep -v "node_modules" | grep -v ".git/" || true)
+          if [ -n "$SWAP_FILES" ]; then
+            echo "❌ Editor swap files found:"
+            echo "$SWAP_FILES"
+            exit 1
+          fi
+          
+          echo "✅ No temporary files found!"

@@ -33,15 +33,15 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@8ade135a41bc03ea155e62e844d188df1ea18608 # v4.1.0
 
       - name: Setup k6
-        uses: grafana/setup-k6@v1
+        uses: grafana/setup-k6@1b6affdd0b94a32e7cd115c14479ae22b0ec67f0 # v1.1.0
         with:
           version: v0.45.0
 
       - name: Setup Python (for summary parsing)
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@82c7e631bb3cdc910f68e0081d67478d79c6982d # v5.0.0
         with:
           python-version: "3.11"
 
@@ -142,7 +142,7 @@ PY
 
       - name: Upload artifacts
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@26f29941396feab9e9d8596440e50339d00fd9ae # v4.3.0
         with:
           name: k6-smoke-results
           path: perf-results/

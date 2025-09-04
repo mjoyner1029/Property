@@ -41,7 +41,7 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@8ade135a41bc03ea155e62e844d188df1ea18608 # v4.1.0
         with:
           fetch-depth: 0
 
@@ -113,7 +113,7 @@ jobs:
 
       # --- Frontend (Vercel Preview 'blue') ---
       - name: Use Node
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.0.1
         with:
           node-version: 20
 
@@ -128,7 +128,7 @@ jobs:
       - name: Deploy FE preview (blue)
         id: vercel_preview
         if: ${{ env.VERCEL_TOKEN != '' && env.VERCEL_PROJECT_ID != '' && env.VERCEL_ORG_ID != '' }}
-        uses: vercel/actions/deploy@v3
+        uses: vercel/actions/deploy@6b0a233fa5697fc11ca2515ca159ebbf5dea3fc7 # v3.0.2
         with:
           working-directory: frontend
           token: ${{ env.VERCEL_TOKEN }}
@@ -180,7 +180,7 @@ jobs:
 
       - name: Upload rehearsal logs
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@26f29941396feab9e9d8596440e50339d00fd9ae # v4.3.0
         with:
           name: rehearsal-logs
           path: |

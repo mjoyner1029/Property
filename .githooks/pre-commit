@@ -1,5 +1,25 @@
 #!/usr/bin/env bash
 set -e
+
+# Check for temporary files in staged changes
+temp_files=$(git diff --cached --name-only | grep -E '\.(bak|new|tmp)$' || true)
+if [ -n "$temp_files" ]; then
+  echo "❌ Temporary files detected in staged changes:"
+  echo "$temp_files"
+  echo "Please remove these files or add them to .gitignore"
+  exit 1
+fi
+
+# Check for editor swap files in staged changes
+swap_files=$(git diff --cached --name-only | grep -E '(^|\/)\.[^\/]+\.sw[po]$' || true)
+if [ -n "$swap_files" ]; then
+  echo "❌ Editor swap files detected in staged changes:"
+  echo "$swap_files"
+  echo "Please remove these files or add them to .gitignore"
+  exit 1
+fi
+
+# Check migration files for correct down_revision
 files=$(git diff --cached --name-only | grep -E '^backend/migrations/versions/.*\.py$' || true)
 for f in $files; do
   if grep -q 'down_revision\s*=\s*None' "$f"; then

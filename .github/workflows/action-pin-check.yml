@@ -1,0 +1,35 @@
+name: Action Pin Check
+
+on:
+  push:
+    paths:
+      - '.github/workflows/**'
+  pull_request:
+    paths:
+      - '.github/workflows/**'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  check-pinned-actions:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@44c2b7a8a4ea60a981eaca3cf939b5f4305c123f # v4.1.5
+        
+      - name: Check for unpinned actions
+        run: |
+          echo "Checking for unpinned actions (using @v notation instead of SHA)"
+          UNPINNED_ACTIONS=$(grep -r "uses:.*@v" --include="*.yml" .github/workflows || true)
+          
+          if [ -n "$UNPINNED_ACTIONS" ]; then
+            echo "❌ Found unpinned actions:"
+            echo "$UNPINNED_ACTIONS"
+            echo ""
+            echo "Please pin these actions to specific commit SHAs"
+            exit 1
+          else
+            echo "✅ All actions are properly pinned to commit SHAs"
+          fi
