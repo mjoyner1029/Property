@@ -65,3 +65,4 @@ monitoring/tmp/
 .*.swo
 test_venv/
 test_plans/
+test_sentry.py
