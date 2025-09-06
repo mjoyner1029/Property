@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
-import axios from 'axios';
+import api from '../utils/api';
 
 // Create the context
 export const AppContext = createContext();
@@ -31,7 +31,7 @@ export const AppProvider = ({ children }) => {
     const initializeApp = async () => {
       try {
         // Check API status
-        const response = await axios.get('/api/status');
+        const response = await api.get('/status');
         setSystemHealth({
           status: 'healthy',
           services: response.data

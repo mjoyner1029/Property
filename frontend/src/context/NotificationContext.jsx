@@ -8,7 +8,7 @@ import React, {
   useRef,
 } from "react";
 import axios from "axios";
-import { useAuth } from "../context";
+import { useAuth } from "./AuthContext";
 
 export const NotificationContext = createContext();
 

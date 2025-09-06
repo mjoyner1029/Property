@@ -1,5 +1,7 @@
 #!/usr/bin/env python3
-# app.py - Modified version with CORS fix for local development
+# mock_app.py - Simple local development server without using the factory pattern
+# This file is kept for reference but SHOULD NOT be used in development
+# Instead, use: FLASK_APP=src.app FLASK_ENV=development flask run --host 127.0.0.1 --port 5050
 
 import os
 from flask import Flask, jsonify

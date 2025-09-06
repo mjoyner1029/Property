@@ -23,6 +23,7 @@ import PersonIcon from '@mui/icons-material/Person';
 import AdminPanelSettingsIcon from '@mui/icons-material/AdminPanelSettings';
 import Visibility from '@mui/icons-material/Visibility';
 import VisibilityOff from '@mui/icons-material/VisibilityOff';
+import errorHandler from '../utils/errorHandler';
 import logo from '../assets/logo.png';
 
 function Login() {
@@ -51,36 +52,21 @@ function Login() {
     setLoading(true);
 
     try {
-      // Pass the portal type with the login credentials
-      const userData = await login({ email, password, role: portalType });
+      // Pass email and password as separate parameters
+      const userData = await login(email, password);
       
       if (userData) {
-        // Redirect based on onboarding status
-        if (userData.onboarding_complete) {
-          navigate('/dashboard');
-        } else {
-          // Route based on selected portal type
-          if (portalType === 'landlord') {
-            navigate(`/onboarding/landlord?user_id=${userData.id}`);
-          } else if (portalType === 'tenant') {
-            navigate(`/onboarding/tenant?user_id=${userData.id}`);
-          } else if (portalType === 'admin') {
-            navigate('/admin/dashboard');
-          } else {
-            navigate('/dashboard');
-          }
-        }
+        // For now, all successful logins redirect to dashboard
+        // TODO: Add onboarding and role-specific routing later
+        navigate('/dashboard');
       }
     } catch (err) {
       // Use the error handler to get a consistent error message
-      import('./utils/errorHandler').then(module => {
-        const errorHandler = module.default;
-        const { message } = errorHandler.handleError(err, {
-          showToast: true,
-          fallbackMessage: 'Failed to login. Please check your credentials.'
-        });
-        setError(message);
+      const { message } = errorHandler.handleError(err, {
+        showToast: true,
+        fallbackMessage: 'Failed to login. Please check your credentials.'
       });
+      setError(message);
     } finally {
       setLoading(false);
     }

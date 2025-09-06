@@ -3,7 +3,7 @@
 from flask import Blueprint
 from ..controllers.admin_controller import (
     get_users, get_user, update_user, delete_user,
-    get_properties, get_stats, get_payments,
+    get_properties, get_tenants, get_stats, get_payments,
     get_maintenance_requests, create_announcement,
     verify_user_email, get_verification_requests
 )
@@ -19,6 +19,9 @@ admin_bp.route('/users/<int:user_id>', methods=['DELETE'])(delete_user)
 
 # Property management
 admin_bp.route('/properties', methods=['GET'])(get_properties)
+
+# Tenant management
+admin_bp.route('/tenants', methods=['GET'])(get_tenants)
 
 # Statistics
 admin_bp.route('/stats', methods=['GET'])(get_stats)

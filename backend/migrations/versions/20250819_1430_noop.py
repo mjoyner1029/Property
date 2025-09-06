@@ -13,7 +13,7 @@ import sqlalchemy as sa  # noqa: F401  (kept for Alembic autogenerate compatibil
 
 # Revision identifiers, used by Alembic.
 revision = "20250819_1430_noop"
-down_revision = '7d4e5f6g7h8i'
+down_revision = '9a7c4d21e508'  # Changed from 7d4e5f6g7h8i to fix circular reference
 branch_labels = None
 depends_on = None
 

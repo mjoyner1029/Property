@@ -202,8 +202,8 @@ def login():
         "expires_in": expires_in,
     })
 
-    # Optionally set HttpOnly cookies if configured
-    if current_app.config.get('JWT_COOKIE_SECURE', False):
+    # Set HttpOnly cookies if cookies are in token locations
+    if "cookies" in current_app.config.get('JWT_TOKEN_LOCATION', ["headers"]):
         set_access_cookies(response, access_token)
         set_refresh_cookies(response, refresh_token)
 
@@ -294,7 +294,7 @@ def refresh():
     access_token = create_access_token(identity=str(user.id), additional_claims={"role": user.role})
 
     response = jsonify({"access_token": access_token, "user": user.to_dict()})
-    if current_app.config.get('JWT_COOKIE_SECURE', False):
+    if "cookies" in current_app.config.get('JWT_TOKEN_LOCATION', ["headers"]):
         set_access_cookies(response, access_token)
     return response, 200
 

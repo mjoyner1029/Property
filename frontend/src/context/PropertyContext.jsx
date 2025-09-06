@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
-import axios from 'axios';
+import api from '../utils/api';
 import { useAuth } from './AuthContext';
 
 // Create the context
@@ -18,30 +18,67 @@ export const PropertyProvider = ({ children }) => {
     occupancyRate: 0
   });
   
-  const { isAuthenticated, user } = useAuth();
+  const { isAuthenticated, user, loading: authLoading } = useAuth();
 
   // Fetch properties based on user role
   const fetchProperties = useCallback(async () => {
-    if (!isAuthenticated) return;
+    // Wait for auth to be fully ready
+    if (!isAuthenticated || authLoading) return;
+    
+    // Ensure we have user data before making API calls
+    if (!user?.role) {
+      console.log("PropertyContext: Waiting for user role...");
+      return;
+    }
     
     setLoading(true);
     setError(null);
     
     try {
       // Determine endpoint based on user role
-      let endpoint = '/api/properties';
+      let endpoint = '/properties';
       
-      const response = await axios.get(endpoint);
-      setProperties(response.data);
+      // Admin users should use the admin endpoint for comprehensive property data
+      if (user.role === 'admin') {
+        endpoint = '/admin/properties';
+      }
+      
+      const response = await api.get(endpoint);
+      
+      // Handle different response structures
+      let propertiesData = [];
+      if (Array.isArray(response.data)) {
+        // Direct array response
+        propertiesData = response.data;
+      } else if (response.data && Array.isArray(response.data.properties)) {
+        // Object with properties array
+        propertiesData = response.data.properties;
+      } else if (response.data && response.data.data && Array.isArray(response.data.data)) {
+        // Nested data structure
+        propertiesData = response.data.data;
+      } else {
+        console.warn('PropertyContext: Unexpected response structure:', response.data);
+        propertiesData = [];
+      }
+      
+      setProperties(propertiesData);
       
       // Calculate statistics
       let totalUnits = 0;
       let occupiedUnits = 0;
       
-      response.data.forEach(property => {
-        if (property.units) {
-          totalUnits += property.units.length;
-          occupiedUnits += property.units.filter(unit => unit.tenant_id).length;
+      propertiesData.forEach(property => {
+        // Handle different property structures based on endpoint
+        if (user.role === 'admin') {
+          // Admin endpoint returns unit_count and tenant_count
+          totalUnits += property.unit_count || 0;
+          occupiedUnits += property.tenant_count || 0;
+        } else {
+          // Regular endpoint returns units array
+          if (property.units) {
+            totalUnits += property.units.length;
+            occupiedUnits += property.units.filter(unit => unit.tenant_id).length;
+          }
         }
       });
       
@@ -49,7 +86,7 @@ export const PropertyProvider = ({ children }) => {
       const occupancyRate = totalUnits > 0 ? (occupiedUnits / totalUnits) * 100 : 0;
       
       setStats({
-        totalProperties: response.data.length,
+        totalProperties: propertiesData.length,
         totalUnits,
         occupiedUnits,
         vacantUnits,
@@ -62,18 +99,18 @@ export const PropertyProvider = ({ children }) => {
     } finally {
       setLoading(false);
     }
-  }, [isAuthenticated]);
+  }, [isAuthenticated, user, authLoading]);
 
-  // Load properties when user is authenticated
+  // Load properties when user is authenticated and ready
   useEffect(() => {
-    if (isAuthenticated) {
+    if (isAuthenticated && !authLoading && user?.role) {
       fetchProperties();
     } else {
       // Reset state when user logs out
       setProperties([]);
       setSelectedProperty(null);
     }
-  }, [isAuthenticated, fetchProperties]);
+    }, [isAuthenticated, user, authLoading]);
 
   // Fetch a single property by ID
   const fetchPropertyById = async (propertyId) => {
@@ -81,7 +118,7 @@ export const PropertyProvider = ({ children }) => {
     setError(null);
     
     try {
-      const response = await axios.get(`/api/properties/${propertyId}`);
+      const response = await api.get(`/properties/${propertyId}`);
       setSelectedProperty(response.data);
       return response.data;
     } catch (err) {
@@ -115,7 +152,7 @@ export const PropertyProvider = ({ children }) => {
         });
       }
       
-      const response = await axios.post('/api/properties', formData, {
+      const response = await api.post('/properties', formData, {
         headers: {
           'Content-Type': 'multipart/form-data'
         }
@@ -162,7 +199,7 @@ export const PropertyProvider = ({ children }) => {
         });
       }
       
-      const response = await axios.put(`/api/properties/${propertyId}`, formData, {
+      const response = await api.put(`/properties/${propertyId}`, formData, {
         headers: {
           'Content-Type': 'multipart/form-data'
         }
@@ -192,7 +229,7 @@ export const PropertyProvider = ({ children }) => {
     setError(null);
     
     try {
-      await axios.delete(`/api/properties/${propertyId}`);
+      await api.delete(`/properties/${propertyId}`);
       
       // Update state
       setProperties(prev => prev.filter(p => p.id !== propertyId));

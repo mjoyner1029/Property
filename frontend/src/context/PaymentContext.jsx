@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useCallback } from 'react';
-import axios from 'axios';
+import api from '../utils/api';
 import { useAuth } from './AuthContext';
 
 // Create context
@@ -9,11 +9,18 @@ export const PaymentProvider = ({ children }) => {
   const [payments, setPayments] = useState([]);
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(false);
-  const { isAuthenticated, user } = useAuth();
+  const { isAuthenticated, user, loading: authLoading } = useAuth();
 
   // Fetch all payments based on user role
   const fetchPayments = useCallback(async () => {
-    if (!isAuthenticated) return;
+    // Wait for auth to be fully ready
+    if (!isAuthenticated || authLoading) return;
+    
+    // Also ensure we have user data
+    if (!user?.role) {
+      console.log("PaymentContext: Waiting for user role...");
+      return;
+    }
     
     setLoading(true);
     setError(null);
@@ -26,9 +33,9 @@ export const PaymentProvider = ({ children }) => {
         endpoint = '/api/payments/tenant';
       }
       
-      const response = await axios.get(endpoint);
-      setPayments(response.data);
-      return response.data;
+      const response = await api.get(endpoint.replace('/api', ''));
+      setPayments(response.data.payments || response.data);
+      return response.data.payments || response.data;
     } catch (err) {
       console.error('Error fetching payments:', err);
       setError('Failed to load payments');
@@ -36,7 +43,7 @@ export const PaymentProvider = ({ children }) => {
     } finally {
       setLoading(false);
     }
-  }, [isAuthenticated, user]);
+  }, [isAuthenticated, user, authLoading]);
 
   // Get a single payment by ID
   const getPayment = useCallback(async (id) => {
@@ -44,7 +51,7 @@ export const PaymentProvider = ({ children }) => {
     setError(null);
     
     try {
-      const response = await axios.get(`/api/payments/${id}`);
+      const response = await api.get(`/payments/${id}`);
       return response.data;
     } catch (err) {
       console.error(`Error fetching payment ${id}:`, err);
@@ -61,7 +68,7 @@ export const PaymentProvider = ({ children }) => {
     setError(null);
     
     try {
-      const response = await axios.post('/api/payments', paymentData);
+      const response = await api.post('/payments', paymentData);
       
       // Update local state
       setPayments(prev => [...prev, response.data]);
@@ -82,7 +89,7 @@ export const PaymentProvider = ({ children }) => {
     setError(null);
     
     try {
-      const response = await axios.post('/api/payments/pay', paymentData);
+      const response = await api.post('/payments/pay', paymentData);
       
       // Update local state
       setPayments(prev => {
@@ -114,7 +121,7 @@ export const PaymentProvider = ({ children }) => {
     setError(null);
     
     try {
-      const response = await axios.put(`/api/payments/${id}`, paymentData);
+      const response = await api.put(`/payments/${id}`, paymentData);
       
       // Update local state
       setPayments(prev => 
@@ -137,7 +144,7 @@ export const PaymentProvider = ({ children }) => {
     setError(null);
     
     try {
-      await axios.delete(`/api/payments/${id}`);
+      await api.delete(`/payments/${id}`);
       
       // Update local state
       setPayments(prev => prev.filter(payment => payment.id !== id));

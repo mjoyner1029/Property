@@ -1,7 +1,7 @@
 """add_maintenance_type
 
 Revision ID: 9a7c4d21e508
-Revises: 8a6b5a055408
+Revises: 8a6b5a055408_maintenance
 Create Date: 2025-08-07 16:35:45.123456
 
 """
@@ -11,7 +11,7 @@ import sqlalchemy as sa
 
 # revision identifiers, used by Alembic.
 revision = '9a7c4d21e508'
-down_revision = '8a6b5a055408'
+down_revision = '8a6b5a055408_maintenance'
 branch_labels = None
 depends_on = None
 

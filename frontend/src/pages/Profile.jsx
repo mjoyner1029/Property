@@ -28,6 +28,7 @@ function normalizeUser(u) {
     role: u.role,
     email: u.email || "",
     full_name: full,
+    name: u.name || full, // Also preserve the name field
   };
 }
 function initials(name) {
@@ -46,10 +47,20 @@ export default function Profile() {
   const auth = useAuth() || {};
   const { user: ctxUser, updateProfile, setUser: setCtxUser, refreshUser } = auth;
 
+  console.log('🔍 Profile component render:', {
+    auth: !!auth,
+    ctxUser: ctxUser,
+    hasUpdateProfile: typeof updateProfile === 'function',
+    hasSetUser: typeof setCtxUser === 'function',
+    hasRefreshUser: typeof refreshUser === 'function'
+  });
+
   // Seed from context first, fallback to localStorage for SSR/first load
   const bootstrapUser = useMemo(() => {
     const ls = JSON.parse(localStorage.getItem("user") || "{}");
-    return normalizeUser(ctxUser || ls);
+    const result = normalizeUser(ctxUser || ls);
+    console.log('🔍 Bootstrap user data:', { ctxUser, ls, result });
+    return result;
   }, [ctxUser]);
 
   const [name, setName] = useState(bootstrapUser.full_name || "");

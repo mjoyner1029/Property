@@ -1,16 +1,10 @@
 // frontend/src/context/MaintenanceContext.jsx
 import React, { createContext, useContext, useState, useEffect, useCallback } from "react";
-import axios from "axios";
+import api from "../utils/api";
 import { useAuth } from "./AuthContext";
 
 // Create the context
 export const MaintenanceContext = createContext();
-
-function getAuthHeaders() {
-  const token = localStorage.getItem("token");
-  if (!token) return null;
-  return { Authorization: `Bearer ${token}` };
-}
 
 function computeStats(list) {
   const arr = Array.isArray(list) ? list : [];
@@ -40,20 +34,21 @@ export const MaintenanceProvider = ({ children }) => {
     total: 0,
   });
 
-  const { isAuthenticated, user } = useAuth();
+  const { isAuthenticated, user, loading: authLoading } = useAuth();
 
   // Fetch maintenance requests based on user role
   const fetchRequests = useCallback(async () => {
-    if (!isAuthenticated) {
-      // Clear state if we aren't authenticated
+    // Wait for auth to be fully ready (not loading and authenticated)
+    if (!isAuthenticated || authLoading) {
+      // Clear state if we aren't authenticated or still loading
       setMaintenanceRequests([]);
       setStats({ open: 0, inProgress: 0, completed: 0, total: 0 });
       return;
     }
 
-    const authHeaders = getAuthHeaders();
-    if (!authHeaders) {
-      setError("Authentication token missing");
+    // Also ensure we have user data before making role-based API calls
+    if (!user?.role) {
+      console.log("MaintenanceContext: Waiting for user role...");
       return;
     }
 
@@ -62,11 +57,11 @@ export const MaintenanceProvider = ({ children }) => {
 
     try {
       // Determine endpoint based on user role
-      let endpoint = "/api/maintenance";
-      if (user?.role === "tenant") endpoint = "/api/maintenance/tenant";
-      else if (user?.role === "landlord") endpoint = "/api/maintenance/landlord";
+      let endpoint = "/maintenance";
+      if (user?.role === "tenant") endpoint = "/maintenance/tenant";
+      else if (user?.role === "landlord") endpoint = "/maintenance/landlord";
 
-      const { data } = await axios.get(endpoint, { headers: authHeaders });
+      const { data } = await api.get(endpoint);
       const requestsData = extractRequestsPayload(data);
 
       setMaintenanceRequests(requestsData);
@@ -78,7 +73,7 @@ export const MaintenanceProvider = ({ children }) => {
     } finally {
       setLoading(false);
     }
-  }, [isAuthenticated, user]);
+  }, [isAuthenticated, user, authLoading]);
 
   // Load requests when user is authenticated
   useEffect(() => {
@@ -94,16 +89,15 @@ export const MaintenanceProvider = ({ children }) => {
   // Fetch a single request by id (from API; useful when deep linking)
   const fetchRequestById = useCallback(
     async (id) => {
-      const authHeaders = getAuthHeaders();
-      if (!authHeaders) {
-        setError("Authentication token missing");
+      if (!isAuthenticated) {
+        setError("Not authenticated");
         return null;
       }
 
       setLoading(true);
       setError(null);
       try {
-        const { data } = await axios.get(`/api/maintenance/${id}`, { headers: authHeaders });
+        const { data } = await api.get(`/maintenance/${id}`);
         const item =
           (data && typeof data === "object" && (data.request || data.data)) || data || null;
 
@@ -126,15 +120,14 @@ export const MaintenanceProvider = ({ children }) => {
         setLoading(false);
       }
     },
-    []
+    [isAuthenticated]
   );
 
   // Create a new maintenance request
   const createRequest = async (requestData) => {
-    const authHeaders = getAuthHeaders();
-    if (!authHeaders) {
-      setError("Authentication token missing");
-      throw new Error("Authentication token missing");
+    if (!isAuthenticated) {
+      setError("Not authenticated");
+      throw new Error("Not authenticated");
     }
 
     setLoading(true);
@@ -155,8 +148,8 @@ export const MaintenanceProvider = ({ children }) => {
         });
       }
 
-      const { data } = await axios.post(`/api/maintenance`, formData, {
-        headers: { ...authHeaders, "Content-Type": "multipart/form-data" },
+      const { data } = await api.post(`/maintenance`, formData, {
+        headers: { "Content-Type": "multipart/form-data" },
       });
 
       // Normalize created payload; some APIs return {request: {...}}
@@ -182,10 +175,9 @@ export const MaintenanceProvider = ({ children }) => {
 
   // Update a maintenance request (accepts partials)
   const updateRequest = async (id, updateData) => {
-    const authHeaders = getAuthHeaders();
-    if (!authHeaders) {
-      setError("Authentication token missing");
-      throw new Error("Authentication token missing");
+    if (!isAuthenticated) {
+      setError("Not authenticated");
+      throw new Error("Not authenticated");
     }
 
     setLoading(true);
@@ -193,7 +185,7 @@ export const MaintenanceProvider = ({ children }) => {
 
     try {
       // If images included, use multipart; otherwise JSON
-      let config = { headers: { ...authHeaders } };
+      let config = {};
       let payload = updateData;
 
       if (updateData && Array.isArray(updateData.images) && updateData.images.length > 0) {
@@ -204,10 +196,10 @@ export const MaintenanceProvider = ({ children }) => {
         });
         updateData.images.forEach((file) => formData.append("images", file));
         payload = formData;
-        config = { headers: { ...authHeaders, "Content-Type": "multipart/form-data" } };
+        config = { headers: { "Content-Type": "multipart/form-data" } };
       }
 
-      const { data } = await axios.put(`/api/maintenance/${id}`, payload, config);
+      const { data } = await api.put(`/maintenance/${id}`, payload, config);
       const updated = (data && (data.request || data.data)) || data;
 
       setMaintenanceRequests((prev) => {
@@ -230,17 +222,16 @@ export const MaintenanceProvider = ({ children }) => {
 
   // Delete a maintenance request
   const deleteRequest = async (id) => {
-    const authHeaders = getAuthHeaders();
-    if (!authHeaders) {
-      setError("Authentication token missing");
-      throw new Error("Authentication token missing");
+    if (!isAuthenticated) {
+      setError("Not authenticated");
+      throw new Error("Not authenticated");
     }
 
     setLoading(true);
     setError(null);
 
     try {
-      await axios.delete(`/api/maintenance/${id}`, { headers: authHeaders });
+      await api.delete(`/maintenance/${id}`);
 
       setMaintenanceRequests((prev) => {
         const next = prev.filter((req) => req.id !== id);
@@ -262,19 +253,17 @@ export const MaintenanceProvider = ({ children }) => {
 
   // Add a comment to a maintenance request
   const addComment = async (id, text) => {
-    const authHeaders = getAuthHeaders();
-    if (!authHeaders) {
-      setError("Authentication token missing");
-      throw new Error("Authentication token missing");
+    if (!isAuthenticated) {
+      setError("Not authenticated");
+      throw new Error("Not authenticated");
     }
     if (!text || !String(text).trim()) return null;
 
     setError(null);
     try {
-      const { data } = await axios.post(
-        `/api/maintenance/${id}/comments`,
-        { text },
-        { headers: { ...authHeaders } }
+      const { data } = await api.post(
+        `/maintenance/${id}/comments`,
+        { text }
       );
 
       // API may return the new comment or the full updated request

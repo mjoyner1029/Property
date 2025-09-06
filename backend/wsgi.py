@@ -10,6 +10,10 @@ from __future__ import annotations
 import os
 import sys
 import logging
+from dotenv import load_dotenv
+
+# Load environment variables from .env file
+load_dotenv()
 
 # Ensure project root (this file's dir) is on sys.path so `src` imports work
 ROOT_DIR = os.path.abspath(os.path.dirname(__file__))

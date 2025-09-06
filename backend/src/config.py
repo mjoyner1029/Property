@@ -162,6 +162,12 @@ class DevelopmentConfig(BaseConfig):
     SECRET_KEY = os.environ.get("SECRET_KEY", "dev-secret-key-change-in-production")
     JWT_SECRET_KEY = os.environ.get("JWT_SECRET_KEY", "dev-jwt-key-change-in-production")
     
+    # JWT Cookie settings for development
+    JWT_TOKEN_LOCATION = ["headers", "cookies"]
+    JWT_COOKIE_SECURE = False
+    JWT_COOKIE_SAMESITE = "Lax"
+    JWT_COOKIE_CSRF_PROTECT = False
+    
     # Default to localhost:3000 for frontend in development
     _cors_origins_str = os.environ.get("CORS_ORIGINS", "http://localhost:3000")
     if _cors_origins_str == "*":
@@ -169,10 +175,10 @@ class DevelopmentConfig(BaseConfig):
     else:
         CORS_ORIGINS = [origin.strip() for origin in _cors_origins_str.split(",") if origin.strip()]
     
-    # Use absolute path for SQLite database to avoid path issues
+    # Use portable path for SQLite database
     SQLALCHEMY_DATABASE_URI = os.environ.get(
         "DATABASE_URL", 
-        "sqlite:///" + os.path.abspath(os.path.join(os.path.dirname(os.path.dirname(__file__)), "instance", "dev.db"))
+        "sqlite:///instance/dev.db"
     )
     
     # Longer token expiration for development convenience

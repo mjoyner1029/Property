@@ -15,6 +15,9 @@ export { default as Overview } from './Overview';
 export { default as AdminDashboard } from './AdminDashboard';
 export { default as ActivityFeed } from './ActivityFeed';
 
+// Admin Pages
+export * from './admin';
+
 // Property Management
 export { default as Properties } from './Properties';
 export { default as PropertyDetail } from './PropertyDetail';

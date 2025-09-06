@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useCallback } from 'react';
-import axios from 'axios';
+import api from '../utils/api';
 import { useAuth } from './AuthContext';
 
 // Create context
@@ -19,7 +19,7 @@ export const TenantProvider = ({ children }) => {
     setError(null);
     
     try {
-      const response = await axios.get('/api/tenants');
+      const response = await api.get('/tenants');
       setTenants(response.data);
       return response.data;
     } catch (err) {
@@ -37,7 +37,7 @@ export const TenantProvider = ({ children }) => {
     setError(null);
     
     try {
-      const response = await axios.get(`/api/tenants/${id}`);
+      const response = await api.get(`/tenants/${id}`);
       return response.data;
     } catch (err) {
       console.error(`Error fetching tenant ${id}:`, err);
@@ -54,7 +54,7 @@ export const TenantProvider = ({ children }) => {
     setError(null);
     
     try {
-      const response = await axios.post('/api/tenants', tenantData);
+      const response = await api.post('/tenants', tenantData);
       
       // Update local state
       setTenants(prev => [...prev, response.data]);
@@ -75,7 +75,7 @@ export const TenantProvider = ({ children }) => {
     setError(null);
     
     try {
-      const response = await axios.put(`/api/tenants/${id}`, tenantData);
+      const response = await api.put(`/tenants/${id}`, tenantData);
       
       // Update local state
       setTenants(prev => 
@@ -98,7 +98,7 @@ export const TenantProvider = ({ children }) => {
     setError(null);
     
     try {
-      await axios.delete(`/api/tenants/${id}`);
+      await api.delete(`/tenants/${id}`);
       
       // Update local state
       setTenants(prev => prev.filter(tenant => tenant.id !== id));

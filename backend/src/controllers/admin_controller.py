@@ -284,6 +284,86 @@ def get_properties():
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
+@admin_bp.route('/tenants', methods=['GET'])
+@jwt_required()
+@role_required('admin')
+def get_tenants():
+    """Get all tenants with filters and pagination"""
+    try:
+        page = request.args.get('page', 1, type=int)
+        per_page = request.args.get('per_page', 10, type=int)
+        status_filter = request.args.get('status')
+        search = request.args.get('search')
+        
+        # Get all tenant users
+        query = User.query.filter_by(role='tenant')
+        
+        # Apply search filter
+        if search:
+            query = query.filter(
+                or_(
+                    User.name.ilike(f'%{search}%'),
+                    User.email.ilike(f'%{search}%')
+                )
+            )
+            
+        # Paginate results
+        paginated_tenants = query.paginate(page=page, per_page=per_page)
+        
+        tenants_data = []
+        for tenant in paginated_tenants.items:
+            # Get tenant profile
+            tenant_profile = TenantProfile.query.filter_by(user_id=tenant.id).first()
+            
+            # Get active properties for tenant
+            tenant_properties = TenantProperty.query.filter_by(
+                tenant_id=tenant.id, 
+                status='active'
+            ).all()
+            
+            properties_info = []
+            for tp in tenant_properties:
+                property_obj = db.session.get(Property, tp.property_id)
+                if property_obj:
+                    # Get landlord name
+                    landlord = db.session.get(User, property_obj.landlord_id)
+                    landlord_name = landlord.name if landlord else "Unknown"
+                    
+                    properties_info.append({
+                        "id": property_obj.id,
+                        "name": property_obj.name,
+                        "address": property_obj.address,
+                        "landlord_name": landlord_name,
+                        "lease_start": tp.lease_start.isoformat() if tp.lease_start else None,
+                        "lease_end": tp.lease_end.isoformat() if tp.lease_end else None,
+                        "rent_amount": float(tp.rent_amount) if tp.rent_amount else None
+                    })
+            
+            tenant_data = {
+                "id": tenant.id,
+                "name": tenant.name,
+                "email": tenant.email,
+                "phone": tenant.phone,
+                "is_verified": tenant.is_verified,
+                "created_at": tenant.created_at.isoformat() if tenant.created_at else None,
+                "tenant_profile": tenant_profile.to_dict() if tenant_profile else None,
+                "active_properties": properties_info,
+                "property_count": len(properties_info)
+            }
+            tenants_data.append(tenant_data)
+        
+        result = {
+            "tenants": tenants_data,
+            "total": paginated_tenants.total,
+            "pages": paginated_tenants.pages,
+            "current_page": page
+        }
+        
+        return jsonify(result), 200
+        
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
 @admin_bp.route('/stats', methods=['GET'])
 @jwt_required()
 @role_required('admin')

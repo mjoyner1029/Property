@@ -426,6 +426,17 @@ def register_blueprints(app: Flask) -> None:
     for blueprint, url_prefix in blueprints:
         app.register_blueprint(blueprint, url_prefix=url_prefix)
         app.logger.info(f"Registered {blueprint.name} at {url_prefix}")
+    
+    # Register Flask-RestX API
+    try:
+        from .api import api
+        api_bp = Blueprint('api_restx', __name__)
+        api.init_app(api_bp)
+        app.register_blueprint(api_bp, url_prefix=f'{API_PREFIX}')
+        app.logger.info(f"Registered Flask-RestX API at {API_PREFIX}")
+        blueprints.append((api_bp, f'{API_PREFIX}'))
+    except Exception as e:
+        app.logger.error(f"Failed to register Flask-RestX API: {str(e)}")
         
     # Log registration summary
     app.logger.info(f"Registered {len(blueprints)} blueprints")
@@ -807,6 +818,16 @@ def register_health_checks(app: Flask) -> None:
             'status': 'healthy',
             'version': app.config.get('VERSION', '1.0.0'),
             'git_sha': git_sha,
+            'environment': app.config.get('ENV', 'development')
+        })
+    
+    @app.route('/api/health')
+    def api_health():
+        """API health check endpoint that does NOT touch the database."""
+        return jsonify({
+            'ok': True,
+            'timestamp': datetime.now().isoformat(),
+            'version': app.config.get('VERSION', '1.0.0'),
             'environment': app.config.get('ENV', 'development')
         })
     

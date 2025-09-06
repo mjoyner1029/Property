@@ -28,7 +28,6 @@ import FilterListIcon from "@mui/icons-material/FilterList";
 import BuildIcon from "@mui/icons-material/Build";
 
 import {
-  Layout,
   PageHeader,
   MaintenanceRequestCard,
   Empty,
@@ -306,7 +305,7 @@ export default function Maintenance() {
   };
 
   return (
-    <Layout>
+    <Box>
       <PageHeader
         title="Maintenance"
         subtitle="Manage maintenance and repair requests"
@@ -697,6 +696,6 @@ export default function Maintenance() {
           </Button>
         </DialogActions>
       </Dialog>
-    </Layout>
+    </Box>
   );
 }

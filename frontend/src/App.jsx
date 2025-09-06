@@ -1,297 +1,360 @@
-import React, { Suspense, useEffect } from 'react';
-import { ThemeProvider as MuiThemeProvider } from '@mui/material/styles';
-import { CssBaseline } from '@mui/material';
-import { Routes, Route } from 'react-router-dom';
+import React, { Suspense } from 'react';
+import { Routes, Route, Navigate } from 'react-router-dom';
+import { ThemeProvider, CssBaseline } from '@mui/material';
+import theme from './theme'; // Use the real Asset Anchor theme
+import { AuthProvider } from './context/AuthContext';
+import { AppProvider } from './context/AppContext';
+import { PropertyProvider } from './context/PropertyContext';
+import { TenantProvider } from './context/TenantContext';
+import { PaymentProvider } from './context/PaymentContext';
+import { NotificationProvider } from './context/NotificationContext';
+import { MessageProvider } from './context/MessageContext';
+import { MaintenanceProvider } from './context/MaintenanceContext';
+import ProtectedRoute from './components/ProtectedRoute';
+import LoadingSpinner from './components/LoadingSpinner';
+import MainLayout from './layouts/MainLayout'; // Use the real Asset Anchor MainLayout
 
-// Local imports
-import { CombinedProviders } from './context/index';
-import theme from './theme';
-import { initSentry } from './observability/sentry';
-import PerformanceMonitor from './observability/PerformanceMonitor';
-// Layouts
-import MainLayout from './layouts/MainLayout';
-// Route Guards
-import { ProtectedRoute, PublicOnlyRoute as PublicRoute, RoleRoute } from './routing/guards';
-// Loading Fallback
-import LoadingFallback from './components/LoadingFallback';
-import ErrorBoundary from './components/ErrorBoundary'; // We'll keep using the original ErrorBoundary for now
-import Toast from './components/Toast';
+// Import pages that actually exist
+import WelcomePage from './pages/WelcomePage';
+import Login from './pages/Login';
+import Register from './pages/Register';
+import Dashboard from './pages/Dashboard';
+import Overview from './pages/Overview';
+import Calendar from './pages/Calendar';
+import Properties from './pages/Properties';
+import PropertyDetail from './pages/PropertyDetail';
+import PropertyForm from './pages/PropertyForm';
+import Maintenance from './pages/Maintenance';
+import MaintenanceDetail from './pages/MaintenanceDetail';
+import Payments from './pages/Payments';
+import PaymentDetail from './pages/PaymentDetail';
+import Settings from './pages/Settings';
+import MessagesPage from './pages/MessagesPage';
+import MessageDetail from './pages/MessageDetail';
+import MessageCreate from './pages/MessageCreate';
+import Notifications from './pages/Notifications';
+import NotificationDetail from './pages/NotificationDetail';
+import ActivityFeed from './pages/ActivityFeed';
+import Profile from './pages/Profile';
+import Tenants from './pages/Tenants';
+import TenantDetail from './pages/TenantDetail';
+import TenantForm from './pages/TenantForm';
+import Support from './pages/Support';
+import NotFound from './pages/NotFound';
+import Unauthorized from './pages/Unauthorized';
+import ForgotPassword from './pages/ForgotPassword';
+import ResetPassword from './pages/ResetPassword';
+import VerifyEmail from './pages/VerifyEmail';
+// Admin pages
+import { AdminOverview, UserManagement } from './pages/admin';
+import AdminProperties from './pages/admin/AdminProperties';
+import AdminTenants from './pages/admin/AdminTenants';
 
-// Determine if we're in demo mode
-const isDemoMode = process.env.REACT_APP_DEMO_MODE === '1';
+function App() {
+  console.log('[App] Rendering Asset Anchor Property Management Dashboard...');
 
-// Demo mode wrapper to inject demo auth context or use regular context
-const DemoModeWrapper = ({ children }) => {
-  console.log('DemoModeWrapper - isDemoMode:', isDemoMode);
-  
-  // In demo mode, the DemoAuthProvider is already provided at the root level
-  if (isDemoMode) {
-    // Log that we're using demo auth provider
-    console.log('🔮 Using demo auth provider - skipping CombinedProviders');
-    
-    // Note: We'll only return non-auth related providers from CombinedProviders
-    // since DemoAuthProvider is already provided at the root level
-    return <>{children}</>;
-  } else {
-    // In normal mode, use the CombinedProviders
-    console.log('Using regular auth provider via CombinedProviders');
-    return <CombinedProviders>{children}</CombinedProviders>;
-  }
-};
-
-// lazy pages - import from barrel index
-const WelcomePage = React.lazy(() => import('./pages').then(m => ({ default: m.WelcomePage })));
-const Dashboard = React.lazy(() => import('./pages').then(m => ({ default: m.Dashboard })));
-const Overview = React.lazy(() => import('./pages').then(m => ({ default: m.Overview })));
-const Properties = React.lazy(() => import('./pages').then(m => ({ default: m.Properties })));
-const PropertyForm = React.lazy(() => import('./pages').then(m => ({ default: m.PropertyForm })));
-const PropertyDetail = React.lazy(() => import('./pages').then(m => ({ default: m.PropertyDetail })));
-const Payments = React.lazy(() => import('./pages').then(m => ({ default: m.Payments })));
-const PaymentDetail = React.lazy(() => import('./pages').then(m => ({ default: m.PaymentDetail })));
-const Settings = React.lazy(() => import('./pages').then(m => ({ default: m.Settings })));
-const NotFound = React.lazy(() => import('./pages').then(m => ({ default: m.NotFound })));
-const Unauthorized = React.lazy(() => import('./pages').then(m => ({ default: m.Unauthorized })));
-const Calendar = React.lazy(() => import('./pages').then(m => ({ default: m.Calendar })));
-const Maintenance = React.lazy(() => import('./pages').then(m => ({ default: m.Maintenance })));
-const MaintenanceDetail = React.lazy(() => import('./pages').then(m => ({ default: m.MaintenanceDetail })));
-const Tenants = React.lazy(() => import('./pages').then(m => ({ default: m.Tenants })));
-const TenantDetail = React.lazy(() => import('./pages').then(m => ({ default: m.TenantDetail })));
-const TenantForm = React.lazy(() => import('./pages').then(m => ({ default: m.TenantForm })));
-const Messages = React.lazy(() => import('./pages').then(m => ({ default: m.Messages })));
-const MessagesPage = React.lazy(() => import('./pages').then(m => ({ default: m.MessagesPage })));
-const MessageDetail = React.lazy(() => import('./pages').then(m => ({ default: m.MessageDetail })));
-const MessageCreate = React.lazy(() => import('./pages').then(m => ({ default: m.MessageCreate })));
-const Notifications = React.lazy(() => import('./pages').then(m => ({ default: m.Notifications })));
-const NotificationDetail = React.lazy(() => import('./pages').then(m => ({ default: m.NotificationDetail })));
-const PayPortal = React.lazy(() => import('./pages').then(m => ({ default: m.PayPortal })));
-const Profile = React.lazy(() => import('./pages').then(m => ({ default: m.Profile })));
-const Support = React.lazy(() => import('./pages').then(m => ({ default: m.Support })));
-const Terms = React.lazy(() => import('./pages').then(m => ({ default: m.Terms })));
-const ActivityFeed = React.lazy(() => import('./pages').then(m => ({ default: m.ActivityFeed })));
-const AdminDashboard = React.lazy(() => import('./pages').then(m => ({ default: m.AdminDashboard })));
-const InviteTenant = React.lazy(() => import('./pages').then(m => ({ default: m.InviteTenant })));
-const JoinProperty = React.lazy(() => import('./pages').then(m => ({ default: m.JoinProperty })));
-const LandlordOnboarding = React.lazy(() => import('./pages').then(m => ({ default: m.LandlordOnboarding })));
-const TenantOnboarding = React.lazy(() => import('./pages').then(m => ({ default: m.TenantOnboarding })));
-const Login = React.lazy(() => import('./pages').then(m => ({ default: m.Login })));
-const Register = React.lazy(() => import('./pages').then(m => ({ default: m.Register })));
-const ForgotPassword = React.lazy(() => import('./pages').then(m => ({ default: m.ForgotPassword })));
-const ResetPassword = React.lazy(() => import('./pages').then(m => ({ default: m.ResetPassword })));
-const VerifyEmail = React.lazy(() => import('./pages').then(m => ({ default: m.VerifyEmail })));
-const RoutesIndex = React.lazy(() => import('./pages').then(m => ({ default: m.RoutesIndex })));
-
-
-export default function App() {
-  // Initialize Sentry for error tracking and performance monitoring
-  useEffect(() => {
-    // Initialize Sentry early in the app lifecycle, only if REACT_APP_SENTRY_DSN is set
-    const sentryInitialized = initSentry();
-    console.debug(`Sentry initialization ${sentryInitialized ? 'successful' : 'skipped'}`);
-    
-    // Mark navigation start for performance measurement
-    if (window.performance && window.performance.mark) {
-      window.performance.mark('app-init');
-    }
-    
-    // Preload critical resources on idle
-    if (typeof requestIdleCallback === 'function') {
-      requestIdleCallback(() => {
-        // Add preload/prefetch links for critical resources
-        const preconnectUrls = [
-          window.location.origin,
-          'https://fonts.googleapis.com',
-          'https://fonts.gstatic.com'
-        ];
-        
-        preconnectUrls.forEach(url => {
-          const link = document.createElement('link');
-          link.rel = 'preconnect';
-          link.href = url;
-          document.head.appendChild(link);
-        });
-      });
-    }
-    
-    // Add a demo mode indicator to the console
-    if (isDemoMode) {
-      console.log('%c🔮 DEMO MODE ACTIVE', 'background: #6366f1; color: white; padding: 2px 5px; border-radius: 3px; font-weight: bold;');
-    }
-  }, []);
-  
   return (
-    <ErrorBoundary>
-      <DemoModeWrapper>
-        <MuiThemeProvider theme={theme}>
-          <CssBaseline />
-          <Toast />
-          <PerformanceMonitor />
-          <Suspense fallback={<LoadingFallback />}>
-              <Routes>
-                <Route element={<PublicRoute />}>
-                  <Route path="/" element={<WelcomePage />} />
-                  <Route path="/login" element={<Login />} />
-                  <Route path="/register" element={<Register />} />
-                  <Route path="/forgot-password" element={<ForgotPassword />} />
-                  <Route path="/reset-password" element={<ResetPassword />} />
-                  <Route path="/verify-email" element={<VerifyEmail />} />
-                  <Route path="/terms" element={<Terms />} />
-                </Route>
-
-                <Route element={<ProtectedRoute />}>
-                  <Route path="/dashboard" element={
-                    <MainLayout>
-                      <Dashboard />
-                    </MainLayout>
-                  } />
-                  <Route path="/dashboard/overview" element={
-                    <MainLayout>
-                      <Overview />
-                    </MainLayout>
-                  } />
-                  <Route path="/dashboard/calendar" element={
-                    <MainLayout>
-                      <Calendar />
-                    </MainLayout>
-                  } />
-                  <Route path="/properties" element={
-                    <MainLayout>
-                      <Properties />
-                    </MainLayout>
-                  } />
-                  <Route path="/properties/add" element={
-                    <MainLayout>
-                      <PropertyForm />
-                    </MainLayout>
-                  } />
-                  <Route path="/properties/:id" element={
-                    <MainLayout>
-                      <PropertyDetail />
-                    </MainLayout>
-                  } />
-                  <Route path="/properties/:id/edit" element={
-                    <MainLayout>
-                      <PropertyForm />
-                    </MainLayout>
-                  } />
-                  <Route path="/maintenance" element={
-                    <MainLayout>
-                      <Maintenance />
-                    </MainLayout>
-                  } />
-                  <Route path="/maintenance/:id" element={
-                    <MainLayout>
-                      <MaintenanceDetail />
-                    </MainLayout>
-                  } />
-                  <Route path="/payments" element={
-                    <MainLayout>
-                      <Payments />
-                    </MainLayout>
-                  } />
-                  <Route path="/payments/:id" element={
-                    <MainLayout>
-                      <PaymentDetail />
-                    </MainLayout>
-                  } />
-                  <Route path="/settings" element={
-                    <MainLayout>
-                      <Settings />
-                    </MainLayout>
-                  } />
-                  <Route path="/messages" element={
-                    <MainLayout>
-                      <MessagesPage />
-                    </MainLayout>
-                  } />
-                  <Route path="/messages/new" element={
-                    <MainLayout>
-                      <MessageCreate />
-                    </MainLayout>
-                  } />
-                  <Route path="/messages/:threadId/detail" element={
-                    <MainLayout>
-                      <MessageDetail />
-                    </MainLayout>
-                  } />
-                  <Route path="/support" element={
-                    <MainLayout>
-                      <Support />
-                    </MainLayout>
-                  } />
-                  <Route path="/notifications" element={
-                    <MainLayout>
-                      <Notifications />
-                    </MainLayout>
-                  } />
-                  <Route path="/notifications/:id" element={
-                    <MainLayout>
-                      <NotificationDetail />
-                    </MainLayout>
-                  } />
-                  <Route path="/activity" element={
-                    <MainLayout>
-                      <ActivityFeed />
-                    </MainLayout>
-                  } />
-                  <Route path="/profile" element={
-                    <MainLayout>
-                      <Profile />
-                    </MainLayout>
-                  } />
-                </Route>
-
-                <Route element={<RoleRoute roles={['tenant']} />}>
-                  <Route path="/pay-portal" element={
-                    <MainLayout>
-                      <PayPortal />
-                    </MainLayout>
-                  } />
-                  <Route path="/join-property" element={
-                    <MainLayout>
-                      <JoinProperty />
-                    </MainLayout>
-                  } />
-                  <Route path="/tenant/onboarding" element={<TenantOnboarding />} />
-                </Route>
-
-                <Route element={<RoleRoute roles={['landlord', 'admin']} />}>
-                  <Route path="/tenants" element={
-                    <MainLayout>
-                      <Tenants />
-                    </MainLayout>
-                  } />
-                  <Route path="/tenants/:id" element={
-                    <MainLayout>
-                      <TenantDetail />
-                    </MainLayout>
-                  } />
-                  <Route path="/tenants/new" element={
-                    <MainLayout>
-                      <TenantForm />
-                    </MainLayout>
-                  } />
-                  <Route path="/invite-tenant" element={
-                    <MainLayout>
-                      <InviteTenant />
-                    </MainLayout>
-                  } />
-                  <Route path="/landlord/onboarding" element={<LandlordOnboarding />} />
-                </Route>
-
-                <Route element={<RoleRoute roles={['admin']} />}>
-                  <Route path="/admin" element={
-                    <MainLayout>
-                      <AdminDashboard />
-                    </MainLayout>
-                  } />
-                </Route>
-
-                <Route path="/unauthorized" element={<Unauthorized />} />
-                <Route path="*" element={<NotFound />} />
-              </Routes>
-            </Suspense>
-          </MuiThemeProvider>
-        </DemoModeWrapper>
-      </ErrorBoundary>
+    <ThemeProvider theme={theme}>
+      <CssBaseline />
+      <AppProvider>
+        <AuthProvider>
+          <PropertyProvider>
+            <TenantProvider>
+              <PaymentProvider>
+                <NotificationProvider>
+                  <MessageProvider>
+                    <MaintenanceProvider>
+                    <Suspense fallback={<LoadingSpinner />}>
+                      <Routes>
+                        {/* Public routes */}
+                        <Route path="/login" element={<Login />} />
+                        <Route path="/register" element={<Register />} />
+                        <Route path="/forgot-password" element={<ForgotPassword />} />
+                        <Route path="/reset-password" element={<ResetPassword />} />
+                        <Route path="/verify-email" element={<VerifyEmail />} />
+                        <Route path="/unauthorized" element={<Unauthorized />} />
+                        
+                        {/* Protected routes with layout */}
+                        <Route path="/" element={
+                          <ProtectedRoute>
+                            <MainLayout>
+                              <WelcomePage />
+                            </MainLayout>
+                          </ProtectedRoute>
+                        } />
+                        
+                        <Route path="/dashboard" element={
+                          <ProtectedRoute>
+                            <MainLayout>
+                              <Dashboard />
+                            </MainLayout>
+                          </ProtectedRoute>
+                        } />
+                        
+                        <Route path="/overview" element={
+                          <ProtectedRoute>
+                            <MainLayout>
+                              <Overview />
+                            </MainLayout>
+                          </ProtectedRoute>
+                        } />
+                        
+                        <Route path="/calendar" element={
+                          <ProtectedRoute>
+                            <MainLayout>
+                              <Calendar />
+                            </MainLayout>
+                          </ProtectedRoute>
+                        } />
+                        
+                        <Route path="/properties" element={
+                          <ProtectedRoute>
+                            <MainLayout>
+                              <Properties />
+                            </MainLayout>
+                          </ProtectedRoute>
+                        } />
+                        
+                        <Route path="/properties/:id" element={
+                          <ProtectedRoute>
+                            <MainLayout>
+                              <PropertyDetail />
+                            </MainLayout>
+                          </ProtectedRoute>
+                        } />
+                        
+                        <Route path="/properties/new" element={
+                          <ProtectedRoute>
+                            <MainLayout>
+                              <PropertyForm />
+                            </MainLayout>
+                          </ProtectedRoute>
+                        } />
+                        
+                        <Route path="/properties/:id/edit" element={
+                          <ProtectedRoute>
+                            <MainLayout>
+                              <PropertyForm />
+                            </MainLayout>
+                          </ProtectedRoute>
+                        } />
+                        
+                        <Route path="/maintenance" element={
+                          <ProtectedRoute>
+                            <MainLayout>
+                              <Maintenance />
+                            </MainLayout>
+                          </ProtectedRoute>
+                        } />
+                        
+                        <Route path="/maintenance/:id" element={
+                          <ProtectedRoute>
+                            <MainLayout>
+                              <MaintenanceDetail />
+                            </MainLayout>
+                          </ProtectedRoute>
+                        } />
+                        
+                        <Route path="/payments" element={
+                          <ProtectedRoute>
+                            <MainLayout>
+                              <Payments />
+                            </MainLayout>
+                          </ProtectedRoute>
+                        } />
+                        
+                        <Route path="/payments/:id" element={
+                          <ProtectedRoute>
+                            <MainLayout>
+                              <PaymentDetail />
+                            </MainLayout>
+                          </ProtectedRoute>
+                        } />
+                        
+                        <Route path="/tenants" element={
+                          <ProtectedRoute>
+                            <MainLayout>
+                              <Tenants />
+                            </MainLayout>
+                          </ProtectedRoute>
+                        } />
+                        
+                        <Route path="/tenants/:id" element={
+                          <ProtectedRoute>
+                            <MainLayout>
+                              <TenantDetail />
+                            </MainLayout>
+                          </ProtectedRoute>
+                        } />
+                        
+                        <Route path="/tenants/new" element={
+                          <ProtectedRoute>
+                            <MainLayout>
+                              <TenantForm />
+                            </MainLayout>
+                          </ProtectedRoute>
+                        } />
+                        
+                        <Route path="/tenants/:id/edit" element={
+                          <ProtectedRoute>
+                            <MainLayout>
+                              <TenantForm />
+                            </MainLayout>
+                          </ProtectedRoute>
+                        } />
+                        
+                        <Route path="/messages" element={
+                          <ProtectedRoute>
+                            <MainLayout>
+                              <MessagesPage />
+                            </MainLayout>
+                          </ProtectedRoute>
+                        } />
+                        
+                        <Route path="/messages/:id" element={
+                          <ProtectedRoute>
+                            <MainLayout>
+                              <MessageDetail />
+                            </MainLayout>
+                          </ProtectedRoute>
+                        } />
+                        
+                        <Route path="/messages/new" element={
+                          <ProtectedRoute>
+                            <MainLayout>
+                              <MessageCreate />
+                            </MainLayout>
+                          </ProtectedRoute>
+                        } />
+                        
+                        <Route path="/notifications" element={
+                          <ProtectedRoute>
+                            <MainLayout>
+                              <Notifications />
+                            </MainLayout>
+                          </ProtectedRoute>
+                        } />
+                        
+                        <Route path="/notifications/:id" element={
+                          <ProtectedRoute>
+                            <MainLayout>
+                              <NotificationDetail />
+                            </MainLayout>
+                          </ProtectedRoute>
+                        } />
+                        
+                        <Route path="/activity" element={
+                          <ProtectedRoute>
+                            <MainLayout>
+                              <ActivityFeed />
+                            </MainLayout>
+                          </ProtectedRoute>
+                        } />
+                        
+                        <Route path="/profile" element={
+                          <ProtectedRoute>
+                            <MainLayout>
+                              <Profile />
+                            </MainLayout>
+                          </ProtectedRoute>
+                        } />
+                        
+                        <Route path="/settings" element={
+                          <ProtectedRoute>
+                            <MainLayout>
+                              <Settings />
+                            </MainLayout>
+                          </ProtectedRoute>
+                        } />
+                        
+                        <Route path="/support" element={
+                          <ProtectedRoute>
+                            <MainLayout>
+                              <Support />
+                            </MainLayout>
+                          </ProtectedRoute>
+                        } />
+                        
+                        {/* Admin routes */}
+                        <Route path="/admin/overview" element={
+                          <ProtectedRoute allowedRoles={['admin']}>
+                            <MainLayout>
+                              <AdminOverview />
+                            </MainLayout>
+                          </ProtectedRoute>
+                        } />
+                        
+                        <Route path="/admin/users" element={
+                          <ProtectedRoute allowedRoles={['admin']}>
+                            <MainLayout>
+                              <UserManagement />
+                            </MainLayout>
+                          </ProtectedRoute>
+                        } />
+                        
+                        {/* Placeholder admin routes - can be implemented later */}
+                        <Route path="/admin/properties" element={
+                          <ProtectedRoute allowedRoles={['admin']}>
+                            <MainLayout>
+                              <AdminProperties />
+                            </MainLayout>
+                          </ProtectedRoute>
+                        } />
+                        
+                        <Route path="/admin/tenants" element={
+                          <ProtectedRoute allowedRoles={['admin']}>
+                            <MainLayout>
+                              <AdminTenants />
+                            </MainLayout>
+                          </ProtectedRoute>
+                        } />
+                        
+                        <Route path="/admin/analytics" element={
+                          <ProtectedRoute allowedRoles={['admin']}>
+                            <MainLayout>
+                              <Overview />
+                            </MainLayout>
+                          </ProtectedRoute>
+                        } />
+                        
+                        <Route path="/admin/support" element={
+                          <ProtectedRoute allowedRoles={['admin']}>
+                            <MainLayout>
+                              <Support />
+                            </MainLayout>
+                          </ProtectedRoute>
+                        } />
+                        
+                        <Route path="/admin/settings" element={
+                          <ProtectedRoute allowedRoles={['admin']}>
+                            <MainLayout>
+                              <Settings />
+                            </MainLayout>
+                          </ProtectedRoute>
+                        } />
+                        
+                        <Route path="/admin/logs" element={
+                          <ProtectedRoute allowedRoles={['admin']}>
+                            <MainLayout>
+                              <ActivityFeed />
+                            </MainLayout>
+                          </ProtectedRoute>
+                        } />
+                        
+                        {/* Catch all route */}
+                        <Route path="*" element={<NotFound />} />
+                      </Routes>
+                    </Suspense>
+                  </MaintenanceProvider>
+                </MessageProvider>
+              </NotificationProvider>
+            </PaymentProvider>
+          </TenantProvider>
+        </PropertyProvider>
+      </AuthProvider>
+      </AppProvider>
+    </ThemeProvider>
   );
 }
+
+export default App;

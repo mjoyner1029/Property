@@ -71,8 +71,26 @@ def update_payment_route(payment_id):
     except Exception as e:
         logger.error(f"Error in update_payment_route: {str(e)}")
         return jsonify({"error": str(e)}), 500
-payment_bp.route('/tenant', methods=['GET'])(get_tenant_payments)
-payment_bp.route('/landlord', methods=['GET'])(get_landlord_payments)
+
+@payment_bp.route('/tenant', methods=['GET'])
+@jwt_required()
+def get_tenant_payments_route():
+    try:
+        result, status = get_tenant_payments()
+        return jsonify(result), status
+    except Exception as e:
+        logger.error(f"Error in get_tenant_payments_route: {str(e)}")
+        return jsonify({"error": str(e)}), 500
+
+@payment_bp.route('/landlord', methods=['GET'])
+@jwt_required()
+def get_landlord_payments_route():
+    try:
+        result, status = get_landlord_payments()
+        return jsonify(result), status
+    except Exception as e:
+        logger.error(f"Error in get_landlord_payments_route: {str(e)}")
+        return jsonify({"error": str(e)}), 500
 
 # Stripe checkout and history routes
 payment_bp.route('/checkout', methods=['POST'])(create_checkout_session)

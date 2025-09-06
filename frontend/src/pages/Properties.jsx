@@ -22,7 +22,7 @@ import SearchIcon from "@mui/icons-material/Search";
 import FilterListIcon from "@mui/icons-material/FilterList";
 import AddIcon from "@mui/icons-material/Add";
 import HomeIcon from "@mui/icons-material/Home";
-import { Layout, PageHeader, PropertyCard, Empty, LoadingSpinner } from "../components";
+import { PageHeader, PropertyCard, Empty, LoadingSpinner } from "../components";
 import { useProperty, useApp } from "../context";
 
 export default function Properties() {
@@ -45,13 +45,20 @@ export default function Properties() {
 
   // Fetch properties if not already available
   useEffect(() => {
-    if (properties.length === 0 && !loading) {
+    if ((!properties || properties.length === 0) && !loading) {
       fetchProperties();
     }
-  }, [properties.length, loading, fetchProperties]);
+  }, [properties, loading, fetchProperties]);
 
   // Filter and sort properties
-  const filteredProperties = properties
+  const safeProperties = Array.isArray(properties) ? properties : [];
+  
+  // Debug logging for troubleshooting
+  if (!Array.isArray(properties) && properties !== null && properties !== undefined) {
+    console.warn('Properties is not an array:', properties, typeof properties);
+  }
+  
+  const filteredProperties = safeProperties
     .filter(property => {
       // Search filter
       const matchesSearch = 
@@ -126,7 +133,7 @@ export default function Properties() {
   };
 
   return (
-    <Layout>
+    <Box>
       <PageHeader
         title="Properties"
         subtitle="Manage your properties and units"
@@ -361,6 +368,6 @@ export default function Properties() {
           </Button>
         </DialogActions>
       </Dialog>
-    </Layout>
+    </Box>
   );
 }

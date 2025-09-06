@@ -1,20 +1,24 @@
 import React from "react";
 import { createRoot } from "react-dom/client";
+import { BrowserRouter } from "react-router-dom";
 import "./index.css"; // Import CSS
 import App from "./App";
 
-// Check which entry point to use
-if (process.env.REACT_APP_DEMO_MODE === '1') {
-  // Import the demo entry point
-  import('./demo-entry');
-} else if (process.env.REACT_APP_ENTRY === 'dev') {
-  // Import the development entry point
-  import('./dev');
-} else {
-  // Standard application rendering
-  createRoot(document.getElementById("root")).render(
+console.log('[Index.js] Starting Asset Anchor Property Management Dashboard...');
+
+// Standard application rendering
+const container = document.getElementById("root");
+
+if (container) {
+  const root = createRoot(container);
+  
+  root.render(
     <React.StrictMode>
-      <App />
+      <BrowserRouter>
+        <App />
+      </BrowserRouter>
     </React.StrictMode>
   );
+} else {
+  console.error('[Index.js] Root container not found!');
 }

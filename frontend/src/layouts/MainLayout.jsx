@@ -28,11 +28,14 @@ import {
   Build as BuildIcon,
   AttachMoney as PaymentsIcon,
   People as TenantIcon,
+  People as PeopleIcon,
   Settings as SettingsIcon,
   Help as HelpIcon,
   Notifications as NotificationsIcon,
   KeyboardArrowDown as ArrowDownIcon,
-  Email as EmailIcon,
+  Timeline as TimelineIcon,
+  Analytics as AnalyticsIcon,
+  Security as SecurityIcon,
 } from '@mui/icons-material';
 import { useAuth } from '../context/AuthContext';
 import logo from '../assets/logo.png';
@@ -58,26 +61,39 @@ export default function MainLayout({ children }) {
   const getNavItems = () => {
     const items = [
       { text: 'Dashboard', icon: <DashboardIcon />, path: '/' },
-      { text: 'Properties', icon: <HomeIcon />, path: '/properties' },
-      { text: 'Maintenance', icon: <BuildIcon />, path: '/maintenance' },
     ];
     
-    if (user?.role === 'landlord' || user?.role === 'admin') {
+    if (user?.role === 'admin') {
+      // Admin-specific navigation
       items.push(
+        { text: 'System Overview', icon: <TimelineIcon />, path: '/admin/overview' },
+        { text: 'User Management', icon: <TenantIcon />, path: '/admin/users' },
+        { text: 'All Properties', icon: <HomeIcon />, path: '/admin/properties' },
+        { text: 'All Tenants', icon: <PeopleIcon />, path: '/admin/tenants' },
+        { text: 'Platform Analytics', icon: <AnalyticsIcon />, path: '/admin/analytics' },
+        { text: 'Support Center', icon: <HelpIcon />, path: '/admin/support' },
+        { text: 'System Settings', icon: <SettingsIcon />, path: '/admin/settings' },
+        { text: 'Audit Logs', icon: <SecurityIcon />, path: '/admin/logs' }
+      );
+    } else if (user?.role === 'landlord') {
+      // Landlord-specific navigation
+      items.push(
+        { text: 'Properties', icon: <HomeIcon />, path: '/properties' },
+        { text: 'Tenants', icon: <TenantIcon />, path: '/tenants' },
+        { text: 'Maintenance', icon: <BuildIcon />, path: '/maintenance' },
         { text: 'Payments', icon: <PaymentsIcon />, path: '/payments' },
-        { text: 'Tenants', icon: <TenantIcon />, path: '/tenants' }
+        { text: 'Settings', icon: <SettingsIcon />, path: '/settings' },
+        { text: 'Support', icon: <HelpIcon />, path: '/support' }
       );
     } else if (user?.role === 'tenant') {
+      // Tenant-specific navigation (already implemented)
       items.push(
-        { text: 'Pay Rent', icon: <PaymentsIcon />, path: '/pay-portal' }
+        { text: 'Maintenance', icon: <BuildIcon />, path: '/maintenance' },
+        { text: 'Payments', icon: <PaymentsIcon />, path: '/payments' },
+        { text: 'Settings', icon: <SettingsIcon />, path: '/settings' },
+        { text: 'Support', icon: <HelpIcon />, path: '/support' }
       );
     }
-    
-    items.push(
-      { text: 'Messages', icon: <EmailIcon />, path: '/messages' },
-      { text: 'Settings', icon: <SettingsIcon />, path: '/settings' },
-      { text: 'Support', icon: <HelpIcon />, path: '/support' }
-    );
     
     return items;
   };

@@ -1,7 +1,7 @@
 """merge heads
 
 Revision ID: 20250903_merge_heads
-Revises: 20250831_notification_updates, a1b2c3d4e5f6_alias
+Revises: 20250831_notification_updates, 7d4e5f6g7h8i
 Create Date: 2025-09-03 00:00:00.000000
 
 """
@@ -11,8 +11,8 @@ import sqlalchemy as sa
 
 # revision identifiers, used by Alembic.
 revision = '20250903_merge_heads'
-# Use tuple for merge migration
-down_revision = ('20250831_notification_updates', 'a1b2c3d4e5f6_alias')
+# Use tuple for merge migration - fixed to use correct heads
+down_revision = ('20250831_notification_updates', '7d4e5f6g7h8i')
 branch_labels = None
 depends_on = None
 
